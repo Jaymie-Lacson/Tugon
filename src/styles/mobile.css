@@ -1,0 +1,77 @@
+/* =============================================
+   TUGON — Global Mobile Responsive Utilities
+   Breakpoint: 768px
+   ============================================= */
+
+/* ── Touch targets ── */
+@media (max-width: 768px) {
+  /* Minimum 44×44 touch target for all buttons */
+  button { min-height: 44px; min-width: 44px; }
+  select { min-height: 44px; }
+  input  { min-height: 44px; }
+
+  /* ── Layout: bottom nav padding ── */
+  .page-content { padding-bottom: 72px !important; }
+
+  /* ── Dashboard KPI grid ── */
+  .kpi-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .kpi-grid > * { flex: unset !important; min-width: unset !important; }
+
+  /* ── Dashboard map+feed row ── */
+  .dashboard-row { flex-direction: column !important; }
+  .dashboard-row > * { flex: unset !important; width: 100% !important; min-width: unset !important; }
+
+  /* ── Charts row ── */
+  .charts-row { flex-direction: column !important; }
+  .charts-row > * { flex: unset !important; width: 100% !important; min-width: unset !important; }
+
+  /* ── Analytics metric cards ── */
+  .analytics-metrics { grid-template-columns: 1fr 1fr !important; }
+
+  /* ── Analytics charts middle row ── */
+  .analytics-middle-row { flex-direction: column !important; }
+  .analytics-middle-row > * { flex: unset !important; width: 100% !important; }
+
+  /* ── Analytics bottom row ── */
+  .analytics-bottom-row { flex-direction: column !important; }
+  .analytics-bottom-row > * { flex: unset !important; width: 100% !important; }
+
+  /* ── Reports DSS stats row ── */
+  .dss-stats-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .dss-stats-row > * { flex: unset !important; }
+
+  /* ── Reports tabs ── */
+  .reports-tabs { width: 100% !important; overflow-x: auto !important; }
+  .reports-tabs > button { padding: 10px 12px !important; font-size: 11px !important; }
+
+  /* ── Incidents: hide table, show cards ── */
+  .incidents-table-wrapper { display: none !important; }
+  .incidents-mobile-cards  { display: flex   !important; }
+
+  /* ── Incidents: filter bar stacks ── */
+  .incidents-filter-bar { flex-direction: column !important; align-items: stretch !important; }
+  .incidents-filter-bar > * { flex: unset !important; width: 100% !important; box-sizing: border-box !important; }
+
+  /* ── Incidents: page header row ── */
+  .incidents-page-header { flex-direction: column !important; align-items: stretch !important; }
+  .incidents-page-header .log-btn { width: 100% !important; justify-content: center !important; min-height: 48px !important; }
+
+  /* ── Map view: hide panel, show as sheet ── */
+  .map-panel { display: none !important; }
+  .map-panel.panel-open { display: flex !important; position: fixed !important; top: 56px !important; left: 0 !important; right: 0 !important; bottom: 72px !important; z-index: 200 !important; width: 100% !important; min-width: unset !important; border-right: none !important; box-shadow: none !important; }
+  .map-toggle-btn { display: flex !important; }
+  .map-header-title { display: none !important; }
+
+  /* ── Super Admin: bottom nav ── */
+  .sa-bottom-nav { display: flex !important; }
+  .sa-main-content { padding-bottom: 72px !important; }
+
+  /* ── Bottom nav safe area ── */
+  .bottom-nav-bar { padding-bottom: max(8px, env(safe-area-inset-bottom)) !important; }
+}
+
+@media (min-width: 769px) {
+  .incidents-mobile-cards { display: none !important; }
+  .map-toggle-btn { display: none; }
+  .sa-bottom-nav { display: none !important; }
+}

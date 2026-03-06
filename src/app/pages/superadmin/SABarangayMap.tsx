@@ -1,0 +1,509 @@
+import React, { useState, useRef } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import {
+  MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation,
+  Filter,
+} from 'lucide-react';
+import { barangays, mapIncidents, heatCircles } from '../../data/superAdminData';
+
+// ── Incident type styling ────────────────────────────────────────────────────
+const INCIDENT_COLORS: Record<string, string> = {
+  fire: '#B91C1C', flood: '#1D4ED8', accident: '#B4730A',
+  medical: '#0F766E', crime: '#374151', infrastructure: '#374151',
+};
+const INCIDENT_EMOJI: Record<string, string> = {
+  fire: '🔥', flood: '💧', accident: '🚗',
+  medical: '❤️', crime: '🔒', infrastructure: '⚡',
+};
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: '#B91C1C', high: '#EA580C', medium: '#B4730A', low: '#059669',
+};
+
+// ── Custom DivIcon factory ───────────────────────────────────────────────────
+function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon {
+  const color  = INCIDENT_COLORS[type] ?? '#374151';
+  const sColor = SEVERITY_COLORS[severity] ?? color;
+  const size   = selected ? 38 : (severity === 'critical' ? 34 : 30);
+  const pulse  = severity === 'critical';
+
+  const html = `
+    <div style="position:relative;width:${size}px;height:${size + 8}px;display:flex;flex-direction:column;align-items:center;">
+      ${pulse ? `<div style="position:absolute;top:0;left:0;right:0;bottom:8px;border-radius:50%;background:${color};opacity:.18;animation:sa-ping 1.8s ease-out infinite;"></div>` : ''}
+      <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${selected ? `3px solid white` : '2px solid rgba(255,255,255,.85)'};box-shadow:${selected ? `0 0 0 3px ${sColor},0 4px 14px rgba(0,0,0,.35)` : '0 2px 8px rgba(0,0,0,.28)'};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.42)}px;cursor:pointer;">
+        ${INCIDENT_EMOJI[type] ?? '📍'}
+      </div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${color};margin-top:-1px;"></div>
+    </div>`;
+
+  return L.divIcon({ html, className: '', iconSize: [size, size + 8], iconAnchor: [size / 2, size + 8] });
+}
+
+// ── Map zoom controller ──────────────────────────────────────────────────────
+function ZoomController() {
+  const map = useMap();
+  return (
+    <div style={{ position: 'absolute', top: 80, right: 10, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {[
+        { label: '+', action: () => map.zoomIn() },
+        { label: '−', action: () => map.zoomOut() },
+        { label: '⌂', action: () => map.flyTo([14.2055, 121.1540], 15, { animate: true }) },
+      ].map(btn => (
+        <button
+          key={btn.label}
+          onClick={btn.action}
+          style={{
+            width: 32, height: 32, border: '1px solid #E5E7EB', borderRadius: 6,
+            background: 'white', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            color: '#374151', boxShadow: '0 1px 4px rgba(0,0,0,.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >{btn.label}</button>
+      ))}
+    </div>
+  );
+}
+
+const TUGON_CENTER: [number, number] = [14.2060, 121.1548];
+
+const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
+  normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
+  elevated: { label: 'ELEVATED', color: '#B4730A', bg: '#FEF3C7' },
+  critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
+};
+
+export default function SABarangayMap() {
+  const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<typeof mapIncidents[0] | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [filterType, setFilterType] = useState<string>('all');
+
+  const selectedBrgy = barangays.find(b => b.id === selectedBarangay);
+  const filteredIncidents = filterType === 'all' ? mapIncidents : mapIncidents.filter(i => i.type === filterType);
+
+  return (
+    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Barangay Boundary Map</h1>
+          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
+            OpenStreetMap — Barangays 251, 252 & 256 · Municipality of Tugon, Region IV-A
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setShowHeatmap(h => !h)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: showHeatmap ? '#1E3A8A' : 'white',
+              color: showHeatmap ? 'white' : '#374151',
+              border: '1px solid #E5E7EB', borderRadius: 8,
+              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <Layers size={13} /> {showHeatmap ? 'Hide Heatmap' : 'Show Heatmap'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
+        {/* ── OSM Map ── */}
+        <div style={{
+          background: 'white', borderRadius: 16, overflow: 'hidden',
+          boxShadow: '0 2px 12px rgba(0,0,0,.08)', border: '1px solid #E5E7EB',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {/* Toolbar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
+            borderBottom: '1px solid #F3F4F6', background: '#FAFAFA', flexWrap: 'wrap',
+          }}>
+            <Filter size={13} color="#6B7280" />
+            <span style={{ color: '#6B7280', fontSize: 12, fontWeight: 600 }}>Filter:</span>
+            {['all', 'fire', 'flood', 'accident', 'medical', 'crime'].map(t => (
+              <button
+                key={t}
+                onClick={() => setFilterType(t)}
+                style={{
+                  padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer', border: '1px solid transparent', textTransform: 'capitalize',
+                  background: filterType === t ? (INCIDENT_COLORS[t] ?? '#374151') : '#F3F4F6',
+                  color: filterType === t ? 'white' : '#6B7280',
+                }}
+              >
+                {INCIDENT_EMOJI[t] ?? ''} {t === 'all' ? 'All Types' : t}
+              </button>
+            ))}
+            <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
+              {filteredIncidents.length} incidents shown
+            </span>
+          </div>
+
+          {/* Map */}
+          <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
+            <MapContainer
+              center={TUGON_CENTER}
+              zoom={15}
+              style={{ width: '100%', height: '100%', minHeight: 500 }}
+              zoomControl={false}
+              attributionControl={true}
+              scrollWheelZoom={true}
+            >
+              {/* OSM tiles */}
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+              />
+
+              {/* Barangay boundary polygons */}
+              {barangays.map(b => (
+                <Polygon
+                  key={b.id}
+                  positions={b.boundary}
+                  pathOptions={{
+                    color: b.color,
+                    fillColor: b.color,
+                    fillOpacity: selectedBarangay === b.id ? 0.22 : 0.10,
+                    weight: selectedBarangay === b.id ? 3 : 2,
+                    dashArray: undefined,
+                  }}
+                  eventHandlers={{
+                    click: () => setSelectedBarangay(selectedBarangay === b.id ? null : b.id),
+                  }}
+                >
+                  <Tooltip sticky direction="center" opacity={1}>
+                    <div style={{ fontSize: 12 }}>
+                      <div style={{ fontWeight: 700, color: b.color }}>{b.name}</div>
+                      <div style={{ color: '#475569' }}>Pop: {b.population.toLocaleString()}</div>
+                      <div style={{ color: '#6B7280' }}>Active: {b.activeIncidents} incidents</div>
+                    </div>
+                  </Tooltip>
+                </Polygon>
+              ))}
+
+              {/* Heatmap circles */}
+              {showHeatmap && heatCircles.map((c, i) => (
+                <Circle
+                  key={`heat-${i}`}
+                  center={[c.lat, c.lng]}
+                  radius={c.radius}
+                  pathOptions={{
+                    color: c.color,
+                    fillColor: c.color,
+                    fillOpacity: c.opacity,
+                    weight: 0,
+                  }}
+                />
+              ))}
+
+              {/* Incident markers */}
+              {filteredIncidents.map(inc => (
+                <Marker
+                  key={inc.id}
+                  position={[inc.lat, inc.lng]}
+                  icon={makeIcon(inc.type, inc.severity, selectedIncident?.id === inc.id)}
+                  zIndexOffset={inc.severity === 'critical' ? 500 : 0}
+                  eventHandlers={{
+                    click: () => setSelectedIncident(selectedIncident?.id === inc.id ? null : inc),
+                  }}
+                >
+                  <Tooltip direction="top" offset={[0, -32]} opacity={1}>
+                    <div style={{ fontSize: 11, minWidth: 140 }}>
+                      <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>{inc.label}</div>
+                      <div style={{ color: '#475569' }}>{inc.barangay}</div>
+                      <div style={{
+                        color: SEVERITY_COLORS[inc.severity], fontWeight: 600,
+                        textTransform: 'capitalize', marginTop: 2,
+                      }}>
+                        {inc.type} · {inc.severity}
+                      </div>
+                    </div>
+                  </Tooltip>
+                </Marker>
+              ))}
+
+              {/* Custom zoom controls */}
+              <ZoomController />
+            </MapContainer>
+
+            {/* Map legend overlay */}
+            <div style={{
+              position: 'absolute', bottom: 28, left: 10, zIndex: 1000,
+              background: 'rgba(255,255,255,0.97)', borderRadius: 10, padding: '10px 12px',
+              boxShadow: '0 2px 10px rgba(0,0,0,.15)', border: '1px solid #E5E7EB', minWidth: 140,
+            }}>
+              <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 7 }}>
+                Map Legend
+              </div>
+              {barangays.map(b => (
+                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <div style={{ width: 12, height: 12, borderRadius: 3, background: b.color, border: `2px solid ${b.color}`, opacity: 0.8 }} />
+                  <span style={{ color: '#374151', fontSize: 10 }}>{b.name}</span>
+                </div>
+              ))}
+              <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
+                {Object.entries(INCIDENT_EMOJI).map(([type, emoji]) => (
+                  <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                    <span style={{ fontSize: 11 }}>{emoji}</span>
+                    <span style={{ color: '#6B7280', fontSize: 9, textTransform: 'capitalize' }}>{type}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* OSM attribution note */}
+            <div style={{
+              position: 'absolute', bottom: 5, right: 10, zIndex: 1000,
+              color: '#9CA3AF', fontSize: 9,
+            }}>
+              Map data © OpenStreetMap contributors
+            </div>
+          </div>
+        </div>
+
+        {/* ── Side panel ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* Barangay detail card */}
+          {selectedBrgy ? (
+            <div style={{
+              background: 'white', borderRadius: 14, overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
+            }}>
+              <div style={{ height: 4, background: selectedBrgy.color }} />
+              <div style={{ padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                      <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{selectedBrgy.name}</span>
+                      {(() => {
+                        const al = alertLevelConfig[selectedBrgy.alertLevel];
+                        return (
+                          <span style={{ background: al.bg, color: al.color, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, letterSpacing: '0.06em' }}>
+                            {al.label}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ color: '#6B7280', fontSize: 11 }}>{selectedBrgy.district}</div>
+                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>Capt. {selectedBrgy.captain}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedBarangay(null)}
+                    style={{ background: '#F3F4F6', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#6B7280', fontSize: 11 }}
+                  >✕</button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 12 }}>
+                  {[
+                    { label: 'Population', value: selectedBrgy.population.toLocaleString() },
+                    { label: 'Area', value: selectedBrgy.area },
+                    { label: 'Active Inc.', value: selectedBrgy.activeIncidents },
+                    { label: 'Resp. Rate', value: `${selectedBrgy.responseRate}%` },
+                    { label: 'Avg Response', value: `${selectedBrgy.avgResponseMin}m` },
+                    { label: 'Responders', value: selectedBrgy.responders },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px' }}>
+                      <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>{s.value}</div>
+                      <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 1 }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Coord info */}
+                <div style={{
+                  background: '#F0F4FF', borderRadius: 8, padding: '8px 10px',
+                  border: '1px solid #DBEAFE',
+                }}>
+                  <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Navigation size={10} color="#1D4ED8" /> OSM Coordinates
+                  </div>
+                  <div style={{ color: '#6B7280', fontSize: 9, fontFamily: 'monospace' }}>
+                    Center: {selectedBrgy.center[0].toFixed(4)}°N, {selectedBrgy.center[1].toFixed(4)}°E
+                  </div>
+                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>
+                    {selectedBrgy.boundary.length}-vertex polygon boundary
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              background: 'white', borderRadius: 14, padding: 20,
+              boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minHeight: 140,
+              justifyContent: 'center',
+            }}>
+              <MapPin size={28} color="#D1D5DB" />
+              <div style={{ color: '#9CA3AF', fontSize: 12, textAlign: 'center' }}>
+                Click a barangay boundary on the map to view details
+              </div>
+            </div>
+          )}
+
+          {/* Active incidents list */}
+          <div style={{
+            background: 'white', borderRadius: 14, padding: 16,
+            boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB', flex: 1,
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700, marginBottom: 10 }}>
+              {selectedBrgy ? `${selectedBrgy.name} Incidents` : 'All Active Incidents'}
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7, maxHeight: 260 }}>
+              {filteredIncidents
+                .filter(inc => !selectedBrgy || inc.barangay === selectedBrgy.name)
+                .map(inc => {
+                  const color = INCIDENT_COLORS[inc.type] ?? '#6B7280';
+                  const sevBg: Record<string, string> = { critical: '#FEE2E2', high: '#FFEDD5', medium: '#FEF3C7', low: '#D1FAE5' };
+                  const sevCol: Record<string, string> = { critical: '#B91C1C', high: '#EA580C', medium: '#B4730A', low: '#059669' };
+                  const isSel = selectedIncident?.id === inc.id;
+                  return (
+                    <div
+                      key={inc.id}
+                      onClick={() => setSelectedIncident(isSel ? null : inc)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px',
+                        borderRadius: 8, cursor: 'pointer',
+                        background: isSel ? `${color}12` : '#F9FAFB',
+                        border: `1px solid ${isSel ? color + '40' : '#F3F4F6'}`,
+                        transition: 'all .15s',
+                      }}
+                    >
+                      <div style={{
+                        width: 26, height: 26, borderRadius: 6, background: color, flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
+                      }}>
+                        {INCIDENT_EMOJI[inc.type] ?? '📍'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: '#1E293B', fontSize: 11, fontWeight: 600 }}>{inc.label}</div>
+                        <div style={{ color: '#9CA3AF', fontSize: 10 }}>{inc.barangay}</div>
+                      </div>
+                      <div style={{
+                        background: sevBg[inc.severity], color: sevCol[inc.severity],
+                        fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 4, textTransform: 'capitalize',
+                      }}>{inc.severity}</div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Quick barangay buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {barangays.map(b => {
+              const al = alertLevelConfig[b.alertLevel];
+              const isSel = selectedBarangay === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setSelectedBarangay(isSel ? null : b.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: isSel ? `${b.color}14` : 'white',
+                    border: `1px solid ${isSel ? b.color + '50' : '#E5E7EB'}`,
+                    borderRadius: 10, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
+                    boxShadow: isSel ? `0 2px 8px ${b.color}22` : '0 1px 3px rgba(0,0,0,.05)',
+                  }}
+                >
+                  <div style={{ width: 10, height: 10, borderRadius: 3, background: b.color, flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: '#0F172A', fontSize: 12, fontWeight: 600 }}>{b.name}</div>
+                    <div style={{ color: '#9CA3AF', fontSize: 10 }}>
+                      {b.center[0].toFixed(4)}°N, {b.center[1].toFixed(4)}°E
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{
+                      background: al.bg, color: al.color,
+                      fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+                    }}>{al.label}</span>
+                    <span style={{ color: '#374151', fontSize: 11, fontWeight: 700 }}>{b.activeIncidents}</span>
+                    <AlertTriangle size={10} color="#9CA3AF" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Comparison table */}
+      <div style={{
+        background: 'white', borderRadius: 14, padding: '18px 20px', marginTop: 14,
+        boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
+      }}>
+        <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>Barangay Comparison Summary</div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #F3F4F6' }}>
+                {['Barangay', 'District', 'Population', 'Area', 'Captain', 'Alert Level', 'Active', 'Response Rate', 'Avg Response', 'OSM Center'].map(h => (
+                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: '#9CA3AF', fontWeight: 600, fontSize: 10, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {barangays.map((b, i) => {
+                const al = alertLevelConfig[b.alertLevel];
+                return (
+                  <tr
+                    key={b.id}
+                    style={{
+                      borderBottom: i < barangays.length - 1 ? '1px solid #F9FAFB' : 'none',
+                      background: selectedBarangay === b.id ? `${b.color}08` : 'transparent',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
+                    onMouseEnter={e => { if (selectedBarangay !== b.id) (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; }}
+                    onMouseLeave={e => { if (selectedBarangay !== b.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  >
+                    <td style={{ padding: '10px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 2, background: b.color, flexShrink: 0 }} />
+                        <span style={{ color: '#0F172A', fontWeight: 600 }}>{b.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: '#6B7280' }}>{b.district}</td>
+                    <td style={{ padding: '10px 12px', color: '#374151', fontWeight: 600 }}>{b.population.toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', color: '#6B7280' }}>{b.area}</td>
+                    <td style={{ padding: '10px 12px', color: '#374151' }}>{b.captain}</td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span style={{ background: al.bg, color: al.color, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{al.label}</span>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: b.activeIncidents > 8 ? '#B91C1C' : '#374151', fontWeight: 700 }}>{b.activeIncidents}</td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 60, height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${b.responseRate}%`, background: b.responseRate >= 90 ? '#059669' : '#B4730A', borderRadius: 3 }} />
+                        </div>
+                        <span style={{ color: '#374151', fontWeight: 600 }}>{b.responseRate}%</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: b.avgResponseMin > 10 ? '#B91C1C' : '#059669', fontWeight: 600 }}>
+                      {b.avgResponseMin} min
+                    </td>
+                    <td style={{ padding: '10px 12px', color: '#6B7280', fontSize: 10, fontFamily: 'monospace' }}>
+                      {b.center[0].toFixed(4)}°N<br />{b.center[1].toFixed(4)}°E
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes sa-ping {
+          0%   { transform: scale(1);   opacity: .18; }
+          70%  { transform: scale(2.5); opacity: 0;   }
+          100% { transform: scale(2.5); opacity: 0;   }
+        }
+      `}</style>
+    </div>
+  );
+}

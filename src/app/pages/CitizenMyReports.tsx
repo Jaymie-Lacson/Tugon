@@ -1,0 +1,1232 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  Shield, ChevronLeft, Search, Filter, X, ChevronRight,
+  MapPin, Clock, FileText, User, Calendar, Camera, Mic,
+  Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
+  Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
+  MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
+  ChevronDown, SlidersHorizontal, Info,
+} from 'lucide-react';
+
+/* ══════════════════════════════════════════════════════════════════
+   CITIZEN REPORT STATUS TYPES
+══════════════════════════════════════════════════════════════════ */
+export type CitizenReportStatus =
+  | 'submitted'
+  | 'under_review'
+  | 'in_progress'
+  | 'resolved'
+  | 'closed'
+  | 'unresolvable';
+
+export type CitizenReportType =
+  | 'fire' | 'pollution' | 'noise' | 'crime' | 'road_hazard'
+  | 'flood' | 'accident' | 'medical' | 'infrastructure' | 'other';
+
+export interface TimelineEvent {
+  status: CitizenReportStatus | 'created';
+  label: string;
+  description: string;
+  timestamp: string;
+  actor: string;
+  actorRole: string;
+  note?: string;
+}
+
+export interface CitizenReport {
+  id: string;
+  type: CitizenReportType;
+  status: CitizenReportStatus;
+  location: string;
+  barangay: string;
+  district: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  affectedCount: string | null;
+  submittedAt: string;
+  updatedAt: string;
+  hasPhotos: boolean;
+  photoCount: number;
+  hasAudio: boolean;
+  assignedOfficer: string | null;
+  assignedUnit: string | null;
+  resolutionNote: string | null;
+  timeline: TimelineEvent[];
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STATUS CONFIG
+══════════════════════════════════════════════════════════════════ */
+export const citizenStatusConfig: Record<CitizenReportStatus, {
+  label: string; color: string; bg: string; border: string;
+  dotColor: string; icon: React.FC<{ size?: number }>; step: number;
+  filterGroup: 'active' | 'resolved';
+  description: string;
+}> = {
+  submitted: {
+    label: 'Submitted', color: '#1E3A8A', bg: '#EFF6FF', border: '#BFDBFE',
+    dotColor: '#3B82F6', icon: FileText, step: 1, filterGroup: 'active',
+    description: 'Your report has been received by the system.',
+  },
+  under_review: {
+    label: 'Under Review', color: '#B4730A', bg: '#FFFBEB', border: '#FDE68A',
+    dotColor: '#F59E0B', icon: Eye, step: 2, filterGroup: 'active',
+    description: 'Barangay officials are reviewing your report.',
+  },
+  in_progress: {
+    label: 'In Progress', color: '#0F766E', bg: '#F0FDFA', border: '#99F6E4',
+    dotColor: '#14B8A6', icon: RefreshCw, step: 3, filterGroup: 'active',
+    description: 'Responders have been dispatched to the scene.',
+  },
+  resolved: {
+    label: 'Resolved', color: '#059669', bg: '#ECFDF5', border: '#6EE7B7',
+    dotColor: '#10B981', icon: CheckCircle2, step: 4, filterGroup: 'resolved',
+    description: 'The incident has been successfully resolved.',
+  },
+  closed: {
+    label: 'Closed', color: '#475569', bg: '#F8FAFC', border: '#CBD5E1',
+    dotColor: '#94A3B8', icon: XCircle, step: 4, filterGroup: 'resolved',
+    description: 'This case has been officially closed.',
+  },
+  unresolvable: {
+    label: 'Unresolvable', color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA',
+    dotColor: '#EF4444', icon: Ban, step: 4, filterGroup: 'resolved',
+    description: 'This report could not be resolved at this time.',
+  },
+};
+
+const typeConfig: Record<CitizenReportType, {
+  label: string; color: string; bg: string; icon: React.FC<{ size?: number }>;
+}> = {
+  fire:          { label: 'Fire',           color: '#B91C1C', bg: '#FEE2E2', icon: Flame },
+  pollution:     { label: 'Pollution',      color: '#0F766E', bg: '#CCFBF1', icon: Wind },
+  noise:         { label: 'Noise',          color: '#7C3AED', bg: '#EDE9FE', icon: Volume2 },
+  crime:         { label: 'Crime',          color: '#1E3A8A', bg: '#DBEAFE', icon: AlertCircle },
+  road_hazard:   { label: 'Road Hazard',    color: '#B4730A', bg: '#FEF3C7', icon: AlertTriangle },
+  flood:         { label: 'Flood',          color: '#0369A1', bg: '#E0F2FE', icon: Droplets },
+  accident:      { label: 'Accident',       color: '#C2410C', bg: '#FFEDD5', icon: Car },
+  medical:       { label: 'Medical',        color: '#B91C1C', bg: '#FEE2E2', icon: Activity },
+  infrastructure:{ label: 'Infrastructure', color: '#92400E', bg: '#FEF3C7', icon: Zap },
+  other:         { label: 'Other',          color: '#475569', bg: '#F1F5F9', icon: MoreHorizontal },
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   MOCK DATA — 9 reports covering all 6 statuses
+══════════════════════════════════════════════════════════════════ */
+const MY_REPORTS: CitizenReport[] = [
+  {
+    id: 'MY-2026-009',
+    type: 'noise',
+    status: 'submitted',
+    location: 'Purok 6, near basketball court',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Extremely loud music from a nearby establishment every night past midnight. Affecting sleep and daily routine of many residents.',
+    severity: 'low',
+    affectedCount: '21–50',
+    submittedAt: '2026-03-06T09:30:00',
+    updatedAt: '2026-03-06T09:30:00',
+    hasPhotos: false, photoCount: 0, hasAudio: true,
+    assignedOfficer: null, assignedUnit: null, resolutionNote: null,
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report via the TUGON Citizen Portal.', timestamp: '2026-03-06T09:30:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Your report has been logged and assigned a tracking number.', timestamp: '2026-03-06T09:30:22', actor: 'TUGON System', actorRole: 'Automated' },
+    ],
+  },
+  {
+    id: 'MY-2026-008',
+    type: 'road_hazard',
+    status: 'under_review',
+    location: 'Main Road junction near Barangay Hall',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Large pothole almost 3 feet wide on the main road near the barangay hall. Several motorbikes have already fallen. Very dangerous especially at night.',
+    severity: 'medium',
+    affectedCount: '6–20',
+    submittedAt: '2026-03-05T16:45:00',
+    updatedAt: '2026-03-05T18:10:00',
+    hasPhotos: true, photoCount: 3, hasAudio: false,
+    assignedOfficer: 'Kagawad Maria Santos', assignedUnit: 'DPWH Coordination',
+    resolutionNote: null,
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report via the TUGON Citizen Portal.', timestamp: '2026-03-05T16:45:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged and assigned tracking number MY-2026-008.', timestamp: '2026-03-05T16:45:15', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Kagawad Maria Santos has picked up your report for review. Photo evidence noted.', timestamp: '2026-03-05T18:10:00', actor: 'Kagawad Maria Santos', actorRole: 'Barangay Official', note: 'Photos received. Forwarding to DPWH.' },
+    ],
+  },
+  {
+    id: 'MY-2026-007',
+    type: 'crime',
+    status: 'in_progress',
+    location: 'Purok 2, behind the market area',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Suspicious individuals spotted loitering near the sari-sari stores at night. Possible drug activity. Residents are afraid to go out.',
+    severity: 'high',
+    affectedCount: '21–50',
+    submittedAt: '2026-03-05T22:00:00',
+    updatedAt: '2026-03-06T02:30:00',
+    hasPhotos: true, photoCount: 1, hasAudio: true,
+    assignedOfficer: 'PO2 Ramon Cruz', assignedUnit: 'PNP Mobile Patrol Unit 3',
+    resolutionNote: null,
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report via the TUGON Citizen Portal.', timestamp: '2026-03-05T22:00:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged with HIGH priority flag.', timestamp: '2026-03-05T22:00:18', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Report escalated to PNP unit due to crime classification.', timestamp: '2026-03-05T22:15:00', actor: 'Brgy. Captain Jose Reyes', actorRole: 'Barangay Captain' },
+      { status: 'in_progress', label: 'Responders Dispatched', description: 'PNP Mobile Patrol Unit 3 deployed to your reported location. Area under surveillance.', timestamp: '2026-03-06T02:30:00', actor: 'PO2 Ramon Cruz', actorRole: 'PNP Officer', note: 'Patrol dispatched. Area being monitored.' },
+    ],
+  },
+  {
+    id: 'MY-2026-006',
+    type: 'flood',
+    status: 'in_progress',
+    location: 'Near the creek bridge, Purok 1',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Water level at the creek near Purok 1 is rising fast after the heavy rain. The bridge might get submerged. Several houses along the bank are at risk.',
+    severity: 'critical',
+    affectedCount: '21–50',
+    submittedAt: '2026-03-06T04:12:00',
+    updatedAt: '2026-03-06T05:00:00',
+    hasPhotos: true, photoCount: 2, hasAudio: true,
+    assignedOfficer: 'MDRRMO Coord. Ana Lim', assignedUnit: 'MDRRMO Rapid Response Team',
+    resolutionNote: null,
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report via the TUGON Citizen Portal.', timestamp: '2026-03-06T04:12:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'CRITICAL priority assigned. Immediate escalation triggered.', timestamp: '2026-03-06T04:12:10', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'MDRRMO Notified', description: 'Municipal Disaster Risk Reduction Office alerted for immediate action.', timestamp: '2026-03-06T04:20:00', actor: 'TUGON Duty Officer', actorRole: 'System Operator', note: 'Critical report fast-tracked.' },
+      { status: 'in_progress', label: 'Team Deployed', description: 'MDRRMO Rapid Response Team en route. Pre-emptive evacuation advisory issued for Purok 1.', timestamp: '2026-03-06T05:00:00', actor: 'MDRRMO Coord. Ana Lim', actorRole: 'MDRRMO Officer' },
+    ],
+  },
+  {
+    id: 'MY-2026-005',
+    type: 'infrastructure',
+    status: 'resolved',
+    location: 'Street lamp post No. 12, Purok 4',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Street lamp near the entrance of Purok 4 has been out for two weeks. Very dark at night and residents feel unsafe walking home.',
+    severity: 'low',
+    affectedCount: '6–20',
+    submittedAt: '2026-03-02T09:15:00',
+    updatedAt: '2026-03-04T17:45:00',
+    hasPhotos: true, photoCount: 1, hasAudio: false,
+    assignedOfficer: 'Kagawad Ben Torres', assignedUnit: 'MERALCO Coordination',
+    resolutionNote: 'MERALCO technicians replaced the faulty ballast and bulb assembly. Lamp post is now operational.',
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report via the TUGON Citizen Portal.', timestamp: '2026-03-02T09:15:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged and assigned tracking number MY-2026-005.', timestamp: '2026-03-02T09:15:08', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Infrastructure report forwarded to Kagawad Ben Torres for assessment.', timestamp: '2026-03-02T11:00:00', actor: 'Kagawad Ben Torres', actorRole: 'Barangay Official' },
+      { status: 'in_progress', label: 'Repair Scheduled', description: 'MERALCO contacted. Repair crew scheduled for March 4. Residents advised.', timestamp: '2026-03-03T09:30:00', actor: 'Kagawad Ben Torres', actorRole: 'Barangay Official', note: 'Repair crew to arrive March 4 AM.' },
+      { status: 'resolved', label: 'Issue Resolved', description: 'Street lamp post No. 12 is now fully operational. Repair verified by barangay volunteer.', timestamp: '2026-03-04T17:45:00', actor: 'Kagawad Ben Torres', actorRole: 'Barangay Official', note: 'MERALCO technicians replaced the faulty ballast and bulb assembly. Lamp post is now operational.' },
+    ],
+  },
+  {
+    id: 'MY-2026-004',
+    type: 'pollution',
+    status: 'resolved',
+    location: 'Behind the public market, drainage area',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'A pile of garbage has been dumped illegally near the drainage causing foul smell and health hazard. Been there for at least 5 days.',
+    severity: 'medium',
+    affectedCount: '21–50',
+    submittedAt: '2026-02-28T14:20:00',
+    updatedAt: '2026-03-01T16:00:00',
+    hasPhotos: true, photoCount: 4, hasAudio: false,
+    assignedOfficer: 'Kagawad Rosa Mendez', assignedUnit: 'Sanitation & Cleanliness Committee',
+    resolutionNote: 'Barangay sanitation crew cleared the illegal dumping site. Warning notice posted. Culprit identified and given formal citation.',
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report with 4 photos attached.', timestamp: '2026-02-28T14:20:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged and assigned tracking number MY-2026-004.', timestamp: '2026-02-28T14:20:11', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Forwarded to Sanitation Committee. Photos reviewed.', timestamp: '2026-02-28T15:00:00', actor: 'Kagawad Rosa Mendez', actorRole: 'Barangay Official' },
+      { status: 'in_progress', label: 'Cleanup Dispatched', description: 'Sanitation crew dispatched to location. Cleanup estimated 2 hours.', timestamp: '2026-03-01T08:00:00', actor: 'Kagawad Rosa Mendez', actorRole: 'Barangay Official' },
+      { status: 'resolved', label: 'Issue Resolved', description: 'Site cleaned. Formal citation issued to the responsible party.', timestamp: '2026-03-01T16:00:00', actor: 'Kagawad Rosa Mendez', actorRole: 'Barangay Official', note: 'Barangay sanitation crew cleared the illegal dumping site. Warning notice posted. Culprit identified and given formal citation.' },
+    ],
+  },
+  {
+    id: 'MY-2026-003',
+    type: 'road_hazard',
+    status: 'closed',
+    location: 'National Highway near waiting shed',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Deep excavation left unguarded by contractor at night on the main highway. No barricades or warning lights. Very dangerous.',
+    severity: 'high',
+    affectedCount: '50+',
+    submittedAt: '2026-02-25T21:10:00',
+    updatedAt: '2026-02-27T10:00:00',
+    hasPhotos: true, photoCount: 2, hasAudio: false,
+    assignedOfficer: 'Engr. Lito Bautista', assignedUnit: 'DPWH District Engineering Office',
+    resolutionNote: 'Contractor was ordered to install proper barricades and signage. DPWH inspection completed. Case closed.',
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report with 2 photos.', timestamp: '2026-02-25T21:10:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'HIGH priority road hazard logged.', timestamp: '2026-02-25T21:10:09', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Escalated to DPWH due to highway involvement.', timestamp: '2026-02-25T22:00:00', actor: 'Brgy. Captain Jose Reyes', actorRole: 'Barangay Captain' },
+      { status: 'in_progress', label: 'Action Taken', description: 'DPWH issued order to contractor to install barricades immediately.', timestamp: '2026-02-26T07:30:00', actor: 'Engr. Lito Bautista', actorRole: 'DPWH Engineer' },
+      { status: 'resolved', label: 'Hazard Remediated', description: 'Barricades and warning lights installed. Site secured.', timestamp: '2026-02-26T14:00:00', actor: 'Engr. Lito Bautista', actorRole: 'DPWH Engineer' },
+      { status: 'closed', label: 'Case Closed', description: 'DPWH inspection passed. Contractor compliance verified. Case officially closed.', timestamp: '2026-02-27T10:00:00', actor: 'Engr. Lito Bautista', actorRole: 'DPWH Engineer', note: 'Contractor was ordered to install proper barricades and signage. DPWH inspection completed. Case closed.' },
+    ],
+  },
+  {
+    id: 'MY-2026-002',
+    type: 'noise',
+    status: 'closed',
+    location: 'Purok 3, beside the school',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Construction noise from a nearby building site starting at 5 AM every day, even on Sundays. Very disruptive.',
+    severity: 'low',
+    affectedCount: '6–20',
+    submittedAt: '2026-02-20T06:30:00',
+    updatedAt: '2026-02-22T11:00:00',
+    hasPhotos: false, photoCount: 0, hasAudio: true,
+    assignedOfficer: 'Kagawad Pena', assignedUnit: 'Peace & Order Committee',
+    resolutionNote: 'Contractor reminded of local ordinance. Work hours restricted to 7 AM–6 PM weekdays only. Case closed.',
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'Voice recording attached as evidence.', timestamp: '2026-02-20T06:30:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged.', timestamp: '2026-02-20T06:30:05', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Reviewed by Peace & Order Committee.', timestamp: '2026-02-20T09:00:00', actor: 'Kagawad Pena', actorRole: 'Barangay Official' },
+      { status: 'in_progress', label: 'Contractor Notified', description: 'Site foreman given formal notice regarding work hour violations.', timestamp: '2026-02-21T10:00:00', actor: 'Kagawad Pena', actorRole: 'Barangay Official' },
+      { status: 'resolved', label: 'Ordinance Enforced', description: 'Work hours adjusted. No more early morning noise confirmed by follow-up.', timestamp: '2026-02-22T08:00:00', actor: 'Kagawad Pena', actorRole: 'Barangay Official' },
+      { status: 'closed', label: 'Case Closed', description: 'No further complaints filed. Case closed.', timestamp: '2026-02-22T11:00:00', actor: 'Kagawad Pena', actorRole: 'Barangay Official', note: 'Contractor reminded of local ordinance. Work hours restricted to 7 AM–6 PM weekdays only. Case closed.' },
+    ],
+  },
+  {
+    id: 'MY-2026-001',
+    type: 'other',
+    status: 'unresolvable',
+    location: 'Purok 5 community garden area',
+    barangay: 'Brgy. San Antonio',
+    district: 'District II',
+    description: 'Stray dogs in large numbers congregating in the community garden. Several biting incidents reported. Requesting animal control.',
+    severity: 'medium',
+    affectedCount: '6–20',
+    submittedAt: '2026-02-15T13:00:00',
+    updatedAt: '2026-02-18T09:00:00',
+    hasPhotos: true, photoCount: 2, hasAudio: false,
+    assignedOfficer: 'Kagawad Delos Santos', assignedUnit: 'Health & Sanitation Committee',
+    resolutionNote: 'Jurisdiction lies with City Veterinary Office. Report forwarded to City Hall. TUGON system cannot directly resolve this case — please follow up with the City Veterinary Office at 045-111-2222.',
+    timeline: [
+      { status: 'created', label: 'Report Created', description: 'You submitted this report with 2 photos.', timestamp: '2026-02-15T13:00:00', actor: 'Juan Dela Cruz', actorRole: 'Citizen' },
+      { status: 'submitted', label: 'Received by System', description: 'Report logged.', timestamp: '2026-02-15T13:00:07', actor: 'TUGON System', actorRole: 'Automated' },
+      { status: 'under_review', label: 'Under Review', description: 'Assessed by Health & Sanitation Committee.', timestamp: '2026-02-15T15:00:00', actor: 'Kagawad Delos Santos', actorRole: 'Barangay Official' },
+      { status: 'in_progress', label: 'Referred to City', description: 'Report forwarded to City Veterinary Office for animal control action.', timestamp: '2026-02-17T09:00:00', actor: 'Kagawad Delos Santos', actorRole: 'Barangay Official', note: 'Outside barangay jurisdiction. Escalated to city.' },
+      { status: 'unresolvable', label: 'Marked Unresolvable', description: 'City Veterinary Office confirmed they cannot respond within TUGON SLA. Case marked unresolvable within system.', timestamp: '2026-02-18T09:00:00', actor: 'Kagawad Delos Santos', actorRole: 'Barangay Official', note: 'Jurisdiction lies with City Veterinary Office. Report forwarded to City Hall. TUGON system cannot directly resolve this case — please follow up with the City Veterinary Office at 045-111-2222.' },
+    ],
+  },
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════════ */
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-PH', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+}
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString('en-PH', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+}
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60)  return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CITIZEN STATUS BADGE — 6 statuses
+══════════════════════════════════════════════════════════════════ */
+function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStatus; size?: 'sm' | 'md' | 'lg' }) {
+  const cfg = citizenStatusConfig[status];
+  const Icon = cfg.icon;
+  const sizes = {
+    sm:  { fontSize: 10, padding: '3px 8px', iconSize: 10, gap: 4, borderRadius: 6 },
+    md:  { fontSize: 11, padding: '4px 10px', iconSize: 11, gap: 5, borderRadius: 7 },
+    lg:  { fontSize: 13, padding: '7px 14px', iconSize: 14, gap: 6, borderRadius: 10 },
+  };
+  const s = sizes[size];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: s.gap,
+      background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
+      borderRadius: s.borderRadius, padding: s.padding,
+      fontSize: s.fontSize, fontWeight: 700, letterSpacing: '0.02em',
+      whiteSpace: 'nowrap', lineHeight: 1,
+    }}>
+      <Icon size={s.iconSize} />
+      {cfg.label}
+    </span>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   WORKFLOW PROGRESS DOTS
+══════════════════════════════════════════════════════════════════ */
+const WORKFLOW_STEPS: { key: CitizenReportStatus | 'created'; label: string }[] = [
+  { key: 'submitted',    label: 'Submitted' },
+  { key: 'under_review', label: 'Review' },
+  { key: 'in_progress',  label: 'In Progress' },
+  { key: 'resolved',     label: 'Done' },
+];
+
+function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
+  const cfg = citizenStatusConfig[status];
+  const currentStep = cfg.step;
+  const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
+  const isFailed = status === 'unresolvable';
+  const terminalColor = isFailed ? '#B91C1C' : status === 'closed' ? '#475569' : '#059669';
+  const terminalBg   = isFailed ? '#FEF2F2'  : status === 'closed' ? '#F8FAFC'  : '#ECFDF5';
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 0, width: '100%' }}>
+      {WORKFLOW_STEPS.map((s, i) => {
+        const stepNum = i + 1;
+        const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
+        const active = stepNum === currentStep && !isTerminal;
+        const stepColor = isTerminal && stepNum === 4 ? terminalColor
+          : done || active ? '#1E3A8A' : '#CBD5E1';
+        const stepBg = isTerminal && stepNum === 4 ? terminalBg
+          : done ? '#1E3A8A' : active ? '#EFF6FF' : '#F1F5F9';
+        const stepBorder = isTerminal && stepNum === 4 ? terminalColor
+          : done ? '#1E3A8A' : active ? '#3B82F6' : '#E2E8F0';
+
+        return (
+          <div key={s.key} style={{ display: 'contents' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                background: stepBg, border: `2px solid ${stepBorder}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.3s',
+              }}>
+                {(done || (isTerminal && stepNum === 4)) ? (
+                  <span style={{ fontSize: 9, color: isTerminal && stepNum === 4 ? terminalColor : '#fff' }}>
+                    {isTerminal && stepNum === 4 ? (isFailed ? '✕' : '✓') : '✓'}
+                  </span>
+                ) : active ? (
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#1E3A8A' }} />
+                ) : (
+                  <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 700 }}>{stepNum}</span>
+                )}
+              </div>
+              <span style={{ fontSize: 8, color: done || active ? '#1E3A8A' : '#CBD5E1', fontWeight: done || active ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>
+                {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
+              </span>
+            </div>
+            {i < WORKFLOW_STEPS.length - 1 && (
+              <div style={{
+                flex: 1, height: 2, marginBottom: 14,
+                background: stepNum < currentStep || (isTerminal && stepNum < 4)
+                  ? '#1E3A8A' : '#E2E8F0',
+                borderRadius: 1, transition: 'background 0.3s',
+              }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REPORT CARD
+══════════════════════════════════════════════════════════════════ */
+function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () => void }) {
+  const tc = typeConfig[report.type];
+  const sc = citizenStatusConfig[report.status];
+  const Icon = tc.icon;
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%', background: '#fff', border: 'none',
+        borderRadius: 18, padding: 0, cursor: 'pointer', textAlign: 'left',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.07)', marginBottom: 12,
+        overflow: 'hidden', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+        position: 'relative',
+        borderLeft: `4px solid ${sc.color}`,
+      }}
+      onMouseOver={e => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)';
+        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+      }}
+      onMouseOut={e => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 10px rgba(0,0,0,0.07)';
+        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+      }}
+    >
+      <div style={{ padding: '14px 14px 0 14px' }}>
+        {/* Top row: ID + Status */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10,
+              background: tc.bg, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', color: tc.color, flexShrink: 0,
+            }}>
+              <Icon size={17} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 13, color: '#1E293B', lineHeight: 1.1 }}>
+                {report.id}
+              </div>
+              <div style={{ fontSize: 10, color: '#64748B', marginTop: 1, fontWeight: 500 }}>
+                {tc.label}
+              </div>
+            </div>
+          </div>
+          <CitizenStatusBadge status={report.status} size="sm" />
+        </div>
+
+        {/* Location */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 7 }}>
+          <MapPin size={11} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 12, color: '#475569', lineHeight: 1.45, flex: 1 }}>
+            {report.location}, {report.barangay}
+          </span>
+        </div>
+
+        {/* Description excerpt */}
+        <div style={{
+          fontSize: 12, color: '#64748B', lineHeight: 1.5,
+          overflow: 'hidden', display: '-webkit-box',
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+          marginBottom: 10,
+        }}>
+          {report.description}
+        </div>
+
+        {/* Date + evidence chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Calendar size={10} color="#94A3B8" />
+            <span style={{ fontSize: 10, color: '#94A3B8' }}>{formatDate(report.submittedAt)}</span>
+          </div>
+          <span style={{ color: '#CBD5E1', fontSize: 10 }}>·</span>
+          <span style={{ fontSize: 10, color: '#94A3B8' }}>{timeAgo(report.submittedAt)}</span>
+          {report.hasPhotos && (
+            <span style={{ display: 'contents' }}>
+              <span style={{ color: '#CBD5E1', fontSize: 10 }}>·</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
+                <Camera size={9} color="#64748B" />
+                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>{report.photoCount}</span>
+              </div>
+            </span>
+          )}
+          {report.hasAudio && (
+            <span style={{ display: 'contents' }}>
+              <span style={{ color: '#CBD5E1', fontSize: 10 }}>·</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
+                <Mic size={9} color="#64748B" />
+                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Audio</span>
+              </div>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Workflow progress strip */}
+      <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
+        <WorkflowProgress status={report.status} />
+      </div>
+
+      {/* View details footer */}
+      <div style={{
+        background: `${citizenStatusConfig[report.status].bg}`,
+        borderTop: `1px solid ${citizenStatusConfig[report.status].border}`,
+        padding: '8px 14px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{ fontSize: 11, color: citizenStatusConfig[report.status].color, fontWeight: 600 }}>
+          {citizenStatusConfig[report.status].description}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: citizenStatusConfig[report.status].color }}>
+          <span style={{ fontSize: 11, fontWeight: 700 }}>Details</span>
+          <ChevronRight size={13} />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DETAIL VIEW — FULL SCREEN SLIDE UP
+══════════════════════════════════════════════════════════════════ */
+function DetailView({ report, onClose }: { report: CitizenReport; onClose: () => void }) {
+  const tc = typeConfig[report.type];
+  const sc = citizenStatusConfig[report.status];
+  const TypeIcon = tc.icon;
+
+  // Trap scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const timelineIconMap: Record<string, React.ReactNode> = {
+    created:      <FileText size={13} />,
+    submitted:    <FileText size={13} />,
+    under_review: <Eye size={13} />,
+    in_progress:  <RefreshCw size={13} />,
+    resolved:     <CheckCircle2 size={13} />,
+    closed:       <XCircle size={13} />,
+    unresolvable: <Ban size={13} />,
+  };
+
+  const timelineColorMap: Record<string, { color: string; bg: string }> = {
+    created:      { color: '#475569', bg: '#F1F5F9' },
+    submitted:    { color: '#1E3A8A', bg: '#EFF6FF' },
+    under_review: { color: '#B4730A', bg: '#FFFBEB' },
+    in_progress:  { color: '#0F766E', bg: '#F0FDFA' },
+    resolved:     { color: '#059669', bg: '#ECFDF5' },
+    closed:       { color: '#475569', bg: '#F8FAFC' },
+    unresolvable: { color: '#B91C1C', bg: '#FEF2F2' },
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)' }}
+      />
+
+      {/* Sheet */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        maxHeight: '92vh', display: 'flex', flexDirection: 'column',
+        background: '#F1F5F9', borderRadius: '24px 24px 0 0',
+        overflow: 'hidden',
+        animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
+        maxWidth: 520, margin: '0 auto',
+      }}>
+
+        {/* Handle + close */}
+        <div style={{
+          background: '#fff', paddingTop: 10, paddingBottom: 0,
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          borderBottom: '1px solid #F1F5F9', flexShrink: 0,
+        }}>
+          <div style={{ width: 38, height: 4, borderRadius: 2, background: '#E2E8F0', marginBottom: 12 }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 16px 14px' }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 16, color: '#1E293B' }}>Report Details</div>
+              <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{report.id}</div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: '#F1F5F9', border: '1px solid #E2E8F0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#475569',
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+
+          {/* Hero card */}
+          <div style={{
+            background: '#fff', borderRadius: 20, overflow: 'hidden',
+            border: '1.5px solid #E2E8F0', marginBottom: 16,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
+          }}>
+            {/* Colored header */}
+            <div style={{
+              background: `linear-gradient(135deg, ${tc.color}14, ${tc.color}06)`,
+              borderBottom: `3px solid ${tc.color}`,
+              padding: '18px 18px 14px',
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+            }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 15, background: tc.bg, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: tc.color,
+                boxShadow: `0 2px 10px ${tc.color}28`,
+              }}>
+                <TypeIcon size={26} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 800, fontSize: 18, color: '#1E293B', lineHeight: 1.15, marginBottom: 4 }}>
+                  {tc.label} Incident
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <CitizenStatusBadge status={report.status} size="md" />
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+                    background: report.severity === 'critical' ? '#FEE2E2' : report.severity === 'high' ? '#FFEDD5' : report.severity === 'medium' ? '#FEF3C7' : '#D1FAE5',
+                    color: report.severity === 'critical' ? '#B91C1C' : report.severity === 'high' ? '#C2410C' : report.severity === 'medium' ? '#B4730A' : '#059669',
+                    borderRadius: 6, padding: '3px 8px', textTransform: 'uppercase',
+                  }}>
+                    {report.severity} severity
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Details grid */}
+            {[
+              { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
+              { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
+              { icon: <Calendar size={13} />, label: 'Date Submitted', value: formatDateTime(report.submittedAt) },
+              { icon: <Clock size={13} />, label: 'Last Updated', value: formatDateTime(report.updatedAt) },
+              ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} — ${report.assignedUnit}` }] : []),
+              ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
+            ].map(({ icon, label, value }, i, arr) => (
+              <div key={label} style={{
+                padding: '12px 18px', display: 'flex', gap: 12, alignItems: 'flex-start',
+                borderBottom: i < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
+              }}>
+                <div style={{ color: tc.color, flexShrink: 0, marginTop: 1 }}>{icon}</div>
+                <div>
+                  <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontSize: 13, color: '#1E293B', fontWeight: 500, lineHeight: 1.45 }}>{value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Description */}
+          <div style={{
+            background: '#fff', borderRadius: 18, padding: '16px',
+            border: '1px solid #E2E8F0', marginBottom: 16,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <MessageSquare size={14} color={tc.color} />
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>Description</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>{report.description}</p>
+          </div>
+
+          {/* Evidence */}
+          {(report.hasPhotos || report.hasAudio) && (
+            <div style={{
+              background: '#fff', borderRadius: 18, padding: '16px',
+              border: '1px solid #E2E8F0', marginBottom: 16,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 10 }}>
+                Evidence Attached
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {report.hasPhotos && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: '#EFF6FF', borderRadius: 10, padding: '8px 12px',
+                    border: '1px solid #BFDBFE',
+                  }}>
+                    <Camera size={14} color="#1E3A8A" />
+                    <span style={{ fontSize: 12, color: '#1E3A8A', fontWeight: 700 }}>
+                      {report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+                {report.hasAudio && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: '#EDE9FE', borderRadius: 10, padding: '8px 12px',
+                    border: '1px solid #DDD6FE',
+                  }}>
+                    <Mic size={14} color="#7C3AED" />
+                    <span style={{ fontSize: 12, color: '#7C3AED', fontWeight: 700 }}>Voice Recording</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Resolution note (for terminal statuses) */}
+          {report.resolutionNote && (
+            <div style={{
+              background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
+              borderRadius: 18, padding: '16px',
+              border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
+              marginBottom: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                {report.status === 'unresolvable'
+                  ? <Ban size={14} color="#B91C1C" />
+                  : <CheckCircle2 size={14} color="#059669" />
+                }
+                <span style={{ fontWeight: 700, fontSize: 13, color: report.status === 'unresolvable' ? '#B91C1C' : '#059669' }}>
+                  {report.status === 'unresolvable' ? 'Why This Was Unresolvable' : 'Resolution Summary'}
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: report.status === 'unresolvable' ? '#7F1D1D' : '#065F46', lineHeight: 1.65, margin: 0 }}>
+                {report.resolutionNote}
+              </p>
+              {report.status === 'unresolvable' && (
+                <button style={{
+                  marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#B91C1C', border: 'none', borderRadius: 10,
+                  padding: '8px 14px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>
+                  <Phone size={12} /> Call City Veterinary Office
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Timeline */}
+          <div style={{
+            background: '#fff', borderRadius: 18, padding: '18px',
+            border: '1px solid #E2E8F0', marginBottom: 8,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <Clock size={14} color="#1E3A8A" /> Status Timeline
+            </div>
+
+            {report.timeline.map((event, idx) => {
+              const isLast = idx === report.timeline.length - 1;
+              const colors = timelineColorMap[event.status] ?? timelineColorMap['submitted'];
+              return (
+                <div key={idx} style={{ display: 'flex', gap: 12, position: 'relative' }}>
+                  {/* Vertical line */}
+                  {!isLast && (
+                    <div style={{
+                      position: 'absolute', left: 15, top: 30, bottom: -4,
+                      width: 2, background: '#E2E8F0', zIndex: 0,
+                    }} />
+                  )}
+
+                  {/* Icon */}
+                  <div style={{
+                    width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                    background: colors.bg, border: `2px solid ${colors.color}30`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: colors.color, zIndex: 1, position: 'relative',
+                  }}>
+                    {timelineIconMap[event.status] ?? <FileText size={13} />}
+                  </div>
+
+                  {/* Content */}
+                  <div style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', lineHeight: 1.2 }}>
+                        {event.label}
+                      </div>
+                      {isLast && (
+                        <span style={{
+                          background: colors.bg, color: colors.color,
+                          borderRadius: 20, padding: '2px 8px', fontSize: 9,
+                          fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
+                          flexShrink: 0,
+                        }}>Latest</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4, lineHeight: 1.5 }}>
+                      {event.description}
+                    </div>
+                    {event.note && event.note !== event.description && (
+                      <div style={{
+                        background: '#FFFBEB', border: '1px solid #FDE68A',
+                        borderRadius: 8, padding: '7px 10px', fontSize: 11,
+                        color: '#78350F', lineHeight: 1.5, marginBottom: 4,
+                      }}>
+                        📝 {event.note}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 10, color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>
+                        {formatDateTime(event.timestamp)}
+                      </span>
+                      <span style={{ color: '#E2E8F0', fontSize: 10 }}>·</span>
+                      <span style={{
+                        fontSize: 10, color: colors.color, fontWeight: 600,
+                        background: colors.bg, borderRadius: 4, padding: '1px 6px',
+                      }}>
+                        {event.actor} · {event.actorRole}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Emergency tip */}
+          <div style={{
+            background: '#FEF2F2', borderRadius: 14, padding: '12px 14px',
+            border: '1px solid #FECACA', display: 'flex', gap: 8, alignItems: 'flex-start',
+          }}>
+            <Info size={14} color="#B91C1C" style={{ flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.6, margin: 0 }}>
+              <strong>Immediate danger?</strong> Don't wait for a response — call <strong>911</strong> right away.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════════════════ */
+function EmptyState({ filter, query }: { filter: string; query: string }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', padding: '60px 32px', textAlign: 'center',
+    }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%', background: '#F1F5F9',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 18, color: '#CBD5E1',
+      }}>
+        <FileText size={36} />
+      </div>
+      <div style={{ fontWeight: 800, fontSize: 17, color: '#1E293B', marginBottom: 8 }}>
+        {query ? 'No results found' : `No ${filter !== 'all' ? filter : ''} reports`}
+      </div>
+      <div style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, maxWidth: 260 }}>
+        {query
+          ? `No reports match "${query}". Try a different search term.`
+          : filter === 'active'
+            ? 'You have no active reports at the moment.'
+            : filter === 'resolved'
+              ? 'None of your reports have been resolved yet.'
+              : 'You haven\'t submitted any incident reports yet.'}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════════════════════════════════ */
+type FilterKey = 'all' | 'active' | 'resolved';
+
+export default function CitizenMyReports() {
+  const navigate = useNavigate();
+  const [filter, setFilter]       = useState<FilterKey>('all');
+  const [query, setQuery]         = useState('');
+  const [selected, setSelected]   = useState<CitizenReport | null>(null);
+  const [sortBy, setSortBy]       = useState<'newest' | 'oldest'>('newest');
+  const [sortOpen, setSortOpen]   = useState(false);
+
+  // Filter + search logic
+  const filtered = MY_REPORTS.filter(r => {
+    const matchFilter =
+      filter === 'all' ? true :
+      filter === 'active' ? citizenStatusConfig[r.status].filterGroup === 'active' :
+      citizenStatusConfig[r.status].filterGroup === 'resolved';
+    const q = query.toLowerCase().trim();
+    const matchQuery = q.length === 0 || [
+      r.id, r.type, typeConfig[r.type].label,
+      r.location, r.barangay, r.description,
+      citizenStatusConfig[r.status].label,
+    ].some(v => v.toLowerCase().includes(q));
+    return matchFilter && matchQuery;
+  }).sort((a, b) => {
+    const da = new Date(a.submittedAt).getTime();
+    const db = new Date(b.submittedAt).getTime();
+    return sortBy === 'newest' ? db - da : da - db;
+  });
+
+  // Counts
+  const allCount      = MY_REPORTS.length;
+  const activeCount   = MY_REPORTS.filter(r => citizenStatusConfig[r.status].filterGroup === 'active').length;
+  const resolvedCount = MY_REPORTS.filter(r => citizenStatusConfig[r.status].filterGroup === 'resolved').length;
+
+  // Status summary
+  const statusCounts = MY_REPORTS.reduce<Record<CitizenReportStatus, number>>((acc, r) => {
+    acc[r.status] = (acc[r.status] || 0) + 1;
+    return acc;
+  }, {} as Record<CitizenReportStatus, number>);
+
+  const FILTER_TABS: { key: FilterKey; label: string; count: number }[] = [
+    { key: 'all',      label: 'All',      count: allCount },
+    { key: 'active',   label: 'Active',   count: activeCount },
+    { key: 'resolved', label: 'Resolved', count: resolvedCount },
+  ];
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {selected && <DetailView report={selected} onClose={() => setSelected(null)} />}
+
+      <div style={{
+        minHeight: '100vh', background: '#F1F5F9', display: 'flex',
+        flexDirection: 'column', maxWidth: 520, margin: '0 auto',
+        fontFamily: "'Roboto', sans-serif", position: 'relative',
+      }}>
+
+        {/* ── Header ── */}
+        <header style={{
+          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+          padding: '0 16px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', height: 60, flexShrink: 0,
+          position: 'sticky', top: 0, zIndex: 50,
+          boxShadow: '0 2px 16px rgba(30,58,138,0.45)',
+        }}>
+          <button
+            onClick={() => navigate('/citizen')}
+            style={{
+              background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 10, width: 38, height: 38, cursor: 'pointer', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.14)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Shield size={16} color="#fff" />
+            </div>
+            <div>
+              <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>My Reports</div>
+              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                TUGON Citizen Portal
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: 10, padding: '5px 11px', color: '#BFDBFE',
+            fontSize: 12, fontWeight: 800,
+          }}>
+            {allCount} total
+          </div>
+        </header>
+
+        {/* ── Sticky controls (search + filters) ── */}
+        <div style={{
+          position: 'sticky', top: 60, zIndex: 40,
+          background: '#fff', borderBottom: '1px solid #E8EEF4',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        }}>
+          {/* Search row */}
+          <div style={{ padding: '12px 16px 0', display: 'flex', gap: 8 }}>
+            <div style={{
+              flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+              background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
+              border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
+            }}>
+              <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search by ID, type, location…"
+                style={{
+                  flex: 1, border: 'none', background: 'transparent',
+                  fontSize: 13, color: '#1E293B', outline: 'none',
+                  fontFamily: "'Roboto', sans-serif",
+                }}
+              />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', padding: 0 }}>
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Sort button */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setSortOpen(v => !v)}
+                style={{
+                  height: '100%', background: '#F8FAFC', border: '1.5px solid #E2E8F0',
+                  borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
+                  gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <SlidersHorizontal size={13} />
+                {sortBy === 'newest' ? 'Newest' : 'Oldest'}
+                <ChevronDown size={12} />
+              </button>
+              {sortOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+                  background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                  border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
+                }}>
+                  {(['newest', 'oldest'] as const).map(opt => (
+                    <button
+                      key={opt}
+                      onClick={() => { setSortBy(opt); setSortOpen(false); }}
+                      style={{
+                        display: 'block', width: '100%', textAlign: 'left',
+                        padding: '10px 14px', border: 'none', cursor: 'pointer',
+                        background: sortBy === opt ? '#EFF6FF' : '#fff',
+                        color: sortBy === opt ? '#1E3A8A' : '#475569',
+                        fontSize: 13, fontWeight: sortBy === opt ? 700 : 400,
+                        fontFamily: "'Roboto', sans-serif",
+                      }}
+                    >
+                      {opt === 'newest' ? '🕒 Newest First' : '📅 Oldest First'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div style={{ display: 'flex', padding: '10px 16px 0', gap: 0, borderBottom: 'none' }}>
+            {FILTER_TABS.map(tab => {
+              const isActive = filter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  style={{
+                    flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '8px 4px 10px', display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: 2, position: 'relative',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <span style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    fontWeight: isActive ? 800 : 500,
+                    fontSize: 13,
+                    color: isActive ? '#1E3A8A' : '#94A3B8',
+                  }}>
+                    {tab.label}
+                    <span style={{
+                      background: isActive ? '#1E3A8A' : '#F1F5F9',
+                      color: isActive ? '#fff' : '#94A3B8',
+                      borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
+                    }}>
+                      {tab.count}
+                    </span>
+                  </span>
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: '15%', right: '15%',
+                      height: 3, background: '#1E3A8A', borderRadius: '3px 3px 0 0',
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Scrollable content ── */}
+        <div style={{ flex: 1, overflowY: 'auto' }} onClick={() => sortOpen && setSortOpen(false)}>
+
+          {/* Status Overview Panel */}
+          {!query && filter === 'all' && (
+            <div style={{ padding: '16px 16px 0' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+                borderRadius: 20, padding: '16px', marginBottom: 16,
+                color: '#fff', boxShadow: '0 4px 20px rgba(30,58,138,0.3)',
+              }}>
+                <div style={{ fontSize: 11, color: '#93C5FD', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+                  Reports Overview
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {[
+                    { label: 'Active', value: activeCount, color: '#60A5FA', bg: 'rgba(96,165,250,0.18)' },
+                    { label: 'Resolved', value: resolvedCount - (statusCounts['unresolvable'] || 0), color: '#4ADE80', bg: 'rgba(74,222,128,0.18)' },
+                    { label: 'Total', value: allCount, color: '#FFFFFF', bg: 'rgba(255,255,255,0.14)' },
+                  ].map(s => (
+                    <div key={s.label} style={{
+                      background: s.bg, borderRadius: 14, padding: '12px 10px', textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: 26, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 3, fontWeight: 600 }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Status breakdown */}
+                <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(Object.entries(statusCounts) as [CitizenReportStatus, number][]).map(([status, count]) => {
+                    const cfg = citizenStatusConfig[status];
+                    return (
+                      <div key={status} style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        background: 'rgba(255,255,255,0.12)', borderRadius: 20,
+                        padding: '4px 10px',
+                      }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dotColor, flexShrink: 0 }} />
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>
+                          {cfg.label} ({count})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Results count */}
+          <div style={{ padding: '12px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
+              Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
+              {query && ` for "${query}"`}
+            </span>
+            {filtered.length > 0 && (
+              <span style={{ fontSize: 11, color: '#94A3B8' }}>
+                Tap a card to view details
+              </span>
+            )}
+          </div>
+
+          {/* Cards list */}
+          <div style={{ padding: '0 16px 24px' }}>
+            {filtered.length === 0 ? (
+              <EmptyState filter={filter} query={query} />
+            ) : (
+              filtered.map(report => (
+                <ReportCard
+                  key={report.id}
+                  report={report}
+                  onClick={() => setSelected(report)}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Bottom note */}
+          {filtered.length > 0 && (
+            <div style={{
+              padding: '0 16px 32px', display: 'flex', alignItems: 'flex-start', gap: 8,
+            }}>
+              <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+                Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
