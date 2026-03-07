@@ -1,16 +1,36 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { CheckCircle2, RefreshCw, Phone, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { AuthLayout, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 
 const OTP_LENGTH = 6;
+const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
+
+type PendingRegistrationState = {
+  phone?: string;
+  fullName?: string;
+  barangay?: string;
+  devOtpCode?: string;
+};
 
 export default function Verify() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = (location.state as { phone?: string; fullName?: string; barangay?: string }) || {};
-  const displayPhone = state.phone || '0917-xxx-xxxx';
+
+  const locationState = (location.state as PendingRegistrationState | null) ?? null;
+  const storedState = useMemo<PendingRegistrationState>(() => {
+    try {
+      const raw = sessionStorage.getItem(PENDING_REGISTRATION_KEY);
+      return raw ? (JSON.parse(raw) as PendingRegistrationState) : {};
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const pendingState = locationState?.phone ? locationState : storedState;
+  const [devOtpCode, setDevOtpCode] = useState(pendingState.devOtpCode ?? '');
+  const displayPhone = pendingState.phone || '0917-xxx-xxxx';
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -29,6 +49,23 @@ export default function Verify() {
     const t = setTimeout(() => setResendCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [resendCountdown]);
+
+  useEffect(() => {
+    if (!pendingState.phone) {
+      setError('Registration session expired. Please restart registration.');
+      return;
+    }
+
+    sessionStorage.setItem(
+      PENDING_REGISTRATION_KEY,
+      JSON.stringify({
+        phone: pendingState.phone,
+        fullName: pendingState.fullName,
+        barangay: pendingState.barangay,
+        devOtpCode,
+      }),
+    );
+  }, [devOtpCode, pendingState.barangay, pendingState.fullName, pendingState.phone]);
 
   const handleDigit = (idx: number, val: string) => {
     const digit = val.replace(/\D/g, '').slice(-1);
@@ -66,17 +103,28 @@ export default function Verify() {
   const allFilled = digits.every(d => d !== '');
 
   const handleVerify = async () => {
+    if (!pendingState.phone) {
+      setError('Registration session expired. Please restart registration.');
+      return;
+    }
+
     if (!allFilled) { setError('Please enter all 6 digits of your OTP.'); return; }
     setError('');
     setLoading(true);
     try {
       await authApi.verifyOtp({
-        phoneNumber: state.phone ?? '',
+        phoneNumber: pendingState.phone,
         otpCode: digits.join(''),
       });
       setVerified(true);
       await new Promise(r => setTimeout(r, 700));
-      navigate('/auth/create-password', { state: { ...state } });
+      navigate('/auth/create-password', {
+        state: {
+          phone: pendingState.phone,
+          fullName: pendingState.fullName,
+          barangay: pendingState.barangay,
+        },
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'OTP verification failed.';
       setError(message);
@@ -88,9 +136,15 @@ export default function Verify() {
   };
 
   const handleResend = async () => {
+    if (!pendingState.phone) {
+      setError('Registration session expired. Please restart registration.');
+      return;
+    }
+
     setResending(true);
     try {
-      await authApi.resendOtp({ phoneNumber: state.phone ?? '' });
+      const result = await authApi.resendOtp({ phoneNumber: pendingState.phone });
+      setDevOtpCode(result.devOtpCode ?? '');
       setResendCountdown(60);
       setDigits(Array(OTP_LENGTH).fill(''));
       setError('');
@@ -157,6 +211,12 @@ export default function Verify() {
             <div style={{ fontSize: 11, color: '#0369A1' }}>OTP sent via SMS</div>
           </div>
         </div>
+
+        {devOtpCode ? (
+          <div style={{ marginBottom: 20, background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 10, padding: '10px 12px', color: '#92400E', fontSize: 12 }}>
+            Development OTP (for local testing): <strong>{devOtpCode}</strong>
+          </div>
+        ) : null}
 
         {/* OTP boxes */}
         <div>

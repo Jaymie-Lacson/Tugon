@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
@@ -124,6 +124,7 @@ export const authService = {
       phoneNumber,
       expiresInSeconds: env.otpExpiryMinutes * 60,
       message: "OTP sent successfully.",
+      ...(env.nodeEnv !== "production" ? { devOtpCode: code } : {}),
     };
   },
 
@@ -149,6 +150,7 @@ export const authService = {
       phoneNumber,
       expiresInSeconds: env.otpExpiryMinutes * 60,
       message: "OTP resent successfully.",
+      ...(env.nodeEnv !== "production" ? { devOtpCode: newCode } : {}),
     };
   },
 
@@ -316,6 +318,24 @@ export const authService = {
     if (error instanceof AuthError) {
       return { status: error.status, message: error.message };
     }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return {
+        status: 503,
+        message: "Database connection failed. Verify DATABASE_URL and database availability.",
+      };
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2021") {
+        return {
+          status: 503,
+          message: "Database schema is not ready. Run Prisma migrations before authentication.",
+        };
+      }
+    }
+
+    console.error("[AUTH] Unexpected error:", error);
     return { status: 500, message: "Unexpected authentication error." };
   },
 };

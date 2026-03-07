@@ -10,6 +10,8 @@ const BARANGAYS = [
   { value: '256', label: 'Barangay 256', sub: 'Zone 26 — Tondo I/II' },
 ];
 
+const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
+
 export default function Register() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
@@ -35,12 +37,15 @@ export default function Register() {
     setErrors({});
     setLoading(true);
     try {
-      await authApi.register({
+      const result = await authApi.register({
         fullName,
         phoneNumber: phone,
         barangayCode: barangay,
       });
-      navigate('/auth/verify', { state: { phone, fullName, barangay } });
+
+      const pendingRegistration = { phone, fullName, barangay, devOtpCode: result.devOtpCode };
+      sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(pendingRegistration));
+      navigate('/auth/verify', { state: pendingRegistration });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to send OTP right now.';
       setErrors((prev) => ({ ...prev, general: message }));
