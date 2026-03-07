@@ -1371,8 +1371,8 @@ export default function IncidentReport() {
     try {
       const response = await citizenReportsApi.submitReport({
         type: mapTypeForApi(form.category),
-        barangay: form.pin?.barangay ?? 'Unspecified Barangay',
-        district: form.pin?.district ?? 'Unspecified District',
+        latitude: form.pin?.y ?? Number.NaN,
+        longitude: form.pin?.x ?? Number.NaN,
         location: form.address.trim() || `${form.pin?.barangay ?? 'Unknown location'}`,
         description: form.description.trim(),
         severity: form.severity ?? 'medium',

@@ -28,6 +28,9 @@ export interface ApiTimelineEntry {
 
 export interface ApiCitizenReport {
   id: string;
+  routedBarangayCode: string;
+  latitude: number;
+  longitude: number;
   type: ApiIncidentType;
   status: ApiTicketStatus;
   location: string;
@@ -51,7 +54,7 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "h
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.t  npm --prefix server run prisma:migrate -- --name add_cross_border_alertsoken) {
     throw new Error("You must be logged in to continue.");
   }
 
@@ -76,8 +79,8 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 export const citizenReportsApi = {
   submitReport(input: {
     type: ApiIncidentType;
-    barangay: string;
-    district: string;
+    latitude: number;
+    longitude: number;
     location: string;
     description: string;
     severity: "low" | "medium" | "high" | "critical";

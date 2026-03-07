@@ -29,6 +29,9 @@ export interface TimelineEntry {
 export interface CitizenReportRecord {
   id: string;
   citizenUserId: string;
+  routedBarangayCode: string;
+  latitude: number;
+  longitude: number;
   type: IncidentType;
   status: TicketStatus;
   location: string;
@@ -50,8 +53,8 @@ export interface CitizenReportRecord {
 
 export interface CreateCitizenReportInput {
   type: IncidentType;
-  barangay: string;
-  district: string;
+  latitude: number;
+  longitude: number;
   location: string;
   description: string;
   severity: ReportSeverity;

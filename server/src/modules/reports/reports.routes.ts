@@ -26,8 +26,8 @@ citizenReportsRouter.post("/reports", async (req, res) => {
       { id: citizenUser.id, fullName: citizenUser.fullName },
       {
         type: req.body?.type,
-        barangay: req.body?.barangay,
-        district: req.body?.district,
+        latitude: Number(req.body?.latitude),
+        longitude: Number(req.body?.longitude),
         location: req.body?.location,
         description: req.body?.description,
         severity: req.body?.severity,

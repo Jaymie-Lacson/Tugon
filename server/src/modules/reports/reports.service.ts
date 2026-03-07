@@ -4,6 +4,7 @@ import {
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
 import { prisma } from "../../config/prisma.js";
+import { geofencingService } from "../map/geofencing.service.js";
 import { reportsStore } from "./store.js";
 import type {
   CitizenReportRecord,
@@ -41,12 +42,16 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   }
 
   const location = input.location?.trim();
-  const barangay = input.barangay?.trim();
-  const district = input.district?.trim();
+  const latitude = Number(input.latitude);
+  const longitude = Number(input.longitude);
   const description = input.description?.trim();
 
-  if (!location || !barangay || !district) {
-    throw new ReportsError("Location, barangay, and district are required.", 400);
+  if (!location) {
+    throw new ReportsError("Location is required.", 400);
+  }
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw new ReportsError("Valid location coordinates are required.", 400);
   }
 
   if (!description || description.length < 10) {
@@ -61,8 +66,8 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   return {
     ...input,
     location,
-    barangay,
-    district,
+    latitude,
+    longitude,
     description,
     photoCount,
     affectedCount: input.affectedCount ?? null,
@@ -72,17 +77,29 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
 export const reportsService = {
   async create(citizenUser: { id: string; fullName: string }, input: CreateCitizenReportInput) {
     const validated = validateCreateInput(input);
+    const routedBarangay = await geofencingService.resolveBarangayFromCoordinates(
+      validated.latitude,
+      validated.longitude,
+    );
     const now = new Date().toISOString();
     const reportId = reportsStore.nextReportId();
+    const nearbyBarangays = await geofencingService.findNearbyBarangaysForAlert(
+      validated.latitude,
+      validated.longitude,
+      routedBarangay.code,
+    );
 
     const report: CitizenReportRecord = {
       id: reportId,
       citizenUserId: citizenUser.id,
+      routedBarangayCode: routedBarangay.code,
+      latitude: validated.latitude,
+      longitude: validated.longitude,
       type: validated.type,
       status: "Submitted",
       location: validated.location,
-      barangay: validated.barangay,
-      district: validated.district,
+      barangay: routedBarangay.name,
+      district: `Barangay ${routedBarangay.code}`,
       description: validated.description,
       severity: validated.severity,
       affectedCount: validated.affectedCount,
@@ -137,6 +154,9 @@ export const reportsService = {
         where: { id: report.id },
         update: {
           citizenUserId: report.citizenUserId,
+          routedBarangayCode: report.routedBarangayCode,
+          latitude: report.latitude,
+          longitude: report.longitude,
           type: prismaTypeMap[report.type],
           status: PrismaTicketStatus.SUBMITTED,
           location: report.location,
@@ -152,6 +172,9 @@ export const reportsService = {
         create: {
           id: report.id,
           citizenUserId: report.citizenUserId,
+          routedBarangayCode: report.routedBarangayCode,
+          latitude: report.latitude,
+          longitude: report.longitude,
           type: prismaTypeMap[report.type],
           status: PrismaTicketStatus.SUBMITTED,
           location: report.location,
@@ -180,6 +203,19 @@ export const reportsService = {
           actorRole: entry.actorRole,
           note: entry.note,
           createdAt: new Date(entry.timestamp),
+        })),
+      }),
+      prisma.crossBorderAlert.deleteMany({
+        where: {
+          reportId: report.id,
+        },
+      }),
+      prisma.crossBorderAlert.createMany({
+        data: nearbyBarangays.map((barangay) => ({
+          reportId: report.id,
+          sourceBarangayCode: routedBarangay.code,
+          targetBarangayCode: barangay.code,
+          alertReason: "Incident reported near shared jurisdiction boundary.",
         })),
       }),
     ]);
@@ -226,6 +262,9 @@ export const reportsService = {
     return persisted.map((row): CitizenReportRecord => ({
       id: row.id,
       citizenUserId: row.citizenUserId,
+      routedBarangayCode: row.routedBarangayCode,
+      latitude: row.latitude,
+      longitude: row.longitude,
       type: incidentTypeMap[row.type],
       status: ticketStatusMap[row.status],
       location: row.location,

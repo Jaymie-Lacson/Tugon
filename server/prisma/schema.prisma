@@ -60,6 +60,9 @@ model Barangay {
 model CitizenReport {
   id             String         @id
   citizenUserId  String
+  routedBarangayCode String
+  latitude       Float
+  longitude      Float
   type           IncidentType
   status         TicketStatus   @default(SUBMITTED)
   location       String
@@ -78,6 +81,22 @@ model CitizenReport {
   resolutionNote String?
 
   statusHistory TicketStatusHistory[]
+  crossBorderAlerts CrossBorderAlert[]
+}
+
+model CrossBorderAlert {
+  id                String   @id @default(cuid())
+  reportId          String
+  sourceBarangayCode String
+  targetBarangayCode String
+  alertReason       String
+  createdAt         DateTime @default(now())
+  readAt            DateTime?
+
+  report CitizenReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([targetBarangayCode, createdAt])
+  @@unique([reportId, targetBarangayCode])
 }
 
 model TicketStatusHistory {
