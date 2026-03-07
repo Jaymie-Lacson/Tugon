@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: tugon-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm ci && npm run prisma:generate && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: OTP_EXPIRY_MINUTES
+        value: 5
+      - key: DATABASE_URL
+        sync: false

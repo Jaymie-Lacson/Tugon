@@ -1,6 +1,13 @@
 import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-dotenv.config();
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFilePath);
+
+// Prefer server/.env and then fallback to workspace-root .env when available.
+dotenv.config({ path: path.resolve(currentDir, "../../.env") });
+dotenv.config({ path: path.resolve(currentDir, "../../../.env") });
 
 const portFromEnv = Number(process.env.PORT ?? "4000");
 const otpExpiryMinutesFromEnv = Number(process.env.OTP_EXPIRY_MINUTES ?? "5");

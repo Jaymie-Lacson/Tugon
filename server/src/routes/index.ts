@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authRouter } from "../modules/auth/auth.routes.js";
 import { authenticate } from "../middleware/auth.js";
 import { requireRole } from "../middleware/requireRole.js";
-import { citizenReportsRouter } from "../modules/reports/reports.routes.js";
+import { citizenReportsRouter, officialReportsRouter } from "../modules/reports/reports.routes.js";
 
 export const apiRouter = Router();
 
@@ -21,6 +21,13 @@ apiRouter.use(
   authenticate,
   requireRole(["CITIZEN"]),
   citizenReportsRouter,
+);
+
+apiRouter.use(
+  "/official",
+  authenticate,
+  requireRole(["OFFICIAL", "SUPER_ADMIN"]),
+  officialReportsRouter,
 );
 
 apiRouter.get(

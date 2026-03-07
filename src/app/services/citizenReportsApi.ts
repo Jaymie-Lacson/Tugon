@@ -54,7 +54,7 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "h
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
-  if (!session?.t  npm --prefix server run prisma:migrate -- --name add_cross_border_alertsoken) {
+  if (!session?.token) {
     throw new Error("You must be logged in to continue.");
   }
 
