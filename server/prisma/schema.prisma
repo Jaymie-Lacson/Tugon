@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  fullName       String
+  phoneNumber    String   @unique
+  passwordHash   String?
+  role           Role
+  isPhoneVerified Boolean @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  citizenProfile CitizenProfile?
+  officialProfile OfficialProfile?
+}
+
+model CitizenProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  barangayId String
+  address    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barangay Barangay @relation(fields: [barangayId], references: [id])
+}
+
+model OfficialProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  barangayId String
+  position   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barangay Barangay @relation(fields: [barangayId], references: [id])
+}
+
+model Barangay {
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique
+  boundaryGeojson String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  citizens CitizenProfile[]
+  officials OfficialProfile[]
+}
+
+model CitizenReport {
+  id             String         @id
+  citizenUserId  String
+  type           IncidentType
+  status         TicketStatus   @default(SUBMITTED)
+  location       String
+  barangay       String
+  district       String
+  description    String
+  severity       ReportSeverity
+  affectedCount  String?
+  submittedAt    DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  hasPhotos      Boolean        @default(false)
+  photoCount     Int            @default(0)
+  hasAudio       Boolean        @default(false)
+  assignedOfficer String?
+  assignedUnit   String?
+  resolutionNote String?
+
+  statusHistory TicketStatusHistory[]
+}
+
+model TicketStatusHistory {
+  id          String       @id @default(cuid())
+  reportId    String
+  status      TicketStatus
+  label       String
+  description String
+  actor       String
+  actorRole   String
+  note        String?
+  createdAt   DateTime     @default(now())
+
+  report CitizenReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, createdAt])
+}
+
+enum Role {
+  CITIZEN
+  OFFICIAL
+  SUPER_ADMIN
+}
+
+enum TicketStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  UNRESOLVABLE
+}
+
+enum IncidentType {
+  FIRE
+  POLLUTION
+  NOISE
+  CRIME
+  ROAD_HAZARD
+  OTHER
+}
+
+enum ReportSeverity {
+  low
+  medium
+  high
+  critical
+}

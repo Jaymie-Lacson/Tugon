@@ -8,6 +8,7 @@ import {
   MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
+import { citizenReportsApi, type ApiCitizenReport, type ApiIncidentType, type ApiTicketStatus } from '../services/citizenReportsApi';
 
 /* ══════════════════════════════════════════════════════════════════
    CITIZEN REPORT STATUS TYPES
@@ -53,6 +54,55 @@ export interface CitizenReport {
   assignedUnit: string | null;
   resolutionNote: string | null;
   timeline: TimelineEvent[];
+}
+
+function mapApiStatus(status: ApiTicketStatus): CitizenReportStatus {
+  if (status === 'Submitted') return 'submitted';
+  if (status === 'Under Review') return 'under_review';
+  if (status === 'In Progress') return 'in_progress';
+  if (status === 'Resolved') return 'resolved';
+  if (status === 'Closed') return 'closed';
+  return 'unresolvable';
+}
+
+function mapApiType(type: ApiIncidentType): CitizenReportType {
+  if (type === 'Fire') return 'fire';
+  if (type === 'Pollution') return 'pollution';
+  if (type === 'Noise') return 'noise';
+  if (type === 'Crime') return 'crime';
+  if (type === 'Road Hazard') return 'road_hazard';
+  return 'other';
+}
+
+function mapApiReport(report: ApiCitizenReport): CitizenReport {
+  return {
+    id: report.id,
+    type: mapApiType(report.type),
+    status: mapApiStatus(report.status),
+    location: report.location,
+    barangay: report.barangay,
+    district: report.district,
+    description: report.description,
+    severity: report.severity,
+    affectedCount: report.affectedCount,
+    submittedAt: report.submittedAt,
+    updatedAt: report.updatedAt,
+    hasPhotos: report.hasPhotos,
+    photoCount: report.photoCount,
+    hasAudio: report.hasAudio,
+    assignedOfficer: report.assignedOfficer,
+    assignedUnit: report.assignedUnit,
+    resolutionNote: report.resolutionNote,
+    timeline: report.timeline.map((item) => ({
+      status: item.status === 'Created' ? 'created' : mapApiStatus(item.status),
+      label: item.label,
+      description: item.description,
+      timestamp: item.timestamp,
+      actor: item.actor,
+      actorRole: item.actorRole,
+      note: item.note,
+    })),
+  };
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -925,14 +975,35 @@ type FilterKey = 'all' | 'active' | 'resolved';
 
 export default function CitizenMyReports() {
   const navigate = useNavigate();
+  const [reports, setReports]     = useState<CitizenReport[]>(MY_REPORTS);
   const [filter, setFilter]       = useState<FilterKey>('all');
   const [query, setQuery]         = useState('');
   const [selected, setSelected]   = useState<CitizenReport | null>(null);
   const [sortBy, setSortBy]       = useState<'newest' | 'oldest'>('newest');
   const [sortOpen, setSortOpen]   = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadReports() {
+      try {
+        const response = await citizenReportsApi.getMyReports();
+        if (!isMounted) return;
+        setReports(response.reports.map(mapApiReport));
+      } catch {
+        // Keep fallback sample data when API is unavailable.
+      }
+    }
+
+    void loadReports();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filter + search logic
-  const filtered = MY_REPORTS.filter(r => {
+  const filtered = reports.filter(r => {
     const matchFilter =
       filter === 'all' ? true :
       filter === 'active' ? citizenStatusConfig[r.status].filterGroup === 'active' :
@@ -951,12 +1022,12 @@ export default function CitizenMyReports() {
   });
 
   // Counts
-  const allCount      = MY_REPORTS.length;
-  const activeCount   = MY_REPORTS.filter(r => citizenStatusConfig[r.status].filterGroup === 'active').length;
-  const resolvedCount = MY_REPORTS.filter(r => citizenStatusConfig[r.status].filterGroup === 'resolved').length;
+  const allCount      = reports.length;
+  const activeCount   = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'active').length;
+  const resolvedCount = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'resolved').length;
 
   // Status summary
-  const statusCounts = MY_REPORTS.reduce<Record<CitizenReportStatus, number>>((acc, r) => {
+  const statusCounts = reports.reduce<Record<CitizenReportStatus, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] || 0) + 1;
     return acc;
   }, {} as Record<CitizenReportStatus, number>);

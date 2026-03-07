@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { CheckCircle2, RefreshCw, Phone, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { AuthLayout, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { authApi } from '../../services/authApi';
 
 const OTP_LENGTH = 6;
 
@@ -68,28 +69,38 @@ export default function Verify() {
     if (!allFilled) { setError('Please enter all 6 digits of your OTP.'); return; }
     setError('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setLoading(false);
-    // Simulate: wrong code check (anything other than 123456)
-    if (digits.join('') !== '123456') {
-      setError('Incorrect OTP. Please check your SMS and try again.');
+    try {
+      await authApi.verifyOtp({
+        phoneNumber: state.phone ?? '',
+        otpCode: digits.join(''),
+      });
+      setVerified(true);
+      await new Promise(r => setTimeout(r, 700));
+      navigate('/auth/create-password', { state: { ...state } });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'OTP verification failed.';
+      setError(message);
       setDigits(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
-      return;
+    } finally {
+      setLoading(false);
     }
-    setVerified(true);
-    await new Promise(r => setTimeout(r, 700));
-    navigate('/auth/create-password', { state: { ...state } });
   };
 
   const handleResend = async () => {
     setResending(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setResending(false);
-    setResendCountdown(60);
-    setDigits(Array(OTP_LENGTH).fill(''));
-    setError('');
-    inputRefs.current[0]?.focus();
+    try {
+      await authApi.resendOtp({ phoneNumber: state.phone ?? '' });
+      setResendCountdown(60);
+      setDigits(Array(OTP_LENGTH).fill(''));
+      setError('');
+      inputRefs.current[0]?.focus();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to resend OTP.';
+      setError(message);
+    } finally {
+      setResending(false);
+    }
   };
 
   return (
@@ -190,7 +201,7 @@ export default function Verify() {
           {/* Hint */}
           {!error && (
             <div style={{ textAlign: 'center', color: '#94A3B8', fontSize: 11, marginBottom: 8 }}>
-              Tip: For testing, enter <strong>1 2 3 4 5 6</strong>
+              Enter the OTP sent to your phone number.
             </div>
           )}
         </div>

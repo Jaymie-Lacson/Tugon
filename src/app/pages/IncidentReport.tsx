@@ -6,6 +6,7 @@ import {
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
 } from 'lucide-react';
+import { citizenReportsApi } from '../services/citizenReportsApi';
 
 /* ══════════════════════════════════════════════════════════════════
    TYPES
@@ -1177,9 +1178,8 @@ function Step5({ form }: { form: ReportForm }) {
 /* ══════════════════════════════════════════════════════════════════
    SUCCESS SCREEN
 ══════════════════════════════════════════════════════════════════ */
-function SuccessScreen({ onDone }: { onDone: () => void }) {
+function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: string }) {
   const [countdown, setCountdown] = useState(6);
-  const [reportId] = useState(() => `MY-2026-${String(Math.floor(Math.random() * 899) + 100).padStart(3, '0')}`);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -1331,6 +1331,9 @@ export default function IncidentReport() {
   const navigate = useNavigate();
   const [step, setStep]         = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submittedReportId, setSubmittedReportId] = useState('');
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<ReportForm>({
@@ -1347,9 +1350,54 @@ export default function IncidentReport() {
 
   const canProceed = STEP_VALIDATION[step]?.(form) ?? true;
 
-  const goNext = () => {
-    if (step < 5) setStep(s => s + 1);
-    else setSubmitted(true);
+  const mapTypeForApi = (category: IncidentCategory) => {
+    if (category === 'fire') return 'Fire' as const;
+    if (category === 'pollution') return 'Pollution' as const;
+    if (category === 'noise') return 'Noise' as const;
+    if (category === 'crime') return 'Crime' as const;
+    if (category === 'road_hazard') return 'Road Hazard' as const;
+    return 'Other' as const;
+  };
+
+  const submitReport = async () => {
+    if (!form.category) {
+      setSubmitError('Incident type is required.');
+      return;
+    }
+
+    setSubmitError('');
+    setSubmitting(true);
+
+    try {
+      const response = await citizenReportsApi.submitReport({
+        type: mapTypeForApi(form.category),
+        barangay: form.pin?.barangay ?? 'Unspecified Barangay',
+        district: form.pin?.district ?? 'Unspecified District',
+        location: form.address.trim() || `${form.pin?.barangay ?? 'Unknown location'}`,
+        description: form.description.trim(),
+        severity: form.severity ?? 'medium',
+        affectedCount: form.affectedCount,
+        photoCount: form.photoFiles.length,
+        hasAudio: Boolean(form.audioBlob),
+      });
+
+      setSubmittedReportId(response.report.id);
+      setSubmitted(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to submit report right now.';
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const goNext = async () => {
+    if (step < 5) {
+      setStep(s => s + 1);
+      return;
+    }
+
+    await submitReport();
   };
 
   const goBack = () => {
@@ -1367,7 +1415,7 @@ export default function IncidentReport() {
 
   return (
     <>
-      {submitted && <SuccessScreen onDone={() => navigate('/citizen')} />}
+      {submitted && <SuccessScreen reportId={submittedReportId} onDone={() => navigate('/citizen')} />}
 
       <div style={{
         minHeight: '100vh', background: '#F1F5F9',
@@ -1434,6 +1482,19 @@ export default function IncidentReport() {
           ref={contentRef}
           style={{ flex: 1, overflowY: 'auto', paddingBottom: 96 }}
         >
+          {submitError && step === 5 && (
+            <div style={{
+              margin: '12px 16px 0',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: 12,
+              color: '#B91C1C',
+              fontSize: 12,
+              padding: '10px 12px',
+            }}>
+              {submitError}
+            </div>
+          )}
           {stepContent[step]}
         </div>
 
@@ -1464,19 +1525,19 @@ export default function IncidentReport() {
           {/* Next / Submit */}
           <button
             onClick={goNext}
-            disabled={!canProceed}
+            disabled={!canProceed || submitting}
             style={{
               flex: step === 1 ? 1 : 2,
               padding: '14px', borderRadius: 14, border: 'none',
-              background: !canProceed
+              background: !canProceed || submitting
                 ? '#E2E8F0'
                 : step === 5
                   ? 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)'
                   : 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-              color: canProceed ? '#fff' : '#94A3B8',
+              color: canProceed && !submitting ? '#fff' : '#94A3B8',
               fontWeight: 700, fontSize: 14,
-              cursor: canProceed ? 'pointer' : 'not-allowed',
-              boxShadow: canProceed
+              cursor: canProceed && !submitting ? 'pointer' : 'not-allowed',
+              boxShadow: canProceed && !submitting
                 ? step === 5
                   ? '0 4px 16px rgba(185,28,28,0.4)'
                   : '0 4px 16px rgba(30,58,138,0.35)'
@@ -1485,7 +1546,9 @@ export default function IncidentReport() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            {step === 5 ? (
+            {submitting ? (
+              <>Submitting...</>
+            ) : step === 5 ? (
               <>🚨 Submit Report</>
             ) : step === 4 ? (
               <>Continue to Review →</>

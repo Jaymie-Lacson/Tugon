@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { authApi } from '../../services/authApi';
+import { saveAuthSession } from '../../utils/authSession';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -26,10 +28,31 @@ export default function Login() {
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setLoading(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    navigate('/app');
+    try {
+      const session = await authApi.login({
+        phoneNumber: phone,
+        password,
+      });
+
+      saveAuthSession(session);
+
+      if (session.user.role === 'CITIZEN') {
+        navigate('/citizen');
+        return;
+      }
+
+      if (session.user.role === 'SUPER_ADMIN') {
+        navigate('/superadmin');
+        return;
+      }
+
+      navigate('/app');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to sign in.';
+      setErrors({ general: message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatPhone = (val: string) => {

@@ -21,9 +21,64 @@ import SAOverview from './pages/superadmin/SAOverview';
 import SABarangayMap from './pages/superadmin/SABarangayMap';
 import SAAnalytics from './pages/superadmin/SAAnalytics';
 import SAUsers from './pages/superadmin/SAUsers';
+import { RequireAuth, RequireRole } from './components/RequireAuth';
+import { getAuthSession } from './utils/authSession';
 
 function RedirectToApp() {
+  const session = getAuthSession();
+  if (!session) {
+    return React.createElement(Navigate, { to: '/auth/login', replace: true });
+  }
+
+  if (session.user.role === 'CITIZEN') {
+    return React.createElement(Navigate, { to: '/citizen', replace: true });
+  }
+
+  if (session.user.role === 'SUPER_ADMIN') {
+    return React.createElement(Navigate, { to: '/superadmin', replace: true });
+  }
+
   return React.createElement(Navigate, { to: '/app', replace: true });
+}
+
+function CitizenGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['CITIZEN'], fallbackPath: '/app' },
+    React.createElement(CitizenDashboard),
+  );
+}
+
+function CitizenReportGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['CITIZEN'], fallbackPath: '/app' },
+    React.createElement(IncidentReport),
+  );
+}
+
+function CitizenReportsGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['CITIZEN'], fallbackPath: '/app' },
+    React.createElement(CitizenMyReports),
+  );
+}
+
+function SuperAdminGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['SUPER_ADMIN'], fallbackPath: '/app' },
+    React.createElement(SuperAdminLayout),
+  );
+}
+
+function OfficialAppGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['OFFICIAL', 'SUPER_ADMIN'], fallbackPath: '/citizen' },
+    React.createElement(Layout),
+  );
 }
 
 export const router = createBrowserRouter([
@@ -38,14 +93,43 @@ export const router = createBrowserRouter([
   { path: '/auth/forgot-password', Component: ForgotPassword },
 
   // Citizen portal
-  { path: '/citizen', Component: CitizenDashboard },
-  { path: '/citizen/report', Component: IncidentReport },
-  { path: '/citizen/my-reports', Component: CitizenMyReports },
+  {
+    path: '/citizen',
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(CitizenGuard),
+      ),
+  },
+  {
+    path: '/citizen/report',
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(CitizenReportGuard),
+      ),
+  },
+  {
+    path: '/citizen/my-reports',
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(CitizenReportsGuard),
+      ),
+  },
 
   // Super Admin Console
   {
     path: '/superadmin',
-    Component: SuperAdminLayout,
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(SuperAdminGuard),
+      ),
     children: [
       { index: true, Component: SAOverview },
       { path: 'map', Component: SABarangayMap },
@@ -57,7 +141,12 @@ export const router = createBrowserRouter([
   // Protected app (dashboard + sub-pages)
   {
     path: '/app',
-    Component: Layout,
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(OfficialAppGuard),
+      ),
     children: [
       { index: true, Component: Dashboard },
       { path: 'incidents', Component: Incidents },

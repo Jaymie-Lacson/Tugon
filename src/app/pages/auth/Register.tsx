@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { authApi } from '../../services/authApi';
 
 const BARANGAYS = [
   { value: '251', label: 'Barangay 251', sub: 'Zone 24 — Tondo I/II' },
@@ -16,7 +17,7 @@ export default function Register() {
   const [barangay, setBarangay] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ fullName?: string; phone?: string; barangay?: string }>({});
+  const [errors, setErrors] = useState<{ fullName?: string; phone?: string; barangay?: string; general?: string }>({});
 
   const validate = () => {
     const e: typeof errors = {};
@@ -33,9 +34,19 @@ export default function Register() {
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    navigate('/auth/verify', { state: { phone, fullName, barangay } });
+    try {
+      await authApi.register({
+        fullName,
+        phoneNumber: phone,
+        barangayCode: barangay,
+      });
+      navigate('/auth/verify', { state: { phone, fullName, barangay } });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to send OTP right now.';
+      setErrors((prev) => ({ ...prev, general: message }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatPhone = (val: string) => {
@@ -89,6 +100,20 @@ export default function Register() {
         </div>
 
         <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
+          {errors.general && (
+            <div style={{
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: 10,
+              padding: '10px 12px',
+              color: '#B91C1C',
+              fontSize: 12,
+              marginBottom: 14,
+            }}>
+              {errors.general}
+            </div>
+          )}
+
           {/* Full Name */}
           <InputField
             label="Full Name"

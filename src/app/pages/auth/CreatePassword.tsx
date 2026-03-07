@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { authApi } from '../../services/authApi';
 
 interface StrengthRule {
   label: string;
@@ -35,7 +36,7 @@ export default function CreatePassword() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
+  const [errors, setErrors] = useState<{ password?: string; confirm?: string; general?: string }>({});
 
   const strength = getStrength(password);
 
@@ -51,13 +52,26 @@ export default function CreatePassword() {
   const handleCreate = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    if (!state.phone) {
+      setErrors({ general: 'Registration phone number is missing. Please restart registration.' });
+      return;
+    }
     setErrors({});
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1600));
-    setLoading(false);
-    setDone(true);
-    await new Promise(r => setTimeout(r, 1200));
-    navigate('/auth/login');
+    try {
+      await authApi.createPassword({
+        phoneNumber: state.phone,
+        password,
+      });
+      setDone(true);
+      await new Promise(r => setTimeout(r, 1200));
+      navigate('/auth/login');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to create password.';
+      setErrors({ general: message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const barangayLabel = state.barangay ? `Barangay ${state.barangay}` : 'your barangay';
@@ -129,6 +143,20 @@ export default function CreatePassword() {
           </div>
         ) : (
           <form onSubmit={e => { e.preventDefault(); handleCreate(); }}>
+            {errors.general && (
+              <div style={{
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                borderRadius: 10,
+                padding: '10px 12px',
+                color: '#B91C1C',
+                fontSize: 12,
+                marginBottom: 14,
+              }}>
+                {errors.general}
+              </div>
+            )}
+
             {/* New password */}
             <InputField
               label="New Password"
