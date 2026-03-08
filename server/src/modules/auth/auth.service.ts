@@ -74,6 +74,17 @@ function barangayNameFromCode(code: string) {
   return `Barangay ${code}`;
 }
 
+function buildOtpDispatchResponse(phoneNumber: string, code: string, message: string) {
+  const shouldExposeOtpCode = env.nodeEnv !== "production" || env.otpDeliveryMode === "mock";
+
+  return {
+    phoneNumber,
+    expiresInSeconds: env.otpExpiryMinutes * 60,
+    message,
+    ...(shouldExposeOtpCode ? { devOtpCode: code } : {}),
+  };
+}
+
 export const authService = {
   async register(input: {
     fullName: string;
@@ -117,15 +128,17 @@ export const authService = {
 
     authStore.saveOtp(otpRecord);
 
-    // OTP provider integration point for future SMS sending.
-    console.log(`[OTP] ${phoneNumber} => ${code}`);
+    // In mock mode, OTP is intentionally returned for testing and local demos.
+    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK]" : "[OTP-SMS]";
+    console.log(`${otpLogLabel} ${phoneNumber} => ${code}`);
 
-    return {
+    return buildOtpDispatchResponse(
       phoneNumber,
-      expiresInSeconds: env.otpExpiryMinutes * 60,
-      message: "OTP sent successfully.",
-      ...(env.nodeEnv !== "production" ? { devOtpCode: code } : {}),
-    };
+      code,
+      env.otpDeliveryMode === "mock"
+        ? "OTP generated in mock mode. Use the provided code to continue."
+        : "OTP sent successfully.",
+    );
   },
 
   resendOtp(input: { phoneNumber: string }) {
@@ -144,14 +157,16 @@ export const authService = {
       expiresAtMs: Date.now() + env.otpExpiryMinutes * 60 * 1000,
     });
 
-    console.log(`[OTP-RESEND] ${phoneNumber} => ${newCode}`);
+    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK-RESEND]" : "[OTP-SMS-RESEND]";
+    console.log(`${otpLogLabel} ${phoneNumber} => ${newCode}`);
 
-    return {
+    return buildOtpDispatchResponse(
       phoneNumber,
-      expiresInSeconds: env.otpExpiryMinutes * 60,
-      message: "OTP resent successfully.",
-      ...(env.nodeEnv !== "production" ? { devOtpCode: newCode } : {}),
-    };
+      newCode,
+      env.otpDeliveryMode === "mock"
+        ? "OTP regenerated in mock mode. Use the provided code to continue."
+        : "OTP resent successfully.",
+    );
   },
 
   verifyOtp(input: { phoneNumber: string; otpCode: string }) {

@@ -51,7 +51,8 @@ This runs:
    - `JWT_SECRET=<long-random-secret>`
    - `JWT_EXPIRES_IN=8h`
    - `OTP_EXPIRY_MINUTES=5`
-   - `DATABASE_URL=<your-supabase-direct-postgres-url>`
+   - `OTP_DELIVERY_MODE=mock` (for capstone/demo OTP flow without SMS provider)
+    - `DATABASE_URL=<your-supabase-direct-postgres-url>`
    - If direct URI is unreachable, use Supabase Session Pooler URI for `DATABASE_URL`
 3. Railway uses [`railway.json`](./railway.json) to:
    - install/build server (`npm --prefix server ...`)

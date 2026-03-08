@@ -11,6 +11,7 @@ dotenv.config({ path: path.resolve(currentDir, "../../../.env") });
 
 const portFromEnv = Number(process.env.PORT ?? "4000");
 const otpExpiryMinutesFromEnv = Number(process.env.OTP_EXPIRY_MINUTES ?? "5");
+const otpDeliveryModeFromEnv = (process.env.OTP_DELIVERY_MODE ?? "mock").toLowerCase();
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -18,6 +19,10 @@ if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
 
 if (Number.isNaN(otpExpiryMinutesFromEnv) || otpExpiryMinutesFromEnv <= 0) {
   throw new Error("Invalid OTP_EXPIRY_MINUTES environment variable.");
+}
+
+if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
+  throw new Error("Invalid OTP_DELIVERY_MODE environment variable. Use 'mock' or 'sms'.");
 }
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -32,4 +37,5 @@ export const env = {
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
   otpExpiryMinutes: otpExpiryMinutesFromEnv,
+  otpDeliveryMode: otpDeliveryModeFromEnv as "mock" | "sms",
 };

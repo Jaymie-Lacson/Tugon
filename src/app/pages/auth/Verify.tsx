@@ -214,7 +214,7 @@ export default function Verify() {
 
         {devOtpCode ? (
           <div style={{ marginBottom: 20, background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 10, padding: '10px 12px', color: '#92400E', fontSize: 12 }}>
-            Development OTP (for local testing): <strong>{devOtpCode}</strong>
+            OTP Code (mock mode): <strong>{devOtpCode}</strong>
           </div>
         ) : null}
 
