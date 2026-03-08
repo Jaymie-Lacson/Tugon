@@ -3,6 +3,7 @@ import {
   Role as PrismaRole,
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { prisma } from "../../config/prisma.js";
 import type { Role } from "../auth/types.js";
 
@@ -13,6 +14,35 @@ const OPEN_REPORT_STATUSES: PrismaTicketStatus[] = [
   PrismaTicketStatus.UNDER_REVIEW,
   PrismaTicketStatus.IN_PROGRESS,
 ];
+const ADMIN_USER_SELECT = {
+  id: true,
+  fullName: true,
+  phoneNumber: true,
+  role: true,
+  isPhoneVerified: true,
+  createdAt: true,
+  updatedAt: true,
+  citizenProfile: {
+    select: {
+      barangay: {
+        select: {
+          code: true,
+          name: true,
+        },
+      },
+    },
+  },
+  officialProfile: {
+    select: {
+      barangay: {
+        select: {
+          code: true,
+          name: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.UserSelect;
 
 class AdminError extends Error {
   status: number;
@@ -38,6 +68,44 @@ function assertManagedBarangayCode(barangayCode: unknown): string {
     throw new AdminError("Barangay code must be one of 251, 252, or 256.", 400);
   }
   return barangayCode;
+}
+
+function assertFullName(fullName: unknown): string {
+  if (typeof fullName !== "string") {
+    throw new AdminError("Full name is required.", 400);
+  }
+
+  const parsed = fullName.trim();
+  if (!parsed || parsed.split(" ").filter(Boolean).length < 2) {
+    throw new AdminError("Full name must include first and last name.", 400);
+  }
+
+  return parsed;
+}
+
+function normalizeAndValidatePhoneNumber(phoneNumber: unknown): string {
+  if (typeof phoneNumber !== "string") {
+    throw new AdminError("Phone number is required.", 400);
+  }
+
+  const normalized = phoneNumber.replace(/\D/g, "");
+  if (normalized.length < 10 || normalized.length > 11) {
+    throw new AdminError("Invalid phone number.", 400);
+  }
+
+  return normalized;
+}
+
+function assertPassword(password: unknown): string {
+  if (typeof password !== "string") {
+    throw new AdminError("Password is required.", 400);
+  }
+
+  if (password.length < 8) {
+    throw new AdminError("Password must be at least 8 characters.", 400);
+  }
+
+  return password;
 }
 
 function validateBoundaryGeojson(input: unknown): string {
@@ -112,35 +180,7 @@ export const adminService = {
             }
           : {}),
       },
-      select: {
-        id: true,
-        fullName: true,
-        phoneNumber: true,
-        role: true,
-        isPhoneVerified: true,
-        createdAt: true,
-        updatedAt: true,
-        citizenProfile: {
-          select: {
-            barangay: {
-              select: {
-                code: true,
-                name: true,
-              },
-            },
-          },
-        },
-        officialProfile: {
-          select: {
-            barangay: {
-              select: {
-                code: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      select: ADMIN_USER_SELECT,
       orderBy: { createdAt: "desc" },
     });
 
@@ -149,13 +189,107 @@ export const adminService = {
     };
   },
 
+  async createUser(input: {
+    fullName?: unknown;
+    phoneNumber?: unknown;
+    password?: unknown;
+    role?: unknown;
+    barangayCode?: unknown;
+    isPhoneVerified?: unknown;
+  }) {
+    const fullName = assertFullName(input.fullName);
+    const phoneNumber = normalizeAndValidatePhoneNumber(input.phoneNumber);
+    const password = assertPassword(input.password);
+    const role = assertRole(input.role);
+    const barangayCode = role === "SUPER_ADMIN" ? null : assertManagedBarangayCode(input.barangayCode);
+
+    const isPhoneVerifiedInput = input.isPhoneVerified;
+    if (
+      typeof isPhoneVerifiedInput !== "undefined" &&
+      typeof isPhoneVerifiedInput !== "boolean"
+    ) {
+      throw new AdminError("isPhoneVerified must be a boolean value.", 400);
+    }
+    const isPhoneVerified = isPhoneVerifiedInput ?? true;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { phoneNumber },
+      select: { id: true },
+    });
+    if (existingUser) {
+      throw new AdminError("Phone number is already registered.", 409);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      let barangayId: string | null = null;
+      if (barangayCode) {
+        const barangay = await tx.barangay.upsert({
+          where: { code: barangayCode },
+          update: {
+            name: `Barangay ${barangayCode}`,
+          },
+          create: {
+            code: barangayCode,
+            name: `Barangay ${barangayCode}`,
+          },
+          select: { id: true },
+        });
+        barangayId = barangay.id;
+      }
+
+      return tx.user.create({
+        data: {
+          fullName,
+          phoneNumber,
+          role: role as PrismaRole,
+          passwordHash,
+          isPhoneVerified,
+          ...(role === "CITIZEN" && barangayId
+            ? {
+                citizenProfile: {
+                  create: {
+                    barangayId,
+                  },
+                },
+              }
+            : {}),
+          ...(role === "OFFICIAL" && barangayId
+            ? {
+                officialProfile: {
+                  create: {
+                    barangayId,
+                  },
+                },
+              }
+            : {}),
+        },
+        select: ADMIN_USER_SELECT,
+      });
+    });
+
+    return {
+      message: "User created.",
+      user: mapUserRecord(user),
+    };
+  },
+
   async updateUserRole(
     actorUserId: string,
     targetUserId: string,
-    input: { role?: unknown; barangayCode?: unknown },
+    input: { role?: unknown; barangayCode?: unknown; isPhoneVerified?: unknown },
   ) {
     const targetRole = assertRole(input.role);
     const barangayCode = targetRole === "SUPER_ADMIN" ? null : assertManagedBarangayCode(input.barangayCode);
+    const isPhoneVerifiedInput = input.isPhoneVerified;
+    if (
+      typeof isPhoneVerifiedInput !== "undefined" &&
+      typeof isPhoneVerifiedInput !== "boolean"
+    ) {
+      throw new AdminError("isPhoneVerified must be a boolean value.", 400);
+    }
+    const isPhoneVerified = isPhoneVerifiedInput ?? true;
 
     if (actorUserId === targetUserId && targetRole !== "SUPER_ADMIN") {
       throw new AdminError("You cannot remove your own SUPER_ADMIN access.", 400);
@@ -191,6 +325,7 @@ export const adminService = {
         where: { id: targetUserId },
         data: {
           role: targetRole as PrismaRole,
+          isPhoneVerified,
         },
       });
 
@@ -215,35 +350,7 @@ export const adminService = {
 
       const user = await tx.user.findUnique({
         where: { id: targetUserId },
-        select: {
-          id: true,
-          fullName: true,
-          phoneNumber: true,
-          role: true,
-          isPhoneVerified: true,
-          createdAt: true,
-          updatedAt: true,
-          citizenProfile: {
-            select: {
-              barangay: {
-                select: {
-                  code: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          officialProfile: {
-            select: {
-              barangay: {
-                select: {
-                  code: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
+        select: ADMIN_USER_SELECT,
       });
 
       if (!user) {

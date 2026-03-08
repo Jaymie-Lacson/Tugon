@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Search, Plus, Filter, Users, Shield, Activity, Lock,
-  Edit2, Trash2, MoreVertical, CheckCircle2, XCircle, Clock,
+  Edit2, Trash2, CheckCircle2, XCircle, Clock,
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
-  X, AlertCircle,
+  X,
 } from 'lucide-react';
-import { saUsers, SAUser } from '../../data/superAdminData';
+import { SAUser } from '../../data/superAdminData';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
 
@@ -27,7 +27,7 @@ const STATUS_CONFIG: Record<SAUser['status'], { color: string; bg: string; label
 
 const ROLES = ['All Roles', 'Super Admin', 'Barangay Admin', 'MDRRMO Officer', 'Responder', 'Viewer'] as const;
 const STATUSES = ['All Status', 'active', 'inactive', 'suspended'] as const;
-const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256', 'All Barangays'] as const;
+const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as const;
 
 const PAGE_SIZE = 8;
 
@@ -91,25 +91,43 @@ function extractBarangayCode(value: string): string | undefined {
   return match ? match[0] : undefined;
 }
 
+function normalizePhoneNumberInput(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+type ModalMode = 'view' | 'edit' | 'create';
+
+interface UserModalSubmitPayload {
+  fullName: string;
+  phoneNumber: string;
+  password: string;
+  role: SAUser['role'];
+  barangay: string;
+  status: SAUser['status'];
+}
+
 interface UserModalProps {
   user: SAUserRow | null;
   onClose: () => void;
-  mode: 'view' | 'edit';
+  mode: ModalMode;
   saving?: boolean;
   error?: string | null;
-  onSubmit?: (payload: { role: SAUser['role']; barangay: string; status: SAUser['status'] }) => void;
+  onSubmit?: (payload: UserModalSubmitPayload) => void;
 }
 
 function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit }: UserModalProps) {
   const [formData, setFormData] = useState({
-    name: user?.name ?? '',
-    email: user?.email ?? '',
+    fullName: user?.name ?? '',
+    phoneNumber: user?.email ?? '',
+    password: '',
     role: user?.role ?? 'Viewer',
     barangay: user?.barangay ?? 'Brgy. 251',
     status: user?.status ?? 'active',
   });
 
-  const title = mode === 'edit' ? 'Edit User' : 'User Details';
+  const title = mode === 'create' ? 'Create User' : mode === 'edit' ? 'Edit User' : 'User Details';
+  const isReadOnlyMode = mode === 'view';
+  const isCreateMode = mode === 'create';
 
   return (
     <div style={{
@@ -168,26 +186,40 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           ) : null}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {mode !== 'view' ? (
+            {!isReadOnlyMode ? (
               <>
                 <div>
                   <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Full Name</label>
                   <input
-                    value={formData.name}
-                    onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                    value={formData.fullName}
+                    onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
+                    disabled={mode === 'edit'}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: mode === 'edit' ? '#F9FAFB' : 'white' }}
                     placeholder="Enter full name"
                   />
                 </div>
                 <div>
-                  <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Email Address</label>
+                  <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Phone Number</label>
                   <input
-                    value={formData.email}
-                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                    placeholder="user@tugon.gov.ph"
+                    value={formData.phoneNumber}
+                    onChange={e => setFormData(f => ({ ...f, phoneNumber: e.target.value }))}
+                    disabled={mode === 'edit'}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: mode === 'edit' ? '#F9FAFB' : 'white' }}
+                    placeholder="09xxxxxxxxx"
                   />
                 </div>
+                {isCreateMode ? (
+                  <div>
+                    <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Initial Password</label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
+                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                      placeholder="At least 8 characters"
+                    />
+                  </div>
+                ) : null}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Role</label>
@@ -239,6 +271,11 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     })}
                   </div>
                 </div>
+                {mode === 'edit' ? (
+                  <div style={{ color: '#6B7280', fontSize: 11 }}>
+                    Name and phone edits are disabled in this phase. Use role, barangay, and status reassignment only.
+                  </div>
+                ) : null}
               </>
             ) : (
               user && (
@@ -268,10 +305,13 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           >
             {mode === 'view' ? 'Close' : 'Cancel'}
           </button>
-          {mode !== 'view' && (
+          {!isReadOnlyMode && (
             <button
               onClick={() => {
                 onSubmit?.({
+                  fullName: formData.fullName,
+                  phoneNumber: formData.phoneNumber,
+                  password: formData.password,
                   role: formData.role,
                   barangay: formData.barangay,
                   status: formData.status,
@@ -280,7 +320,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
               disabled={saving}
               style={{ padding: '9px 18px', border: 'none', borderRadius: 8, background: PRIMARY, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: 'white', opacity: saving ? 0.7 : 1 }}
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Saving...' : isCreateMode ? 'Create User' : 'Save Changes'}
             </button>
           )}
         </div>
@@ -291,7 +331,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
 }
 
 export default function SAUsers() {
-  const [usersData, setUsersData] = useState<SAUserRow[]>(saUsers as SAUserRow[]);
+  const [usersData, setUsersData] = useState<SAUserRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -299,7 +339,7 @@ export default function SAUsers() {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [barangayFilter, setBarangayFilter] = useState('All Barangays');
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState<{ user: SAUserRow | null; mode: 'view' | 'edit' } | null>(null);
+  const [modal, setModal] = useState<{ user: SAUserRow | null; mode: ModalMode } | null>(null);
   const [modalSaving, setModalSaving] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -315,7 +355,7 @@ export default function SAUsers() {
     });
   }, [usersData, search, roleFilter, statusFilter, barangayFilter]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const toggleSelect = (id: number) => {
@@ -351,7 +391,7 @@ export default function SAUsers() {
     void loadUsers();
   }, []);
 
-  const handleEditUser = async (payload: { role: SAUser['role']; barangay: string; status: SAUser['status'] }) => {
+  const handleEditUser = async (payload: UserModalSubmitPayload) => {
     if (!modal || modal.mode !== 'edit' || !modal.user?.backendUserId) {
       setModalError('Selected user cannot be edited from backend source.');
       return;
@@ -372,6 +412,7 @@ export default function SAUsers() {
       const updated = await superAdminApi.updateUserRole(modal.user.backendUserId, {
         role: apiRole,
         barangayCode,
+        isPhoneVerified: payload.status === 'active',
       });
 
       setUsersData((current) =>
@@ -382,6 +423,54 @@ export default function SAUsers() {
       setModal(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update user role.';
+      setModalError(message);
+    } finally {
+      setModalSaving(false);
+    }
+  };
+
+  const handleCreateUser = async (payload: UserModalSubmitPayload) => {
+    const apiRole = mapUiRoleToApiRole(payload.role);
+    const barangayCode = extractBarangayCode(payload.barangay);
+    const normalizedPhoneNumber = normalizePhoneNumberInput(payload.phoneNumber);
+
+    if (!payload.fullName.trim()) {
+      setModalError('Full name is required.');
+      return;
+    }
+
+    if (normalizedPhoneNumber.length < 10 || normalizedPhoneNumber.length > 11) {
+      setModalError('Phone number must contain 10 to 11 digits.');
+      return;
+    }
+
+    if (payload.password.length < 8) {
+      setModalError('Initial password must be at least 8 characters.');
+      return;
+    }
+
+    if (apiRole !== 'SUPER_ADMIN' && !barangayCode) {
+      setModalError('Barangay is required when assigning citizen or official roles.');
+      return;
+    }
+
+    setModalSaving(true);
+    setModalError(null);
+    setApiError(null);
+    try {
+      await superAdminApi.createUser({
+        fullName: payload.fullName.trim(),
+        phoneNumber: normalizedPhoneNumber,
+        password: payload.password,
+        role: apiRole,
+        barangayCode,
+        isPhoneVerified: payload.status === 'active',
+      });
+      setPage(1);
+      await loadUsers();
+      setModal(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create user.';
       setModalError(message);
     } finally {
       setModalSaving(false);
@@ -412,14 +501,19 @@ export default function SAUsers() {
             <Download size={13} color="#6B7280" /> {loading ? 'Loading...' : 'Refresh'}
           </button>
           <button
-            onClick={() => setApiError('Create-user flow is not yet implemented in this phase.')}
+            onClick={() => {
+              setApiError(null);
+              setModalError(null);
+              setModalSaving(false);
+              setModal({ user: null, mode: 'create' });
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: PRIMARY, border: 'none', borderRadius: 8,
               padding: '8px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'white',
             }}
           >
-            <Plus size={14} /> Add User (Soon)
+            <Plus size={14} /> Add User
           </button>
         </div>
       </div>
@@ -500,7 +594,7 @@ export default function SAUsers() {
           onChange={e => { setBarangayFilter(e.target.value); setPage(1); }}
           style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer', color: '#374151' }}
         >
-          {['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'].map(b => <option key={b} value={b}>{b}</option>)}
+          {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
         </select>
 
         {/* Results count */}
@@ -775,6 +869,10 @@ export default function SAUsers() {
           saving={modalSaving}
           error={modalError}
           onSubmit={(payload) => {
+            if (modal.mode === 'create') {
+              void handleCreateUser(payload);
+              return;
+            }
             void handleEditUser(payload);
           }}
         />

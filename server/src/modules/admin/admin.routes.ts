@@ -3,6 +3,23 @@ import { adminService } from "./admin.service.js";
 
 export const adminRouter = Router();
 
+adminRouter.post("/users", async (req, res) => {
+  try {
+    const payload = await adminService.createUser({
+      fullName: req.body?.fullName,
+      phoneNumber: req.body?.phoneNumber,
+      password: req.body?.password,
+      role: req.body?.role,
+      barangayCode: req.body?.barangayCode,
+      isPhoneVerified: req.body?.isPhoneVerified,
+    });
+    return res.status(201).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
 adminRouter.get("/users", async (req, res) => {
   try {
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
@@ -29,6 +46,7 @@ adminRouter.patch("/users/:userId/role", async (req, res) => {
     const payload = await adminService.updateUserRole(actorUserId, req.params.userId, {
       role: req.body?.role,
       barangayCode: req.body?.barangayCode,
+      isPhoneVerified: req.body?.isPhoneVerified,
     });
 
     return res.status(200).json(payload);

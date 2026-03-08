@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Shield, ChevronLeft, Check, MapPin, Navigation,
@@ -6,11 +6,12 @@ import {
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
 } from 'lucide-react';
+import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 type IncidentCategory = 'fire' | 'pollution' | 'noise' | 'crime' | 'road_hazard' | 'other';
 type Severity = 'low' | 'medium' | 'high' | 'critical';
 interface PinData { x: number; y: number; barangay: string; district: string; }
@@ -27,19 +28,19 @@ interface ReportForm {
   audioBlob: Blob | null;
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CONSTANTS
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const CATEGORIES: {
   type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
   color: string; bg: string; desc: string; emoji: string;
 }[] = [
-  { type: 'fire',       label: 'Fire',        icon: Flame,         color: '#B91C1C', bg: '#FEE2E2', desc: 'Building, vehicle, or grass fire', emoji: '🔥' },
-  { type: 'pollution',  label: 'Pollution',   icon: Wind,          color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, or soil contamination', emoji: '💨' },
-  { type: 'noise',      label: 'Noise',       icon: Volume2,       color: '#7C3AED', bg: '#EDE9FE', desc: 'Excessive noise disturbance',        emoji: '🔊' },
-  { type: 'crime',      label: 'Crime',       icon: AlertCircle,   color: '#1E3A8A', bg: '#DBEAFE', desc: 'Robbery, vandalism, suspicion',      emoji: '🚨' },
-  { type: 'road_hazard',label: 'Road Hazard', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Potholes, accidents, obstructions',  emoji: '⚠️' },
-  { type: 'other',      label: 'Other',       icon: MoreHorizontal,color: '#475569', bg: '#F1F5F9', desc: 'Other community concern',           emoji: '📋' },
+  { type: 'fire',       label: 'Fire',        icon: Flame,         color: '#B91C1C', bg: '#FEE2E2', desc: 'Building, vehicle, or grass fire', emoji: 'ðŸ”¥' },
+  { type: 'pollution',  label: 'Pollution',   icon: Wind,          color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, or soil contamination', emoji: 'ðŸ’¨' },
+  { type: 'noise',      label: 'Noise',       icon: Volume2,       color: '#7C3AED', bg: '#EDE9FE', desc: 'Excessive noise disturbance',        emoji: 'ðŸ”Š' },
+  { type: 'crime',      label: 'Crime',       icon: AlertCircle,   color: '#1E3A8A', bg: '#DBEAFE', desc: 'Robbery, vandalism, suspicion',      emoji: 'ðŸš¨' },
+  { type: 'road_hazard',label: 'Road Hazard', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Potholes, accidents, obstructions',  emoji: 'âš ï¸' },
+  { type: 'other',      label: 'Other',       icon: MoreHorizontal,color: '#475569', bg: '#F1F5F9', desc: 'Other community concern',           emoji: 'ðŸ“‹' },
 ];
 
 const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
@@ -72,9 +73,9 @@ function detectLocation(x: number, y: number): { barangay: string; district: str
   return { barangay: 'Brgy. Poblacion', district: 'District II' };
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STEP PROGRESS INDICATOR
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function StepIndicator({ current }: { current: number }) {
   return (
     <div style={{
@@ -127,9 +128,9 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STEP 1 — INCIDENT TYPE
-══════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STEP 1 â€” INCIDENT TYPE
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
   return (
     <div style={{ padding: '22px 16px 8px' }}>
@@ -210,7 +211,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         })}
       </div>
 
-      {/* Severity Row — appears after selecting a type */}
+      {/* Severity Row â€” appears after selecting a type */}
       <div style={{
         overflow: 'hidden', maxHeight: form.category ? 200 : 0,
         transition: 'max-height 0.4s ease', opacity: form.category ? 1 : 0,
@@ -256,9 +257,9 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STEP 2 — LOCATION
-══════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STEP 2 â€” LOCATION
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -389,7 +390,7 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           <rect x="310" y="120" width="80" height="60" fill="#A7F3D0" stroke="#6EE7B7" strokeWidth="1" rx="4" />
           <text x="350" y="154" textAnchor="middle" fill="#065F46" fontSize="7" fontWeight="600">City Park</text>
 
-          {/* Registered barangay boundary — District II dashed highlight */}
+          {/* Registered barangay boundary â€” District II dashed highlight */}
           <rect x="285" y="10" width="210" height="230" fill="rgba(59,130,246,0.06)"
             stroke="#3B82F6" strokeWidth="2.5" strokeDasharray="8,5" rx="3" />
           {/* "Your Area" label badge */}
@@ -436,7 +437,7 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
             <line x1="190" y1="463" x2="190" y2="471" stroke="#94A3B8" strokeWidth="1.5" />
             <text x="140" y="477" textAnchor="middle" fill="#94A3B8" fontSize="7">500 m</text>
           </g>
-          <text x="710" y="477" fill="#94A3B8" fontSize="6.5" textAnchor="end">© TUGON GIS</text>
+          <text x="710" y="477" fill="#94A3B8" fontSize="6.5" textAnchor="end">Â© TUGON GIS</text>
         </svg>
       </div>
 
@@ -458,7 +459,7 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>{form.pin.barangay}</div>
             <div style={{ fontSize: 11, color: '#3B82F6', marginTop: 1, fontWeight: 500 }}>
-              📍 {form.pin.district} · Pin placed successfully
+              ðŸ“ {form.pin.district} Â· Pin placed successfully
             </div>
           </div>
           <button
@@ -511,9 +512,9 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STEP 3 — DESCRIPTION
-══════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STEP 3 â€” DESCRIPTION
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
   const MAX = 500;
   const charColor = form.description.length >= MAX * 0.9 ? '#B91C1C' : form.description.length >= MAX * 0.7 ? '#B4730A' : '#94A3B8';
@@ -590,7 +591,7 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       {/* Quick tags */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-          Quick Tags — tap to add
+          Quick Tags â€” tap to add
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {QUICK_TAGS.map(tag => {
@@ -608,7 +609,7 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                   boxShadow: added ? '0 1px 4px rgba(30,58,138,0.12)' : 'none',
                 }}
               >
-                {added ? '✓ ' : '+ '}{tag}
+                {added ? 'âœ“ ' : '+ '}{tag}
               </button>
             );
           })}
@@ -622,9 +623,9 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         </label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {[
-            { val: '1–5', label: '1–5', sublabel: 'Few' },
-            { val: '6–20', label: '6–20', sublabel: 'Several' },
-            { val: '21–50', label: '21–50', sublabel: 'Many' },
+            { val: '1â€“5', label: '1â€“5', sublabel: 'Few' },
+            { val: '6â€“20', label: '6â€“20', sublabel: 'Several' },
+            { val: '21â€“50', label: '21â€“50', sublabel: 'Many' },
             { val: '50+', label: '50+', sublabel: 'Large' },
           ].map(opt => {
             const sel = form.affectedCount === opt.val;
@@ -651,9 +652,9 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STEP 4 — EVIDENCE UPLOAD
-══════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STEP 4 â€” EVIDENCE UPLOAD
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [recording, setRecording] = useState(false);
@@ -727,7 +728,7 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EFF6FF',
           borderRadius: 20, padding: '4px 12px', color: '#1E3A8A',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 4 of 5 — Optional</div>
+        }}>Step 4 of 5 â€” Optional</div>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
           Add Evidence
         </h2>
@@ -736,7 +737,7 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         </p>
       </div>
 
-      {/* ─ Photo Upload ─ */}
+      {/* â”€ Photo Upload â”€ */}
       <div style={{
         background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
         padding: '18px', marginBottom: 16,
@@ -751,7 +752,7 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B' }}>Photo Evidence</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Up to 4 photos · JPG, PNG</div>
+            <div style={{ fontSize: 11, color: '#94A3B8' }}>Up to 4 photos Â· JPG, PNG</div>
           </div>
         </div>
 
@@ -816,12 +817,12 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           <div style={{ marginTop: 10, fontSize: 11, color: '#64748B', display: 'flex', alignItems: 'center', gap: 5 }}>
             <CheckCircle2 size={12} color="#059669" />
             {form.photoPreviews.length} photo{form.photoPreviews.length > 1 ? 's' : ''} attached
-            {form.photoPreviews.length < 4 && ` · ${4 - form.photoPreviews.length} remaining`}
+            {form.photoPreviews.length < 4 && ` Â· ${4 - form.photoPreviews.length} remaining`}
           </div>
         )}
       </div>
 
-      {/* ─ Voice Recording ─ */}
+      {/* â”€ Voice Recording â”€ */}
       <div style={{
         background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
         padding: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
@@ -984,9 +985,9 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STEP 5 — REVIEW & SUBMIT
-══════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STEP 5 â€” REVIEW & SUBMIT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step5({ form }: { form: ReportForm }) {
   const cat = CATEGORIES.find(c => c.type === form.category);
   const Icon = cat?.icon ?? MoreHorizontal;
@@ -995,7 +996,7 @@ function Step5({ form }: { form: ReportForm }) {
     {
       label: 'Incident Type',
       icon: <Icon size={14} />,
-      value: cat ? `${cat.label} — ${form.severity ? form.severity.charAt(0).toUpperCase() + form.severity.slice(1) : 'Severity not set'}` : 'Not set',
+      value: cat ? `${cat.label} â€” ${form.severity ? form.severity.charAt(0).toUpperCase() + form.severity.slice(1) : 'Severity not set'}` : 'Not set',
       accent: cat?.color ?? '#475569',
     },
     {
@@ -1022,13 +1023,13 @@ function Step5({ form }: { form: ReportForm }) {
       value: [
         form.photoPreviews.length > 0 ? `${form.photoPreviews.length} photo${form.photoPreviews.length > 1 ? 's' : ''}` : null,
         form.audioUrl ? '1 voice recording' : null,
-      ].filter(Boolean).join(' · ') || 'None attached',
+      ].filter(Boolean).join(' Â· ') || 'None attached',
       accent: '#059669',
     },
     {
       label: 'Reporter',
       icon: <User size={14} />,
-      value: 'Juan Dela Cruz · Brgy. San Antonio, District II',
+      value: 'Juan Dela Cruz Â· Brgy. San Antonio, District II',
       accent: '#475569',
     },
     {
@@ -1046,7 +1047,7 @@ function Step5({ form }: { form: ReportForm }) {
           display: 'inline-flex', alignItems: 'center', gap: 6, background: '#FEF3C7',
           borderRadius: 20, padding: '4px 12px', color: '#92400E',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 5 of 5 — Final Review</div>
+        }}>Step 5 of 5 â€” Final Review</div>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
           Review & Submit
         </h2>
@@ -1082,7 +1083,7 @@ function Step5({ form }: { form: ReportForm }) {
               {cat?.label ?? 'Incident'} Report
             </div>
             <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
-              Submitted by Juan Dela Cruz · {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Submitted by Juan Dela Cruz Â· {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
           </div>
           {/* Severity pill */}
@@ -1175,9 +1176,9 @@ function Step5({ form }: { form: ReportForm }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SUCCESS SCREEN
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: string }) {
   const [countdown, setCountdown] = useState(6);
 
@@ -1316,9 +1317,9 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN EXPORT
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const STEP_VALIDATION: Record<number, (f: ReportForm) => boolean> = {
   1: f => f.category !== null,
   2: f => f.pin !== null || f.address.trim().length > 0,
@@ -1417,147 +1418,152 @@ export default function IncidentReport() {
     <>
       {submitted && <SuccessScreen reportId={submittedReportId} onDone={() => navigate('/citizen')} />}
 
-      <div style={{
-        minHeight: '100vh', background: '#F1F5F9',
-        display: 'flex', flexDirection: 'column',
-        maxWidth: 520, margin: '0 auto',
-        fontFamily: "'Roboto', sans-serif",
-        position: 'relative',
-      }}>
-
-        {/* ── Fixed Header ── */}
-        <header style={{
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-          padding: '0 16px', display: 'flex',
-          alignItems: 'center', justifyContent: 'space-between',
-          height: 60, flexShrink: 0, position: 'sticky', top: 0, zIndex: 50,
-          boxShadow: '0 2px 16px rgba(30,58,138,0.45)',
-        }}>
-          {/* Back button */}
-          <button
-            onClick={goBack}
-            style={{
-              background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 10, width: 38, height: 38, cursor: 'pointer', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'background 0.15s',
-            }}
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          {/* Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: 'rgba(255,255,255,0.14)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Shield size={16} color="#fff" />
-            </div>
-            <div>
-              <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Report Incident</div>
-              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                TUGON Citizen Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Step counter badge */}
-          <div style={{
-            background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 10, padding: '5px 11px',
-            color: '#BFDBFE', fontSize: 12, fontWeight: 800,
-            fontVariantNumeric: 'tabular-nums',
+      <CitizenPageLayout
+        header={
+          <header style={{
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            padding: '0 16px', display: 'flex',
+            alignItems: 'center', justifyContent: 'space-between',
+            height: 60, flexShrink: 0, position: 'sticky', top: 0, zIndex: 50,
+            boxShadow: '0 2px 16px rgba(30,58,138,0.45)',
           }}>
-            {step} / 5
-          </div>
-        </header>
-
-        {/* ── Step Indicator ── */}
-        <StepIndicator current={step} />
-
-        {/* ── Scrollable Content ── */}
-        <div
-          ref={contentRef}
-          style={{ flex: 1, overflowY: 'auto', paddingBottom: 96 }}
-        >
-          {submitError && step === 5 && (
-            <div style={{
-              margin: '12px 16px 0',
-              background: '#FEF2F2',
-              border: '1px solid #FECACA',
-              borderRadius: 12,
-              color: '#B91C1C',
-              fontSize: 12,
-              padding: '10px 12px',
-            }}>
-              {submitError}
-            </div>
-          )}
-          {stepContent[step]}
-        </div>
-
-        {/* ── Fixed Bottom Bar ── */}
-        <div style={{
-          position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-          width: '100%', maxWidth: 520, background: '#fff',
-          borderTop: '1px solid #E2E8F0', padding: '12px 16px',
-          display: 'flex', gap: 10, zIndex: 50,
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
-          boxSizing: 'border-box',
-        }}>
-          {/* Back */}
-          {step > 1 && (
             <button
               onClick={goBack}
               style={{
-                flex: 1, padding: '14px', borderRadius: 14,
-                border: '1.5px solid #E2E8F0', background: '#F8FAFC',
-                color: '#475569', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 10, width: 38, height: 38, cursor: 'pointer', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.15s',
               }}
             >
-              <ChevronLeft size={16} /> Back
+              <ChevronLeft size={20} />
             </button>
-          )}
 
-          {/* Next / Submit */}
-          <button
-            onClick={goNext}
-            disabled={!canProceed || submitting}
-            style={{
-              flex: step === 1 ? 1 : 2,
-              padding: '14px', borderRadius: 14, border: 'none',
-              background: !canProceed || submitting
-                ? '#E2E8F0'
-                : step === 5
-                  ? 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)'
-                  : 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-              color: canProceed && !submitting ? '#fff' : '#94A3B8',
-              fontWeight: 700, fontSize: 14,
-              cursor: canProceed && !submitting ? 'pointer' : 'not-allowed',
-              boxShadow: canProceed && !submitting
-                ? step === 5
-                  ? '0 4px 16px rgba(185,28,28,0.4)'
-                  : '0 4px 16px rgba(30,58,138,0.35)'
-                : 'none',
-              transition: 'all 0.2s',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
-          >
-            {submitting ? (
-              <>Submitting...</>
-            ) : step === 5 ? (
-              <>🚨 Submit Report</>
-            ) : step === 4 ? (
-              <>Continue to Review →</>
-            ) : (
-              <>Continue →</>
-            )}
-          </button>
-        </div>
-      </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 30, height: 30, borderRadius: 8,
+                background: 'rgba(255,255,255,0.14)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Shield size={16} color="#fff" />
+              </div>
+              <div>
+                <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Report Incident</div>
+                <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  TUGON Citizen Portal
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 10, padding: '5px 11px',
+              color: '#BFDBFE', fontSize: 12, fontWeight: 800,
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {step} / 5
+            </div>
+          </header>
+        }
+        beforeMain={<StepIndicator current={step} />}
+        afterMain={
+          <>
+            <div className="citizen-report-footer" style={{
+              position: 'sticky', bottom: 0, left: 0, transform: 'none',
+              width: '100%', maxWidth: 'none', background: '#fff',
+              borderTop: '1px solid #E2E8F0', padding: '12px 16px',
+              display: 'flex', gap: 10, zIndex: 50,
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
+              boxSizing: 'border-box',
+            }}>
+              {step > 1 && (
+                <button
+                  onClick={goBack}
+                  style={{
+                    flex: 1, padding: '14px', borderRadius: 14,
+                    border: '1.5px solid #E2E8F0', background: '#F8FAFC',
+                    color: '#475569', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                >
+                  <ChevronLeft size={16} /> Back
+                </button>
+              )}
+
+              <button
+                onClick={goNext}
+                disabled={!canProceed || submitting}
+                style={{
+                  flex: step === 1 ? 1 : 2,
+                  padding: '14px', borderRadius: 14, border: 'none',
+                  background: !canProceed || submitting
+                    ? '#E2E8F0'
+                    : step === 5
+                      ? 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)'
+                      : 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+                  color: canProceed && !submitting ? '#fff' : '#94A3B8',
+                  fontWeight: 700, fontSize: 14,
+                  cursor: canProceed && !submitting ? 'pointer' : 'not-allowed',
+                  boxShadow: canProceed && !submitting
+                    ? step === 5
+                      ? '0 4px 16px rgba(185,28,28,0.4)'
+                      : '0 4px 16px rgba(30,58,138,0.35)'
+                    : 'none',
+                  transition: 'all 0.2s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                {submitting ? (
+                  <>Submitting...</>
+                ) : step === 5 ? (
+                  <>Submit Report</>
+                ) : step === 4 ? (
+                  <>Continue to Review {'->'}</>
+                ) : (
+                  <>Continue {'->'}</>
+                )}
+              </button>
+            </div>
+            <style>{`
+              @media (max-width: 900px) {
+                .citizen-report-footer {
+                  position: fixed !important;
+                  left: 50% !important;
+                  transform: translateX(-50%) !important;
+                  max-width: 520px !important;
+                }
+              }
+
+              @media (min-width: 901px) {
+                .citizen-report-footer {
+                  position: sticky !important;
+                  left: 0 !important;
+                  transform: none !important;
+                  max-width: none !important;
+                }
+              }
+            `}</style>
+          </>
+        }
+        mobileMainPaddingBottom={96}
+        desktopMainPaddingBottom={24}
+      >
+        {submitError && step === 5 && (
+          <div style={{
+            margin: '12px 16px 0',
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 12,
+            color: '#B91C1C',
+            fontSize: 12,
+            padding: '10px 12px',
+          }}>
+            {submitError}
+          </div>
+        )}
+        {stepContent[step]}
+      </CitizenPageLayout>
     </>
   );
 }
+

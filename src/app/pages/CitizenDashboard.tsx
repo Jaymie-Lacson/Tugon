@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Shield, Bell, Home, MapPin, FileText, User, Plus,
@@ -7,6 +7,7 @@ import {
   Phone, Info, CloudRain, Eye, Search, Filter,
   ArrowRight, TrendingUp, Map,
 } from 'lucide-react';
+import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 import {
@@ -16,7 +17,7 @@ import {
   IncidentType,
 } from '../data/incidents';
 
-/* ── helpers ─────────────────────────────────────────────────────── */
+/* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const activeIncidents = incidents.filter(
   (i) => i.status === 'active' || i.status === 'responding',
 );
@@ -68,7 +69,7 @@ const typeIcon: Record<IncidentType, React.ReactNode> = {
   typhoon: <CloudRain size={14} />,
 };
 
-/* ── sub-components ──────────────────────────────────────────────── */
+/* â”€â”€ sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function AlertBanner() {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed || criticalCount === 0) return null;
@@ -108,7 +109,7 @@ function AlertBanner() {
         onClick={() => setDismissed(true)}
         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}
       >
-        ×
+        Ã—
       </button>
     </div>
   );
@@ -297,10 +298,10 @@ function RecentIncidentRow({ incident }: { incident: Incident }) {
             textOverflow: 'ellipsis',
           }}
         >
-          {cfg.label} — {incident.barangay}
+          {cfg.label} â€” {incident.barangay}
         </div>
         <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-          {timeAgo(incident.reportedAt)} · {incident.location}
+          {timeAgo(incident.reportedAt)} Â· {incident.location}
         </div>
       </div>
       <StatusBadge status={incident.status} size="sm" pulse />
@@ -353,7 +354,7 @@ function MyReportRow({
           {report.description}
         </div>
         <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-          {report.id} · {timeAgo(report.reportedAt)}
+          {report.id} Â· {timeAgo(report.reportedAt)}
         </div>
       </div>
       <StatusBadge status={report.status} size="sm" />
@@ -363,7 +364,7 @@ function MyReportRow({
 
 type Tab = 'home' | 'report' | 'map' | 'myreports' | 'profile';
 
-/* ── main page ───────────────────────────────────────────────────── */
+/* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function CitizenDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -378,7 +379,6 @@ export default function CitizenDashboard() {
     { key: 'profile', icon: <User size={22} />, label: 'Profile' },
   ];
 
-  /* ── tab content ─────────────────────────────────────────────────── */
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
@@ -396,343 +396,371 @@ export default function CitizenDashboard() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#F1F5F9',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: "'Roboto', sans-serif",
-        maxWidth: 520,
-        margin: '0 auto',
-        position: 'relative',
-      }}
-    >
-      {/* ── Top Header ─── */}
-      <header
-        style={{
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-          padding: '0 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 60,
-          flexShrink: 0,
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
-        }}
-      >
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'rgba(255,255,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1.5px solid rgba(255,255,255,0.25)',
-            }}
-          >
-            <Shield size={20} color="#FFFFFF" />
-          </div>
-          <div>
-            <div style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 16, lineHeight: 1.1, letterSpacing: '0.03em' }}>
-              TUGON
-            </div>
-            <div style={{ color: '#BFDBFE', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Citizen Portal
-            </div>
-          </div>
-        </div>
-
-        {/* Right: notification + avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setNotifOpen(!notifOpen)}
-            style={{
-              position: 'relative',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 10,
-              width: 38,
-              height: 38,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#fff',
-            }}
-          >
-            <Bell size={18} />
-            {/* Badge */}
-            <span
-              style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: '#B91C1C',
-                border: '1.5px solid #1E3A8A',
-              }}
-            />
-          </button>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, #B4730A, #D97706)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
-            onClick={() => setActiveTab('profile')}
-          >
-            JD
-          </div>
-        </div>
-
-        {/* Notification dropdown */}
-        {notifOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 66,
-              right: 16,
-              width: 300,
-              background: '#fff',
-              borderRadius: 14,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-              zIndex: 100,
-              overflow: 'hidden',
-              border: '1px solid #E2E8F0',
-            }}
-          >
+    <CitizenPageLayout
+      header={
+        <header
+          style={{
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            padding: '0 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 60,
+            flexShrink: 0,
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
               style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid #F1F5F9',
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.15)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-              <span
-                style={{
-                  background: '#B91C1C',
-                  color: '#fff',
-                  borderRadius: 20,
-                  padding: '1px 7px',
-                  fontSize: 10,
-                  fontWeight: 700,
-                }}
-              >
-                3 New
-              </span>
-            </div>
-            {[
-              {
-                icon: <AlertTriangle size={14} />,
-                color: '#B91C1C',
-                bg: '#FEE2E2',
-                title: 'Critical Fire Alert',
-                desc: 'Active fire in Brgy. San Antonio',
-                time: '23m ago',
-              },
-              {
-                icon: <CheckCircle2 size={14} />,
-                color: '#059669',
-                bg: '#D1FAE5',
-                title: 'Report Updated',
-                desc: 'MY-2026-003 is now being responded to',
-                time: '1h ago',
-              },
-              {
-                icon: <Info size={14} />,
-                color: '#1E3A8A',
-                bg: '#DBEAFE',
-                title: 'Community Advisory',
-                desc: 'Flash flood warning in District I',
-                time: '2h ago',
-              },
-            ].map((n, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: '12px 16px',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
-                  borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none',
-                  cursor: 'pointer',
-                  background: i === 0 ? '#FFFBEB' : '#fff',
-                }}
-              >
-                <div
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 8,
-                    background: n.bg,
-                    color: n.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {n.icon}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{n.title}</div>
-                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
-                  <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </header>
-
-      {/* Alert banner */}
-      <AlertBanner />
-
-      {/* ── Page Content ─── */}
-      <main
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          paddingBottom: 80,
-        }}
-        onClick={() => notifOpen && setNotifOpen(false)}
-      >
-        {renderContent()}
-      </main>
-
-      {/* ── Bottom Navigation ─── */}
-      <nav
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '100%',
-          maxWidth: 520,
-          background: '#fff',
-          borderTop: '1px solid #E2E8F0',
-          display: 'flex',
-          alignItems: 'stretch',
-          height: 68,
-          zIndex: 50,
-          boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
-        }}
-      >
-        {navItems.map((item) => {
-          const isReport = item.key === 'report';
-          const isActive = activeTab === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => {
-                if (isReport) navigate('/citizen/report');
-                else if (item.key === 'myreports') navigate('/citizen/my-reports');
-                else setActiveTab(item.key);
-              }}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: isReport ? 0 : 3,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                position: 'relative',
+                border: '1.5px solid rgba(255,255,255,0.25)',
               }}
             >
-              {isReport ? (
-                /* Floating report button */
-                <div
+              <Shield size={20} color="#FFFFFF" />
+            </div>
+            <div>
+              <div style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 16, lineHeight: 1.1, letterSpacing: '0.03em' }}>
+                TUGON
+              </div>
+              <div style={{ color: '#BFDBFE', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Citizen Portal
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              style={{
+                position: 'relative',
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 10,
+                width: 38,
+                height: 38,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#fff',
+              }}
+            >
+              <Bell size={18} />
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#B91C1C',
+                  border: '1.5px solid #1E3A8A',
+                }}
+              />
+            </button>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+              onClick={() => setActiveTab('profile')}
+            >
+              JD
+            </div>
+          </div>
+
+          {notifOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 66,
+                right: 16,
+                width: 300,
+                background: '#fff',
+                borderRadius: 14,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                zIndex: 100,
+                overflow: 'hidden',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: '1px solid #F1F5F9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                <span
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    background: '#B91C1C',
                     color: '#fff',
-                    boxShadow: '0 4px 16px rgba(185,28,28,0.5)',
-                    marginTop: -18,
-                    border: '3px solid #fff',
+                    borderRadius: 20,
+                    padding: '1px 7px',
+                    fontSize: 10,
+                    fontWeight: 700,
                   }}
                 >
-                  <Plus size={24} />
-                </div>
-              ) : (
+                  3 New
+                </span>
+              </div>
+              {[
+                {
+                  icon: <AlertTriangle size={14} />,
+                  color: '#B91C1C',
+                  bg: '#FEE2E2',
+                  title: 'Critical Fire Alert',
+                  desc: 'Active fire in Brgy. San Antonio',
+                  time: '23m ago',
+                },
+                {
+                  icon: <CheckCircle2 size={14} />,
+                  color: '#059669',
+                  bg: '#D1FAE5',
+                  title: 'Report Updated',
+                  desc: 'MY-2026-003 is now being responded to',
+                  time: '1h ago',
+                },
+                {
+                  icon: <Info size={14} />,
+                  color: '#1E3A8A',
+                  bg: '#DBEAFE',
+                  title: 'Community Advisory',
+                  desc: 'Flash flood warning in District I',
+                  time: '2h ago',
+                },
+              ].map((n, i) => (
                 <div
+                  key={i}
                   style={{
-                    color: isActive ? '#1E3A8A' : '#94A3B8',
+                    padding: '12px 16px',
                     display: 'flex',
-                    flexDirection: 'column',
+                    gap: 10,
+                    alignItems: 'flex-start',
+                    borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none',
+                    cursor: 'pointer',
+                    background: i === 0 ? '#FFFBEB' : '#fff',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 8,
+                      background: n.bg,
+                      color: n.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {n.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{n.title}</div>
+                    <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
+                    <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </header>
+      }
+      beforeMain={
+        <>
+          <AlertBanner />
+          <div
+            className="citizen-only-desktop"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '14px 18px 10px',
+              borderBottom: '1px solid #E2E8F0',
+              background: '#FFFFFF',
+              boxShadow: '0 1px 6px rgba(15,23,42,0.04)',
+            }}
+          >
+            {navItems.map((item) => {
+              const isActionRoute = item.key === 'report' || item.key === 'myreports';
+              const isActive = activeTab === item.key;
+
+              return (
+                <button
+                  key={`desktop-${item.key}`}
+                  onClick={() => {
+                    if (item.key === 'report') navigate('/citizen/report');
+                    else if (item.key === 'myreports') navigate('/citizen/my-reports');
+                    else setActiveTab(item.key);
+                  }}
+                  style={{
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 3,
+                    gap: 6,
+                    padding: '9px 14px',
+                    borderRadius: 10,
+                    border: `1px solid ${isActive ? '#1E3A8A' : '#E2E8F0'}`,
+                    background: isActive ? '#EFF6FF' : 'white',
+                    color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
+                    fontWeight: isActive ? 700 : 600,
+                    fontSize: 12,
+                    cursor: 'pointer',
                   }}
                 >
                   {item.icon}
-                </div>
-              )}
-              <span
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      }
+      afterMain={
+        <nav
+          className="citizen-only-mobile"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: 520,
+            background: '#fff',
+            borderTop: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'stretch',
+            height: 68,
+            zIndex: 50,
+            boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
+          }}
+        >
+          {navItems.map((item) => {
+            const isReport = item.key === 'report';
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => {
+                  if (isReport) navigate('/citizen/report');
+                  else if (item.key === 'myreports') navigate('/citizen/my-reports');
+                  else setActiveTab(item.key);
+                }}
                 style={{
-                  fontSize: isReport ? 9 : 10,
-                  fontWeight: isActive || isReport ? 700 : 500,
-                  color: isReport ? '#B91C1C' : isActive ? '#1E3A8A' : '#94A3B8',
-                  marginTop: isReport ? 2 : 0,
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: isReport ? 0 : 3,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  position: 'relative',
                 }}
               >
-                {item.label}
-              </span>
-              {/* Active indicator */}
-              {isActive && !isReport && (
+                {isReport ? (
+                  <div
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      boxShadow: '0 4px 16px rgba(185,28,28,0.5)',
+                      marginTop: -18,
+                      border: '3px solid #fff',
+                    }}
+                  >
+                    <Plus size={24} />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: isActive ? '#1E3A8A' : '#94A3B8',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 3,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                )}
                 <span
                   style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 24,
-                    height: 3,
-                    borderRadius: '0 0 4px 4px',
-                    background: '#1E3A8A',
+                    fontSize: isReport ? 9 : 10,
+                    fontWeight: isActive || isReport ? 700 : 500,
+                    color: isReport ? '#B91C1C' : isActive ? '#1E3A8A' : '#94A3B8',
+                    marginTop: isReport ? 2 : 0,
                   }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+                >
+                  {item.label}
+                </span>
+                {isActive && !isReport && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 24,
+                      height: 3,
+                      borderRadius: '0 0 4px 4px',
+                      background: '#1E3A8A',
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      }
+      mainOnClick={() => {
+        if (notifOpen) {
+          setNotifOpen(false);
+        }
+      }}
+      mobileMainPaddingBottom={80}
+      desktopMainPaddingBottom={24}
+    >
+      {renderContent()}
+    </CitizenPageLayout>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HOME TAB
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function HomeTab({
   setActiveTab,
   selectedIncident,
@@ -756,13 +784,13 @@ function HomeTab({
         }}
       >
         <div style={{ fontSize: 13, color: '#BFDBFE', marginBottom: 2 }}>
-          Good morning, Juan! 👋
+          Good morning, Juan! ðŸ‘‹
         </div>
         <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 1 }}>
           Stay Safe, Stay Informed
         </div>
         <div style={{ fontSize: 11, color: '#93C5FD' }}>
-          Brgy. San Antonio · District II · March 6, 2026
+          Brgy. San Antonio Â· District II Â· March 6, 2026
         </div>
       </div>
 
@@ -887,7 +915,7 @@ function HomeTab({
                 {selectedIncident.location}
               </div>
               <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, fontFamily: 'monospace' }}>
-                📍 {selectedIncident.lat.toFixed(5)}°N, {selectedIncident.lng.toFixed(5)}°E
+                ðŸ“ {selectedIncident.lat.toFixed(5)}Â°N, {selectedIncident.lng.toFixed(5)}Â°E
               </div>
             </div>
             <StatusBadge status={selectedIncident.status} size="sm" pulse />
@@ -1041,9 +1069,9 @@ function HomeTab({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    REPORT TAB
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }[] = [
   { type: 'fire', label: 'Fire', icon: <Flame size={20} /> },
   { type: 'flood', label: 'Flood', icon: <Droplets size={20} /> },
@@ -1121,7 +1149,7 @@ function ReportTab() {
         >
           MY-2026-004
         </div>
-        <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortly…</div>
+        <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortlyâ€¦</div>
       </div>
     );
   }
@@ -1160,7 +1188,7 @@ function ReportTab() {
           ))}
         </div>
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
-          Step {step} of 3 — {step === 1 ? 'Incident Type' : step === 2 ? 'Details' : 'Review & Submit'}
+          Step {step} of 3 â€” {step === 1 ? 'Incident Type' : step === 2 ? 'Details' : 'Review & Submit'}
         </div>
       </div>
 
@@ -1236,7 +1264,7 @@ function ReportTab() {
               transition: 'background 0.2s',
             }}
           >
-            Continue →
+            Continue â†’
           </button>
         </div>
       )}
@@ -1305,7 +1333,7 @@ function ReportTab() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Briefly describe what is happening…"
+              placeholder="Briefly describe what is happeningâ€¦"
               rows={4}
               style={{
                 width: '100%',
@@ -1335,7 +1363,7 @@ function ReportTab() {
                 cursor: 'pointer',
               }}
             >
-              ← Back
+              â† Back
             </button>
             <button
               onClick={() => description && location && severity && setStep(3)}
@@ -1352,7 +1380,7 @@ function ReportTab() {
                 cursor: description && location && severity ? 'pointer' : 'not-allowed',
               }}
             >
-              Review →
+              Review â†’
             </button>
           </div>
         </div>
@@ -1424,7 +1452,7 @@ function ReportTab() {
                 cursor: 'pointer',
               }}
             >
-              ← Edit
+              â† Edit
             </button>
             <button
               onClick={handleSubmit}
@@ -1450,9 +1478,9 @@ function ReportTab() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAP TAB
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function MapTab({
   selectedIncident,
   setSelectedIncident,
@@ -1469,7 +1497,7 @@ function MapTab({
       : incidents.filter((i) => i.status === 'resolved');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 148px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'clamp(500px, 70vh, 760px)' }}>
       {/* Filters */}
       <div
         style={{
@@ -1532,7 +1560,7 @@ function MapTab({
             <StatusBadge status={selectedIncident.status} size="sm" pulse />
           </div>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 2 }}>
-            {selectedIncident.id} — {selectedIncident.barangay}
+            {selectedIncident.id} â€” {selectedIncident.barangay}
           </div>
           <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>
             {selectedIncident.description}
@@ -1550,9 +1578,9 @@ function MapTab({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MY REPORTS TAB
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function MyReportsTab() {
   return (
     <div style={{ padding: '16px' }}>
@@ -1631,9 +1659,9 @@ function MyReportsTab() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PROFILE TAB
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function ProfileTab() {
   const navigate = useNavigate();
   return (
@@ -1676,7 +1704,7 @@ function ProfileTab() {
             juan.delacruz@email.com
           </div>
           <div style={{ fontSize: 11, color: '#93C5FD', marginTop: 4 }}>
-            Brgy. San Antonio · District II
+            Brgy. San Antonio Â· District II
           </div>
         </div>
         <div
@@ -1782,3 +1810,4 @@ function ProfileTab() {
     </div>
   );
 }
+

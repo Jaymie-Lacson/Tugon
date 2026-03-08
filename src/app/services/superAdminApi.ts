@@ -65,7 +65,23 @@ export interface ApiAdminAnalyticsSummary {
   reportsByBarangay: Array<{ barangayCode: string; count: number }>;
 }
 
+export interface CreateAdminUserInput {
+  fullName: string;
+  phoneNumber: string;
+  password: string;
+  role: Role;
+  barangayCode?: string;
+  isPhoneVerified?: boolean;
+}
+
 export const superAdminApi = {
+  createUser(input: CreateAdminUserInput) {
+    return authedRequest<{ message: string; user: ApiAdminUser }>("/admin/users", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
   getUsers(params?: { search?: string; role?: Role }) {
     const search = new URLSearchParams();
     if (params?.search) {
@@ -81,7 +97,7 @@ export const superAdminApi = {
     });
   },
 
-  updateUserRole(userId: string, input: { role: Role; barangayCode?: string }) {
+  updateUserRole(userId: string, input: { role: Role; barangayCode?: string; isPhoneVerified?: boolean }) {
     return authedRequest<{ message: string; user: ApiAdminUser }>(`/admin/users/${userId}/role`, {
       method: "PATCH",
       body: JSON.stringify(input),
