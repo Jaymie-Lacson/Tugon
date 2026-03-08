@@ -27,6 +27,49 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
+export interface ApiCrossBorderAlert {
+  id: string;
+  reportId: string;
+  sourceBarangayCode: string;
+  targetBarangayCode: string;
+  alertReason: string;
+  createdAt: string;
+  readAt: string | null;
+  report: {
+    id: string;
+    type: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+    status: ApiTicketStatus;
+    location: string;
+    barangay: string;
+    district: string;
+    submittedAt: string;
+  };
+}
+
+export interface ApiHeatmapCluster {
+  clusterId: string;
+  incidentType: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+  incidentCount: number;
+  centerLatitude: number;
+  centerLongitude: number;
+  intensity: number;
+  threshold: number;
+  timeWindowStart: string;
+  timeWindowEnd: string;
+  barangayCodes: string[];
+}
+
+export interface ApiHeatmapResponse {
+  clusters: ApiHeatmapCluster[];
+  applied: {
+    incidentType: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other" | null;
+    fromDate: string;
+    toDate: string;
+    threshold: number;
+    cellSize: number;
+  };
+}
+
 export const officialReportsApi = {
   getReports() {
     return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
@@ -48,5 +91,43 @@ export const officialReportsApi = {
         body: JSON.stringify(input),
       },
     );
+  },
+
+  getAlerts() {
+    return authedRequest<{ alerts: ApiCrossBorderAlert[] }>("/official/alerts", {
+      method: "GET",
+    });
+  },
+
+  markAlertRead(alertId: string) {
+    return authedRequest<{ message: string; alert: ApiCrossBorderAlert }>(`/official/alerts/${alertId}/read`, {
+      method: "PATCH",
+    });
+  },
+
+  getHeatmap(params?: {
+    type?: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+    days?: number;
+    threshold?: number;
+    cellSize?: number;
+  }) {
+    const search = new URLSearchParams();
+    if (params?.type) {
+      search.set("type", params.type);
+    }
+    if (typeof params?.days === "number") {
+      search.set("days", String(params.days));
+    }
+    if (typeof params?.threshold === "number") {
+      search.set("threshold", String(params.threshold));
+    }
+    if (typeof params?.cellSize === "number") {
+      search.set("cellSize", String(params.cellSize));
+    }
+
+    const query = search.toString();
+    return authedRequest<ApiHeatmapResponse>(`/official/heatmap${query ? `?${query}` : ""}`, {
+      method: "GET",
+    });
   },
 };

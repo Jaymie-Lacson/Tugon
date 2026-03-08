@@ -103,6 +103,16 @@ export interface IncidentMapProps {
   onSelectIncident?: (incident: Incident | null) => void;
   compact?: boolean;
   zoom?: number;
+  heatmapClusters?: HeatmapClusterOverlay[];
+}
+
+export interface HeatmapClusterOverlay {
+  id: string;
+  latitude: number;
+  longitude: number;
+  intensity: number;
+  incidentCount: number;
+  incidentType: string;
 }
 
 const TUGON_CENTER: [number, number] = [14.2055, 121.1540];
@@ -114,6 +124,7 @@ export function IncidentMap({
   onSelectIncident,
   compact = false,
   zoom = 15,
+  heatmapClusters = [],
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
@@ -158,6 +169,41 @@ export function IncidentMap({
               }}
             />
           ))}
+
+        {/* Heatmap hotspot circles (official analytics overlay) */}
+        {heatmapClusters.map((cluster) => {
+          const normalizedType = cluster.incidentType.toLowerCase();
+          const color =
+            TYPE_COLORS[normalizedType] ??
+            (cluster.incidentType === 'Road Hazard' ? TYPE_COLORS.accident : TYPE_COLORS.infrastructure);
+          const radius = Math.max(55, Math.round(45 + cluster.intensity * 45));
+
+          return (
+            <Circle
+              key={`heat-${cluster.id}`}
+              center={[cluster.latitude, cluster.longitude]}
+              radius={radius}
+              pathOptions={{
+                color,
+                fillColor: color,
+                fillOpacity: Math.min(0.34, 0.1 + cluster.intensity * 0.05),
+                weight: 1,
+                opacity: 0.5,
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent={false}>
+                <div style={{ fontSize: 11, minWidth: 140 }}>
+                  <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>
+                    {cluster.incidentType} hotspot
+                  </div>
+                  <div style={{ color: '#475569', marginBottom: 2 }}>
+                    {cluster.incidentCount} incidents (intensity {cluster.intensity.toFixed(2)})
+                  </div>
+                </div>
+              </Tooltip>
+            </Circle>
+          );
+        })}
 
         {/* Incident markers */}
         {sorted.map(inc => {

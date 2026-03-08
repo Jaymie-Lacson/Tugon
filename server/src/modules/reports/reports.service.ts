@@ -8,8 +8,11 @@ import { geofencingService } from "../map/geofencing.service.js";
 import { reportsStore } from "./store.js";
 import type { Role } from "../auth/types.js";
 import type {
+  CrossBorderAlertRecord,
   CitizenReportRecord,
   CreateCitizenReportInput,
+  HeatmapClusterRecord,
+  HeatmapQueryInput,
   IncidentType,
   ReportSeverity,
   TicketStatus,
@@ -33,6 +36,9 @@ const ALLOWED_TICKET_STATUSES: TicketStatus[] = [
   "Closed",
   "Unresolvable",
 ];
+const DEFAULT_HEATMAP_DAYS = 14;
+const DEFAULT_HEATMAP_THRESHOLD = 3;
+const DEFAULT_HEATMAP_CELL_SIZE = 0.0025;
 
 const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   "Submitted": ["Under Review"],
@@ -139,6 +145,21 @@ function assertJurisdiction(
 
     if (user.barangayCode !== reportBarangayCode) {
       throw new ReportsError("You cannot act on incidents outside your barangay jurisdiction.", 403);
+    }
+  }
+}
+
+function assertAlertJurisdiction(
+  user: { role: Role; barangayCode: string | null },
+  targetBarangayCode: string,
+) {
+  if (user.role === "OFFICIAL") {
+    if (!user.barangayCode) {
+      throw new ReportsError("Official barangay profile is required.", 403);
+    }
+
+    if (user.barangayCode !== targetBarangayCode) {
+      throw new ReportsError("You cannot manage alerts outside your barangay jurisdiction.", 403);
     }
   }
 }
@@ -256,6 +277,63 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     description,
     photoCount,
     affectedCount: input.affectedCount ?? null,
+  };
+}
+
+function validateHeatmapInput(input: HeatmapQueryInput): {
+  incidentType?: IncidentType;
+  fromDate: Date;
+  toDate: Date;
+  threshold: number;
+  cellSize: number;
+} {
+  const now = new Date();
+  const rawDays = Number(input.days ?? DEFAULT_HEATMAP_DAYS);
+  if (!Number.isInteger(rawDays) || rawDays <= 0 || rawDays > 180) {
+    throw new ReportsError("Heatmap days must be an integer between 1 and 180.", 400);
+  }
+
+  const threshold = Number(input.threshold ?? DEFAULT_HEATMAP_THRESHOLD);
+  if (!Number.isInteger(threshold) || threshold < 2 || threshold > 100) {
+    throw new ReportsError("Heatmap threshold must be an integer between 2 and 100.", 400);
+  }
+
+  const cellSize = Number(input.cellSize ?? DEFAULT_HEATMAP_CELL_SIZE);
+  if (!Number.isFinite(cellSize) || cellSize <= 0 || cellSize > 0.02) {
+    throw new ReportsError("Heatmap cell size must be greater than 0 and at most 0.02.", 400);
+  }
+
+  let incidentType: IncidentType | undefined;
+  if (typeof input.incidentType === "string") {
+    const candidate = input.incidentType.trim() as IncidentType;
+    if (!ALLOWED_TYPES.includes(candidate)) {
+      throw new ReportsError("Invalid heatmap incident type filter.", 400);
+    }
+    incidentType = candidate;
+  }
+
+  const parsedTo = input.toDate ? new Date(input.toDate) : now;
+  if (Number.isNaN(parsedTo.getTime())) {
+    throw new ReportsError("Invalid heatmap toDate.", 400);
+  }
+
+  const parsedFrom = input.fromDate
+    ? new Date(input.fromDate)
+    : new Date(parsedTo.getTime() - rawDays * 24 * 60 * 60 * 1000);
+  if (Number.isNaN(parsedFrom.getTime())) {
+    throw new ReportsError("Invalid heatmap fromDate.", 400);
+  }
+
+  if (parsedFrom > parsedTo) {
+    throw new ReportsError("Heatmap fromDate cannot be later than toDate.", 400);
+  }
+
+  return {
+    incidentType,
+    fromDate: parsedFrom,
+    toDate: parsedTo,
+    threshold,
+    cellSize,
   };
 }
 
@@ -530,6 +608,219 @@ export const reportsService = {
     ]);
 
     return reportsService.getForOfficialById(user, reportId);
+  },
+
+  async listAlertsForOfficial(
+    user: { role: Role; barangayCode: string | null },
+  ): Promise<CrossBorderAlertRecord[]> {
+    if (user.role === "OFFICIAL" && !user.barangayCode) {
+      throw new ReportsError("Official barangay profile is required.", 403);
+    }
+
+    const where = user.role === "OFFICIAL" ? { targetBarangayCode: user.barangayCode! } : {};
+    const alerts = await prisma.crossBorderAlert.findMany({
+      where,
+      include: {
+        report: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            location: true,
+            barangay: true,
+            district: true,
+            submittedAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return alerts.map((alert) => ({
+      id: alert.id,
+      reportId: alert.reportId,
+      sourceBarangayCode: alert.sourceBarangayCode,
+      targetBarangayCode: alert.targetBarangayCode,
+      alertReason: alert.alertReason,
+      createdAt: alert.createdAt.toISOString(),
+      readAt: alert.readAt ? alert.readAt.toISOString() : null,
+      report: {
+        id: alert.report.id,
+        type: incidentTypeMap[alert.report.type],
+        status: ticketStatusMap[alert.report.status],
+        location: alert.report.location,
+        barangay: alert.report.barangay,
+        district: alert.report.district,
+        submittedAt: alert.report.submittedAt.toISOString(),
+      },
+    }));
+  },
+
+  async markAlertRead(
+    user: { role: Role; barangayCode: string | null },
+    alertId: string,
+  ): Promise<CrossBorderAlertRecord> {
+    const existingAlert = await prisma.crossBorderAlert.findUnique({
+      where: { id: alertId },
+      include: {
+        report: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            location: true,
+            barangay: true,
+            district: true,
+            submittedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!existingAlert) {
+      throw new ReportsError("Alert not found.", 404);
+    }
+
+    assertAlertJurisdiction(user, existingAlert.targetBarangayCode);
+
+    const updatedAlert = await prisma.crossBorderAlert.update({
+      where: { id: alertId },
+      data: {
+        readAt: existingAlert.readAt ?? new Date(),
+      },
+      include: {
+        report: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            location: true,
+            barangay: true,
+            district: true,
+            submittedAt: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: updatedAlert.id,
+      reportId: updatedAlert.reportId,
+      sourceBarangayCode: updatedAlert.sourceBarangayCode,
+      targetBarangayCode: updatedAlert.targetBarangayCode,
+      alertReason: updatedAlert.alertReason,
+      createdAt: updatedAlert.createdAt.toISOString(),
+      readAt: updatedAlert.readAt ? updatedAlert.readAt.toISOString() : null,
+      report: {
+        id: updatedAlert.report.id,
+        type: incidentTypeMap[updatedAlert.report.type],
+        status: ticketStatusMap[updatedAlert.report.status],
+        location: updatedAlert.report.location,
+        barangay: updatedAlert.report.barangay,
+        district: updatedAlert.report.district,
+        submittedAt: updatedAlert.report.submittedAt.toISOString(),
+      },
+    };
+  },
+
+  async listHeatmapForOfficial(
+    user: { role: Role; barangayCode: string | null },
+    input: HeatmapQueryInput,
+  ): Promise<{
+    clusters: HeatmapClusterRecord[];
+    applied: {
+      incidentType: IncidentType | null;
+      fromDate: string;
+      toDate: string;
+      threshold: number;
+      cellSize: number;
+    };
+  }> {
+    if (user.role === "OFFICIAL" && !user.barangayCode) {
+      throw new ReportsError("Official barangay profile is required.", 403);
+    }
+
+    const validated = validateHeatmapInput(input);
+    const where = {
+      ...(user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {}),
+      ...(validated.incidentType ? { type: prismaTypeMap[validated.incidentType] } : {}),
+      submittedAt: {
+        gte: validated.fromDate,
+        lte: validated.toDate,
+      },
+    };
+
+    const reports = await prisma.citizenReport.findMany({
+      where,
+      select: {
+        id: true,
+        type: true,
+        latitude: true,
+        longitude: true,
+        routedBarangayCode: true,
+        submittedAt: true,
+      },
+    });
+
+    const clustersMap = new Map<
+      string,
+      {
+        incidentType: PrismaIncidentType;
+        incidentCount: number;
+        sumLatitude: number;
+        sumLongitude: number;
+        barangayCodes: Set<string>;
+      }
+    >();
+
+    for (const report of reports) {
+      const cellLat = Math.floor(report.latitude / validated.cellSize);
+      const cellLng = Math.floor(report.longitude / validated.cellSize);
+      const key = `${report.type}:${cellLat}:${cellLng}`;
+      const existing = clustersMap.get(key);
+
+      if (existing) {
+        existing.incidentCount += 1;
+        existing.sumLatitude += report.latitude;
+        existing.sumLongitude += report.longitude;
+        existing.barangayCodes.add(report.routedBarangayCode);
+      } else {
+        clustersMap.set(key, {
+          incidentType: report.type,
+          incidentCount: 1,
+          sumLatitude: report.latitude,
+          sumLongitude: report.longitude,
+          barangayCodes: new Set([report.routedBarangayCode]),
+        });
+      }
+    }
+
+    const clusters: HeatmapClusterRecord[] = Array.from(clustersMap.entries())
+      .filter(([, cluster]) => cluster.incidentCount >= validated.threshold)
+      .map(([clusterId, cluster]) => ({
+        clusterId,
+        incidentType: incidentTypeMap[cluster.incidentType],
+        incidentCount: cluster.incidentCount,
+        centerLatitude: Number((cluster.sumLatitude / cluster.incidentCount).toFixed(6)),
+        centerLongitude: Number((cluster.sumLongitude / cluster.incidentCount).toFixed(6)),
+        intensity: Number((cluster.incidentCount / validated.threshold).toFixed(2)),
+        threshold: validated.threshold,
+        timeWindowStart: validated.fromDate.toISOString(),
+        timeWindowEnd: validated.toDate.toISOString(),
+        barangayCodes: Array.from(cluster.barangayCodes).sort(),
+      }))
+      .sort((a, b) => b.incidentCount - a.incidentCount);
+
+    return {
+      clusters,
+      applied: {
+        incidentType: validated.incidentType ?? null,
+        fromDate: validated.fromDate.toISOString(),
+        toDate: validated.toDate.toISOString(),
+        threshold: validated.threshold,
+        cellSize: validated.cellSize,
+      },
+    };
   },
 
   parseError(error: unknown) {

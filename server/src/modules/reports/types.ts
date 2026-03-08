@@ -62,3 +62,44 @@ export interface CreateCitizenReportInput {
   photoCount: number;
   hasAudio: boolean;
 }
+
+export interface CrossBorderAlertRecord {
+  id: string;
+  reportId: string;
+  sourceBarangayCode: string;
+  targetBarangayCode: string;
+  alertReason: string;
+  createdAt: string;
+  readAt: string | null;
+  report: {
+    id: string;
+    type: IncidentType;
+    status: TicketStatus;
+    location: string;
+    barangay: string;
+    district: string;
+    submittedAt: string;
+  };
+}
+
+export interface HeatmapQueryInput {
+  incidentType?: string;
+  fromDate?: string;
+  toDate?: string;
+  days?: number;
+  threshold?: number;
+  cellSize?: number;
+}
+
+export interface HeatmapClusterRecord {
+  clusterId: string;
+  incidentType: IncidentType;
+  incidentCount: number;
+  centerLatitude: number;
+  centerLongitude: number;
+  intensity: number;
+  threshold: number;
+  timeWindowStart: string;
+  timeWindowEnd: string;
+  barangayCodes: string[];
+}

@@ -219,3 +219,134 @@ officialReportsRouter.patch("/reports/:reportId/status", async (req, res) => {
     return res.status(parsed.status).json({ message: parsed.message });
   }
 });
+
+officialReportsRouter.get("/alerts", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const alerts = await reportsService.listAlertsForOfficial({
+      role: user.role,
+      barangayCode: user.officialProfile?.barangay?.code ?? null,
+    });
+
+    return res.status(200).json({ alerts });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.get("/heatmap", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const query = req.query;
+    const heatmap = await reportsService.listHeatmapForOfficial(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      {
+        incidentType: typeof query.type === "string" ? query.type : undefined,
+        fromDate: typeof query.fromDate === "string" ? query.fromDate : undefined,
+        toDate: typeof query.toDate === "string" ? query.toDate : undefined,
+        days: typeof query.days === "string" ? Number(query.days) : undefined,
+        threshold: typeof query.threshold === "string" ? Number(query.threshold) : undefined,
+        cellSize: typeof query.cellSize === "string" ? Number(query.cellSize) : undefined,
+      },
+    );
+
+    return res.status(200).json(heatmap);
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.patch("/alerts/:alertId/read", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const alert = await reportsService.markAlertRead(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      req.params.alertId,
+    );
+
+    return res.status(200).json({ message: "Alert marked as read.", alert });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});

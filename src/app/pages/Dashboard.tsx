@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
   TrendingDown, Minus, Radio, MapPin, ArrowRight, Flame,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  ChevronRight, RefreshCw, Navigation2,
+  ChevronRight, RefreshCw, Navigation2, Bell,
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { incidents, incidentTypeConfig, severityConfig, statusConfig } from '../data/incidents';
-import { IncidentMap } from '../components/IncidentMap';
+import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { useNavigate } from 'react-router';
+import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 
 const TREND_DATA = [
   { day: 'Feb 28', incidents: 8, resolved: 7 },
@@ -125,14 +126,195 @@ const AlertBanner = () => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState<typeof incidents[0] | null>(null);
+  const [alerts, setAlerts] = useState<ApiCrossBorderAlert[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
+  const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [markingReadAlertId, setMarkingReadAlertId] = useState<string | null>(null);
+  const [heatmapClusters, setHeatmapClusters] = useState<ApiHeatmapCluster[]>([]);
+  const [heatmapLoading, setHeatmapLoading] = useState(true);
+  const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
   const resolvedToday = incidents.filter(i => i.resolvedAt?.startsWith('2026-03-06'));
   const criticalCount = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length;
+  const unreadAlerts = alerts.filter((alert) => !alert.readAt).length;
+  const strongestHeatCluster = heatmapClusters[0];
+
+  const loadAlerts = async () => {
+    setAlertsLoading(true);
+    setAlertsError(null);
+    try {
+      const payload = await officialReportsApi.getAlerts();
+      setAlerts(payload.alerts);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
+      setAlertsError(message);
+    } finally {
+      setAlertsLoading(false);
+    }
+  };
+
+  const loadHeatmap = async () => {
+    setHeatmapLoading(true);
+    setHeatmapError(null);
+    try {
+      const payload = await officialReportsApi.getHeatmap({
+        days: 14,
+        threshold: 3,
+      });
+      setHeatmapClusters(payload.clusters);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
+      setHeatmapError(message);
+    } finally {
+      setHeatmapLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadAlerts();
+    void loadHeatmap();
+  }, []);
+
+  const handleMarkAlertRead = async (alertId: string) => {
+    setMarkingReadAlertId(alertId);
+    setAlertsError(null);
+    try {
+      const payload = await officialReportsApi.markAlertRead(alertId);
+      setAlerts((current) => current.map((item) => (item.id === alertId ? payload.alert : item)));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to update alert.';
+      setAlertsError(message);
+    } finally {
+      setMarkingReadAlertId(null);
+    }
+  };
+
+  const heatmapOverlays: HeatmapClusterOverlay[] = heatmapClusters.map((cluster) => ({
+    id: cluster.clusterId,
+    latitude: cluster.centerLatitude,
+    longitude: cluster.centerLongitude,
+    intensity: cluster.intensity,
+    incidentCount: cluster.incidentCount,
+    incidentType: cluster.incidentType,
+  }));
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
       {/* Alert banner */}
       <AlertBanner />
+
+      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Bell size={15} color="#B4730A" />
+            <span style={{ color: '#1E293B', fontWeight: 700, fontSize: 13 }}>Cross-Border Alerts</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: unreadAlerts > 0 ? '#B91C1C' : '#64748B', fontWeight: 700 }}>
+              {unreadAlerts} unread
+            </span>
+            <button
+              onClick={() => {
+                void loadAlerts();
+              }}
+              style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              <RefreshCw size={12} /> Refresh
+            </button>
+          </div>
+        </div>
+
+        {alertsError ? (
+          <div style={{ margin: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+            {alertsError}
+          </div>
+        ) : null}
+
+        <div style={{ padding: '8px 16px 14px' }}>
+          {alertsLoading ? (
+            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Loading cross-border alerts...</div>
+          ) : alerts.length === 0 ? (
+            <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>No nearby cross-border alerts for your barangay right now.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {alerts.slice(0, 5).map((alert) => (
+                <div key={alert.id} style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 10px', background: alert.readAt ? '#F8FAFC' : '#FFFBEB', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>
+                      Incident {alert.report.id} near Barangay {alert.sourceBarangayCode}
+                    </div>
+                    <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>
+                      {alert.alertReason}
+                    </div>
+                    <div style={{ color: '#94A3B8', fontSize: 10, marginTop: 4 }}>
+                      {new Date(alert.createdAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} · {alert.report.location}
+                    </div>
+                  </div>
+                  {alert.readAt ? (
+                    <span style={{ color: '#059669', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap' }}>Read</span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        void handleMarkAlertRead(alert.id);
+                      }}
+                      disabled={markingReadAlertId === alert.id}
+                      style={{ border: '1px solid #E2E8F0', background: 'white', color: '#1E3A8A', borderRadius: 6, padding: '6px 8px', fontSize: 10, fontWeight: 700, cursor: markingReadAlertId === alert.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      {markingReadAlertId === alert.id ? 'Saving...' : 'Mark Read'}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TrendingUp size={15} color="#1E3A8A" />
+            <span style={{ color: '#1E293B', fontWeight: 700, fontSize: 13 }}>Heatmap Hotspots</span>
+          </div>
+          <button
+            onClick={() => {
+              void loadHeatmap();
+            }}
+            style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+          >
+            <RefreshCw size={12} /> Refresh
+          </button>
+        </div>
+        <div style={{ padding: '10px 16px 14px' }}>
+          {heatmapError ? (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+              {heatmapError}
+            </div>
+          ) : heatmapLoading ? (
+            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Generating threshold hotspots...</div>
+          ) : heatmapClusters.length === 0 ? (
+            <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>
+              No hotspot cluster reached the current threshold.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700 }}>
+                  {heatmapClusters.length} hotspot cluster{heatmapClusters.length > 1 ? 's' : ''} detected
+                </div>
+                {strongestHeatCluster ? (
+                  <div style={{ color: '#64748B', fontSize: 11, marginTop: 3 }}>
+                    Strongest: {strongestHeatCluster.incidentType} ({strongestHeatCluster.incidentCount} incidents)
+                  </div>
+                ) : null}
+              </div>
+              <div style={{ color: '#94A3B8', fontSize: 11 }}>
+                Overlay enabled on map panel
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* KPI Cards — 2-col grid on mobile */}
       <div className="kpi-grid" style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -224,6 +406,7 @@ export default function Dashboard() {
               onSelectIncident={setSelectedIncident}
               compact={false}
               zoom={14}
+              heatmapClusters={heatmapOverlays}
             />
           </div>
           {selectedIncident && (
