@@ -109,7 +109,7 @@ function AlertBanner() {
         onClick={() => setDismissed(true)}
         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}
       >
-        Ã—
+        x
       </button>
     </div>
   );
@@ -298,10 +298,10 @@ function RecentIncidentRow({ incident }: { incident: Incident }) {
             textOverflow: 'ellipsis',
           }}
         >
-          {cfg.label} â€” {incident.barangay}
+          {cfg.label} - {incident.barangay}
         </div>
         <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-          {timeAgo(incident.reportedAt)} Â· {incident.location}
+          {timeAgo(incident.reportedAt)} - {incident.location}
         </div>
       </div>
       <StatusBadge status={incident.status} size="sm" pulse />
@@ -354,7 +354,7 @@ function MyReportRow({
           {report.description}
         </div>
         <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-          {report.id} Â· {timeAgo(report.reportedAt)}
+          {report.id} - {timeAgo(report.reportedAt)}
         </div>
       </div>
       <StatusBadge status={report.status} size="sm" />
@@ -399,12 +399,11 @@ export default function CitizenDashboard() {
     <CitizenPageLayout
       header={
         <header
+          className="citizen-web-header"
           style={{
             background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-            padding: '0 16px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
             height: 60,
             flexShrink: 0,
             position: 'sticky',
@@ -413,230 +412,258 @@ export default function CitizenDashboard() {
             boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: 'rgba(255,255,255,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1.5px solid rgba(255,255,255,0.25)',
-              }}
-            >
-              <Shield size={20} color="#FFFFFF" />
-            </div>
-            <div>
-              <div style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 16, lineHeight: 1.1, letterSpacing: '0.03em' }}>
-                TUGON
-              </div>
-              <div style={{ color: '#BFDBFE', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Citizen Portal
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              onClick={() => setNotifOpen(!notifOpen)}
-              style={{
-                position: 'relative',
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 10,
-                width: 38,
-                height: 38,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: '#fff',
-              }}
-            >
-              <Bell size={18} />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#B91C1C',
-                  border: '1.5px solid #1E3A8A',
-                }}
-              />
-            </button>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: 'linear-gradient(135deg, #B4730A, #D97706)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-              onClick={() => setActiveTab('profile')}
-            >
-              JD
-            </div>
-          </div>
-
-          {notifOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 66,
-                right: 16,
-                width: 300,
-                background: '#fff',
-                borderRadius: 14,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                zIndex: 100,
-                overflow: 'hidden',
-                border: '1px solid #E2E8F0',
-              }}
-            >
+          <div
+            className="citizen-web-header-inner"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '0 16px',
+              height: '100%',
+              position: 'relative',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  padding: '12px 16px',
-                  borderBottom: '1px solid #F1F5F9',
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.15)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
+                  justifyContent: 'center',
+                  border: '1.5px solid rgba(255,255,255,0.25)',
                 }}
               >
-                <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                <Shield size={20} color="#FFFFFF" />
+              </div>
+              <div>
+                <div style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 16, lineHeight: 1.1, letterSpacing: '0.03em' }}>
+                  TUGON
+                </div>
+                <div style={{ color: '#BFDBFE', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Citizen Portal
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                style={{
+                  position: 'relative',
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: 10,
+                  width: 38,
+                  height: 38,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#fff',
+                }}
+              >
+                <Bell size={18} />
                 <span
                   style={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
                     background: '#B91C1C',
-                    color: '#fff',
-                    borderRadius: 20,
-                    padding: '1px 7px',
-                    fontSize: 10,
-                    fontWeight: 700,
+                    border: '1.5px solid #1E3A8A',
                   }}
-                >
-                  3 New
-                </span>
+                />
+              </button>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+                onClick={() => setActiveTab('profile')}
+              >
+                JD
               </div>
-              {[
-                {
-                  icon: <AlertTriangle size={14} />,
-                  color: '#B91C1C',
-                  bg: '#FEE2E2',
-                  title: 'Critical Fire Alert',
-                  desc: 'Active fire in Brgy. San Antonio',
-                  time: '23m ago',
-                },
-                {
-                  icon: <CheckCircle2 size={14} />,
-                  color: '#059669',
-                  bg: '#D1FAE5',
-                  title: 'Report Updated',
-                  desc: 'MY-2026-003 is now being responded to',
-                  time: '1h ago',
-                },
-                {
-                  icon: <Info size={14} />,
-                  color: '#1E3A8A',
-                  bg: '#DBEAFE',
-                  title: 'Community Advisory',
-                  desc: 'Flash flood warning in District I',
-                  time: '2h ago',
-                },
-              ].map((n, i) => (
+            </div>
+
+            {notifOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 66,
+                  right: 16,
+                  width: 300,
+                  background: '#fff',
+                  borderRadius: 14,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
                 <div
-                  key={i}
                   style={{
                     padding: '12px 16px',
+                    borderBottom: '1px solid #F1F5F9',
                     display: 'flex',
-                    gap: 10,
-                    alignItems: 'flex-start',
-                    borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none',
-                    cursor: 'pointer',
-                    background: i === 0 ? '#FFFBEB' : '#fff',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  <div
+                  <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                  <span
                     style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 8,
-                      background: n.bg,
-                      color: n.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
+                      background: '#B91C1C',
+                      color: '#fff',
+                      borderRadius: 20,
+                      padding: '1px 7px',
+                      fontSize: 10,
+                      fontWeight: 700,
                     }}
                   >
-                    {n.icon}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{n.title}</div>
-                    <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
-                    <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
-                  </div>
+                    3 New
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
+                {[
+                  {
+                    icon: <AlertTriangle size={14} />,
+                    color: '#B91C1C',
+                    bg: '#FEE2E2',
+                    title: 'Critical Fire Alert',
+                    desc: 'Active fire in Brgy. San Antonio',
+                    time: '23m ago',
+                  },
+                  {
+                    icon: <CheckCircle2 size={14} />,
+                    color: '#059669',
+                    bg: '#D1FAE5',
+                    title: 'Report Updated',
+                    desc: 'MY-2026-003 is now being responded to',
+                    time: '1h ago',
+                  },
+                  {
+                    icon: <Info size={14} />,
+                    color: '#1E3A8A',
+                    bg: '#DBEAFE',
+                    title: 'Community Advisory',
+                    desc: 'Flash flood warning in District I',
+                    time: '2h ago',
+                  },
+                ].map((n, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      gap: 10,
+                      alignItems: 'flex-start',
+                      borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none',
+                      cursor: 'pointer',
+                      background: i === 0 ? '#FFFBEB' : '#fff',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: n.bg,
+                        color: n.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {n.icon}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{n.title}</div>
+                      <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
+                      <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
       }
       beforeMain={
         <>
           <AlertBanner />
           <div
-            className="citizen-only-desktop"
+            className="citizen-only-desktop citizen-web-strip"
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '14px 18px 10px',
+              justifyContent: 'center',
+              paddingTop: 14,
+              paddingBottom: 10,
               borderBottom: '1px solid #E2E8F0',
-              background: '#FFFFFF',
+              background: 'rgba(255,255,255,0.86)',
               boxShadow: '0 1px 6px rgba(15,23,42,0.04)',
             }}
           >
-            {navItems.map((item) => {
-              const isActionRoute = item.key === 'report' || item.key === 'myreports';
-              const isActive = activeTab === item.key;
+            <div
+              className="citizen-web-strip-inner"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 14,
+                padding: 8,
+                boxShadow: '0 4px 14px rgba(15,23,42,0.06)',
+              }}
+            >
+              {navItems.map((item) => {
+                const isActionRoute = item.key === 'report' || item.key === 'myreports';
+                const isActive = activeTab === item.key;
 
-              return (
-                <button
-                  key={`desktop-${item.key}`}
-                  onClick={() => {
-                    if (item.key === 'report') navigate('/citizen/report');
-                    else if (item.key === 'myreports') navigate('/citizen/my-reports');
-                    else setActiveTab(item.key);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '9px 14px',
-                    borderRadius: 10,
-                    border: `1px solid ${isActive ? '#1E3A8A' : '#E2E8F0'}`,
-                    background: isActive ? '#EFF6FF' : 'white',
-                    color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
-                    fontWeight: isActive ? 700 : 600,
-                    fontSize: 12,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={`desktop-${item.key}`}
+                    onClick={() => {
+                      if (item.key === 'report') navigate('/citizen/report');
+                      else if (item.key === 'myreports') navigate('/citizen/my-reports');
+                      else setActiveTab(item.key);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 14px',
+                      borderRadius: 10,
+                      border: `1px solid ${isActive ? '#1E3A8A' : '#E2E8F0'}`,
+                      background: isActive ? '#EFF6FF' : 'white',
+                      color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
+                      fontWeight: isActive ? 700 : 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </>
       }
@@ -649,7 +676,7 @@ export default function CitizenDashboard() {
             left: '50%',
             transform: 'translateX(-50%)',
             width: '100%',
-            maxWidth: 520,
+            maxWidth: 560,
             background: '#fff',
             borderTop: '1px solid #E2E8F0',
             display: 'flex',
@@ -752,6 +779,7 @@ export default function CitizenDashboard() {
       }}
       mobileMainPaddingBottom={80}
       desktopMainPaddingBottom={24}
+      desktopMainMaxWidth={1320}
     >
       {renderContent()}
     </CitizenPageLayout>
@@ -784,13 +812,13 @@ function HomeTab({
         }}
       >
         <div style={{ fontSize: 13, color: '#BFDBFE', marginBottom: 2 }}>
-          Good morning, Juan! ðŸ‘‹
+          Good morning, Juan!
         </div>
         <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 1 }}>
           Stay Safe, Stay Informed
         </div>
         <div style={{ fontSize: 11, color: '#93C5FD' }}>
-          Brgy. San Antonio Â· District II Â· March 6, 2026
+          Brgy. San Antonio - District II - March 6, 2026
         </div>
       </div>
 
@@ -915,7 +943,7 @@ function HomeTab({
                 {selectedIncident.location}
               </div>
               <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, fontFamily: 'monospace' }}>
-                ðŸ“ {selectedIncident.lat.toFixed(5)}Â°N, {selectedIncident.lng.toFixed(5)}Â°E
+                Pin: {selectedIncident.lat.toFixed(5)} deg N, {selectedIncident.lng.toFixed(5)} deg E
               </div>
             </div>
             <StatusBadge status={selectedIncident.status} size="sm" pulse />
@@ -1149,7 +1177,7 @@ function ReportTab() {
         >
           MY-2026-004
         </div>
-        <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortlyâ€¦</div>
+        <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortly...</div>
       </div>
     );
   }
@@ -1188,7 +1216,7 @@ function ReportTab() {
           ))}
         </div>
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
-          Step {step} of 3 â€” {step === 1 ? 'Incident Type' : step === 2 ? 'Details' : 'Review & Submit'}
+          Step {step} of 3 - {step === 1 ? 'Incident Type' : step === 2 ? 'Details' : 'Review & Submit'}
         </div>
       </div>
 
@@ -1264,7 +1292,7 @@ function ReportTab() {
               transition: 'background 0.2s',
             }}
           >
-            Continue â†’
+            {'Continue ->'}
           </button>
         </div>
       )}
@@ -1333,7 +1361,7 @@ function ReportTab() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Briefly describe what is happeningâ€¦"
+              placeholder="Briefly describe what is happening..."
               rows={4}
               style={{
                 width: '100%',
@@ -1363,7 +1391,7 @@ function ReportTab() {
                 cursor: 'pointer',
               }}
             >
-              â† Back
+              {'<- Back'}
             </button>
             <button
               onClick={() => description && location && severity && setStep(3)}
@@ -1380,7 +1408,7 @@ function ReportTab() {
                 cursor: description && location && severity ? 'pointer' : 'not-allowed',
               }}
             >
-              Review â†’
+              {'Review ->'}
             </button>
           </div>
         </div>
@@ -1452,7 +1480,7 @@ function ReportTab() {
                 cursor: 'pointer',
               }}
             >
-              â† Edit
+              {'<- Edit'}
             </button>
             <button
               onClick={handleSubmit}
@@ -1560,7 +1588,7 @@ function MapTab({
             <StatusBadge status={selectedIncident.status} size="sm" pulse />
           </div>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 2 }}>
-            {selectedIncident.id} â€” {selectedIncident.barangay}
+            {selectedIncident.id} - {selectedIncident.barangay}
           </div>
           <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>
             {selectedIncident.description}
@@ -1704,7 +1732,7 @@ function ProfileTab() {
             juan.delacruz@email.com
           </div>
           <div style={{ fontSize: 11, color: '#93C5FD', marginTop: 4 }}>
-            Brgy. San Antonio Â· District II
+            Brgy. San Antonio - District II
           </div>
         </div>
         <div

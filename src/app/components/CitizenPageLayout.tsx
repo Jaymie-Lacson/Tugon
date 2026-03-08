@@ -8,6 +8,8 @@ interface CitizenPageLayoutProps {
   mainOnClick?: () => void;
   mobileShellMaxWidth?: number;
   desktopMainMaxWidth?: number;
+  mobileMainPaddingX?: number;
+  desktopMainPaddingX?: number;
   mobileMainPaddingBottom?: number;
   desktopMainPaddingBottom?: number;
 }
@@ -18,14 +20,18 @@ export function CitizenPageLayout({
   children,
   afterMain,
   mainOnClick,
-  mobileShellMaxWidth = 520,
-  desktopMainMaxWidth = 1180,
-  mobileMainPaddingBottom = 80,
-  desktopMainPaddingBottom = 24,
+  mobileShellMaxWidth = 560,
+  desktopMainMaxWidth = 1260,
+  mobileMainPaddingX = 0,
+  desktopMainPaddingX = 24,
+  mobileMainPaddingBottom = 84,
+  desktopMainPaddingBottom = 28,
 }: CitizenPageLayoutProps) {
   const cssVars = {
     '--citizen-mobile-shell-max': `${mobileShellMaxWidth}px`,
     '--citizen-desktop-main-max': `${desktopMainMaxWidth}px`,
+    '--citizen-mobile-main-padding-x': `${mobileMainPaddingX}px`,
+    '--citizen-desktop-main-padding-x': `${desktopMainPaddingX}px`,
     '--citizen-mobile-main-padding': `${mobileMainPaddingBottom}px`,
     '--citizen-desktop-main-padding': `${desktopMainPaddingBottom}px`,
   } as React.CSSProperties;
@@ -35,7 +41,8 @@ export function CitizenPageLayout({
       className="citizen-page-layout"
       style={{
         minHeight: '100vh',
-        background: '#F1F5F9',
+        background:
+          'radial-gradient(1200px 380px at 20% -15%, rgba(30,58,138,0.14), transparent 65%), radial-gradient(900px 320px at 100% 0%, rgba(185,28,28,0.1), transparent 60%), #F1F5F9',
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
@@ -52,6 +59,9 @@ export function CitizenPageLayout({
           flex: 1,
           overflowY: 'auto',
           width: '100%',
+          boxSizing: 'border-box',
+          position: 'relative',
+          zIndex: 1,
         }}
         onClick={mainOnClick}
       >
@@ -67,7 +77,19 @@ export function CitizenPageLayout({
           .citizen-page-layout-main {
             max-width: var(--citizen-mobile-shell-max);
             margin: 0 auto;
+            padding-left: var(--citizen-mobile-main-padding-x);
+            padding-right: var(--citizen-mobile-main-padding-x);
             padding-bottom: var(--citizen-mobile-main-padding);
+          }
+          .citizen-web-header-inner,
+          .citizen-web-strip-inner {
+            width: 100%;
+            max-width: var(--citizen-mobile-shell-max);
+            margin: 0 auto;
+          }
+          .citizen-web-strip {
+            padding-left: 16px;
+            padding-right: 16px;
           }
           .citizen-only-desktop { display: none !important; }
           .citizen-only-mobile { display: block !important; }
@@ -81,10 +103,31 @@ export function CitizenPageLayout({
           .citizen-page-layout-main {
             max-width: var(--citizen-desktop-main-max);
             margin: 0 auto;
+            padding-left: var(--citizen-desktop-main-padding-x);
+            padding-right: var(--citizen-desktop-main-padding-x);
             padding-bottom: var(--citizen-desktop-main-padding);
+          }
+          .citizen-web-header-inner,
+          .citizen-web-strip-inner {
+            width: 100%;
+            max-width: var(--citizen-desktop-main-max);
+            margin: 0 auto;
+          }
+          .citizen-web-strip {
+            padding-left: var(--citizen-desktop-main-padding-x);
+            padding-right: var(--citizen-desktop-main-padding-x);
           }
           .citizen-only-desktop { display: block !important; }
           .citizen-only-mobile { display: none !important; }
+        }
+
+        .citizen-web-header {
+          backdrop-filter: saturate(135%) blur(10px);
+          -webkit-backdrop-filter: saturate(135%) blur(10px);
+        }
+
+        .citizen-web-strip {
+          box-sizing: border-box;
         }
       `}</style>
     </div>
