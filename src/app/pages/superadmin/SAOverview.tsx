@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, Shield, Zap, ArrowRight, MapPin, Flame, Droplets, Car, Heart,
@@ -11,6 +11,7 @@ import {
 import { barangays, systemStats, systemLogs, weeklyTrend, incidentTypeDist } from '../../data/superAdminData';
 import { IncidentMap } from '../../components/IncidentMap';
 import { incidents } from '../../data/incidents';
+import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 
 const PRIMARY = '#1E3A8A';
 const DARK_BG = '#0F172A';
@@ -88,7 +89,28 @@ function formatLogTime(ts: string) {
 export default function SAOverview() {
   const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
-  const total = barangays.reduce((s, b) => s + b.activeIncidents, 0);
+  const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const total = analyticsSummary?.summary.openReports ?? barangays.reduce((s, b) => s + b.activeIncidents, 0);
+
+  const loadAnalyticsSummary = async () => {
+    setSummaryLoading(true);
+    setSummaryError(null);
+    try {
+      const payload = await superAdminApi.getAnalyticsSummary();
+      setAnalyticsSummary(payload);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load analytics summary.';
+      setSummaryError(message);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadAnalyticsSummary();
+  }, []);
 
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
@@ -110,7 +132,10 @@ export default function SAOverview() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
-            onClick={() => setRefreshKey(k => k + 1)}
+            onClick={() => {
+              setRefreshKey(k => k + 1);
+              void loadAnalyticsSummary();
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
@@ -118,7 +143,7 @@ export default function SAOverview() {
             }}
           >
             <RefreshCw size={13} color="#6B7280" />
-            Refresh
+            {summaryLoading ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
@@ -133,6 +158,12 @@ export default function SAOverview() {
           </button>
         </div>
       </div>
+
+      {summaryError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+          {summaryError}
+        </div>
+      ) : null}
 
       {/* KPI row */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
@@ -165,8 +196,8 @@ export default function SAOverview() {
         />
         <KPICard
           label="Registered Users"
-          value={systemStats.totalUsers}
-          sub={`${systemStats.activeUsers} currently active`}
+          value={analyticsSummary?.summary.totalUsers ?? systemStats.totalUsers}
+          sub={`${analyticsSummary?.summary.verifiedUsers ?? systemStats.activeUsers} verified accounts`}
           icon={<Users />}
           color="#1D4ED8"
           trendLabel="across 3 barangays"

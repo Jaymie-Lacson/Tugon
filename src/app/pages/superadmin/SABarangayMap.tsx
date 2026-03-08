@@ -1,11 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
-  MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation,
+  MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
   Filter,
 } from 'lucide-react';
-import { barangays, mapIncidents, heatCircles } from '../../data/superAdminData';
+import { barangays as fallbackBarangays, mapIncidents, heatCircles } from '../../data/superAdminData';
+import { superAdminApi } from '../../services/superAdminApi';
+import type { BarangayProfile } from '../../data/superAdminData';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
@@ -72,14 +74,178 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
   critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
 };
 
+type BarangayMapView = BarangayProfile & {
+  code: string;
+  boundaryGeojson: string | null;
+  source: 'mock' | 'api';
+};
+
+function deriveCodeFromId(id: string): string {
+  const match = id.match(/\d{3}/);
+  return match ? match[0] : '';
+}
+
+function boundaryToGeoJsonPolygon(boundary: [number, number][]) {
+  const coordinates = boundary.map(([lat, lng]) => [lng, lat]);
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+  const isClosed = first && last && first[0] === last[0] && first[1] === last[1];
+  const ring = isClosed ? coordinates : [...coordinates, first];
+  return {
+    type: 'Polygon',
+    coordinates: [ring],
+  };
+}
+
+function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] | null {
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as { type?: string; coordinates?: unknown };
+    if (!parsed.coordinates || !Array.isArray(parsed.coordinates)) {
+      return null;
+    }
+
+    const polygon =
+      parsed.type === 'MultiPolygon'
+        ? parsed.coordinates[0]
+        : parsed.type === 'Polygon'
+          ? parsed.coordinates
+          : null;
+
+    if (!polygon || !Array.isArray(polygon) || !Array.isArray(polygon[0])) {
+      return null;
+    }
+
+    const ring = polygon[0] as Array<[number, number]>;
+    const converted = ring
+      .filter((point): point is [number, number] => Array.isArray(point) && point.length >= 2)
+      .map(([lng, lat]) => [lat, lng] as [number, number]);
+
+    return converted.length >= 4 ? converted : null;
+  } catch {
+    return null;
+  }
+}
+
+function createInitialBarangays(): BarangayMapView[] {
+  return fallbackBarangays.map((barangay) => ({
+    ...barangay,
+    code: deriveCodeFromId(barangay.id),
+    boundaryGeojson: JSON.stringify(boundaryToGeoJsonPolygon(barangay.boundary)),
+    source: 'mock',
+  }));
+}
+
 export default function SABarangayMap() {
+  const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>(createInitialBarangays());
+  const [loadingBarangays, setLoadingBarangays] = useState(false);
+  const [barangaysError, setBarangaysError] = useState<string | null>(null);
   const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<typeof mapIncidents[0] | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
+  const [boundaryDraft, setBoundaryDraft] = useState('');
+  const [boundarySaving, setBoundarySaving] = useState(false);
+  const [boundaryMessage, setBoundaryMessage] = useState<string | null>(null);
+  const [boundaryError, setBoundaryError] = useState<string | null>(null);
 
-  const selectedBrgy = barangays.find(b => b.id === selectedBarangay);
+  const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
   const filteredIncidents = filterType === 'all' ? mapIncidents : mapIncidents.filter(i => i.type === filterType);
+
+  const loadBarangays = async () => {
+    setLoadingBarangays(true);
+    setBarangaysError(null);
+    try {
+      const payload = await superAdminApi.getBarangays();
+      const fallbackByCode = new Map(fallbackBarangays.map((barangay) => [deriveCodeFromId(barangay.id), barangay]));
+      const defaultFallback = fallbackBarangays[0];
+      const mapped = payload.barangays.map((apiBarangay) => {
+        const fallback = fallbackByCode.get(apiBarangay.code);
+        const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
+        const boundary = parsedBoundary ?? fallback?.boundary ?? defaultFallback.boundary;
+        const color = fallback?.color ?? '#1E3A8A';
+        const activeIncidents = apiBarangay.activeReports;
+        const responseRate = apiBarangay.totalReports > 0
+          ? Math.max(0, Math.min(100, Math.round(((apiBarangay.totalReports - activeIncidents) / apiBarangay.totalReports) * 100)))
+          : (fallback?.responseRate ?? 100);
+
+        return {
+          ...(fallback ?? defaultFallback),
+          id: fallback?.id ?? `brgy${apiBarangay.code}`,
+          code: apiBarangay.code,
+          name: `Barangay ${apiBarangay.code}`,
+          color,
+          boundary,
+          center: fallback?.center ?? boundary[0],
+          activeIncidents,
+          totalThisMonth: apiBarangay.totalReports,
+          resolvedThisMonth: Math.max(apiBarangay.totalReports - activeIncidents, 0),
+          responseRate,
+          responders: apiBarangay.officialCount,
+          registeredUsers: apiBarangay.citizenCount,
+          boundaryGeojson: apiBarangay.boundaryGeojson,
+          source: 'api' as const,
+        };
+      });
+
+      setBarangaysData(mapped.length > 0 ? mapped : createInitialBarangays());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load barangay data.';
+      setBarangaysError(message);
+    } finally {
+      setLoadingBarangays(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadBarangays();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedBrgy) {
+      setBoundaryDraft('');
+      setBoundaryMessage(null);
+      setBoundaryError(null);
+      return;
+    }
+
+    const fallbackGeojson = JSON.stringify(boundaryToGeoJsonPolygon(selectedBrgy.boundary), null, 2);
+    if (selectedBrgy.boundaryGeojson) {
+      try {
+        setBoundaryDraft(JSON.stringify(JSON.parse(selectedBrgy.boundaryGeojson), null, 2));
+      } catch {
+        setBoundaryDraft(fallbackGeojson);
+      }
+    } else {
+      setBoundaryDraft(fallbackGeojson);
+    }
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+  }, [selectedBrgy?.id]);
+
+  const handleSaveBoundary = async () => {
+    if (!selectedBrgy) {
+      return;
+    }
+
+    setBoundarySaving(true);
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    try {
+      const parsed = JSON.parse(boundaryDraft);
+      await superAdminApi.updateBarangayBoundary(selectedBrgy.code, parsed);
+      await loadBarangays();
+      setBoundaryMessage(`Boundary saved for Barangay ${selectedBrgy.code}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save boundary.';
+      setBoundaryError(message);
+    } finally {
+      setBoundarySaving(false);
+    }
+  };
 
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
@@ -92,6 +258,20 @@ export default function SABarangayMap() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => {
+              void loadBarangays();
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'white',
+              color: '#374151',
+              border: '1px solid #E5E7EB', borderRadius: 8,
+              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <RefreshCw size={13} /> {loadingBarangays ? 'Syncing...' : 'Sync Boundaries'}
+          </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
             style={{
@@ -106,6 +286,12 @@ export default function SABarangayMap() {
           </button>
         </div>
       </div>
+
+      {barangaysError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+          {barangaysError}
+        </div>
+      ) : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
         {/* ── OSM Map ── */}
@@ -158,7 +344,7 @@ export default function SABarangayMap() {
               />
 
               {/* Barangay boundary polygons */}
-              {barangays.map(b => (
+              {barangaysData.map(b => (
                 <Polygon
                   key={b.id}
                   positions={b.boundary}
@@ -237,7 +423,7 @@ export default function SABarangayMap() {
               <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 7 }}>
                 Map Legend
               </div>
-              {barangays.map(b => (
+              {barangaysData.map(b => (
                 <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                   <div style={{ width: 12, height: 12, borderRadius: 3, background: b.color, border: `2px solid ${b.color}`, opacity: 0.8 }} />
                   <span style={{ color: '#374151', fontSize: 10 }}>{b.name}</span>
@@ -327,6 +513,57 @@ export default function SABarangayMap() {
                     {selectedBrgy.boundary.length}-vertex polygon boundary
                   </div>
                 </div>
+
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 5 }}>
+                    Boundary GeoJSON Editor
+                  </div>
+                  <textarea
+                    value={boundaryDraft}
+                    onChange={(event) => setBoundaryDraft(event.target.value)}
+                    style={{
+                      width: '100%',
+                      minHeight: 120,
+                      border: '1px solid #DBEAFE',
+                      borderRadius: 8,
+                      padding: '8px 10px',
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                      color: '#334155',
+                      boxSizing: 'border-box',
+                      background: '#F8FAFF',
+                    }}
+                  />
+                  {boundaryError ? (
+                    <div style={{ color: '#B91C1C', fontSize: 10, marginTop: 5 }}>{boundaryError}</div>
+                  ) : null}
+                  {boundaryMessage ? (
+                    <div style={{ color: '#059669', fontSize: 10, marginTop: 5 }}>{boundaryMessage}</div>
+                  ) : null}
+                  <button
+                    onClick={() => {
+                      void handleSaveBoundary();
+                    }}
+                    disabled={boundarySaving}
+                    style={{
+                      marginTop: 7,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      border: 'none',
+                      borderRadius: 7,
+                      padding: '7px 10px',
+                      background: '#1E3A8A',
+                      color: 'white',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: boundarySaving ? 'not-allowed' : 'pointer',
+                      opacity: boundarySaving ? 0.7 : 1,
+                    }}
+                  >
+                    <Save size={12} /> {boundarySaving ? 'Saving...' : 'Save Boundary'}
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -394,7 +631,7 @@ export default function SABarangayMap() {
 
           {/* Quick barangay buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {barangays.map(b => {
+            {barangaysData.map(b => {
               const al = alertLevelConfig[b.alertLevel];
               const isSel = selectedBarangay === b.id;
               return (
@@ -447,13 +684,13 @@ export default function SABarangayMap() {
               </tr>
             </thead>
             <tbody>
-              {barangays.map((b, i) => {
+              {barangaysData.map((b, i) => {
                 const al = alertLevelConfig[b.alertLevel];
                 return (
                   <tr
                     key={b.id}
                     style={{
-                      borderBottom: i < barangays.length - 1 ? '1px solid #F9FAFB' : 'none',
+                      borderBottom: i < barangaysData.length - 1 ? '1px solid #F9FAFB' : 'none',
                       background: selectedBarangay === b.id ? `${b.color}08` : 'transparent',
                       cursor: 'pointer',
                     }}

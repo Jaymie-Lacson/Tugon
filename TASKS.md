@@ -124,6 +124,9 @@ Completed:
 Next priority:
 
 * Phase 6 Super Admin tools
+* Phase 6 in progress: `/api/admin` backend endpoints and Super Admin user list API wiring
+* Phase 6 in progress: Super Admin role update action and overview analytics summary wiring
+* Phase 6 in progress: Super Admin barangay map live data sync and boundary GeoJSON update action
 
 ---
 

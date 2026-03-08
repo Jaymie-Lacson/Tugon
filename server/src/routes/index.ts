@@ -3,6 +3,7 @@ import { authRouter } from "../modules/auth/auth.routes.js";
 import { authenticate } from "../middleware/auth.js";
 import { requireRole } from "../middleware/requireRole.js";
 import { citizenReportsRouter, officialReportsRouter } from "../modules/reports/reports.routes.js";
+import { adminRouter } from "../modules/admin/admin.routes.js";
 
 export const apiRouter = Router();
 
@@ -28,6 +29,13 @@ apiRouter.use(
   authenticate,
   requireRole(["OFFICIAL", "SUPER_ADMIN"]),
   officialReportsRouter,
+);
+
+apiRouter.use(
+  "/admin",
+  authenticate,
+  requireRole(["SUPER_ADMIN"]),
+  adminRouter,
 );
 
 apiRouter.get(

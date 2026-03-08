@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Search, Plus, Filter, Users, Shield, Activity, Lock,
   Edit2, Trash2, MoreVertical, CheckCircle2, XCircle, Clock,
@@ -6,6 +6,8 @@ import {
   X, AlertCircle,
 } from 'lucide-react';
 import { saUsers, SAUser } from '../../data/superAdminData';
+import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
+import type { Role } from '../../services/authApi';
 
 const PRIMARY = '#1E3A8A';
 
@@ -29,6 +31,12 @@ const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256', 'All 
 
 const PAGE_SIZE = 8;
 
+type SAUserRow = SAUser & {
+  backendUserId?: string;
+  backendRole?: Role;
+  backendBarangayCode?: string | null;
+};
+
 function formatLastActive(ts: string) {
   const d = new Date(ts);
   const now = new Date('2026-03-06T07:00:00');
@@ -38,13 +46,61 @@ function formatLastActive(ts: string) {
   return `${Math.floor(diffMin / 1440)}d ago`;
 }
 
-interface UserModalProps {
-  user: SAUser | null;
-  onClose: () => void;
-  mode: 'view' | 'edit' | 'add';
+function mapApiRoleToUiRole(role: ApiAdminUser['role']): SAUser['role'] {
+  if (role === 'SUPER_ADMIN') return 'Super Admin';
+  if (role === 'OFFICIAL') return 'Barangay Admin';
+  return 'Viewer';
 }
 
-function UserModal({ user, onClose, mode }: UserModalProps) {
+function mapApiUserToSaUser(user: ApiAdminUser, index: number): SAUserRow {
+  const initials = user.fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+
+  const role = mapApiRoleToUiRole(user.role);
+  const avatarColor =
+    role === 'Super Admin' ? '#7C3AED' : role === 'Barangay Admin' ? '#1D4ED8' : '#6B7280';
+
+  return {
+    id: index + 1,
+    name: user.fullName,
+    initials: initials || 'U',
+    email: user.phoneNumber,
+    role,
+    barangay: user.barangayCode ? `Brgy. ${user.barangayCode}` : 'All Barangays',
+    status: user.isPhoneVerified ? 'active' : 'inactive',
+    lastActive: user.updatedAt,
+    avatarColor,
+    backendUserId: user.id,
+    backendRole: user.role,
+    backendBarangayCode: user.barangayCode,
+  };
+}
+
+function mapUiRoleToApiRole(role: SAUser['role']): Role {
+  if (role === 'Super Admin') return 'SUPER_ADMIN';
+  if (role === 'Viewer') return 'CITIZEN';
+  return 'OFFICIAL';
+}
+
+function extractBarangayCode(value: string): string | undefined {
+  const match = value.match(/\d{3}/);
+  return match ? match[0] : undefined;
+}
+
+interface UserModalProps {
+  user: SAUserRow | null;
+  onClose: () => void;
+  mode: 'view' | 'edit';
+  saving?: boolean;
+  error?: string | null;
+  onSubmit?: (payload: { role: SAUser['role']; barangay: string; status: SAUser['status'] }) => void;
+}
+
+function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit }: UserModalProps) {
   const [formData, setFormData] = useState({
     name: user?.name ?? '',
     email: user?.email ?? '',
@@ -53,7 +109,7 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
     status: user?.status ?? 'active',
   });
 
-  const title = mode === 'add' ? 'Add New User' : mode === 'edit' ? 'Edit User' : 'User Details';
+  const title = mode === 'edit' ? 'Edit User' : 'User Details';
 
   return (
     <div style={{
@@ -78,7 +134,7 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
             </div>
             <div>
               <div style={{ color: '#E2E8F0', fontSize: 15, fontWeight: 700 }}>{title}</div>
-              {user && mode !== 'add' && (
+              {user && (
                 <div style={{ color: '#64748B', fontSize: 11 }}>ID: USR-{String(user.id).padStart(4, '0')}</div>
               )}
             </div>
@@ -90,7 +146,7 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
 
         <div style={{ padding: 20 }}>
           {/* Avatar */}
-          {mode !== 'add' && user && (
+          {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, padding: '12px 14px', background: '#F9FAFB', borderRadius: 10 }}>
               <div style={{
                 width: 48, height: 48, borderRadius: '50%', background: user.avatarColor,
@@ -104,6 +160,12 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
               </div>
             </div>
           )}
+
+          {error ? (
+            <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+              {error}
+            </div>
+          ) : null}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {mode !== 'view' ? (
@@ -134,7 +196,7 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
                       onChange={e => setFormData(f => ({ ...f, role: e.target.value as SAUser['role'] }))}
                       style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', background: 'white', cursor: 'pointer' }}
                     >
-                      {(['Barangay Admin', 'MDRRMO Officer', 'Responder', 'Viewer'] as const).map(r => (
+                      {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
@@ -144,6 +206,7 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
                     <select
                       value={formData.barangay}
                       onChange={e => setFormData(f => ({ ...f, barangay: e.target.value }))}
+                      disabled={formData.role === 'Super Admin'}
                       style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', background: 'white', cursor: 'pointer' }}
                     >
                       {['Brgy. 251', 'Brgy. 252', 'Brgy. 256'].map(b => (
@@ -207,10 +270,17 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
           </button>
           {mode !== 'view' && (
             <button
-              onClick={onClose}
-              style={{ padding: '9px 18px', border: 'none', borderRadius: 8, background: PRIMARY, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'white' }}
+              onClick={() => {
+                onSubmit?.({
+                  role: formData.role,
+                  barangay: formData.barangay,
+                  status: formData.status,
+                });
+              }}
+              disabled={saving}
+              style={{ padding: '9px 18px', border: 'none', borderRadius: 8, background: PRIMARY, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: 'white', opacity: saving ? 0.7 : 1 }}
             >
-              {mode === 'add' ? 'Create User' : 'Save Changes'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
           )}
         </div>
@@ -221,16 +291,21 @@ function UserModal({ user, onClose, mode }: UserModalProps) {
 }
 
 export default function SAUsers() {
+  const [usersData, setUsersData] = useState<SAUserRow[]>(saUsers as SAUserRow[]);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All Roles');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [barangayFilter, setBarangayFilter] = useState('All Barangays');
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState<{ user: SAUser | null; mode: 'view' | 'edit' | 'add' } | null>(null);
+  const [modal, setModal] = useState<{ user: SAUserRow | null; mode: 'view' | 'edit' } | null>(null);
+  const [modalSaving, setModalSaving] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const filtered = useMemo(() => {
-    return saUsers.filter(u => {
+    return usersData.filter(u => {
       const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.email.toLowerCase().includes(search.toLowerCase());
       const matchRole = roleFilter === 'All Roles' || u.role === roleFilter;
@@ -238,7 +313,7 @@ export default function SAUsers() {
       const matchBrgy = barangayFilter === 'All Barangays' || u.barangay === barangayFilter;
       return matchSearch && matchRole && matchStatus && matchBrgy;
     });
-  }, [search, roleFilter, statusFilter, barangayFilter]);
+  }, [usersData, search, roleFilter, statusFilter, barangayFilter]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -252,10 +327,65 @@ export default function SAUsers() {
   };
 
   const counts = {
-    total: saUsers.length,
-    active: saUsers.filter(u => u.status === 'active').length,
-    inactive: saUsers.filter(u => u.status === 'inactive').length,
-    suspended: saUsers.filter(u => u.status === 'suspended').length,
+    total: usersData.length,
+    active: usersData.filter(u => u.status === 'active').length,
+    inactive: usersData.filter(u => u.status === 'inactive').length,
+    suspended: usersData.filter(u => u.status === 'suspended').length,
+  };
+
+  const loadUsers = async () => {
+    setLoading(true);
+    setApiError(null);
+    try {
+      const payload = await superAdminApi.getUsers();
+      setUsersData(payload.users.map((user, index) => mapApiUserToSaUser(user, index)));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load users.';
+      setApiError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadUsers();
+  }, []);
+
+  const handleEditUser = async (payload: { role: SAUser['role']; barangay: string; status: SAUser['status'] }) => {
+    if (!modal || modal.mode !== 'edit' || !modal.user?.backendUserId) {
+      setModalError('Selected user cannot be edited from backend source.');
+      return;
+    }
+
+    const apiRole = mapUiRoleToApiRole(payload.role);
+    const barangayCode = extractBarangayCode(payload.barangay);
+
+    if (apiRole !== 'SUPER_ADMIN' && !barangayCode) {
+      setModalError('Barangay is required when assigning citizen or official roles.');
+      return;
+    }
+
+    setModalSaving(true);
+    setModalError(null);
+    setApiError(null);
+    try {
+      const updated = await superAdminApi.updateUserRole(modal.user.backendUserId, {
+        role: apiRole,
+        barangayCode,
+      });
+
+      setUsersData((current) =>
+        current.map((item, index) =>
+          item.backendUserId === updated.user.id ? mapApiUserToSaUser(updated.user, index) : item,
+        ),
+      );
+      setModal(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update user role.';
+      setModalError(message);
+    } finally {
+      setModalSaving(false);
+    }
   };
 
   return (
@@ -270,26 +400,35 @@ export default function SAUsers() {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
+            onClick={() => {
+              void loadUsers();
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
               padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#374151',
             }}
           >
-            <Download size={13} color="#6B7280" /> Export
+            <Download size={13} color="#6B7280" /> {loading ? 'Loading...' : 'Refresh'}
           </button>
           <button
-            onClick={() => setModal({ user: null, mode: 'add' })}
+            onClick={() => setApiError('Create-user flow is not yet implemented in this phase.')}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: PRIMARY, border: 'none', borderRadius: 8,
               padding: '8px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'white',
             }}
           >
-            <Plus size={14} /> Add User
+            <Plus size={14} /> Add User (Soon)
           </button>
         </div>
       </div>
+
+      {apiError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 12px', color: '#B91C1C', fontSize: 12 }}>
+          {apiError}
+        </div>
+      ) : null}
 
       {/* Stats chips */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -494,14 +633,22 @@ export default function SAUsers() {
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
-                          onClick={() => setModal({ user, mode: 'view' })}
+                          onClick={() => {
+                            setModalError(null);
+                            setModalSaving(false);
+                            setModal({ user, mode: 'view' });
+                          }}
                           title="View"
                           style={{ width: 28, height: 28, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <Eye size={13} color="#6B7280" />
                         </button>
                         <button
-                          onClick={() => setModal({ user, mode: 'edit' })}
+                          onClick={() => {
+                            setModalError(null);
+                            setModalSaving(false);
+                            setModal({ user, mode: 'edit' });
+                          }}
                           title="Edit"
                           style={{ width: 28, height: 28, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
@@ -617,7 +764,20 @@ export default function SAUsers() {
 
       {/* Modal */}
       {modal && (
-        <UserModal user={modal.user} mode={modal.mode} onClose={() => setModal(null)} />
+        <UserModal
+          user={modal.user}
+          mode={modal.mode}
+          onClose={() => {
+            setModalError(null);
+            setModalSaving(false);
+            setModal(null);
+          }}
+          saving={modalSaving}
+          error={modalError}
+          onSubmit={(payload) => {
+            void handleEditUser(payload);
+          }}
+        />
       )}
     </div>
   );
