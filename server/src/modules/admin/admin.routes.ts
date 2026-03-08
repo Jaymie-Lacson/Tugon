@@ -5,7 +5,13 @@ export const adminRouter = Router();
 
 adminRouter.post("/users", async (req, res) => {
   try {
+    const actorUserId = req.authUser?.id;
+    if (!actorUserId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
     const payload = await adminService.createUser({
+      actorUserId,
       fullName: req.body?.fullName,
       phoneNumber: req.body?.phoneNumber,
       password: req.body?.password,
@@ -28,6 +34,50 @@ adminRouter.get("/users", async (req, res) => {
     const payload = await adminService.listUsers({
       search,
       role,
+    });
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+adminRouter.get("/audit-logs", async (req, res) => {
+  try {
+    const action = typeof req.query.action === "string" ? req.query.action : undefined;
+    const targetType = typeof req.query.targetType === "string" ? req.query.targetType : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    const offset = typeof req.query.offset === "string" ? Number(req.query.offset) : undefined;
+    const fromDate = typeof req.query.fromDate === "string" ? req.query.fromDate : undefined;
+    const toDate = typeof req.query.toDate === "string" ? req.query.toDate : undefined;
+
+    const payload = await adminService.listAuditLogs({
+      action,
+      targetType,
+      limit,
+      offset,
+      fromDate,
+      toDate,
+    });
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+adminRouter.get("/audit-logs/export", async (req, res) => {
+  try {
+    const action = typeof req.query.action === "string" ? req.query.action : undefined;
+    const targetType = typeof req.query.targetType === "string" ? req.query.targetType : undefined;
+    const fromDate = typeof req.query.fromDate === "string" ? req.query.fromDate : undefined;
+    const toDate = typeof req.query.toDate === "string" ? req.query.toDate : undefined;
+
+    const payload = await adminService.exportAuditLogs({
+      action,
+      targetType,
+      fromDate,
+      toDate,
     });
     return res.status(200).json(payload);
   } catch (error) {
@@ -68,7 +118,13 @@ adminRouter.get("/barangays", async (_req, res) => {
 
 adminRouter.patch("/barangays/:barangayCode/boundary", async (req, res) => {
   try {
+    const actorUserId = req.authUser?.id;
+    if (!actorUserId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
     const payload = await adminService.updateBarangayBoundary(
+      actorUserId,
       req.params.barangayCode,
       req.body?.boundaryGeojson,
     );

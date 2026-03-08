@@ -115,6 +115,20 @@ model TicketStatusHistory {
   @@index([reportId, createdAt])
 }
 
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  action      String
+  targetType  String
+  targetId    String?
+  targetLabel String?
+  details     String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+}
+
 enum Role {
   CITIZEN
   OFFICIAL

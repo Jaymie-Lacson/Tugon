@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { path: '/superadmin/map',       label: 'Barangay Map',   icon: Map },
   { path: '/superadmin/analytics', label: 'SA Analytics',   icon: BarChart2 },
   { path: '/superadmin/users',     label: 'User Management', icon: Users },
+  { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
 ];
 
 function LiveClock() {

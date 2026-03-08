@@ -14,6 +14,12 @@ const OPEN_REPORT_STATUSES: PrismaTicketStatus[] = [
   PrismaTicketStatus.UNDER_REVIEW,
   PrismaTicketStatus.IN_PROGRESS,
 ];
+const ALLOWED_AUDIT_ACTIONS = new Set([
+  "ADMIN_USER_CREATED",
+  "ADMIN_USER_ROLE_UPDATED",
+  "ADMIN_BARANGAY_BOUNDARY_UPDATED",
+]);
+const ALLOWED_AUDIT_TARGET_TYPES = new Set(["USER", "BARANGAY"]);
 const ADMIN_USER_SELECT = {
   id: true,
   fullName: true,
@@ -163,7 +169,168 @@ function mapUserRecord(user: {
   };
 }
 
+function parseAuditDetails(details: string | null): Record<string, unknown> | null {
+  if (!details) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(details) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function stringifyAuditDetails(details: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return "{}";
+  }
+}
+
+async function createAdminAuditLog(
+  tx: Prisma.TransactionClient,
+  input: {
+    actorUserId: string;
+    action: string;
+    targetType: string;
+    targetId?: string | null;
+    targetLabel?: string | null;
+    details?: Record<string, unknown>;
+  },
+) {
+  await tx.adminAuditLog.create({
+    data: {
+      actorUserId: input.actorUserId,
+      action: input.action,
+      targetType: input.targetType,
+      targetId: input.targetId ?? null,
+      targetLabel: input.targetLabel ?? null,
+      details: input.details ? stringifyAuditDetails(input.details) : null,
+    },
+  });
+}
+
+function parseAuditLogFilters(input?: {
+  action?: unknown;
+  targetType?: unknown;
+  fromDate?: unknown;
+  toDate?: unknown;
+}) {
+  const action = typeof input?.action === "string" ? input.action.trim() : "";
+  const targetType = typeof input?.targetType === "string" ? input.targetType.trim() : "";
+  const fromDateValue = typeof input?.fromDate === "string" ? input.fromDate.trim() : "";
+  const toDateValue = typeof input?.toDate === "string" ? input.toDate.trim() : "";
+
+  const fromDate = fromDateValue ? new Date(fromDateValue) : null;
+  const toDate = toDateValue ? new Date(toDateValue) : null;
+
+  if (fromDate && Number.isNaN(fromDate.getTime())) {
+    throw new AdminError("fromDate must be a valid ISO date string.", 400);
+  }
+  if (toDate && Number.isNaN(toDate.getTime())) {
+    throw new AdminError("toDate must be a valid ISO date string.", 400);
+  }
+  if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
+    throw new AdminError("fromDate must be earlier than or equal to toDate.", 400);
+  }
+  if (action && !ALLOWED_AUDIT_ACTIONS.has(action)) {
+    throw new AdminError("Invalid action filter.", 400);
+  }
+  if (targetType && !ALLOWED_AUDIT_TARGET_TYPES.has(targetType)) {
+    throw new AdminError("Invalid targetType filter.", 400);
+  }
+
+  const where: Prisma.AdminAuditLogWhereInput = {
+    ...(action ? { action } : {}),
+    ...(targetType ? { targetType } : {}),
+    ...((fromDate || toDate)
+      ? {
+          createdAt: {
+            ...(fromDate ? { gte: fromDate } : {}),
+            ...(toDate ? { lte: toDate } : {}),
+          },
+        }
+      : {}),
+  };
+
+  return { where };
+}
+
 export const adminService = {
+  async exportAuditLogs(input?: {
+    action?: unknown;
+    targetType?: unknown;
+    fromDate?: unknown;
+    toDate?: unknown;
+  }) {
+    const { where } = parseAuditLogFilters(input);
+
+    const logs = await prisma.adminAuditLog.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 5000,
+    });
+
+    return {
+      total: logs.length,
+      logs: logs.map((log) => ({
+        id: log.id,
+        actorUserId: log.actorUserId,
+        action: log.action,
+        targetType: log.targetType,
+        targetId: log.targetId,
+        targetLabel: log.targetLabel,
+        details: parseAuditDetails(log.details),
+        createdAt: log.createdAt.toISOString(),
+      })),
+    };
+  },
+
+  async listAuditLogs(input?: {
+    action?: unknown;
+    targetType?: unknown;
+    limit?: unknown;
+    offset?: unknown;
+    fromDate?: unknown;
+    toDate?: unknown;
+  }) {
+    const { where } = parseAuditLogFilters(input);
+    const parsedLimit = typeof input?.limit === "number" ? input.limit : Number(input?.limit);
+    const parsedOffset = typeof input?.offset === "number" ? input.offset : Number(input?.offset);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.max(1, Math.min(200, Math.trunc(parsedLimit)))
+      : 100;
+    const offset = Number.isFinite(parsedOffset) ? Math.max(0, Math.trunc(parsedOffset)) : 0;
+
+    const [total, logs] = await Promise.all([
+      prisma.adminAuditLog.count({ where }),
+      prisma.adminAuditLog.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      total,
+      limit,
+      offset,
+      logs: logs.map((log) => ({
+        id: log.id,
+        actorUserId: log.actorUserId,
+        action: log.action,
+        targetType: log.targetType,
+        targetId: log.targetId,
+        targetLabel: log.targetLabel,
+        details: parseAuditDetails(log.details),
+        createdAt: log.createdAt.toISOString(),
+      })),
+    };
+  },
+
   async listUsers(input: { search?: string; role?: unknown }) {
     const search = typeof input.search === "string" ? input.search.trim() : "";
     const role = input.role ? assertRole(input.role) : undefined;
@@ -190,6 +357,7 @@ export const adminService = {
   },
 
   async createUser(input: {
+    actorUserId?: unknown;
     fullName?: unknown;
     phoneNumber?: unknown;
     password?: unknown;
@@ -197,6 +365,11 @@ export const adminService = {
     barangayCode?: unknown;
     isPhoneVerified?: unknown;
   }) {
+    const actorUserId = typeof input.actorUserId === "string" ? input.actorUserId : null;
+    if (!actorUserId) {
+      throw new AdminError("Unauthorized.", 401);
+    }
+
     const fullName = assertFullName(input.fullName);
     const phoneNumber = normalizeAndValidatePhoneNumber(input.phoneNumber);
     const password = assertPassword(input.password);
@@ -266,6 +439,22 @@ export const adminService = {
             : {}),
         },
         select: ADMIN_USER_SELECT,
+      });
+    });
+
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await createAdminAuditLog(tx, {
+        actorUserId,
+        action: "ADMIN_USER_CREATED",
+        targetType: "USER",
+        targetId: user.id,
+        targetLabel: user.fullName,
+        details: {
+          role,
+          barangayCode,
+          isPhoneVerified,
+          phoneNumber,
+        },
       });
     });
 
@@ -357,6 +546,19 @@ export const adminService = {
         throw new AdminError("Failed to load updated user.", 500);
       }
 
+      await createAdminAuditLog(tx, {
+        actorUserId,
+        action: "ADMIN_USER_ROLE_UPDATED",
+        targetType: "USER",
+        targetId: targetUserId,
+        targetLabel: user.fullName,
+        details: {
+          role: targetRole,
+          barangayCode,
+          isPhoneVerified,
+        },
+      });
+
       return user;
     });
 
@@ -435,7 +637,16 @@ export const adminService = {
     };
   },
 
-  async updateBarangayBoundary(barangayCodeInput: unknown, boundaryGeojsonInput: unknown) {
+  async updateBarangayBoundary(
+    actorUserIdInput: unknown,
+    barangayCodeInput: unknown,
+    boundaryGeojsonInput: unknown,
+  ) {
+    const actorUserId = typeof actorUserIdInput === "string" ? actorUserIdInput : null;
+    if (!actorUserId) {
+      throw new AdminError("Unauthorized.", 401);
+    }
+
     const barangayCode = assertManagedBarangayCode(barangayCodeInput);
     const boundaryGeojson = validateBoundaryGeojson(boundaryGeojsonInput);
 
@@ -457,6 +668,20 @@ export const adminService = {
         boundaryGeojson: true,
         updatedAt: true,
       },
+    });
+
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await createAdminAuditLog(tx, {
+        actorUserId,
+        action: "ADMIN_BARANGAY_BOUNDARY_UPDATED",
+        targetType: "BARANGAY",
+        targetId: barangay.id,
+        targetLabel: barangay.code,
+        details: {
+          barangayCode: barangay.code,
+          boundaryUpdatedAt: barangay.updatedAt.toISOString(),
+        },
+      });
     });
 
     return {

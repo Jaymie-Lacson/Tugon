@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
@@ -66,6 +66,25 @@ function ZoomController() {
   );
 }
 
+function MapBoundaryEditor({
+  active,
+  onAddPoint,
+}: {
+  active: boolean;
+  onAddPoint: (point: [number, number]) => void;
+}) {
+  useMapEvents({
+    click: (event) => {
+      if (!active) {
+        return;
+      }
+      onAddPoint([event.latlng.lat, event.latlng.lng]);
+    },
+  });
+
+  return null;
+}
+
 const TUGON_CENTER: [number, number] = [14.2060, 121.1548];
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -95,6 +114,21 @@ function boundaryToGeoJsonPolygon(boundary: [number, number][]) {
     type: 'Polygon',
     coordinates: [ring],
   };
+}
+
+function normalizeBoundaryPoints(boundary: [number, number][]): [number, number][] {
+  if (boundary.length < 2) {
+    return boundary;
+  }
+
+  const first = boundary[0];
+  const last = boundary[boundary.length - 1];
+  const isClosed = first[0] === last[0] && first[1] === last[1];
+  return isClosed ? boundary.slice(0, -1) : boundary;
+}
+
+function formatBoundaryGeojson(boundary: [number, number][]) {
+  return JSON.stringify(boundaryToGeoJsonPolygon(boundary), null, 2);
 }
 
 function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] | null {
@@ -151,6 +185,8 @@ export default function SABarangayMap() {
   const [boundarySaving, setBoundarySaving] = useState(false);
   const [boundaryMessage, setBoundaryMessage] = useState<string | null>(null);
   const [boundaryError, setBoundaryError] = useState<string | null>(null);
+  const [boundaryEditMode, setBoundaryEditMode] = useState(false);
+  const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([]);
 
   const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
   const filteredIncidents = filterType === 'all' ? mapIncidents : mapIncidents.filter(i => i.type === filterType);
@@ -222,9 +258,62 @@ export default function SABarangayMap() {
     } else {
       setBoundaryDraft(fallbackGeojson);
     }
+    setBoundaryPoints(normalizeBoundaryPoints(selectedBrgy.boundary));
+    setBoundaryEditMode(false);
     setBoundaryMessage(null);
     setBoundaryError(null);
   }, [selectedBrgy?.id]);
+
+  const syncDraftFromPoints = (points: [number, number][]) => {
+    if (points.length < 3) {
+      setBoundaryError('Boundary requires at least 3 points.');
+      return;
+    }
+    setBoundaryDraft(formatBoundaryGeojson(points));
+    setBoundaryError(null);
+  };
+
+  const handleAddBoundaryPoint = (point: [number, number]) => {
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    setBoundaryPoints((current) => {
+      const next = [...current, point];
+      if (next.length >= 3) {
+        setBoundaryDraft(formatBoundaryGeojson(next));
+      }
+      return next;
+    });
+  };
+
+  const handleUndoBoundaryPoint = () => {
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    setBoundaryPoints((current) => {
+      if (current.length === 0) {
+        return current;
+      }
+      const next = current.slice(0, -1);
+      if (next.length >= 3) {
+        setBoundaryDraft(formatBoundaryGeojson(next));
+      }
+      return next;
+    });
+  };
+
+  const handleResetBoundaryPoints = () => {
+    if (!selectedBrgy) {
+      return;
+    }
+    const resetPoints = normalizeBoundaryPoints(selectedBrgy.boundary);
+    setBoundaryPoints(resetPoints);
+    setBoundaryDraft(formatBoundaryGeojson(resetPoints));
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+  };
+
+  const handleApplyPointsToDraft = () => {
+    syncDraftFromPoints(boundaryPoints);
+  };
 
   const handleSaveBoundary = async () => {
     if (!selectedBrgy) {
@@ -324,6 +413,11 @@ export default function SABarangayMap() {
             <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
               {filteredIncidents.length} incidents shown
             </span>
+            {boundaryEditMode && selectedBrgy ? (
+              <span style={{ color: '#1D4ED8', fontSize: 11, fontWeight: 600 }}>
+                Edit mode: click map to add boundary points for {selectedBrgy.name}
+              </span>
+            ) : null}
           </div>
 
           {/* Map */}
@@ -369,6 +463,35 @@ export default function SABarangayMap() {
                 </Polygon>
               ))}
 
+              {boundaryEditMode && selectedBrgy && boundaryPoints.length >= 3 ? (
+                <Polygon
+                  positions={boundaryPoints}
+                  pathOptions={{
+                    color: '#1D4ED8',
+                    fillColor: '#1D4ED8',
+                    fillOpacity: 0.14,
+                    weight: 2,
+                    dashArray: '6 6',
+                  }}
+                />
+              ) : null}
+
+              {boundaryEditMode
+                ? boundaryPoints.map((point, index) => (
+                    <Circle
+                      key={`boundary-point-${index}`}
+                      center={point}
+                      radius={3}
+                      pathOptions={{
+                        color: '#1D4ED8',
+                        fillColor: '#1D4ED8',
+                        fillOpacity: 1,
+                        weight: 1,
+                      }}
+                    />
+                  ))
+                : null}
+
               {/* Heatmap circles */}
               {showHeatmap && heatCircles.map((c, i) => (
                 <Circle
@@ -412,6 +535,7 @@ export default function SABarangayMap() {
 
               {/* Custom zoom controls */}
               <ZoomController />
+              <MapBoundaryEditor active={boundaryEditMode && Boolean(selectedBrgy)} onAddPoint={handleAddBoundaryPoint} />
             </MapContainer>
 
             {/* Map legend overlay */}
@@ -517,6 +641,77 @@ export default function SABarangayMap() {
                 <div style={{ marginTop: 10 }}>
                   <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 5 }}>
                     Boundary GeoJSON Editor
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 7 }}>
+                    <button
+                      onClick={() => setBoundaryEditMode((current) => !current)}
+                      style={{
+                        border: '1px solid #BFDBFE',
+                        borderRadius: 6,
+                        padding: '5px 8px',
+                        background: boundaryEditMode ? '#DBEAFE' : '#EFF6FF',
+                        color: '#1D4ED8',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
+                    </button>
+                    <button
+                      onClick={handleUndoBoundaryPoint}
+                      disabled={!boundaryEditMode || boundaryPoints.length === 0}
+                      style={{
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 6,
+                        padding: '5px 8px',
+                        background: 'white',
+                        color: '#475569',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        cursor: !boundaryEditMode || boundaryPoints.length === 0 ? 'not-allowed' : 'pointer',
+                        opacity: !boundaryEditMode || boundaryPoints.length === 0 ? 0.6 : 1,
+                      }}
+                    >
+                      Undo Point
+                    </button>
+                    <button
+                      onClick={handleResetBoundaryPoints}
+                      disabled={!selectedBrgy}
+                      style={{
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 6,
+                        padding: '5px 8px',
+                        background: 'white',
+                        color: '#475569',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        cursor: !selectedBrgy ? 'not-allowed' : 'pointer',
+                        opacity: !selectedBrgy ? 0.6 : 1,
+                      }}
+                    >
+                      Reset Points
+                    </button>
+                    <button
+                      onClick={handleApplyPointsToDraft}
+                      disabled={boundaryPoints.length < 3}
+                      style={{
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 6,
+                        padding: '5px 8px',
+                        background: 'white',
+                        color: '#475569',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        cursor: boundaryPoints.length < 3 ? 'not-allowed' : 'pointer',
+                        opacity: boundaryPoints.length < 3 ? 0.6 : 1,
+                      }}
+                    >
+                      Apply Points to JSON
+                    </button>
+                  </div>
+                  <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
+                    {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
                   </div>
                   <textarea
                     value={boundaryDraft}

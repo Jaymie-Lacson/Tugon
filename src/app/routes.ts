@@ -21,6 +21,7 @@ import SAOverview from './pages/superadmin/SAOverview';
 import SABarangayMap from './pages/superadmin/SABarangayMap';
 import SAAnalytics from './pages/superadmin/SAAnalytics';
 import SAUsers from './pages/superadmin/SAUsers';
+import SAAuditLogs from './pages/superadmin/SAAuditLogs';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
 
@@ -135,6 +136,7 @@ export const router = createBrowserRouter([
       { path: 'map', Component: SABarangayMap },
       { path: 'analytics', Component: SAAnalytics },
       { path: 'users', Component: SAUsers },
+      { path: 'audit-logs', Component: SAAuditLogs },
     ],
   },
 

@@ -65,6 +65,29 @@ export interface ApiAdminAnalyticsSummary {
   reportsByBarangay: Array<{ barangayCode: string; count: number }>;
 }
 
+export interface ApiAdminAuditLog {
+  id: string;
+  actorUserId: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  targetLabel: string | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface ApiAdminAuditLogsResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  logs: ApiAdminAuditLog[];
+}
+
+export interface ApiAdminAuditLogsExportResponse {
+  total: number;
+  logs: ApiAdminAuditLog[];
+}
+
 export interface CreateAdminUserInput {
   fullName: string;
   phoneNumber: string;
@@ -122,6 +145,61 @@ export const superAdminApi = {
 
   getAnalyticsSummary() {
     return authedRequest<ApiAdminAnalyticsSummary>("/admin/analytics/summary", {
+      method: "GET",
+    });
+  },
+
+  getAuditLogs(params?: {
+    action?: string;
+    targetType?: string;
+    limit?: number;
+    offset?: number;
+    fromDate?: string;
+    toDate?: string;
+  }) {
+    const search = new URLSearchParams();
+    if (params?.action) {
+      search.set("action", params.action);
+    }
+    if (params?.targetType) {
+      search.set("targetType", params.targetType);
+    }
+    if (typeof params?.limit === "number") {
+      search.set("limit", String(params.limit));
+    }
+    if (typeof params?.offset === "number") {
+      search.set("offset", String(params.offset));
+    }
+    if (params?.fromDate) {
+      search.set("fromDate", params.fromDate);
+    }
+    if (params?.toDate) {
+      search.set("toDate", params.toDate);
+    }
+
+    const query = search.toString();
+    return authedRequest<ApiAdminAuditLogsResponse>(`/admin/audit-logs${query ? `?${query}` : ""}`, {
+      method: "GET",
+    });
+  },
+
+  exportAuditLogs(params?: { action?: string; targetType?: string; fromDate?: string; toDate?: string }) {
+    const search = new URLSearchParams();
+    if (params?.action) {
+      search.set("action", params.action);
+    }
+    if (params?.targetType) {
+      search.set("targetType", params.targetType);
+    }
+    if (params?.fromDate) {
+      search.set("fromDate", params.fromDate);
+    }
+    if (params?.toDate) {
+      search.set("toDate", params.toDate);
+    }
+
+    const query = search.toString();
+    return authedRequest<ApiAdminAuditLogsExportResponse>(`/admin/audit-logs/export${query ? `?${query}` : ""}`, {
       method: "GET",
     });
   },

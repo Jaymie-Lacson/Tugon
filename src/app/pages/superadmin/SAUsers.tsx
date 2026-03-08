@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Plus, Filter, Users, Shield, Activity, Lock,
+  Search, Plus, Filter, Users, Shield, Lock,
   Edit2, Trash2, CheckCircle2, XCircle, Clock,
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
@@ -11,27 +11,30 @@ import type { Role } from '../../services/authApi';
 
 const PRIMARY = '#1E3A8A';
 
-const ROLE_CONFIG: Record<SAUser['role'], { color: string; bg: string; icon: React.ReactNode }> = {
-  'Super Admin':    { color: '#1E3A8A', bg: '#DBEAFE', icon: <Shield size={11} /> },
+const ROLE_CONFIG = {
+  'Super Admin': { color: '#1E3A8A', bg: '#DBEAFE', icon: <Shield size={11} /> },
   'Barangay Admin': { color: '#1D4ED8', bg: '#DBEAFE', icon: <Users size={11} /> },
-  'MDRRMO Officer': { color: '#0F766E', bg: '#CCFBF1', icon: <Activity size={11} /> },
-  'Responder':      { color: '#B4730A', bg: '#FEF3C7', icon: <UserCheck size={11} /> },
-  'Viewer':         { color: '#374151', bg: '#F3F4F6', icon: <Eye size={11} /> },
-};
+  'Viewer': { color: '#374151', bg: '#F3F4F6', icon: <Eye size={11} /> },
+} as const;
 
-const STATUS_CONFIG: Record<SAUser['status'], { color: string; bg: string; label: string; icon: React.ReactNode }> = {
-  active:    { color: '#059669', bg: '#D1FAE5', label: 'Active',    icon: <CheckCircle2 size={11} /> },
-  inactive:  { color: '#6B7280', bg: '#F3F4F6', label: 'Inactive',  icon: <Clock size={11} /> },
-  suspended: { color: '#B91C1C', bg: '#FEE2E2', label: 'Suspended', icon: <XCircle size={11} /> },
-};
+type SupportedUiRole = keyof typeof ROLE_CONFIG;
 
-const ROLES = ['All Roles', 'Super Admin', 'Barangay Admin', 'MDRRMO Officer', 'Responder', 'Viewer'] as const;
-const STATUSES = ['All Status', 'active', 'inactive', 'suspended'] as const;
+const STATUS_CONFIG = {
+  active: { color: '#059669', bg: '#D1FAE5', label: 'Active', icon: <CheckCircle2 size={11} /> },
+  inactive: { color: '#6B7280', bg: '#F3F4F6', label: 'Inactive', icon: <Clock size={11} /> },
+} as const;
+
+type SupportedUiStatus = keyof typeof STATUS_CONFIG;
+
+const ROLES = ['All Roles', 'Super Admin', 'Barangay Admin', 'Viewer'] as const;
+const STATUSES = ['All Status', 'active', 'inactive'] as const;
 const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as const;
 
 const PAGE_SIZE = 8;
 
-type SAUserRow = SAUser & {
+type SAUserRow = Omit<SAUser, 'role' | 'status'> & {
+  role: SupportedUiRole;
+  status: SupportedUiStatus;
   backendUserId?: string;
   backendRole?: Role;
   backendBarangayCode?: string | null;
@@ -46,7 +49,7 @@ function formatLastActive(ts: string) {
   return `${Math.floor(diffMin / 1440)}d ago`;
 }
 
-function mapApiRoleToUiRole(role: ApiAdminUser['role']): SAUser['role'] {
+function mapApiRoleToUiRole(role: ApiAdminUser['role']): SupportedUiRole {
   if (role === 'SUPER_ADMIN') return 'Super Admin';
   if (role === 'OFFICIAL') return 'Barangay Admin';
   return 'Viewer';
@@ -80,7 +83,7 @@ function mapApiUserToSaUser(user: ApiAdminUser, index: number): SAUserRow {
   };
 }
 
-function mapUiRoleToApiRole(role: SAUser['role']): Role {
+function mapUiRoleToApiRole(role: SupportedUiRole): Role {
   if (role === 'Super Admin') return 'SUPER_ADMIN';
   if (role === 'Viewer') return 'CITIZEN';
   return 'OFFICIAL';
@@ -101,9 +104,9 @@ interface UserModalSubmitPayload {
   fullName: string;
   phoneNumber: string;
   password: string;
-  role: SAUser['role'];
+  role: SupportedUiRole;
   barangay: string;
-  status: SAUser['status'];
+  status: SupportedUiStatus;
 }
 
 interface UserModalProps {
@@ -225,7 +228,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Role</label>
                     <select
                       value={formData.role}
-                      onChange={e => setFormData(f => ({ ...f, role: e.target.value as SAUser['role'] }))}
+                      onChange={e => setFormData(f => ({ ...f, role: e.target.value as SupportedUiRole }))}
                       style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', background: 'white', cursor: 'pointer' }}
                     >
                       {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
@@ -250,7 +253,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 <div>
                   <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Status</label>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {(['active', 'inactive', 'suspended'] as const).map(s => {
+                    {(['active', 'inactive'] as const).map(s => {
                       const sc = STATUS_CONFIG[s];
                       return (
                         <button
@@ -370,7 +373,6 @@ export default function SAUsers() {
     total: usersData.length,
     active: usersData.filter(u => u.status === 'active').length,
     inactive: usersData.filter(u => u.status === 'inactive').length,
-    suspended: usersData.filter(u => u.status === 'suspended').length,
   };
 
   const loadUsers = async () => {
@@ -530,7 +532,6 @@ export default function SAUsers() {
           { label: 'Total Users', value: counts.total, color: PRIMARY, icon: <Users size={16} color={PRIMARY} /> },
           { label: 'Active', value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
           { label: 'Inactive', value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
-          { label: 'Suspended', value: counts.suspended, color: '#B91C1C', icon: <XCircle size={16} color="#B91C1C" /> },
         ].map(stat => (
           <div key={stat.label} style={{
             background: 'white', borderRadius: 10, padding: '12px 16px',
@@ -585,7 +586,7 @@ export default function SAUsers() {
           onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
           style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer', color: '#374151' }}
         >
-          {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SAUser['status']].label}</option>)}
+          {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SupportedUiStatus].label}</option>)}
         </select>
 
         {/* Barangay filter */}
@@ -831,13 +832,13 @@ export default function SAUsers() {
             </thead>
             <tbody>
               {[
-                ['View Incidents', true, true, true, true, true],
-                ['Create Incidents', false, true, true, true, false],
-                ['Manage Incidents', false, true, true, false, false],
-                ['View Analytics', true, true, true, false, false],
-                ['System Settings', true, false, false, false, false],
-                ['Manage Users', true, true, false, false, false],
-                ['Export Reports', true, true, true, false, false],
+                ['View Incidents', true, true, true],
+                ['Create Incidents', false, true, false],
+                ['Manage Incidents', false, true, false],
+                ['View Analytics', true, true, false],
+                ['System Settings', true, false, false],
+                ['Manage Users', true, true, false],
+                ['Export Reports', true, true, false],
               ].map(([label, ...perms]) => (
                 <tr key={String(label)} style={{ borderBottom: '1px solid #F9FAFB' }}>
                   <td style={{ padding: '8px 12px', color: '#374151', fontWeight: 500 }}>{label}</td>
