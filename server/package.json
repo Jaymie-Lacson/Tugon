@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "npm run build && node dist/server.js",
     "build": "tsc -p tsconfig.json",
+    "test:integration": "tsx --test tests/**/*.test.ts",
+    "test": "npm run test:integration",
     "start": "node dist/server.js",
     "start:prod": "npm run prisma:migrate:deploy && npm run start",
     "prisma:generate": "prisma generate",
