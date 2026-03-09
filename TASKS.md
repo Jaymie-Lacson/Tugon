@@ -111,7 +111,7 @@ The following phases represent the remaining development tasks.
 
 ---
 
-## Progress Snapshot (March 8, 2026)
+## Progress Snapshot (March 9, 2026)
 
 Completed:
 
@@ -127,6 +127,12 @@ Next priority:
 * Phase 6 in progress: `/api/admin` backend endpoints and Super Admin user list API wiring
 * Phase 6 in progress: Super Admin role update action and overview analytics summary wiring
 * Phase 6 in progress: Super Admin barangay map live data sync and boundary GeoJSON update action
+* Phase 8 started: backend integration tests for admin audit endpoints and `/api/admin` role permissions
+
+Validation status (latest):
+
+* Backend integration test suite passes (`npm --prefix server run test:integration`)
+* Backend TypeScript build still passes (`npm --prefix server run build`)
 
 ---
 
@@ -239,6 +245,24 @@ Tests should include:
 * geofencing tests
 * role permission tests
 * ticket lifecycle tests
+
+Completed in current iteration:
+
+* backend integration tests for admin audit endpoints:
+	* `GET /api/admin/audit-logs`
+	* `GET /api/admin/audit-logs/export`
+* backend role permission coverage for `/api/admin`:
+	* unauthenticated -> `401`
+	* non-super-admin authenticated user -> `403`
+	* super-admin authenticated user -> access allowed
+
+Current test file:
+
+* `server/tests/admin.integration.test.ts`
+
+Current server test command:
+
+* `npm --prefix server run test:integration`
 
 ---
 
