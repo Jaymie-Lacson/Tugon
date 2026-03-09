@@ -215,7 +215,10 @@ export default function Analytics() {
               <XAxis type="number" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} unit="m" />
               <YAxis dataKey="type" type="category" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={55} />
               <Tooltip
-                formatter={(v: number, n: string) => [`${v} min`, n === 'avgMin' ? 'Avg. Response' : 'Target']}
+                formatter={(value, name) => [
+                  `${value} min`,
+                  name === 'avgMin' ? 'Avg. Response' : 'Target',
+                ]}
                 contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }}
               />
               <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
@@ -242,7 +245,7 @@ export default function Analytics() {
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
                 {SEVERITY_DATA.map((e, index) => <Cell key={`cell-sev-${index}-${e.name}`} fill={e.color} />)}
               </Pie>
-              <Tooltip formatter={(v: number) => [`${v} incidents`]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
+              <Tooltip formatter={(value) => [`${value} incidents`]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
             </PieChart>
           </ResponsiveContainer>
           {SEVERITY_DATA.map(s => (
@@ -268,7 +271,7 @@ export default function Analytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="hour" tick={{ fontSize: 8, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={3} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(v: number) => [`${v} incidents`]} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(value) => [`${value} incidents`]} />
               <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
                 {HOUR_DATA.map((entry, index) => (
                   <Cell key={`cell-hr-${index}-${entry.hour}`} fill={entry.count >= 10 ? '#B91C1C' : entry.count >= 7 ? '#B4730A' : '#1E3A8A'} />
