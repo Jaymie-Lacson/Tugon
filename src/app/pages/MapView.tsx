@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import {
   Layers, Filter, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  ZoomIn, ZoomOut, Locate, Navigation2, ChevronUp,
+  Navigation2, ArrowLeft,
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router';
 import { incidents, Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
@@ -62,12 +63,23 @@ function IncidentCard({ incident, selected, onClick }: { incident: Incident; sel
 }
 
 export default function MapView() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isPublicCommunityMap = location.pathname === '/community-map';
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<IncidentType | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
   const [showFilters, setShowFilters] = useState(false);
   const [panelOpen, setPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate('/');
+  };
 
   const filtered = incidents.filter(inc => {
     if (filterType && inc.type !== filterType) return false;
@@ -78,7 +90,14 @@ export default function MapView() {
   });
 
   return (
-    <div style={{ display: 'flex', height: '100%', position: 'relative', overflow: 'hidden' }}>
+    <div
+      style={{
+        display: 'flex',
+        height: isPublicCommunityMap ? '100dvh' : '100%',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
 
       {/* Mobile panel overlay backdrop */}
       {panelOpen && (
@@ -204,6 +223,26 @@ export default function MapView() {
           borderBottom: '1px solid rgba(226,232,240,0.8)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         }}>
+          {isPublicCommunityMap && (
+            <button
+              onClick={handleBack}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                padding: '8px 12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                minHeight: 40,
+              }}
+            >
+              <ArrowLeft size={14} color="#334155" />
+              <span style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>Back</span>
+            </button>
+          )}
+
           <button
             onClick={() => setPanelOpen(v => !v)}
             style={{ background: '#EFF6FF', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, minHeight: 40 }}
