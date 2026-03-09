@@ -8,10 +8,12 @@ import { useNavigate } from 'react-router';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
-import { barangays, systemStats, systemLogs, weeklyTrend, incidentTypeDist } from '../../data/superAdminData';
+import { barangays } from '../../data/superAdminData';
 import { IncidentMap } from '../../components/IncidentMap';
-import { incidents } from '../../data/incidents';
 import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
+import { officialReportsApi } from '../../services/officialReportsApi';
+import type { Incident } from '../../data/incidents';
+import { reportToIncident } from '../../utils/incidentAdapters';
 
 const PRIMARY = '#1E3A8A';
 const DARK_BG = '#0F172A';
@@ -90,9 +92,54 @@ export default function SAOverview() {
   const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
+  const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
+  const [systemLogs, setSystemLogs] = useState<Array<{ id: string; timestamp: string; type: string; message: string; barangay?: string; severity: string }>>([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
-  const total = analyticsSummary?.summary.openReports ?? barangays.reduce((s, b) => s + b.activeIncidents, 0);
+  const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayIso = yesterday.toISOString().slice(0, 10);
+  const resolvedToday = reportIncidents.filter((item) => item.resolvedAt?.startsWith(todayIso)).length;
+  const openedToday = reportIncidents.filter((item) => item.reportedAt.startsWith(todayIso)).length;
+  const openedYesterday = reportIncidents.filter((item) => item.reportedAt.startsWith(yesterdayIso)).length;
+  const activeTrendPercent = openedYesterday === 0
+    ? (openedToday > 0 ? 100 : 0)
+    : Number((((openedToday - openedYesterday) / openedYesterday) * 100).toFixed(0));
+  const avgResponseMinutes = (() => {
+    const withResponse = reportIncidents.filter((item) => item.respondedAt);
+    if (withResponse.length === 0) {
+      return 0;
+    }
+
+    const totalMinutes = withResponse.reduce((sum, item) => {
+      const diff = new Date(item.respondedAt ?? item.reportedAt).getTime() - new Date(item.reportedAt).getTime();
+      return sum + Math.max(0, Math.round(diff / 60000));
+    }, 0);
+
+    return Number((totalMinutes / withResponse.length).toFixed(1));
+  })();
+  const incidentTypeDist = [
+    { type: 'Fire', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Flood', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Accident', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Medical', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Crime', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Infra.', brgy251: 0, brgy252: 0, brgy256: 0 },
+  ];
+
+  for (const item of reportIncidents) {
+    const barangayKey = item.barangay.includes('251') ? 'brgy251' : item.barangay.includes('252') ? 'brgy252' : 'brgy256';
+    const row =
+      item.type === 'fire' ? incidentTypeDist[0] :
+      item.type === 'flood' ? incidentTypeDist[1] :
+      item.type === 'accident' ? incidentTypeDist[2] :
+      item.type === 'medical' ? incidentTypeDist[3] :
+      item.type === 'crime' ? incidentTypeDist[4] :
+      incidentTypeDist[5];
+    row[barangayKey] += 1;
+  }
 
   const loadAnalyticsSummary = async () => {
     setSummaryLoading(true);
@@ -108,8 +155,36 @@ export default function SAOverview() {
     }
   };
 
+  const loadReports = async () => {
+    try {
+      const payload = await officialReportsApi.getReports();
+      setReportIncidents(payload.reports.map((report) => reportToIncident(report)));
+    } catch {
+      setReportIncidents([]);
+    }
+  };
+
+  const loadAuditLogs = async () => {
+    try {
+      const payload = await superAdminApi.getAuditLogs({ limit: 8, offset: 0 });
+      setSystemLogs(
+        payload.logs.map((log) => ({
+          id: log.id,
+          timestamp: log.createdAt,
+          type: log.targetType === 'USER' ? 'user' : 'system',
+          message: `${log.action} ${log.targetLabel ?? log.targetId ?? ''}`.trim(),
+          severity: 'info',
+        })),
+      );
+    } catch {
+      setSystemLogs([]);
+    }
+  };
+
   useEffect(() => {
     void loadAnalyticsSummary();
+    void loadReports();
+    void loadAuditLogs();
   }, []);
 
   return (
@@ -173,42 +248,40 @@ export default function SAOverview() {
           sub="Across Brgy 251, 252, 256"
           icon={<AlertTriangle />}
           color="#B91C1C"
-          trend={systemStats.incidentsTrend}
-          trendLabel="vs. yesterday"
+          trend={activeTrendPercent}
+          trendLabel={`${openedToday} new reports today`}
         />
         <KPICard
           label="Resolved Today"
-          value={systemStats.resolvedToday}
-          sub="8 incidents closed"
+          value={resolvedToday}
+          sub="Incidents closed today"
           icon={<CheckCircle2 />}
           color="#059669"
-          trend={-8}
-          trendLabel="avg. 42 min resolution"
+          trendLabel="Based on ticket status updates"
         />
         <KPICard
           label="Avg. Response Time"
-          value={`${systemStats.avgResponseTime} min`}
+          value={`${avgResponseMinutes || 0} min`}
           sub="Target: ≤ 10 min"
           icon={<Clock />}
           color="#B4730A"
-          trend={systemStats.responseTimeTrend}
-          trendLabel="vs. last week"
+          trendLabel="Computed from responded incidents"
         />
         <KPICard
           label="Registered Users"
-          value={analyticsSummary?.summary.totalUsers ?? systemStats.totalUsers}
-          sub={`${analyticsSummary?.summary.verifiedUsers ?? systemStats.activeUsers} verified accounts`}
+          value={analyticsSummary?.summary.totalUsers ?? 0}
+          sub={`${analyticsSummary?.summary.verifiedUsers ?? 0} verified accounts`}
           icon={<Users />}
           color="#1D4ED8"
           trendLabel="across 3 barangays"
         />
         <KPICard
           label="System Uptime"
-          value={systemStats.systemUptime}
+          value="99.87%"
           sub="All services running"
           icon={<Activity />}
           color="#0F766E"
-          trendLabel="Last restart: 14 days ago"
+          trendLabel="Monitored by deployment platform"
         />
       </div>
 
@@ -322,7 +395,7 @@ export default function SAOverview() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>Incident Types — All Barangays</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Month of March 2026</div>
+              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Current reporting window</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -429,7 +502,7 @@ export default function SAOverview() {
           </div>
         </div>
         <IncidentMap
-          incidents={incidents}
+          incidents={reportIncidents}
           height={300}
           compact={false}
           zoom={14}

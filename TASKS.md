@@ -128,6 +128,12 @@ Next priority:
 * Phase 6 in progress: Super Admin role update action and overview analytics summary wiring
 * Phase 6 in progress: Super Admin barangay map live data sync and boundary GeoJSON update action
 * Map reliability in progress: enforce high-zoom map clarity for incident pinning and dashboard maps
+* Phase 8 started: backend integration tests for admin audit endpoints and `/api/admin` role permissions
+
+Validation status (latest):
+
+* Backend integration test suite passes (`npm --prefix server run test:integration`)
+* Backend TypeScript build still passes (`npm --prefix server run build`)
 
 ---
 

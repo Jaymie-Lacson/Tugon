@@ -9,11 +9,12 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { incidents, incidentTypeConfig, severityConfig, statusConfig } from '../data/incidents';
+import { type Incident, incidentTypeConfig } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
+import { reportToIncident } from '../utils/incidentAdapters';
 
 const TREND_DATA = [
   { day: 'Feb 28', incidents: 8, resolved: 7 },
@@ -34,6 +35,15 @@ const TYPE_DIST = [
   { name: 'Infra.', value: 2, color: '#374151' },
   { name: 'Typhoon', value: 1, color: '#0369A1' },
 ];
+const TYPE_DIST_CONFIG = [
+  { key: 'fire', name: 'Fire', color: '#B91C1C' },
+  { key: 'flood', name: 'Flood', color: '#1D4ED8' },
+  { key: 'accident', name: 'Accident', color: '#B4730A' },
+  { key: 'medical', name: 'Medical', color: '#0F766E' },
+  { key: 'crime', name: 'Crime', color: '#7C3AED' },
+  { key: 'infrastructure', name: 'Infra.', color: '#374151' },
+  { key: 'typhoon', name: 'Typhoon', color: '#0369A1' },
+] as const;
 
 const typeIcons: Record<string, React.ReactNode> = {
   fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -84,7 +94,7 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   );
 }
 
-const AlertBanner = () => {
+const AlertBanner = ({ incidents }: { incidents: Incident[] }) => {
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
@@ -116,7 +126,10 @@ const AlertBanner = () => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [selectedIncident, setSelectedIncident] = useState<typeof incidents[0] | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidentsLoading, setIncidentsLoading] = useState(true);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [alerts, setAlerts] = useState<ApiCrossBorderAlert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(true);
   const [alertsError, setAlertsError] = useState<string | null>(null);
@@ -125,10 +138,92 @@ export default function Dashboard() {
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
-  const resolvedToday = incidents.filter(i => i.resolvedAt?.startsWith('2026-03-06'));
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const resolvedToday = incidents.filter(i => i.resolvedAt?.startsWith(todayIso));
   const criticalCount = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length;
+  const deployedUnits = activeIncidents.reduce((sum, incident) => sum + Math.max(0, incident.responders || 0), 0);
+  const avgResponseMinutes = React.useMemo(() => {
+    const withResponse = incidents.filter((incident) => incident.respondedAt);
+    if (withResponse.length === 0) {
+      return null;
+    }
+
+    const totalMinutes = withResponse.reduce((sum, incident) => {
+      const diff = new Date(incident.respondedAt ?? incident.reportedAt).getTime() - new Date(incident.reportedAt).getTime();
+      return sum + Math.max(0, Math.round(diff / 60000));
+    }, 0);
+
+    return Number((totalMinutes / withResponse.length).toFixed(1));
+  }, [incidents]);
   const unreadAlerts = alerts.filter((alert) => !alert.readAt).length;
   const strongestHeatCluster = heatmapClusters[0];
+
+  const trendData = React.useMemo(() => {
+    const base = Array.from({ length: 7 }).map((_, offset) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - offset));
+      const key = date.toISOString().slice(0, 10);
+      return {
+        key,
+        day: date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+        incidents: 0,
+        resolved: 0,
+      };
+    });
+
+    const indexByDay = new Map(base.map((item, index) => [item.key, index]));
+    for (const incident of incidents) {
+      const reportedDay = incident.reportedAt.slice(0, 10);
+      const reportedIdx = indexByDay.get(reportedDay);
+      if (typeof reportedIdx === 'number') {
+        base[reportedIdx].incidents += 1;
+      }
+
+      if (incident.resolvedAt) {
+        const resolvedDay = incident.resolvedAt.slice(0, 10);
+        const resolvedIdx = indexByDay.get(resolvedDay);
+        if (typeof resolvedIdx === 'number') {
+          base[resolvedIdx].resolved += 1;
+        }
+      }
+    }
+
+    return base.map(({ day, incidents: reported, resolved }) => ({ day, incidents: reported, resolved }));
+  }, [incidents]);
+
+  const typeDist = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const incident of incidents) {
+      counts[incident.type] = (counts[incident.type] ?? 0) + 1;
+    }
+
+    return TYPE_DIST_CONFIG.map((item) => ({
+      name: item.name,
+      value: counts[item.key] ?? 0,
+      color: item.color,
+    }));
+  }, [incidents]);
+
+  const loadReports = async () => {
+    setIncidentsLoading(true);
+    setIncidentsError(null);
+    try {
+      const payload = await officialReportsApi.getReports();
+      const mapped = payload.reports.map((report) => reportToIncident(report));
+      setIncidents(mapped);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return mapped[0] ?? null;
+        }
+        return mapped.find((item) => item.id === current.id) ?? null;
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load incidents.';
+      setIncidentsError(message);
+    } finally {
+      setIncidentsLoading(false);
+    }
+  };
 
   const loadAlerts = async () => {
     setAlertsLoading(true);
@@ -162,6 +257,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    void loadReports();
     void loadAlerts();
     void loadHeatmap();
   }, []);
@@ -188,11 +284,20 @@ export default function Dashboard() {
     incidentCount: cluster.incidentCount,
     incidentType: cluster.incidentType,
   }));
+  const trendWindowLabel = trendData.length >= 2
+    ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
+    : 'Latest reporting window';
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
       {/* Alert banner */}
-      <AlertBanner />
+      <AlertBanner incidents={incidents} />
+
+      {incidentsError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+          {incidentsError}
+        </div>
+      ) : null}
 
       <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
@@ -316,16 +421,16 @@ export default function Dashboard() {
           icon={<AlertTriangle size={20} />}
           accent="#B91C1C"
           bgLight="#FEE2E2"
-          trend={{ dir: 'up', val: '+3 vs. yesterday' }}
+          trend={{ dir: 'flat', val: 'Live total' }}
         />
         <KPICard
           title="Deployed Units"
-          value={47}
+          value={deployedUnits}
           subtitle="BFP, PNP, MDRRMO, EMS"
           icon={<Users size={20} />}
           accent="#1E3A8A"
           bgLight="#DBEAFE"
-          trend={{ dir: 'up', val: '+8 units' }}
+          trend={{ dir: 'flat', val: `${activeIncidents.length} active cases` }}
         />
         <KPICard
           title="Resolved Today"
@@ -334,16 +439,16 @@ export default function Dashboard() {
           icon={<CheckCircle2 size={20} />}
           accent="#059669"
           bgLight="#D1FAE5"
-          trend={{ dir: 'up', val: '+2 vs. yesterday' }}
+          trend={{ dir: 'flat', val: 'Live total' }}
         />
         <KPICard
           title="Avg. Response"
-          value="8.3 min"
-          subtitle="Target: ≤ 10 min"
+          value={avgResponseMinutes !== null ? `${avgResponseMinutes} min` : 'N/A'}
+          subtitle={avgResponseMinutes !== null ? 'Based on responded reports' : 'Waiting for response timestamps'}
           icon={<Clock size={20} />}
           accent="#B4730A"
           bgLight="#FEF3C7"
-          trend={{ dir: 'down', val: '-1.2 min vs. avg' }}
+          trend={{ dir: 'flat', val: 'Live metric' }}
         />
       </div>
 
@@ -448,7 +553,7 @@ export default function Dashboard() {
             <RefreshCw size={13} color="#94A3B8" style={{ cursor: 'pointer' }} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
-            {incidents.slice(0, 10).map((inc, idx) => (
+            {(incidentsLoading ? [] : incidents).slice(0, 10).map((inc) => (
               <div
                 key={inc.id}
                 onClick={() => navigate('/app/incidents')}
@@ -507,7 +612,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>7-Day Incident Trend</div>
-              <div style={{ color: '#94A3B8', fontSize: 11 }}>Feb 28 – Mar 6, 2026</div>
+              <div style={{ color: '#94A3B8', fontSize: 11 }}>{trendWindowLabel}</div>
             </div>
             <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -521,7 +626,7 @@ export default function Dashboard() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={TREND_DATA} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
@@ -537,17 +642,17 @@ export default function Dashboard() {
         {/* Type Distribution */}
         <div style={{ flex: '2 1 220px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Incident by Type</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Today's distribution</div>
+          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Current distribution</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <PieChart width={120} height={120}>
-              <Pie data={TYPE_DIST} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
-                {TYPE_DIST.map((entry, index) => (
+              <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
+                {typeDist.map((entry, index) => (
                   <Cell key={`cell-${index}-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
             </PieChart>
             <div style={{ flex: 1 }}>
-              {TYPE_DIST.map(item => (
+              {typeDist.map(item => (
                 <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, display: 'inline-block', flexShrink: 0 }} />
@@ -564,7 +669,7 @@ export default function Dashboard() {
       {/* Recent Incidents Table */}
       <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: 8 }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Recent Incidents — March 6, 2026</span>
+          <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Recent Incidents - Live Data</span>
           <button
             onClick={() => navigate('/app/incidents')}
             style={{ background: '#EFF6FF', border: 'none', borderRadius: 8, color: '#1E3A8A', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 40 }}
@@ -582,7 +687,7 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {incidents.slice(0, 8).map((inc, idx) => (
+              {incidents.slice(0, 8).map((inc) => (
                 <tr
                   key={inc.id}
                   style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer', transition: 'background 0.1s' }}

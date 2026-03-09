@@ -47,6 +47,20 @@ export default function Settings() {
   const [notifs, setNotifs] = useState({ critical: true, high: true, medium: false, sms: false, email: true, push: true });
   const [sys, setSys] = useState({ darkMode: false, autoRefresh: true, soundAlerts: true, compactView: false });
   const [saved, setSaved] = useState(false);
+  const now = new Date();
+  const lastLoginLabel = now.toLocaleString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+  const lastUpdatedLabel = now.toLocaleDateString('en-PH', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   const handleSave = () => {
     setSaved(true);
@@ -174,7 +188,7 @@ export default function Settings() {
               <div style={{ color: '#94A3B8', fontSize: 12, marginBottom: 16 }}>Manage access controls and authentication</div>
               <div style={{ padding: '12px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#166534' }}>Account Secured</div>
-                <div style={{ fontSize: 11, color: '#166534', marginTop: 2 }}>Two-factor authentication is enabled. Last login: March 6, 2026 at 07:45 AM PHT</div>
+                <div style={{ fontSize: 11, color: '#166534', marginTop: 2 }}>Two-factor authentication is enabled. Last login: {lastLoginLabel} PHT</div>
               </div>
               {[
                 { label: 'Change Password', desc: 'Update your account password', icon: Key },
@@ -219,7 +233,7 @@ export default function Settings() {
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 6 }}>SYSTEM INFO</div>
                 {[
                   { label: 'Version', value: 'TUGON v2.4.1' },
-                  { label: 'Last Updated', value: 'March 6, 2026' },
+                  { label: 'Last Updated', value: lastUpdatedLabel },
                   { label: 'Region', value: 'Region IV-A (CALABARZON)' },
                   { label: 'Data Retention', value: '365 days' },
                 ].map(info => (

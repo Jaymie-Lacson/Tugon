@@ -258,6 +258,20 @@ function Hero() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
             >
               <Eye size={16} /> Track My Reports
+              <Eye size={16} /> Track Status
+            </button>
+            <button
+              onClick={() => navigate('/community-map')}
+              style={{
+                background: 'rgba(180,115,10,0.15)', border: '1.5px solid rgba(180,115,10,0.5)',
+                borderRadius: 10, padding: '14px 28px', color: '#FCD34D', fontSize: 14,
+                fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                backdropFilter: 'blur(8px)', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.25)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.15)'; }}
+            >
+              <Map size={16} /> View Community Map
             </button>
           </div>
 
@@ -497,6 +511,7 @@ function SupportedBarangays() {
 
               <button
                 onClick={() => navigate('/auth/register')}
+                onClick={() => navigate('/community-map')}
                 style={{
                   marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                   borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
@@ -807,6 +822,14 @@ function EmergencyHotlines() {
 function Footer() {
   const navigate = useNavigate();
   const year = new Date().getFullYear();
+  const lastSyncLabel = new Date().toLocaleString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
   const scrollTo = (selector: string) => {
     document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -865,7 +888,7 @@ function Footer() {
           ))}
           <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(34,197,94,0.1)', borderRadius: 8, border: '1px solid rgba(34,197,94,0.2)' }}>
             <div style={{ color: '#4ADE80', fontSize: 11, fontWeight: 600 }}>All barangays online</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 2 }}>Last sync: March 6, 2026</div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 2 }}>Last sync: {lastSyncLabel} PHT</div>
           </div>
         </div>
 

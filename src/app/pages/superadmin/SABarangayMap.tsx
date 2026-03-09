@@ -5,9 +5,11 @@ import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
   Filter,
 } from 'lucide-react';
-import { barangays as fallbackBarangays, mapIncidents, heatCircles } from '../../data/superAdminData';
+import { barangays as fallbackBarangays } from '../../data/superAdminData';
 import { superAdminApi } from '../../services/superAdminApi';
+import { officialReportsApi } from '../../services/officialReportsApi';
 import type { BarangayProfile } from '../../data/superAdminData';
+import { reportToIncident } from '../../utils/incidentAdapters';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
@@ -100,6 +102,16 @@ type BarangayMapView = BarangayProfile & {
   source: 'mock' | 'api';
 };
 
+type MapIncident = {
+  id: string;
+  lat: number;
+  lng: number;
+  type: string;
+  severity: string;
+  barangay: string;
+  label: string;
+};
+
 function deriveCodeFromId(id: string): string {
   const match = id.match(/\d{3}/);
   return match ? match[0] : '';
@@ -178,8 +190,10 @@ export default function SABarangayMap() {
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>(createInitialBarangays());
   const [loadingBarangays, setLoadingBarangays] = useState(false);
   const [barangaysError, setBarangaysError] = useState<string | null>(null);
+  const [reportIncidents, setReportIncidents] = useState<MapIncident[]>([]);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
   const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<typeof mapIncidents[0] | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [boundaryDraft, setBoundaryDraft] = useState('');
@@ -190,7 +204,17 @@ export default function SABarangayMap() {
   const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([]);
 
   const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
-  const filteredIncidents = filterType === 'all' ? mapIncidents : mapIncidents.filter(i => i.type === filterType);
+  const filteredIncidents = filterType === 'all'
+    ? reportIncidents
+    : reportIncidents.filter(i => i.type === filterType);
+
+  const heatCircles = filteredIncidents.map((incident) => ({
+    lat: incident.lat,
+    lng: incident.lng,
+    radius: incident.severity === 'critical' ? 120 : incident.severity === 'high' ? 90 : 70,
+    color: INCIDENT_COLORS[incident.type] ?? '#374151',
+    opacity: incident.severity === 'critical' ? 0.28 : 0.18,
+  }));
 
   const loadBarangays = async () => {
     setLoadingBarangays(true);
@@ -237,8 +261,32 @@ export default function SABarangayMap() {
     }
   };
 
+  const loadReportIncidents = async () => {
+    setIncidentsError(null);
+    try {
+      const payload = await officialReportsApi.getReports();
+      const mapped = payload.reports.map((report) => {
+        const incident = reportToIncident(report);
+        return {
+          id: incident.id,
+          lat: incident.lat,
+          lng: incident.lng,
+          type: incident.type,
+          severity: incident.severity,
+          barangay: incident.barangay,
+          label: incident.description,
+        };
+      });
+      setReportIncidents(mapped);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load incident markers.';
+      setIncidentsError(message);
+    }
+  };
+
   useEffect(() => {
     void loadBarangays();
+    void loadReportIncidents();
   }, []);
 
   useEffect(() => {
@@ -396,6 +444,12 @@ export default function SABarangayMap() {
       {barangaysError ? (
         <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
           {barangaysError}
+        </div>
+      ) : null}
+
+      {incidentsError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+          {incidentsError}
         </div>
       ) : null}
 

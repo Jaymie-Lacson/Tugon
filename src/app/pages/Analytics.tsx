@@ -93,6 +93,12 @@ function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
 export default function Analytics() {
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
+  const totalIncidents = DAILY_TREND.reduce((sum, row) => sum + row.total, 0);
+  const resolvedIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.resolved, 0);
+  const allBarangayIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.incidents, 0);
+  const resolutionRate = allBarangayIncidents > 0 ? (resolvedIncidents / allBarangayIncidents) * 100 : 0;
+  const avgResponse = RESPONSE_TIME.reduce((sum, row) => sum + row.avgMin, 0) / RESPONSE_TIME.length;
+  const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
@@ -132,10 +138,10 @@ export default function Analytics() {
 
       {/* Metric Cards */}
       <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
-        <MetricCard title="Total Incidents" value="105" change="+12%" up={false} sub="vs. last week" color="#B91C1C" />
-        <MetricCard title="Resolution Rate" value="84.8%" change="+3.2%" up={true} sub="vs. last week" color="#059669" />
-        <MetricCard title="Avg. Response" value="8.3 min" change="-1.2 min" up={true} sub="vs. last week" color="#B4730A" />
-        <MetricCard title="Deployed Units" value="83" change="+8" up={false} sub="vs. last week" color="#1E3A8A" />
+        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub="current dataset" color="#B91C1C" />
+        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub="current dataset" color="#059669" />
+        <MetricCard title="Avg. Response" value={`${avgResponse.toFixed(1)} min`} change="Live" up={true} sub="current dataset" color="#B4730A" />
+        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="current deployment" color="#1E3A8A" />
       </div>
 
       {/* Trend Chart */}

@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Layers, Filter, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   Navigation2, ArrowLeft,
 } from 'lucide-react';
+import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
 import { incidents, Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
+import { officialReportsApi } from '../services/officialReportsApi';
+import { reportToIncident } from '../utils/incidentAdapters';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
   fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -63,6 +66,9 @@ function IncidentCard({ incident, selected, onClick }: { incident: Incident; sel
 }
 
 export default function MapView() {
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const isPublicCommunityMap = location.pathname === '/community-map';
@@ -73,6 +79,24 @@ export default function MapView() {
   const [showFilters, setShowFilters] = useState(false);
   const [panelOpen, setPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
 
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = await officialReportsApi.getReports();
+        const mapped = payload.reports.map((report) => reportToIncident(report));
+        setIncidents(mapped);
+      } catch (loadError) {
+        const message = loadError instanceof Error ? loadError.message : 'Failed to load incidents.';
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void load();
+  }, []);
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -200,7 +224,11 @@ export default function MapView() {
 
         {/* Incident list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
-          {filtered.length === 0 ? (
+          {error ? (
+            <div style={{ textAlign: 'center', color: '#B91C1C', fontSize: 12, padding: 24 }}>{error}</div>
+          ) : loading ? (
+            <div style={{ textAlign: 'center', color: '#94A3B8', fontSize: 12, padding: 24 }}>Loading incidents...</div>
+          ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', color: '#94A3B8', fontSize: 12, padding: 24 }}>No incidents match</div>
           ) : filtered.map(inc => (
             <IncidentCard
