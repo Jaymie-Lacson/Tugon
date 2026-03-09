@@ -16,6 +16,25 @@ import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 
+const TREND_DATA = [
+  { day: 'Feb 28', incidents: 8, resolved: 7 },
+  { day: 'Mar 1', incidents: 14, resolved: 12 },
+  { day: 'Mar 2', incidents: 11, resolved: 9 },
+  { day: 'Mar 3', incidents: 19, resolved: 17 },
+  { day: 'Mar 4', incidents: 16, resolved: 14 },
+  { day: 'Mar 5', incidents: 22, resolved: 18 },
+  { day: 'Mar 6', incidents: 15, resolved: 6 },
+];
+
+const TYPE_DIST = [
+  { name: 'Fire', value: 4, color: '#B91C1C' },
+  { name: 'Flood', value: 5, color: '#1D4ED8' },
+  { name: 'Accident', value: 3, color: '#B4730A' },
+  { name: 'Medical', value: 3, color: '#0F766E' },
+  { name: 'Crime', value: 2, color: '#7C3AED' },
+  { name: 'Infra.', value: 2, color: '#374151' },
+  { name: 'Typhoon', value: 1, color: '#0369A1' },
+];
 const TYPE_DIST_CONFIG = [
   { key: 'fire', name: 'Fire', color: '#B91C1C' },
   { key: 'flood', name: 'Flood', color: '#1D4ED8' },
