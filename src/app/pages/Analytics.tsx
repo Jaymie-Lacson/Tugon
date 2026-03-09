@@ -93,6 +93,12 @@ function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
 export default function Analytics() {
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
+  const totalIncidents = DAILY_TREND.reduce((sum, row) => sum + row.total, 0);
+  const resolvedIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.resolved, 0);
+  const allBarangayIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.incidents, 0);
+  const resolutionRate = allBarangayIncidents > 0 ? (resolvedIncidents / allBarangayIncidents) * 100 : 0;
+  const avgResponse = RESPONSE_TIME.reduce((sum, row) => sum + row.avgMin, 0) / RESPONSE_TIME.length;
+  const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
@@ -132,10 +138,10 @@ export default function Analytics() {
 
       {/* Metric Cards */}
       <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
-        <MetricCard title="Total Incidents" value="105" change="+12%" up={false} sub="vs. last week" color="#B91C1C" />
-        <MetricCard title="Resolution Rate" value="84.8%" change="+3.2%" up={true} sub="vs. last week" color="#059669" />
-        <MetricCard title="Avg. Response" value="8.3 min" change="-1.2 min" up={true} sub="vs. last week" color="#B4730A" />
-        <MetricCard title="Deployed Units" value="83" change="+8" up={false} sub="vs. last week" color="#1E3A8A" />
+        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub="current dataset" color="#B91C1C" />
+        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub="current dataset" color="#059669" />
+        <MetricCard title="Avg. Response" value={`${avgResponse.toFixed(1)} min`} change="Live" up={true} sub="current dataset" color="#B4730A" />
+        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="current deployment" color="#1E3A8A" />
       </div>
 
       {/* Trend Chart */}
@@ -215,7 +221,10 @@ export default function Analytics() {
               <XAxis type="number" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} unit="m" />
               <YAxis dataKey="type" type="category" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={55} />
               <Tooltip
-                formatter={(v: number, n: string) => [`${v} min`, n === 'avgMin' ? 'Avg. Response' : 'Target']}
+                formatter={(value, name) => [
+                  `${value} min`,
+                  name === 'avgMin' ? 'Avg. Response' : 'Target',
+                ]}
                 contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }}
               />
               <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
@@ -242,7 +251,7 @@ export default function Analytics() {
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
                 {SEVERITY_DATA.map((e, index) => <Cell key={`cell-sev-${index}-${e.name}`} fill={e.color} />)}
               </Pie>
-              <Tooltip formatter={(v: number) => [`${v} incidents`]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
+              <Tooltip formatter={(value) => [`${value} incidents`]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
             </PieChart>
           </ResponsiveContainer>
           {SEVERITY_DATA.map(s => (
@@ -268,7 +277,7 @@ export default function Analytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="hour" tick={{ fontSize: 8, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={3} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(v: number) => [`${v} incidents`]} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(value) => [`${value} incidents`]} />
               <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
                 {HOUR_DATA.map((entry, index) => (
                   <Cell key={`cell-hr-${index}-${entry.hour}`} fill={entry.count >= 10 ? '#B91C1C' : entry.count >= 7 ? '#B4730A' : '#1E3A8A'} />

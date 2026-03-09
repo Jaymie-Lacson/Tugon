@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Incident, incidentTypeConfig } from '../data/incidents';
 
@@ -115,7 +115,76 @@ export interface HeatmapClusterOverlay {
   incidentType: string;
 }
 
-const TUGON_CENTER: [number, number] = [14.2055, 121.1540];
+const TONDO_TRI_BRGY_CENTER: [number, number] = [14.61495, 120.97795];
+const TONDO_TRI_BRGY_BOUNDS: [[number, number], [number, number]] = [
+  [14.61345, 120.97645],
+  [14.61675, 120.97965],
+];
+
+const BARANGAY_POLYGONS: Array<{ code: string; name: string; points: [number, number][] }> = [
+  {
+    code: '251',
+    name: 'Barangay 251',
+    points: [
+      [14.6151576, 120.9778668],
+      [14.6151269, 120.9780734],
+      [14.6138576, 120.9777379],
+      [14.6138881, 120.9775742],
+      [14.6139514, 120.9772961],
+      [14.6139695, 120.9771491],
+      [14.6140086, 120.9771571],
+      [14.6152725, 120.977463],
+      [14.6151576, 120.9778668],
+    ],
+  },
+  {
+    code: '252',
+    name: 'Barangay 252',
+    points: [
+      [14.6152725, 120.977463],
+      [14.6140086, 120.9771571],
+      [14.6139695, 120.9771491],
+      [14.6138726, 120.9771203],
+      [14.6138888, 120.9770354],
+      [14.6137142, 120.9769944],
+      [14.6137978, 120.9766256],
+      [14.6140525, 120.9766893],
+      [14.6146931, 120.9768373],
+      [14.6153845, 120.9770152],
+      [14.6152725, 120.977463],
+    ],
+  },
+  {
+    code: '256',
+    name: 'Barangay 256',
+    points: [
+      [14.6165934, 120.9785196],
+      [14.6165675, 120.9787716],
+      [14.6164604, 120.9788136],
+      [14.616355, 120.9788522],
+      [14.616179, 120.9789493],
+      [14.6159963, 120.9790463],
+      [14.6157071, 120.9791867],
+      [14.6155382, 120.9792674],
+      [14.6153803, 120.9793486],
+      [14.6152404, 120.9794005],
+      [14.6151315, 120.9794212],
+      [14.6148209, 120.97942],
+      [14.6148861, 120.9791266],
+      [14.6149511, 120.9788318],
+      [14.6149661, 120.9787605],
+      [14.6150187, 120.9785164],
+      [14.6150567, 120.9783709],
+      [14.6150973, 120.9782174],
+      [14.6151269, 120.9780734],
+      [14.6151576, 120.9778668],
+      [14.6157229, 120.9779947],
+      [14.616262, 120.9781291],
+      [14.6166307, 120.9781571],
+      [14.6165934, 120.9785196],
+    ],
+  },
+];
 
 export function IncidentMap({
   incidents,
@@ -123,7 +192,7 @@ export function IncidentMap({
   selectedId = null,
   onSelectIncident,
   compact = false,
-  zoom = 15,
+  zoom = 17,
   heatmapClusters = [],
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
@@ -135,19 +204,43 @@ export function IncidentMap({
   return (
     <div style={{ position: 'relative', width: '100%', height, borderRadius: 8, overflow: 'hidden' }}>
       <MapContainer
-        center={TUGON_CENTER}
+        center={TONDO_TRI_BRGY_CENTER}
         zoom={zoom}
         style={{ width: '100%', height: '100%' }}
         zoomControl={!compact}
         attributionControl={true}
         scrollWheelZoom={true}
+        maxBounds={TONDO_TRI_BRGY_BOUNDS}
+        maxBoundsViscosity={1}
+        minZoom={16}
+        maxZoom={22}
       >
         {/* OpenStreetMap tiles */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+          maxNativeZoom={20}
+          maxZoom={22}
         />
+
+        {/* Official barangay boundaries */}
+        {BARANGAY_POLYGONS.map((barangay) => (
+          <Polygon
+            key={barangay.code}
+            positions={barangay.points}
+            pathOptions={{
+              color: '#1E3A8A',
+              weight: 3,
+              dashArray: '8 6',
+              fillColor: '#93C5FD',
+              fillOpacity: 0.08,
+            }}
+          >
+            <Tooltip direction="center" permanent>
+              {barangay.name}
+            </Tooltip>
+          </Polygon>
+        ))}
 
         {/* Auto-pan when selected changes */}
         <MapPanner incident={incidents.find(i => i.id === selectedId) ?? null} />

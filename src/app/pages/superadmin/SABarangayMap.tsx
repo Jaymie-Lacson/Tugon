@@ -5,9 +5,11 @@ import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
   Filter,
 } from 'lucide-react';
-import { barangays as fallbackBarangays, mapIncidents, heatCircles } from '../../data/superAdminData';
+import { barangays as fallbackBarangays } from '../../data/superAdminData';
 import { superAdminApi } from '../../services/superAdminApi';
+import { officialReportsApi } from '../../services/officialReportsApi';
 import type { BarangayProfile } from '../../data/superAdminData';
+import { reportToIncident } from '../../utils/incidentAdapters';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
@@ -49,7 +51,7 @@ function ZoomController() {
       {[
         { label: '+', action: () => map.zoomIn() },
         { label: '−', action: () => map.zoomOut() },
-        { label: '⌂', action: () => map.flyTo([14.2055, 121.1540], 15, { animate: true }) },
+        { label: '⌂', action: () => map.flyTo([14.61495, 120.97795], 18, { animate: true }) },
       ].map(btn => (
         <button
           key={btn.label}
@@ -85,7 +87,8 @@ function MapBoundaryEditor({
   return null;
 }
 
-const TUGON_CENTER: [number, number] = [14.2060, 121.1548];
+const TONDO_TRI_BRGY_CENTER: [number, number] = [14.61495, 120.97795];
+const BOUNDARY_EDIT_ENABLED = false;
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
   normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
@@ -97,6 +100,16 @@ type BarangayMapView = BarangayProfile & {
   code: string;
   boundaryGeojson: string | null;
   source: 'mock' | 'api';
+};
+
+type MapIncident = {
+  id: string;
+  lat: number;
+  lng: number;
+  type: string;
+  severity: string;
+  barangay: string;
+  label: string;
 };
 
 function deriveCodeFromId(id: string): string {
@@ -177,8 +190,10 @@ export default function SABarangayMap() {
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>(createInitialBarangays());
   const [loadingBarangays, setLoadingBarangays] = useState(false);
   const [barangaysError, setBarangaysError] = useState<string | null>(null);
+  const [reportIncidents, setReportIncidents] = useState<MapIncident[]>([]);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
   const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<typeof mapIncidents[0] | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [boundaryDraft, setBoundaryDraft] = useState('');
@@ -189,7 +204,17 @@ export default function SABarangayMap() {
   const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([]);
 
   const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
-  const filteredIncidents = filterType === 'all' ? mapIncidents : mapIncidents.filter(i => i.type === filterType);
+  const filteredIncidents = filterType === 'all'
+    ? reportIncidents
+    : reportIncidents.filter(i => i.type === filterType);
+
+  const heatCircles = filteredIncidents.map((incident) => ({
+    lat: incident.lat,
+    lng: incident.lng,
+    radius: incident.severity === 'critical' ? 120 : incident.severity === 'high' ? 90 : 70,
+    color: INCIDENT_COLORS[incident.type] ?? '#374151',
+    opacity: incident.severity === 'critical' ? 0.28 : 0.18,
+  }));
 
   const loadBarangays = async () => {
     setLoadingBarangays(true);
@@ -236,8 +261,32 @@ export default function SABarangayMap() {
     }
   };
 
+  const loadReportIncidents = async () => {
+    setIncidentsError(null);
+    try {
+      const payload = await officialReportsApi.getReports();
+      const mapped = payload.reports.map((report) => {
+        const incident = reportToIncident(report);
+        return {
+          id: incident.id,
+          lat: incident.lat,
+          lng: incident.lng,
+          type: incident.type,
+          severity: incident.severity,
+          barangay: incident.barangay,
+          label: incident.description,
+        };
+      });
+      setReportIncidents(mapped);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load incident markers.';
+      setIncidentsError(message);
+    }
+  };
+
   useEffect(() => {
     void loadBarangays();
+    void loadReportIncidents();
   }, []);
 
   useEffect(() => {
@@ -274,6 +323,9 @@ export default function SABarangayMap() {
   };
 
   const handleAddBoundaryPoint = (point: [number, number]) => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
     setBoundaryMessage(null);
     setBoundaryError(null);
     setBoundaryPoints((current) => {
@@ -286,6 +338,9 @@ export default function SABarangayMap() {
   };
 
   const handleUndoBoundaryPoint = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
     setBoundaryMessage(null);
     setBoundaryError(null);
     setBoundaryPoints((current) => {
@@ -301,6 +356,9 @@ export default function SABarangayMap() {
   };
 
   const handleResetBoundaryPoints = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
     if (!selectedBrgy) {
       return;
     }
@@ -312,10 +370,17 @@ export default function SABarangayMap() {
   };
 
   const handleApplyPointsToDraft = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
     syncDraftFromPoints(boundaryPoints);
   };
 
   const handleSaveBoundary = async () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      setBoundaryError('Boundary editing is locked. Contact an administrator to update boundaries.');
+      return;
+    }
     if (!selectedBrgy) {
       return;
     }
@@ -382,6 +447,12 @@ export default function SABarangayMap() {
         </div>
       ) : null}
 
+      {incidentsError ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+          {incidentsError}
+        </div>
+      ) : null}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
         {/* ── OSM Map ── */}
         <div style={{
@@ -413,7 +484,7 @@ export default function SABarangayMap() {
             <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
               {filteredIncidents.length} incidents shown
             </span>
-            {boundaryEditMode && selectedBrgy ? (
+            {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy ? (
               <span style={{ color: '#1D4ED8', fontSize: 11, fontWeight: 600 }}>
                 Edit mode: click map to add boundary points for {selectedBrgy.name}
               </span>
@@ -423,8 +494,8 @@ export default function SABarangayMap() {
           {/* Map */}
           <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
             <MapContainer
-              center={TUGON_CENTER}
-              zoom={15}
+              center={TONDO_TRI_BRGY_CENTER}
+              zoom={18}
               style={{ width: '100%', height: '100%', minHeight: 500 }}
               zoomControl={false}
               attributionControl={true}
@@ -463,7 +534,7 @@ export default function SABarangayMap() {
                 </Polygon>
               ))}
 
-              {boundaryEditMode && selectedBrgy && boundaryPoints.length >= 3 ? (
+              {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy && boundaryPoints.length >= 3 ? (
                 <Polygon
                   positions={boundaryPoints}
                   pathOptions={{
@@ -476,7 +547,7 @@ export default function SABarangayMap() {
                 />
               ) : null}
 
-              {boundaryEditMode
+              {BOUNDARY_EDIT_ENABLED && boundaryEditMode
                 ? boundaryPoints.map((point, index) => (
                     <Circle
                       key={`boundary-point-${index}`}
@@ -535,7 +606,7 @@ export default function SABarangayMap() {
 
               {/* Custom zoom controls */}
               <ZoomController />
-              <MapBoundaryEditor active={boundaryEditMode && Boolean(selectedBrgy)} onAddPoint={handleAddBoundaryPoint} />
+              <MapBoundaryEditor active={BOUNDARY_EDIT_ENABLED && boundaryEditMode && Boolean(selectedBrgy)} onAddPoint={handleAddBoundaryPoint} />
             </MapContainer>
 
             {/* Map legend overlay */}
@@ -640,82 +711,102 @@ export default function SABarangayMap() {
 
                 <div style={{ marginTop: 10 }}>
                   <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 5 }}>
-                    Boundary GeoJSON Editor
+                    Boundary GeoJSON (Read-only)
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 7 }}>
-                    <button
-                      onClick={() => setBoundaryEditMode((current) => !current)}
-                      style={{
-                        border: '1px solid #BFDBFE',
-                        borderRadius: 6,
-                        padding: '5px 8px',
-                        background: boundaryEditMode ? '#DBEAFE' : '#EFF6FF',
-                        color: '#1D4ED8',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
-                    </button>
-                    <button
-                      onClick={handleUndoBoundaryPoint}
-                      disabled={!boundaryEditMode || boundaryPoints.length === 0}
-                      style={{
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 6,
-                        padding: '5px 8px',
-                        background: 'white',
-                        color: '#475569',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        cursor: !boundaryEditMode || boundaryPoints.length === 0 ? 'not-allowed' : 'pointer',
-                        opacity: !boundaryEditMode || boundaryPoints.length === 0 ? 0.6 : 1,
-                      }}
-                    >
-                      Undo Point
-                    </button>
-                    <button
-                      onClick={handleResetBoundaryPoints}
-                      disabled={!selectedBrgy}
-                      style={{
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 6,
-                        padding: '5px 8px',
-                        background: 'white',
-                        color: '#475569',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        cursor: !selectedBrgy ? 'not-allowed' : 'pointer',
-                        opacity: !selectedBrgy ? 0.6 : 1,
-                      }}
-                    >
-                      Reset Points
-                    </button>
-                    <button
-                      onClick={handleApplyPointsToDraft}
-                      disabled={boundaryPoints.length < 3}
-                      style={{
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 6,
-                        padding: '5px 8px',
-                        background: 'white',
-                        color: '#475569',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        cursor: boundaryPoints.length < 3 ? 'not-allowed' : 'pointer',
-                        opacity: boundaryPoints.length < 3 ? 0.6 : 1,
-                      }}
-                    >
-                      Apply Points to JSON
-                    </button>
-                  </div>
-                  <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
-                    {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
-                  </div>
+                  {!BOUNDARY_EDIT_ENABLED ? (
+                    <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
+                      Editing is locked to protect official barangay boundaries.
+                    </div>
+                  ) : null}
+                  {BOUNDARY_EDIT_ENABLED ? (
+                    <>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 7 }}>
+                        <button
+                          onClick={() => {
+                            if (BOUNDARY_EDIT_ENABLED) {
+                              setBoundaryEditMode((current) => !current);
+                            }
+                          }}
+                          disabled={!BOUNDARY_EDIT_ENABLED}
+                          style={{
+                            border: '1px solid #BFDBFE',
+                            borderRadius: 6,
+                            padding: '5px 8px',
+                            background: boundaryEditMode ? '#DBEAFE' : '#EFF6FF',
+                            color: '#1D4ED8',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer',
+                            opacity: !BOUNDARY_EDIT_ENABLED ? 0.6 : 1,
+                          }}
+                        >
+                          {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
+                        </button>
+                        <button
+                          onClick={handleUndoBoundaryPoint}
+                          disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
+                          style={{
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 6,
+                            padding: '5px 8px',
+                            background: 'white',
+                            color: '#475569',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'not-allowed' : 'pointer',
+                            opacity: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 0.6 : 1,
+                          }}
+                        >
+                          Undo Point
+                        </button>
+                        <button
+                          onClick={handleResetBoundaryPoints}
+                          disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
+                          style={{
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 6,
+                            padding: '5px 8px',
+                            background: 'white',
+                            color: '#475569',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'not-allowed' : 'pointer',
+                            opacity: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 0.6 : 1,
+                          }}
+                        >
+                          Reset Points
+                        </button>
+                        <button
+                          onClick={handleApplyPointsToDraft}
+                          disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
+                          style={{
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 6,
+                            padding: '5px 8px',
+                            background: 'white',
+                            color: '#475569',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'not-allowed' : 'pointer',
+                            opacity: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 0.6 : 1,
+                          }}
+                        >
+                          Apply Points to JSON
+                        </button>
+                      </div>
+                      <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
+                        {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
+                      </div>
+                    </>
+                  ) : null}
                   <textarea
                     value={boundaryDraft}
-                    onChange={(event) => setBoundaryDraft(event.target.value)}
+                    onChange={(event) => {
+                      if (BOUNDARY_EDIT_ENABLED) {
+                        setBoundaryDraft(event.target.value);
+                      }
+                    }}
+                    readOnly={!BOUNDARY_EDIT_ENABLED}
                     style={{
                       width: '100%',
                       minHeight: 120,
@@ -735,29 +826,31 @@ export default function SABarangayMap() {
                   {boundaryMessage ? (
                     <div style={{ color: '#059669', fontSize: 10, marginTop: 5 }}>{boundaryMessage}</div>
                   ) : null}
-                  <button
-                    onClick={() => {
-                      void handleSaveBoundary();
-                    }}
-                    disabled={boundarySaving}
-                    style={{
-                      marginTop: 7,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      border: 'none',
-                      borderRadius: 7,
-                      padding: '7px 10px',
-                      background: '#1E3A8A',
-                      color: 'white',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: boundarySaving ? 'not-allowed' : 'pointer',
-                      opacity: boundarySaving ? 0.7 : 1,
-                    }}
-                  >
-                    <Save size={12} /> {boundarySaving ? 'Saving...' : 'Save Boundary'}
-                  </button>
+                  {BOUNDARY_EDIT_ENABLED ? (
+                    <button
+                      onClick={() => {
+                        void handleSaveBoundary();
+                      }}
+                      disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
+                      style={{
+                        marginTop: 7,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        border: 'none',
+                        borderRadius: 7,
+                        padding: '7px 10px',
+                        background: '#1E3A8A',
+                        color: 'white',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer',
+                        opacity: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 0.7 : 1,
+                      }}
+                    >
+                      <Save size={12} /> {boundarySaving ? 'Saving...' : 'Save Boundary'}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>

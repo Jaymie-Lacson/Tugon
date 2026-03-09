@@ -86,10 +86,24 @@ function parseBoundary(rawBoundary: string): SupportedGeoJson {
   return parsed as SupportedGeoJson;
 }
 
-function distancePointToSegment(point: Position, segmentStart: Position, segmentEnd: Position): number {
-  const [px, py] = point;
-  const [x1, y1] = segmentStart;
-  const [x2, y2] = segmentEnd;
+function toLocalMeters(point: Position, originLatitude: number): Position {
+  const [longitude, latitude] = point;
+  const latRad = (originLatitude * Math.PI) / 180;
+  const metersPerDegreeLatitude = 111_132;
+  const metersPerDegreeLongitude = 111_320 * Math.cos(latRad);
+
+  return [longitude * metersPerDegreeLongitude, latitude * metersPerDegreeLatitude];
+}
+
+function distancePointToSegmentMeters(
+  point: Position,
+  segmentStart: Position,
+  segmentEnd: Position,
+  originLatitude: number,
+): number {
+  const [px, py] = toLocalMeters(point, originLatitude);
+  const [x1, y1] = toLocalMeters(segmentStart, originLatitude);
+  const [x2, y2] = toLocalMeters(segmentEnd, originLatitude);
   const dx = x2 - x1;
   const dy = y2 - y1;
 
@@ -103,11 +117,11 @@ function distancePointToSegment(point: Position, segmentStart: Position, segment
   return Math.hypot(px - projectedX, py - projectedY);
 }
 
-function distancePointToRing(point: Position, ring: LinearRing): number {
+function distancePointToRingMeters(point: Position, ring: LinearRing, originLatitude: number): number {
   let minDistance = Number.POSITIVE_INFINITY;
 
   for (let i = 0; i < ring.length - 1; i += 1) {
-    const distance = distancePointToSegment(point, ring[i], ring[i + 1]);
+    const distance = distancePointToSegmentMeters(point, ring[i], ring[i + 1], originLatitude);
     if (distance < minDistance) {
       minDistance = distance;
     }
@@ -117,12 +131,16 @@ function distancePointToRing(point: Position, ring: LinearRing): number {
 }
 
 function distancePointToGeometryBoundary(point: Position, geometry: SupportedGeoJson): number {
+  const originLatitude = point[1];
+
   if (geometry.type === "Polygon") {
-    return Math.min(...geometry.coordinates.map((ring) => distancePointToRing(point, ring)));
+    return Math.min(...geometry.coordinates.map((ring) => distancePointToRingMeters(point, ring, originLatitude)));
   }
 
   return Math.min(
-    ...geometry.coordinates.flatMap((polygon) => polygon.map((ring) => distancePointToRing(point, ring))),
+    ...geometry.coordinates.flatMap((polygon) =>
+      polygon.map((ring) => distancePointToRingMeters(point, ring, originLatitude)),
+    ),
   );
 }
 
@@ -148,8 +166,30 @@ async function listSupportedBarangaysWithBoundary(): Promise<BarangayWithBoundar
 }
 
 async function ensureDefaultBoundaries() {
+  const existing = await prisma.barangay.findMany({
+    where: {
+      code: {
+        in: defaultBarangayBoundaries.map((boundary) => boundary.code),
+      },
+    },
+    select: {
+      code: true,
+      boundaryGeojson: true,
+    },
+  });
+
+  const existingByCode = new Map(existing.map((row) => [row.code, row]));
+  const missingOrBoundaryless = defaultBarangayBoundaries.filter((boundary) => {
+    const current = existingByCode.get(boundary.code);
+    return !current || !current.boundaryGeojson;
+  });
+
+  if (missingOrBoundaryless.length === 0) {
+    return;
+  }
+
   await Promise.all(
-    defaultBarangayBoundaries.map((boundary) =>
+    missingOrBoundaryless.map((boundary) =>
       prisma.barangay.upsert({
         where: { code: boundary.code },
         update: {
@@ -206,7 +246,7 @@ export const geofencingService = {
     latitude: number,
     longitude: number,
     owningBarangayCode: string,
-    threshold = 15,
+    threshold = 30,
   ) {
     if (!isFiniteNumber(latitude) || !isFiniteNumber(longitude)) {
       throw new GeofencingError("Valid latitude and longitude are required.", 400);

@@ -68,6 +68,19 @@
 
   /* ── Bottom nav safe area ── */
   .bottom-nav-bar { padding-bottom: max(8px, env(safe-area-inset-bottom)) !important; }
+
+  /* ── Incident Report Step 2 map tuning ── */
+  .incident-step2 { padding: 16px 12px 6px !important; }
+  .incident-step2-map { height: 250px !important; }
+  .incident-step2-map-shell { margin-bottom: 10px !important; }
+  .incident-step2-map-hint {
+    white-space: normal !important;
+    max-width: calc(100% - 20px) !important;
+    text-align: center !important;
+    padding: 7px 12px !important;
+    line-height: 1.35 !important;
+  }
+  .incident-step2-pin-chip { padding: 10px 11px !important; margin-bottom: 10px !important; }
 }
 
 @media (min-width: 769px) {

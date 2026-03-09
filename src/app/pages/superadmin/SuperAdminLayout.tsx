@@ -5,6 +5,7 @@ import {
   Shield, LogOut, Menu, X, Clock, Wifi, Settings, Activity,
   Lock, AlertCircle, Database,
 } from 'lucide-react';
+import { superAdminApi } from '../../services/superAdminApi';
 
 const NAV_ITEMS = [
   { path: '/superadmin',           label: 'SA Overview',    icon: LayoutDashboard, exact: true },
@@ -30,10 +31,67 @@ function LiveClock() {
 const SIDEBAR_BG = '#1E3A8A';
 const SIDEBAR_ACCENT = '#1E40AF';
 
+type MonitoringItem = {
+  code: string;
+  name: string;
+  incidents: number;
+  color: string;
+};
+
+function getMonitoringColor(incidents: number): string {
+  if (incidents >= 10) {
+    return '#B91C1C';
+  }
+  if (incidents >= 5) {
+    return '#F59E0B';
+  }
+  return '#22C55E';
+}
+
 export default function SuperAdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [alertCount] = useState(3);
+  const [monitoringItems, setMonitoringItems] = useState<MonitoringItem[]>([
+    { code: '251', name: 'Brgy 251', incidents: 0, color: '#22C55E' },
+    { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
+    { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
+  ]);
   const location = useLocation();
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadMonitoring = async () => {
+      try {
+        const payload = await superAdminApi.getBarangays();
+        if (!mounted) {
+          return;
+        }
+
+        const next = payload.barangays
+          .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
+          .sort((a, b) => Number(a.code) - Number(b.code))
+          .map((barangay) => ({
+            code: barangay.code,
+            name: `Brgy ${barangay.code}`,
+            incidents: barangay.activeReports,
+            color: getMonitoringColor(barangay.activeReports),
+          }));
+
+        if (next.length > 0) {
+          setMonitoringItems(next);
+        }
+      } catch {
+        // Keep zeroed fallback values if monitoring fetch fails.
+      }
+    };
+
+    void loadMonitoring();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const currentPage = NAV_ITEMS.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path)
@@ -101,11 +159,7 @@ export default function SuperAdminLayout() {
         {/* Barangay quick status */}
         <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Monitoring</div>
-          {[
-            { name: 'Brgy 251', status: 'elevated', color: '#F59E0B', incidents: 8 },
-            { name: 'Brgy 252', status: 'critical',  color: '#B91C1C', incidents: 12 },
-            { name: 'Brgy 256', status: 'normal',    color: '#22C55E', incidents: 5 },
-          ].map(b => (
+          {monitoringItems.map(b => (
             <div key={b.name} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '4px 6px', borderRadius: 5, marginBottom: 2,

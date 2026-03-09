@@ -141,6 +141,13 @@ function validateBoundaryGeojson(input: unknown): string {
   return JSON.stringify(parsed);
 }
 
+// Masks all but the last 4 digits of a phone number to comply with RA 10173.
+function maskPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length <= 4) return "****";
+  return "*".repeat(digits.length - 4) + digits.slice(-4);
+}
+
 function mapUserRecord(user: {
   id: string;
   fullName: string;
@@ -156,10 +163,14 @@ function mapUserRecord(user: {
   const officialBarangay = user.officialProfile?.barangay;
   const barangay = officialBarangay ?? citizenBarangay ?? null;
 
+  // Citizens are private individuals. Super Admin must not see their personal
+  // details (RA 10173 — Data Privacy Act of 2012).
+  const isCitizen = user.role === PrismaRole.CITIZEN;
+
   return {
     id: user.id,
-    fullName: user.fullName,
-    phoneNumber: user.phoneNumber,
+    fullName: isCitizen ? "Resident (Protected)" : user.fullName,
+    phoneNumber: isCitizen ? maskPhoneNumber(user.phoneNumber) : user.phoneNumber,
     role: mapRole(user.role),
     isPhoneVerified: user.isPhoneVerified,
     barangayCode: barangay?.code ?? null,

@@ -337,6 +337,12 @@ function validateHeatmapInput(input: HeatmapQueryInput): {
   };
 }
 
+// Super Admin must not see the citizenUserId that would allow cross-referencing
+// a specific citizen to their report (RA 10173 — Data Privacy Act of 2012).
+function anonymizeReportForSuperAdmin(report: CitizenReportRecord): CitizenReportRecord {
+  return { ...report, citizenUserId: "[protected]" };
+}
+
 export const reportsService = {
   async create(
     citizenUser: { id: string; fullName: string; barangayCode: string },
@@ -528,7 +534,8 @@ export const reportsService = {
       orderBy: { submittedAt: "desc" },
     });
 
-    return persisted.map((row: Parameters<typeof mapPersistedReport>[0]) => mapPersistedReport(row));
+    const records = persisted.map((row: Parameters<typeof mapPersistedReport>[0]) => mapPersistedReport(row));
+    return user.role === "SUPER_ADMIN" ? records.map(anonymizeReportForSuperAdmin) : records;
   },
 
   async getForOfficialById(
@@ -549,7 +556,8 @@ export const reportsService = {
     }
 
     assertJurisdiction(user, persisted.routedBarangayCode);
-    return mapPersistedReport(persisted);
+    const record = mapPersistedReport(persisted);
+    return user.role === "SUPER_ADMIN" ? anonymizeReportForSuperAdmin(record) : record;
   },
 
   async updateStatus(
