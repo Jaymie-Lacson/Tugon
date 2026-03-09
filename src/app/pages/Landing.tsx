@@ -233,7 +233,7 @@ function Hero() {
           {/* CTA buttons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 48 }}>
             <button
-              onClick={() => navigate('/citizen')}
+              onClick={() => navigate('/auth/register')}
               style={{
                 background: '#B91C1C', border: 'none', borderRadius: 10, padding: '14px 28px',
                 color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
@@ -447,6 +447,7 @@ function SupportedBarangays() {
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: 16, padding: '24px', cursor: 'pointer',
                 backdropFilter: 'blur(8px)', transition: 'transform 0.2s, background 0.2s',
+                display: 'flex', flexDirection: 'column', height: '100%',
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
@@ -486,7 +487,7 @@ function SupportedBarangays() {
               </div>
 
               {/* Responders */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
                 {b.responders.map(r => (
                   <span key={r} style={{ background: 'rgba(255,255,255,0.1)', color: '#BFDBFE', fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.15)' }}>
                     {r}
@@ -497,7 +498,7 @@ function SupportedBarangays() {
               <button
                 onClick={() => navigate('/auth/register')}
                 style={{
-                  marginTop: 16, width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+                  marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                   borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   transition: 'background 0.15s',
@@ -617,7 +618,7 @@ function SafetyTips() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => navigate('/app')}
+                  onClick={() => navigate('/auth/login')}
                   style={{
                     marginTop: 16, width: '100%', background: tip.bg, border: `1.5px solid ${tip.color}22`,
                     borderRadius: 8, padding: '10px', color: tip.color, fontSize: 12, fontWeight: 700,
@@ -806,6 +807,9 @@ function EmergencyHotlines() {
 function Footer() {
   const navigate = useNavigate();
   const year = new Date().getFullYear();
+  const scrollTo = (selector: string) => {
+    document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.6)' }}>
@@ -834,12 +838,17 @@ function Footer() {
         {/* Quick Links */}
         <div>
           <div style={{ color: 'white', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Platform</div>
-          {['Report Incident', 'Track Status', 'View Community Map', 'Emergency Hotlines'].map(link => (
-            <div key={link} style={{ marginBottom: 10 }}>
-              <button onClick={() => navigate('/app')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, cursor: 'pointer', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+          {[
+            { label: 'Report Incident', action: () => navigate('/auth/register') },
+            { label: 'Track Status', action: () => navigate('/auth/login') },
+            { label: 'View Community Map', action: () => navigate('/community-map') },
+            { label: 'Emergency Hotlines', action: () => scrollTo('#hotlines') },
+          ].map((link) => (
+            <div key={link.label} style={{ marginBottom: 10 }}>
+              <button onClick={link.action} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, cursor: 'pointer', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'white'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.55)'; }}>
-                {link}
+                {link.label}
               </button>
             </div>
           ))}
@@ -887,11 +896,16 @@ function Footer() {
             © {year} TUGON — Barangays 251, 252, 256 · Tondo, Manila · All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: 20 }}>
-            {['Login', 'Register', 'Privacy Policy', 'Contact'].map(link => (
-              <button key={link} onClick={() => navigate('/app')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 11, cursor: 'pointer', padding: 0, transition: 'color 0.15s' }}
+            {[
+              { label: 'Login', action: () => navigate('/auth/login') },
+              { label: 'Register', action: () => navigate('/auth/register') },
+              { label: 'Privacy Policy', action: () => {} },
+              { label: 'Contact', action: () => scrollTo('#hotlines') },
+            ].map(link => (
+              <button key={link.label} onClick={link.action} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 11, cursor: 'pointer', padding: 0, transition: 'color 0.15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'white'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)'; }}>
-                {link}
+                {link.label}
               </button>
             ))}
           </div>

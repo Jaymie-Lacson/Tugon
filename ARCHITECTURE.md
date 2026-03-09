@@ -671,6 +671,24 @@ Below is a practical schema outline for Prisma / PostgreSQL.
 * Prevent cross-barangay action permissions
 * Log report creation and status changes where possible
 
+## 16.1 Backend Integration Test Baseline
+
+Current backend automated integration coverage includes:
+
+* `/api/admin` role guard behavior (401 for missing token, 403 for non-super-admin, success for super-admin)
+* admin audit endpoints:
+  * `GET /api/admin/audit-logs`
+  * `GET /api/admin/audit-logs/export`
+* route-to-service contract checks for query filter forwarding and error mapping behavior
+
+Current backend test location:
+
+* `server/tests/admin.integration.test.ts`
+
+Current backend test command:
+
+* `npm --prefix server run test:integration`
+
 ---
 
 ## 17. Implementation Phases
@@ -728,6 +746,7 @@ Below is a practical schema outline for Prisma / PostgreSQL.
 * routing tests
 * status transition tests
 * upload validation tests
+* expand integration tests from admin baseline to citizen/official/auth/jurisdiction flows
 
 ---
 

@@ -85,6 +85,7 @@ function OfficialAppGuard() {
 export const router = createBrowserRouter([
   // Public landing
   { path: '/', Component: Landing },
+  { path: '/community-map', Component: MapView },
 
   // Auth screens
   { path: '/auth/login', Component: Login },

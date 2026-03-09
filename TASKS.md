@@ -111,7 +111,7 @@ The following phases represent the remaining development tasks.
 
 ---
 
-## Progress Snapshot (March 8, 2026)
+## Progress Snapshot (March 9, 2026)
 
 Completed:
 
@@ -240,6 +240,24 @@ Tests should include:
 * geofencing tests
 * role permission tests
 * ticket lifecycle tests
+
+Completed in current iteration:
+
+* backend integration tests for admin audit endpoints:
+	* `GET /api/admin/audit-logs`
+	* `GET /api/admin/audit-logs/export`
+* backend role permission coverage for `/api/admin`:
+	* unauthenticated -> `401`
+	* non-super-admin authenticated user -> `403`
+	* super-admin authenticated user -> access allowed
+
+Current test file:
+
+* `server/tests/admin.integration.test.ts`
+
+Current server test command:
+
+* `npm --prefix server run test:integration`
 
 ---
 
