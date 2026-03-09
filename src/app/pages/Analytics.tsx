@@ -38,6 +38,16 @@ function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
   );
 }
 
+function formatTrendDayLabel(date: Date, period: string): string {
+  if (period === 'This Quarter') {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}-${day}`;
+  }
+
+  return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+}
+
 export default function Analytics() {
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
@@ -80,7 +90,7 @@ export default function Analytics() {
       date.setDate(date.getDate() - (days - 1 - index));
       return {
         key: date.toISOString().slice(0, 10),
-        day: date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+        day: formatTrendDayLabel(date, period),
         total: 0,
         fire: 0,
         flood: 0,
@@ -243,7 +253,7 @@ export default function Analytics() {
       <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Incident Trend by Type</div>
+            <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Incident Trend by Category</div>
             <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>{period} — daily incident count by category</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -313,7 +323,7 @@ export default function Analytics() {
       <div className="analytics-middle-row" style={{ display: 'flex', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
         {/* Response time */}
         <div style={{ flex: '2 1 280px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Average Response Time by Type</div>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Average Response Time by Category</div>
           <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Minutes from report to first response (target overlay)</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={RESPONSE_TIME} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>

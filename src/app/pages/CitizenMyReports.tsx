@@ -9,7 +9,8 @@ import {
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
-import { citizenReportsApi, type ApiCitizenReport, type ApiIncidentType, type ApiTicketStatus } from '../services/citizenReportsApi';
+import { citizenReportsApi, type ApiCitizenReport, type ApiTicketStatus } from '../services/citizenReportsApi';
+import type { ReportCategory } from '../data/reportTaxonomy';
 
 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    CITIZEN REPORT STATUS TYPES
@@ -66,19 +67,19 @@ function mapApiStatus(status: ApiTicketStatus): CitizenReportStatus {
   return 'unresolvable';
 }
 
-function mapApiType(type: ApiIncidentType): CitizenReportType {
-  if (type === 'Fire') return 'fire';
-  if (type === 'Pollution') return 'pollution';
-  if (type === 'Noise') return 'noise';
-  if (type === 'Crime') return 'crime';
-  if (type === 'Road Hazard') return 'road_hazard';
+function mapApiType(category: ReportCategory): CitizenReportType {
+  if (category === 'Hazards and Safety') return 'fire';
+  if (category === 'Garbage and Sanitation') return 'pollution';
+  if (category === 'Public Disturbance') return 'noise';
+  if (category === 'Neighbor Disputes / Lupon') return 'crime';
+  if (category === 'Road and Street Issues') return 'road_hazard';
   return 'other';
 }
 
 function mapApiReport(report: ApiCitizenReport): CitizenReport {
   return {
     id: report.id,
-    type: mapApiType(report.type),
+    type: mapApiType(report.category),
     status: mapApiStatus(report.status),
     location: report.location,
     barangay: report.barangay,

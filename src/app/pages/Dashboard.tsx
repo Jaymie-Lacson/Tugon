@@ -15,15 +15,15 @@ import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
-const TYPE_DIST_CONFIG = [
-  { key: 'fire', name: 'Fire', color: '#B91C1C' },
-  { key: 'flood', name: 'Flood', color: '#1D4ED8' },
-  { key: 'accident', name: 'Accident', color: '#B4730A' },
-  { key: 'medical', name: 'Medical', color: '#0F766E' },
-  { key: 'crime', name: 'Crime', color: '#7C3AED' },
-  { key: 'infrastructure', name: 'Infra.', color: '#374151' },
-  { key: 'typhoon', name: 'Typhoon', color: '#0369A1' },
+const CATEGORY_DIST_CONFIG = [
+  { name: 'Garbage and Sanitation', color: '#0F766E' },
+  { name: 'Public Disturbance', color: '#7C3AED' },
+  { name: 'Road and Street Issues', color: '#B4730A' },
+  { name: 'Hazards and Safety', color: '#B91C1C' },
+  { name: 'Neighbor Disputes / Lupon', color: '#1E3A8A' },
+  { name: 'Others', color: '#475569' },
 ] as const;
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -175,12 +175,17 @@ export default function Dashboard() {
   const typeDist = React.useMemo(() => {
     const counts: Record<string, number> = {};
     for (const incident of incidents) {
-      counts[incident.type] = (counts[incident.type] ?? 0) + 1;
+      const category = getCategoryLabelForIncidentType(incident.type);
+      if (category === 'Public Disturbance / Others') {
+        counts.Others = (counts.Others ?? 0) + 1;
+      } else {
+        counts[category] = (counts[category] ?? 0) + 1;
+      }
     }
 
-    return TYPE_DIST_CONFIG.map((item) => ({
+    return CATEGORY_DIST_CONFIG.map((item) => ({
       name: item.name,
-      value: counts[item.key] ?? 0,
+      value: counts[item.name] ?? 0,
       color: item.color,
     }));
   }, [incidents]);
@@ -263,7 +268,7 @@ export default function Dashboard() {
     longitude: cluster.centerLongitude,
     intensity: cluster.intensity,
     incidentCount: cluster.incidentCount,
-    incidentType: cluster.incidentType,
+    incidentType: cluster.category,
   }));
   const trendWindowLabel = trendData.length >= 2
     ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
@@ -381,7 +386,7 @@ export default function Dashboard() {
                 </div>
                 {strongestHeatCluster ? (
                   <div style={{ color: '#64748B', fontSize: 11, marginTop: 3 }}>
-                    Strongest: {strongestHeatCluster.incidentType} ({strongestHeatCluster.incidentCount} incidents)
+                    Strongest: {strongestHeatCluster.category} ({strongestHeatCluster.incidentCount} incidents)
                   </div>
                 ) : null}
               </div>
@@ -622,8 +627,8 @@ export default function Dashboard() {
 
         {/* Type Distribution */}
         <div style={{ flex: '2 1 220px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Incident by Type</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Current distribution</div>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Incident by Category</div>
+          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Current category distribution</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <PieChart width={120} height={120}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">

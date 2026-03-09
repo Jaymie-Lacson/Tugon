@@ -19,13 +19,13 @@ export const ANALYTICS_TYPE_ORDER: IncidentType[] = [
 ];
 
 export const ANALYTICS_TYPE_LABELS: Record<IncidentType, string> = {
-  fire: 'Fire',
-  flood: 'Flood',
-  accident: 'Accident',
-  medical: 'Medical',
-  crime: 'Crime',
-  infrastructure: 'Infra.',
-  typhoon: 'Typhoon',
+  fire: 'Hazards and Safety',
+  flood: 'Garbage and Sanitation',
+  accident: 'Road and Street Issues',
+  medical: 'Hazards and Safety',
+  crime: 'Neighbor Disputes / Lupon',
+  infrastructure: 'Others',
+  typhoon: 'Hazards and Safety',
 };
 
 export const ANALYTICS_TYPE_COLORS: Record<IncidentType, string> = {
@@ -49,12 +49,12 @@ export const ANALYTICS_RESPONSE_TARGETS: Record<IncidentType, number> = {
 };
 
 export const ANALYTICS_TREND_SERIES = [
-  { key: 'fire', label: 'Fire', color: '#B91C1C' },
-  { key: 'flood', label: 'Flood', color: '#1D4ED8' },
-  { key: 'accident', label: 'Accident', color: '#B4730A' },
-  { key: 'medical', label: 'Medical', color: '#0F766E' },
-  { key: 'crime', label: 'Crime', color: '#7C3AED' },
-  { key: 'infrastructure', label: 'Infra.', color: '#374151' },
+  { key: 'fire', label: 'Hazards and Safety', color: '#B91C1C' },
+  { key: 'flood', label: 'Garbage and Sanitation', color: '#1D4ED8' },
+  { key: 'accident', label: 'Road and Street Issues', color: '#B4730A' },
+  { key: 'medical', label: 'Hazards and Safety', color: '#0F766E' },
+  { key: 'crime', label: 'Neighbor Disputes / Lupon', color: '#7C3AED' },
+  { key: 'infrastructure', label: 'Others', color: '#374151' },
 ] as const;
 
 export const ANALYTICS_SEVERITY_SERIES = [

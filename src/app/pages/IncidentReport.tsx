@@ -10,15 +10,25 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { getAuthSession } from '../utils/authSession';
+import {
+  getCategoryTaxonomy,
+  MEDIATION_WARNING,
+  REPORT_TAXONOMY,
+  type ReportCategory,
+  type ReportSubcategory,
+} from '../data/reportTaxonomy';
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-type IncidentCategory = 'fire' | 'pollution' | 'noise' | 'crime' | 'road_hazard' | 'other';
+type IncidentCategory = ReportCategory;
 type Severity = 'low' | 'medium' | 'high' | 'critical';
 interface PinData { lat: number; lng: number; barangay: string; district: string; }
 interface ReportForm {
   category: IncidentCategory | null;
+  subcategory: ReportSubcategory | null;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
   severity: Severity | null;
   pin: PinData | null;
   address: string;
@@ -37,12 +47,12 @@ const CATEGORIES: {
   type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
   color: string; bg: string; desc: string; emoji: string;
 }[] = [
-  { type: 'fire',       label: 'Fire',        icon: Flame,         color: '#B91C1C', bg: '#FEE2E2', desc: 'Building, vehicle, or grass fire', emoji: 'F' },
-  { type: 'pollution',  label: 'Pollution',   icon: Wind,          color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, or soil contamination', emoji: 'P' },
-  { type: 'noise',      label: 'Noise',       icon: Volume2,       color: '#7C3AED', bg: '#EDE9FE', desc: 'Excessive noise disturbance',        emoji: 'N' },
-  { type: 'crime',      label: 'Crime',       icon: AlertCircle,   color: '#1E3A8A', bg: '#DBEAFE', desc: 'Robbery, vandalism, suspicion',      emoji: 'C' },
-  { type: 'road_hazard',label: 'Road Hazard', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Potholes, accidents, obstructions',  emoji: '!' },
-  { type: 'other',      label: 'Other',       icon: MoreHorizontal,color: '#475569', bg: '#F1F5F9', desc: 'Other community concern',           emoji: 'O' },
+  { type: 'Garbage and Sanitation', label: 'Garbage and Sanitation', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Waste and sanitation concerns', emoji: 'G' },
+  { type: 'Public Disturbance', label: 'Public Disturbance', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Noise, loitering, and public nuisance', emoji: 'P' },
+  { type: 'Road and Street Issues', label: 'Road and Street Issues', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Streetlights, parking, sidewalks, potholes', emoji: 'R' },
+  { type: 'Hazards and Safety', label: 'Hazards and Safety', icon: Flame, color: '#B91C1C', bg: '#FEE2E2', desc: 'Immediate public safety hazards', emoji: 'H' },
+  { type: 'Neighbor Disputes / Lupon', label: 'Neighbor Disputes / Lupon', icon: AlertCircle, color: '#1E3A8A', bg: '#DBEAFE', desc: 'Barangay mediation-related disputes', emoji: 'N' },
+  { type: 'Others', label: 'Others', icon: MoreHorizontal, color: '#475569', bg: '#F1F5F9', desc: 'Unlisted general issues', emoji: 'O' },
 ];
 
 const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
@@ -297,7 +307,16 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           return (
             <button
               key={type}
-              onClick={() => setForm(p => ({ ...p, category: type }))}
+              onClick={() => {
+                const taxonomy = getCategoryTaxonomy(type);
+                setForm((p) => ({
+                  ...p,
+                  category: type,
+                  subcategory: taxonomy?.subcategories[0] ?? null,
+                  requiresMediation: taxonomy?.requiresMediation ?? false,
+                  mediationWarning: taxonomy?.requiresMediation ? MEDIATION_WARNING : null,
+                }));
+              }}
               style={{
                 background: sel ? `linear-gradient(145deg, ${color}, ${color}CC)` : '#fff',
                 border: `2px solid ${sel ? color : '#E8EEF4'}`,
@@ -392,6 +411,28 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           </div>
         </div>
       </div>
+
+      {form.category ? (
+        <div style={{ marginTop: 12, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 14, padding: 14 }}>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: 12, color: '#1E293B', marginBottom: 8 }}>
+            Select Subcategory
+          </label>
+          <select
+            value={form.subcategory ?? ''}
+            onChange={(event) => setForm((p) => ({ ...p, subcategory: event.target.value as ReportSubcategory }))}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid #CBD5E1', padding: '10px 12px', fontSize: 12, color: '#1E293B' }}
+          >
+            {(REPORT_TAXONOMY.find((item) => item.category === form.category)?.subcategories ?? []).map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+          {form.requiresMediation ? (
+            <div style={{ marginTop: 10, fontSize: 11, color: '#1E3A8A', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '8px 10px', lineHeight: 1.5 }}>
+              {MEDIATION_WARNING}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1105,9 +1146,9 @@ function Step5({ form }: { form: ReportForm }) {
 
   const details = [
     {
-      label: 'Incident Type',
+      label: 'Category',
       icon: <Icon size={14} />,
-      value: cat ? `${cat.label} - ${form.severity ? form.severity.charAt(0).toUpperCase() + form.severity.slice(1) : 'Severity not set'}` : 'Not set',
+      value: cat ? `${cat.label} - ${form.subcategory ?? 'Subcategory not set'}` : 'Not set',
       accent: cat?.color ?? '#475569',
     },
     {
@@ -1432,7 +1473,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
    MAIN EXPORT
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const STEP_VALIDATION: Record<number, (f: ReportForm) => boolean> = {
-  1: f => f.category !== null,
+  1: f => f.category !== null && f.subcategory !== null,
   2: f => isPinWithinSupportedBarangay(f.pin) && f.pin?.barangay !== 'Outside Your Registered Barangay',
   3: f => f.description.trim().length >= 10,
   4: () => true,
@@ -1449,7 +1490,8 @@ export default function IncidentReport() {
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<ReportForm>({
-    category: null, severity: null, pin: null, address: '',
+    category: null, subcategory: null, requiresMediation: false, mediationWarning: null,
+    severity: null, pin: null, address: '',
     description: '', affectedCount: null,
     photoPreviews: [], photoFiles: [],
     audioUrl: null, audioBlob: null,
@@ -1462,18 +1504,9 @@ export default function IncidentReport() {
 
   const canProceed = STEP_VALIDATION[step]?.(form) ?? true;
 
-  const mapTypeForApi = (category: IncidentCategory) => {
-    if (category === 'fire') return 'Fire' as const;
-    if (category === 'pollution') return 'Pollution' as const;
-    if (category === 'noise') return 'Noise' as const;
-    if (category === 'crime') return 'Crime' as const;
-    if (category === 'road_hazard') return 'Road Hazard' as const;
-    return 'Other' as const;
-  };
-
   const submitReport = async () => {
-    if (!form.category) {
-      setSubmitError('Incident type is required.');
+    if (!form.category || !form.subcategory) {
+      setSubmitError('Category and subcategory are required.');
       return;
     }
 
@@ -1482,7 +1515,10 @@ export default function IncidentReport() {
 
     try {
       const response = await citizenReportsApi.submitReport({
-        type: mapTypeForApi(form.category),
+        category: form.category,
+        subcategory: form.subcategory,
+        requiresMediation: form.requiresMediation,
+        mediationWarning: form.mediationWarning,
         latitude: form.pin?.lat ?? Number.NaN,
         longitude: form.pin?.lng ?? Number.NaN,
         location: form.address.trim() || `${form.pin?.barangay ?? 'Unknown location'}`,

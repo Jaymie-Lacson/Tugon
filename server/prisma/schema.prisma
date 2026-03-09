@@ -63,7 +63,10 @@ model CitizenReport {
   routedBarangayCode String
   latitude       Float
   longitude      Float
-  type           IncidentType
+  category       String
+  subcategory    String
+  requiresMediation Boolean      @default(false)
+  mediationWarning String?
   status         TicketStatus   @default(SUBMITTED)
   location       String
   barangay       String
@@ -142,15 +145,6 @@ enum TicketStatus {
   RESOLVED
   CLOSED
   UNRESOLVABLE
-}
-
-enum IncidentType {
-  FIRE
-  POLLUTION
-  NOISE
-  CRIME
-  ROAD_HAZARD
-  OTHER
 }
 
 enum ReportSeverity {
