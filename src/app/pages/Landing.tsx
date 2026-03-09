@@ -806,6 +806,14 @@ function EmergencyHotlines() {
 function Footer() {
   const navigate = useNavigate();
   const year = new Date().getFullYear();
+  const lastSyncLabel = new Date().toLocaleString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 
   return (
     <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.6)' }}>
@@ -856,7 +864,7 @@ function Footer() {
           ))}
           <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(34,197,94,0.1)', borderRadius: 8, border: '1px solid rgba(34,197,94,0.2)' }}>
             <div style={{ color: '#4ADE80', fontSize: 11, fontWeight: 600 }}>All barangays online</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 2 }}>Last sync: March 6, 2026</div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 2 }}>Last sync: {lastSyncLabel} PHT</div>
           </div>
         </div>
 

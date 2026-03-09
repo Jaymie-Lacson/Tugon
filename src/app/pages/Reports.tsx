@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FileText, Download, Printer, ChevronRight, AlertTriangle,
   CheckCircle2, Clock, TrendingUp, Brain, ShieldAlert,
@@ -6,7 +6,8 @@ import {
   FileBarChart, FilePieChart, FileSearch, FileClock, RefreshCw,
   Lightbulb, Info, ChevronDown,
 } from 'lucide-react';
-import { incidents } from '../data/incidents';
+import { officialReportsApi } from '../services/officialReportsApi';
+import { reportToIncident } from '../utils/incidentAdapters';
 
 const REPORT_TEMPLATES = [
   {
@@ -77,13 +78,26 @@ const REPORT_TEMPLATES = [
   },
 ];
 
-const RECENT_REPORTS = [
-  { name: 'Daily Ops Report — Mar 5, 2026', type: 'Operations', time: '2026-03-05 06:01', by: 'J. Reyes', size: '2.4 MB' },
-  { name: 'Critical Incident INC-2026-0237 — After Action', type: 'Executive', time: '2026-03-05 23:45', by: 'M. Santos', size: '1.1 MB' },
-  { name: 'Resource Deployment — Week 9', type: 'Resources', time: '2026-03-03 23:59', by: 'System', size: '3.2 MB' },
-  { name: 'Incident Summary — Week 9', type: 'Statistical', time: '2026-03-03 23:58', by: 'System', size: '1.8 MB' },
-  { name: 'Brgy. Riverside Vulnerability Profile', type: 'Geospatial', time: '2026-03-01 09:30', by: 'J. Cruz', size: '5.6 MB' },
-];
+interface RecentReportItem {
+  name: string;
+  type: string;
+  time: string;
+  by: string;
+  size: string;
+}
+
+function incidentTypeToReportCategory(type: string): string {
+  if (type === 'fire' || type === 'crime') {
+    return 'Executive';
+  }
+  if (type === 'accident' || type === 'medical') {
+    return 'Operations';
+  }
+  if (type === 'flood' || type === 'infrastructure' || type === 'typhoon') {
+    return 'Geospatial';
+  }
+  return 'Statistical';
+}
 
 const DSS_RECOMMENDATIONS = [
   {
@@ -224,6 +238,44 @@ function DSSCard({ rec }: { rec: typeof DSS_RECOMMENDATIONS[0] }) {
 export default function Reports() {
   const [activeTab, setActiveTab] = useState<'templates' | 'dss' | 'history'>('dss');
   const [generating, setGenerating] = useState<string | null>(null);
+  const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [reportsError, setReportsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setReportsLoading(true);
+      setReportsError(null);
+      try {
+        const payload = await officialReportsApi.getReports();
+        const mapped = payload.reports
+          .map((report) => reportToIncident(report))
+          .slice(0, 8)
+          .map((incident) => ({
+            name: `${incident.id} — ${incident.location}`,
+            type: incidentTypeToReportCategory(incident.type),
+            time: new Date(incident.reportedAt).toLocaleString('en-PH', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            }),
+            by: incident.reportedBy,
+            size: 'N/A',
+          }));
+        setRecentReports(mapped);
+      } catch (loadError) {
+        const message = loadError instanceof Error ? loadError.message : 'Failed to load report history.';
+        setReportsError(message);
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+
+    void load();
+  }, []);
 
   const handleGenerate = (id: string) => {
     setGenerating(id);
@@ -404,7 +456,19 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {RECENT_REPORTS.map((r, i) => (
+              {reportsError ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '12px 14px', color: '#B91C1C' }}>{reportsError}</td>
+                </tr>
+              ) : reportsLoading ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '12px 14px', color: '#94A3B8' }}>Loading report history...</td>
+                </tr>
+              ) : recentReports.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '12px 14px', color: '#64748B' }}>No report history available.</td>
+                </tr>
+              ) : recentReports.map((r, i) => (
                 <tr
                   key={i}
                   style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.1s' }}

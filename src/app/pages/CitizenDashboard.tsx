@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Shield, Bell, Home, MapPin, FileText, User, Plus,
@@ -11,44 +11,23 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 import {
-  incidents,
   incidentTypeConfig,
   Incident,
   IncidentType,
 } from '../data/incidents';
+import { citizenReportsApi } from '../services/citizenReportsApi';
+import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
+import { getAuthSession } from '../utils/authSession';
 
 /* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-const activeIncidents = incidents.filter(
-  (i) => i.status === 'active' || i.status === 'responding',
-);
-const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
-
-const MY_REPORTS = [
-  {
-    id: 'MY-2026-003',
-    type: 'infrastructure' as IncidentType,
-    description: 'Broken street light near Purok 4 entrance',
-    status: 'responding' as const,
-    reportedAt: '2026-03-06T07:15:00',
-    location: 'Purok 4, Brgy. San Antonio',
-  },
-  {
-    id: 'MY-2026-002',
-    type: 'flood' as IncidentType,
-    description: 'Flooded drainage causing road block',
-    status: 'resolved' as const,
-    reportedAt: '2026-03-05T14:30:00',
-    location: 'Main Road, Brgy. Poblacion',
-  },
-  {
-    id: 'MY-2026-001',
-    type: 'accident' as IncidentType,
-    description: 'Minor vehicular accident at intersection',
-    status: 'resolved' as const,
-    reportedAt: '2026-03-04T09:00:00',
-    location: 'Junction Ave., District II',
-  },
-];
+interface CitizenMyReport {
+  id: string;
+  type: IncidentType;
+  description: string;
+  status: Incident['status'];
+  reportedAt: string;
+  location: string;
+}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -70,8 +49,11 @@ const typeIcon: Record<IncidentType, React.ReactNode> = {
 };
 
 /* â”€â”€ sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-function AlertBanner() {
+function AlertBanner({ incidents }: { incidents: Incident[] }) {
   const [dismissed, setDismissed] = useState(false);
+  const criticalCount = incidents.filter(
+    (item) => (item.status === 'active' || item.status === 'responding') && item.severity === 'critical',
+  ).length;
   if (dismissed || criticalCount === 0) return null;
   return (
     <div
@@ -312,7 +294,7 @@ function RecentIncidentRow({ incident }: { incident: Incident }) {
 function MyReportRow({
   report,
 }: {
-  report: (typeof MY_REPORTS)[number];
+  report: CitizenMyReport;
 }) {
   const cfg = incidentTypeConfig[report.type];
   return (
@@ -367,9 +349,98 @@ type Tab = 'home' | 'report' | 'map' | 'myreports' | 'profile';
 /* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function CitizenDashboard() {
   const navigate = useNavigate();
+  const session = getAuthSession();
+  const fullName = session?.user.fullName?.trim() || 'Citizen';
+  const firstName = fullName.split(' ')[0] || 'Citizen';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CU';
+  const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Tondo Cluster';
+  const todayLabel = new Date().toLocaleDateString('en-PH', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const nowHour = new Date().getHours();
+  const greetingLabel = nowHour < 12 ? 'Good morning' : nowHour < 18 ? 'Good afternoon' : 'Good evening';
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [myReports, setMyReports] = useState<CitizenMyReport[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
+
+  const notificationItems = React.useMemo(() => {
+    const criticalItems = incidents
+      .filter((item) => (item.status === 'active' || item.status === 'responding') && item.severity === 'critical')
+      .slice(0, 2)
+      .map((item) => ({
+        icon: <AlertTriangle size={14} />,
+        color: '#B91C1C',
+        bg: '#FEE2E2',
+        title: 'Critical Incident Alert',
+        desc: `${incidentTypeConfig[item.type].label} in ${item.barangay}`,
+        time: timeAgo(item.reportedAt),
+        unread: true,
+      }));
+
+    const reportItems = myReports
+      .filter((report) => report.status !== 'resolved')
+      .slice(0, 2)
+      .map((report) => ({
+        icon: <CheckCircle2 size={14} />,
+        color: '#059669',
+        bg: '#D1FAE5',
+        title: 'Report Update',
+        desc: `${report.id} status: ${report.status}`,
+        time: timeAgo(report.reportedAt),
+        unread: true,
+      }));
+
+    const items = [...criticalItems, ...reportItems].slice(0, 3);
+    if (items.length > 0) {
+      return items;
+    }
+
+    return [{
+      icon: <Info size={14} />,
+      color: '#1E3A8A',
+      bg: '#DBEAFE',
+      title: 'No new alerts',
+      desc: 'You are all caught up for now.',
+      time: 'Live',
+      unread: false,
+    }];
+  }, [incidents, myReports]);
+
+  const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const payload = await citizenReportsApi.getMyReports();
+        const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
+        setIncidents(mappedIncidents);
+        setMyReports(
+          payload.reports.map((report) => ({
+            id: report.id,
+            type: reportToIncident(report).type,
+            description: report.description,
+            status: mapTicketStatus(report.status),
+            reportedAt: report.submittedAt,
+            location: report.location,
+          })),
+        );
+      } catch {
+        setIncidents([]);
+        setMyReports([]);
+      }
+    };
+
+    void load();
+  }, []);
 
   const navItems: { key: Tab; icon: React.ReactNode; label: string }[] = [
     { key: 'home', icon: <Home size={22} />, label: 'Home' },
@@ -382,11 +453,11 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <HomeTab incidents={incidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} />;
       case 'report':
         return null;
       case 'map':
-        return <MapTab selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <MapTab incidents={incidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
       case 'myreports':
         navigate('/citizen/my-reports');
         return null;
@@ -451,18 +522,20 @@ export default function CitizenDashboard() {
                 }}
               >
                 <Bell size={18} />
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: '#B91C1C',
-                    border: '1.5px solid #1E3A8A',
-                  }}
-                />
+                {unreadNotificationCount > 0 ? (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: '#B91C1C',
+                      border: '1.5px solid #1E3A8A',
+                    }}
+                  />
+                ) : null}
               </button>
               <div
                 style={{
@@ -480,7 +553,7 @@ export default function CitizenDashboard() {
                 }}
                 onClick={() => setActiveTab('profile')}
               >
-                JD
+                {initials}
               </div>
             </div>
 
@@ -519,45 +592,20 @@ export default function CitizenDashboard() {
                       fontWeight: 700,
                     }}
                   >
-                    3 New
+                    {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
                   </span>
                 </div>
-                {[
-                  {
-                    icon: <AlertTriangle size={14} />,
-                    color: '#B91C1C',
-                    bg: '#FEE2E2',
-                    title: 'Critical Fire Alert',
-                    desc: 'Active fire in Brgy. San Antonio',
-                    time: '23m ago',
-                  },
-                  {
-                    icon: <CheckCircle2 size={14} />,
-                    color: '#059669',
-                    bg: '#D1FAE5',
-                    title: 'Report Updated',
-                    desc: 'MY-2026-003 is now being responded to',
-                    time: '1h ago',
-                  },
-                  {
-                    icon: <Info size={14} />,
-                    color: '#1E3A8A',
-                    bg: '#DBEAFE',
-                    title: 'Community Advisory',
-                    desc: 'Flash flood warning in District I',
-                    time: '2h ago',
-                  },
-                ].map((n, i) => (
+                {notificationItems.map((n, i) => (
                   <div
-                    key={i}
+                    key={`${n.title}-${i}`}
                     style={{
                       padding: '12px 16px',
                       display: 'flex',
                       gap: 10,
                       alignItems: 'flex-start',
-                      borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none',
+                      borderBottom: i < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
                       cursor: 'pointer',
-                      background: i === 0 ? '#FFFBEB' : '#fff',
+                      background: n.unread ? '#FFFBEB' : '#fff',
                     }}
                   >
                     <div
@@ -589,7 +637,7 @@ export default function CitizenDashboard() {
       }
       beforeMain={
         <>
-          <AlertBanner />
+          <AlertBanner incidents={incidents} />
           <div
             className="citizen-only-desktop citizen-web-strip"
             style={{
@@ -773,15 +821,29 @@ export default function CitizenDashboard() {
    HOME TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function HomeTab({
+  incidents,
+  myReports,
   setActiveTab,
   selectedIncident,
   setSelectedIncident,
+  firstName,
+  greetingLabel,
+  barangayLabel,
+  todayLabel,
 }: {
+  incidents: Incident[];
+  myReports: CitizenMyReport[];
   setActiveTab: (t: Tab) => void;
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
+  firstName: string;
+  greetingLabel: string;
+  barangayLabel: string;
+  todayLabel: string;
 }) {
   const navigate = useNavigate();
+  const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
+  const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
   const recentActive = activeIncidents.slice(0, 3);
 
   return (
@@ -795,13 +857,13 @@ function HomeTab({
         }}
       >
         <div style={{ fontSize: 13, color: '#BFDBFE', marginBottom: 2 }}>
-          Good morning, Juan!
+          {greetingLabel}, {firstName}!
         </div>
         <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 1 }}>
           Stay Safe, Stay Informed
         </div>
         <div style={{ fontSize: 11, color: '#93C5FD' }}>
-          Brgy. San Antonio - District II - March 6, 2026
+          {barangayLabel} - {todayLabel}
         </div>
       </div>
 
@@ -821,7 +883,7 @@ function HomeTab({
         />
         <StatCard
           icon={<CheckCircle2 size={16} />}
-          value={MY_REPORTS.length}
+          value={myReports.length}
           label="My Reports"
           accent="#1E3A8A"
         />
@@ -1155,10 +1217,11 @@ function ReportTab() {
             padding: '10px 20px',
             color: '#1E3A8A',
             fontWeight: 700,
-            fontSize: 16,
+            fontSize: 14,
+            textAlign: 'center',
           }}
         >
-          MY-2026-004
+          Reference number will appear in My Reports after processing.
         </div>
         <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortly...</div>
       </div>
@@ -1493,9 +1556,11 @@ function ReportTab() {
    MAP TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function MapTab({
+  incidents,
   selectedIncident,
   setSelectedIncident,
 }: {
+  incidents: Incident[];
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
 }) {
@@ -1592,7 +1657,7 @@ function MapTab({
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MY REPORTS TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function MyReportsTab() {
+function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
   return (
     <div style={{ padding: '16px' }}>
       {/* Header */}
@@ -1607,13 +1672,13 @@ function MyReportsTab() {
       >
         <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>My Reports</div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
-          You have submitted {MY_REPORTS.length} incident reports.
+          You have submitted {myReports.length} incident reports.
         </div>
         <div style={{ display: 'flex', gap: 14, marginTop: 12 }}>
           {[
-            { label: 'Submitted', value: MY_REPORTS.length, color: '#BFDBFE' },
-            { label: 'Responding', value: MY_REPORTS.filter(r => r.status === 'responding').length, color: '#FDE68A' },
-            { label: 'Resolved', value: MY_REPORTS.filter(r => r.status === 'resolved').length, color: '#A7F3D0' },
+            { label: 'Submitted', value: myReports.length, color: '#BFDBFE' },
+            { label: 'Responding', value: myReports.filter(r => r.status === 'responding').length, color: '#FDE68A' },
+            { label: 'Resolved', value: myReports.filter(r => r.status === 'resolved').length, color: '#A7F3D0' },
           ].map((s) => (
             <div key={s.label} style={{ textAlign: 'center' }}>
               <div style={{ fontWeight: 800, fontSize: 22, color: '#fff' }}>{s.value}</div>
@@ -1637,7 +1702,7 @@ function MyReportsTab() {
           marginBottom: 16,
         }}
       >
-        {MY_REPORTS.map((report) => (
+        {myReports.map((report) => (
           <MyReportRow key={report.id} report={report} />
         ))}
       </div>
