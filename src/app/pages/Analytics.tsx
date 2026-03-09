@@ -1,78 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { TrendingUp, TrendingDown, AlertTriangle, Clock, CheckCircle2, Users, Calendar, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { officialReportsApi } from '../services/officialReportsApi';
+import { reportToIncident } from '../utils/incidentAdapters';
+import type { Incident } from '../data/incidents';
+import {
+  ANALYTICS_PERIODS,
+  ANALYTICS_BARANGAY_BAR_COLORS,
+  ANALYTICS_HOURLY_BANDS,
+  ANALYTICS_PERIOD_DAYS,
+  ANALYTICS_RESPONSE_TARGETS,
+  ANALYTICS_SEVERITY_SERIES,
+  ANALYTICS_TREND_SERIES,
+  ANALYTICS_TYPE_LABELS,
+  ANALYTICS_TYPE_ORDER,
+  ANALYTICS_UTILIZATION_BANDS,
+} from '../data/analyticsConfig';
 
-const DAILY_TREND = [
-  { day: 'Feb 22', total: 7, fire: 1, flood: 2, accident: 2, medical: 1, crime: 1, infrastructure: 0, typhoon: 0 },
-  { day: 'Feb 23', total: 9, fire: 2, flood: 1, accident: 2, medical: 2, crime: 1, infrastructure: 1, typhoon: 0 },
-  { day: 'Feb 24', total: 6, fire: 0, flood: 1, accident: 3, medical: 1, crime: 1, infrastructure: 0, typhoon: 0 },
-  { day: 'Feb 25', total: 12, fire: 2, flood: 3, accident: 2, medical: 2, crime: 2, infrastructure: 1, typhoon: 0 },
-  { day: 'Feb 26', total: 8, fire: 1, flood: 2, accident: 1, medical: 2, crime: 1, infrastructure: 1, typhoon: 0 },
-  { day: 'Feb 27', total: 11, fire: 3, flood: 2, accident: 2, medical: 1, crime: 2, infrastructure: 1, typhoon: 0 },
-  { day: 'Feb 28', total: 8, fire: 1, flood: 1, accident: 2, medical: 2, crime: 1, infrastructure: 1, typhoon: 0 },
-  { day: 'Mar 1', total: 14, fire: 3, flood: 3, accident: 3, medical: 2, crime: 2, infrastructure: 1, typhoon: 0 },
-  { day: 'Mar 2', total: 11, fire: 2, flood: 2, accident: 3, medical: 2, crime: 1, infrastructure: 1, typhoon: 0 },
-  { day: 'Mar 3', total: 19, fire: 3, flood: 5, accident: 3, medical: 3, crime: 2, infrastructure: 2, typhoon: 1 },
-  { day: 'Mar 4', total: 16, fire: 4, flood: 3, accident: 3, medical: 3, crime: 2, infrastructure: 1, typhoon: 0 },
-  { day: 'Mar 5', total: 22, fire: 4, flood: 5, accident: 4, medical: 3, crime: 3, infrastructure: 2, typhoon: 1 },
-  { day: 'Mar 6', total: 15, fire: 2, flood: 3, accident: 2, medical: 3, crime: 2, infrastructure: 2, typhoon: 1 },
-];
-
-const RESPONSE_TIME = [
-  { type: 'Fire', avgMin: 7.2, target: 8 },
-  { type: 'Flood', avgMin: 12.5, target: 15 },
-  { type: 'Accident', avgMin: 8.1, target: 10 },
-  { type: 'Medical', avgMin: 6.4, target: 8 },
-  { type: 'Crime', avgMin: 9.3, target: 10 },
-  { type: 'Infra.', avgMin: 18.7, target: 20 },
-  { type: 'Typhoon', avgMin: 22.4, target: 25 },
-];
-
-const SEVERITY_DATA = [
-  { name: 'Critical', value: 5, color: '#B91C1C' },
-  { name: 'High', value: 28, color: '#EA580C' },
-  { name: 'Medium', value: 41, color: '#B4730A' },
-  { name: 'Low', value: 26, color: '#059669' },
-];
-
-const BARANGAY_DATA = [
-  { name: 'Brgy. Riverside', incidents: 18, resolved: 14, active: 4 },
-  { name: 'Brgy. Poblacion', incidents: 15, resolved: 12, active: 3 },
-  { name: 'Brgy. San Antonio', incidents: 14, resolved: 11, active: 3 },
-  { name: 'Brgy. Makiling', incidents: 12, resolved: 10, active: 2 },
-  { name: 'Brgy. Santo Niño', incidents: 10, resolved: 8, active: 2 },
-  { name: 'Brgy. Longos', incidents: 9, resolved: 8, active: 1 },
-  { name: 'Brgy. Tumana', incidents: 8, resolved: 7, active: 1 },
-  { name: 'Brgy. Caloocan', incidents: 7, resolved: 7, active: 0 },
-];
-
-const RESOURCE_DATA = [
-  { name: 'BFP (Fire)', deployed: 22, available: 18, total: 40 },
-  { name: 'PNP', deployed: 35, available: 65, total: 100 },
-  { name: 'MDRRMO', deployed: 12, available: 8, total: 20 },
-  { name: 'EMS', deployed: 8, available: 7, total: 15 },
-  { name: 'DSWD', deployed: 6, available: 14, total: 20 },
-];
-
-const HOUR_DATA = Array.from({ length: 24 }, (_, h) => ({
-  hour: `${h.toString().padStart(2, '0')}:00`,
-  count: [2,1,3,2,4,5,3,8,12,10,9,11,8,7,9,10,11,9,8,7,5,4,3,2][h],
-}));
-
-const RADAR_DATA = [
-  { subject: 'Fire', A: 80, B: 60 },
-  { subject: 'Flood', A: 90, B: 75 },
-  { subject: 'Accident', A: 70, B: 65 },
-  { subject: 'Medical', A: 95, B: 85 },
-  { subject: 'Crime', A: 65, B: 70 },
-  { subject: 'Infra.', A: 55, B: 60 },
-  { subject: 'Typhoon', A: 45, B: 55 },
-];
-
-const PERIODS = ['Today', 'This Week', 'This Month', 'This Quarter'];
+const PERIODS = [...ANALYTICS_PERIODS];
 
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
@@ -93,15 +41,162 @@ function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
 export default function Analytics() {
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
-  const totalIncidents = DAILY_TREND.reduce((sum, row) => sum + row.total, 0);
-  const resolvedIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.resolved, 0);
-  const allBarangayIncidents = BARANGAY_DATA.reduce((sum, row) => sum + row.incidents, 0);
-  const resolutionRate = allBarangayIncidents > 0 ? (resolvedIncidents / allBarangayIncidents) * 100 : 0;
-  const avgResponse = RESPONSE_TIME.reduce((sum, row) => sum + row.avgMin, 0) / RESPONSE_TIME.length;
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = await officialReportsApi.getReports();
+        setIncidents(payload.reports.map((report) => reportToIncident(report)));
+      } catch (loadError) {
+        const message = loadError instanceof Error ? loadError.message : 'Failed to load analytics data.';
+        setError(message);
+        setIncidents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void load();
+  }, []);
+
+  const filteredIncidents = useMemo(() => {
+    const days = ANALYTICS_PERIOD_DAYS[period as keyof typeof ANALYTICS_PERIOD_DAYS] ?? 7;
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    since.setDate(since.getDate() - (days - 1));
+    return incidents.filter((incident) => new Date(incident.reportedAt) >= since);
+  }, [incidents, period]);
+
+  const DAILY_TREND = useMemo(() => {
+    const days = ANALYTICS_PERIOD_DAYS[period as keyof typeof ANALYTICS_PERIOD_DAYS] ?? 7;
+    const buckets = Array.from({ length: days }).map((_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - (days - 1 - index));
+      return {
+        key: date.toISOString().slice(0, 10),
+        day: date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+        total: 0,
+        fire: 0,
+        flood: 0,
+        accident: 0,
+        medical: 0,
+        crime: 0,
+        infrastructure: 0,
+      };
+    });
+
+    const byDay = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+    for (const incident of filteredIncidents) {
+      const key = incident.reportedAt.slice(0, 10);
+      const row = byDay.get(key);
+      if (!row) {
+        continue;
+      }
+      row.total += 1;
+      const bucket = incident.type === 'typhoon' ? 'infrastructure' : incident.type;
+      row[bucket] += 1;
+    }
+
+    return buckets;
+  }, [filteredIncidents, period]);
+
+  const RESPONSE_TIME = useMemo(() => {
+    return ANALYTICS_TYPE_ORDER.map((type) => {
+      const withResponse = filteredIncidents.filter((incident) => incident.type === type && incident.respondedAt);
+      const avgMin = withResponse.length === 0
+        ? 0
+        : Number((withResponse.reduce((sum, incident) => {
+            const diff = new Date(incident.respondedAt ?? incident.reportedAt).getTime() - new Date(incident.reportedAt).getTime();
+            return sum + Math.max(0, Math.round(diff / 60000));
+          }, 0) / withResponse.length).toFixed(1));
+
+      return {
+        type: ANALYTICS_TYPE_LABELS[type],
+        avgMin,
+        target: ANALYTICS_RESPONSE_TARGETS[type],
+      };
+    });
+  }, [filteredIncidents]);
+
+  const SEVERITY_DATA = useMemo(() => {
+    const counts = { critical: 0, high: 0, medium: 0, low: 0 };
+    for (const incident of filteredIncidents) {
+      counts[incident.severity] += 1;
+    }
+    return ANALYTICS_SEVERITY_SERIES.map((series) => ({
+      name: series.name,
+      value: counts[series.name.toLowerCase() as keyof typeof counts],
+      color: series.color,
+    }));
+  }, [filteredIncidents]);
+
+  const BARANGAY_DATA = useMemo(() => {
+    const byBarangay = new Map<string, { name: string; incidents: number; resolved: number; active: number }>();
+    for (const incident of filteredIncidents) {
+      const key = incident.barangay || 'Unspecified';
+      const current = byBarangay.get(key) ?? { name: key, incidents: 0, resolved: 0, active: 0 };
+      current.incidents += 1;
+      if (incident.status === 'resolved') {
+        current.resolved += 1;
+      } else {
+        current.active += 1;
+      }
+      byBarangay.set(key, current);
+    }
+    return [...byBarangay.values()].sort((a, b) => b.incidents - a.incidents).slice(0, 8);
+  }, [filteredIncidents]);
+
+  const RESOURCE_DATA = useMemo(() => {
+    return ANALYTICS_TYPE_ORDER.map((type) => {
+      const subset = filteredIncidents.filter((incident) => incident.type === type);
+      const deployed = subset.reduce((sum, incident) => sum + Math.max(incident.responders || 0, 0), 0);
+      const total = Math.max(subset.length, deployed, 1);
+      return {
+        name: ANALYTICS_TYPE_LABELS[type],
+        deployed,
+        available: Math.max(total - deployed, 0),
+        total,
+      };
+    });
+  }, [filteredIncidents]);
+
+  const HOUR_DATA = useMemo(() => {
+    const counts = Array.from({ length: 24 }).map(() => 0);
+    for (const incident of filteredIncidents) {
+      const hour = new Date(incident.reportedAt).getHours();
+      if (hour >= 0 && hour <= 23) {
+        counts[hour] += 1;
+      }
+    }
+    return counts.map((count, hour) => ({
+      hour: `${hour.toString().padStart(2, '0')}:00`,
+      count,
+    }));
+  }, [filteredIncidents]);
+
+  const totalIncidents = filteredIncidents.length;
+  const resolvedIncidents = filteredIncidents.filter((incident) => incident.status === 'resolved').length;
+  const resolutionRate = totalIncidents > 0 ? (resolvedIncidents / totalIncidents) * 100 : 0;
+  const avgResponse = RESPONSE_TIME.filter((row) => row.avgMin > 0).reduce((sum, row, _index, arr) => {
+    return sum + row.avgMin / (arr.length || 1);
+  }, 0);
   const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
+  const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+      {error ? (
+        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+          {error}
+        </div>
+      ) : null}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
@@ -138,10 +233,10 @@ export default function Analytics() {
 
       {/* Metric Cards */}
       <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
-        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub="current dataset" color="#B91C1C" />
-        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub="current dataset" color="#059669" />
-        <MetricCard title="Avg. Response" value={`${avgResponse.toFixed(1)} min`} change="Live" up={true} sub="current dataset" color="#B4730A" />
-        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="current deployment" color="#1E3A8A" />
+        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B91C1C" />
+        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#059669" />
+        <MetricCard title="Avg. Response" value={`${avgResponse.toFixed(1)} min`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B4730A" />
+        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub="reported assignment load" color="#1E3A8A" />
       </div>
 
       {/* Trend Chart */}
@@ -149,7 +244,7 @@ export default function Analytics() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Incident Trend by Type</div>
-            <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>Last 13 days — daily incident count by category</div>
+            <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>{period} — daily incident count by category</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['area', 'bar'] as const).map(t => (
@@ -168,11 +263,7 @@ export default function Analytics() {
           {chartType === 'area' ? (
             <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <defs>
-                {[
-                  { key: 'fire', color: '#B91C1C' }, { key: 'flood', color: '#1D4ED8' },
-                  { key: 'accident', color: '#B4730A' }, { key: 'medical', color: '#0F766E' },
-                  { key: 'crime', color: '#7C3AED' }, { key: 'infrastructure', color: '#374151' },
-                ].map(({ key, color }) => (
+                {ANALYTICS_TREND_SERIES.map(({ key, color }) => (
                   <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={color} stopOpacity={0.2} />
                     <stop offset="95%" stopColor={color} stopOpacity={0} />
@@ -184,12 +275,17 @@ export default function Analytics() {
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="fire" key="area-fire" stroke="#B91C1C" fill="url(#grad-fire)" strokeWidth={1.5} name="Fire" />
-              <Area type="monotone" dataKey="flood" key="area-flood" stroke="#1D4ED8" fill="url(#grad-flood)" strokeWidth={1.5} name="Flood" />
-              <Area type="monotone" dataKey="accident" key="area-accident" stroke="#B4730A" fill="url(#grad-accident)" strokeWidth={1.5} name="Accident" />
-              <Area type="monotone" dataKey="medical" key="area-medical" stroke="#0F766E" fill="url(#grad-medical)" strokeWidth={1.5} name="Medical" />
-              <Area type="monotone" dataKey="crime" key="area-crime" stroke="#7C3AED" fill="url(#grad-crime)" strokeWidth={1.5} name="Crime" />
-              <Area type="monotone" dataKey="infrastructure" key="area-infrastructure" stroke="#374151" fill="url(#grad-infrastructure)" strokeWidth={1.5} name="Infra." />
+              {ANALYTICS_TREND_SERIES.map((series) => (
+                <Area
+                  key={`area-${series.key}`}
+                  type="monotone"
+                  dataKey={series.key}
+                  stroke={series.color}
+                  fill={`url(#grad-${series.key})`}
+                  strokeWidth={1.5}
+                  name={series.label}
+                />
+              ))}
             </AreaChart>
           ) : (
             <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -198,12 +294,16 @@ export default function Analytics() {
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
               <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="fire" key="bar-fire" stackId="a" fill="#B91C1C" name="Fire" />
-              <Bar dataKey="flood" key="bar-flood" stackId="a" fill="#1D4ED8" name="Flood" />
-              <Bar dataKey="accident" key="bar-accident" stackId="a" fill="#B4730A" name="Accident" />
-              <Bar dataKey="medical" key="bar-medical" stackId="a" fill="#0F766E" name="Medical" />
-              <Bar dataKey="crime" key="bar-crime" stackId="a" fill="#7C3AED" name="Crime" />
-              <Bar dataKey="infrastructure" key="bar-infrastructure" stackId="a" fill="#374151" name="Infra." radius={[3, 3, 0, 0]} />
+              {ANALYTICS_TREND_SERIES.map((series) => (
+                <Bar
+                  key={`bar-${series.key}`}
+                  dataKey={series.key}
+                  stackId="a"
+                  fill={series.color}
+                  name={series.label}
+                  radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined}
+                />
+              ))}
             </BarChart>
           )}
         </ResponsiveContainer>
@@ -245,7 +345,7 @@ export default function Analytics() {
         {/* Severity Distribution */}
         <div style={{ flex: '1 1 200px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Severity Distribution</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>All incidents this week</div>
+            <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>{period} incidents by severity</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -262,7 +362,7 @@ export default function Analytics() {
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#1E293B' }}>{s.value}</span>
-                <span style={{ fontSize: 10, color: '#94A3B8' }}>{Math.round(s.value / 100 * 100)}%</span>
+                <span style={{ fontSize: 10, color: '#94A3B8' }}>{totalSeverityCount > 0 ? Math.round((s.value / totalSeverityCount) * 100) : 0}%</span>
               </div>
             </div>
           ))}
@@ -271,7 +371,7 @@ export default function Analytics() {
         {/* Hourly pattern */}
         <div style={{ flex: '2 1 260px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Hourly Incident Pattern</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Average incidents per hour (7-day period)</div>
+          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Average incidents per hour ({period})</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -280,7 +380,16 @@ export default function Analytics() {
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(value) => [`${value} incidents`]} />
               <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
                 {HOUR_DATA.map((entry, index) => (
-                  <Cell key={`cell-hr-${index}-${entry.hour}`} fill={entry.count >= 10 ? '#B91C1C' : entry.count >= 7 ? '#B4730A' : '#1E3A8A'} />
+                  <Cell
+                    key={`cell-hr-${index}-${entry.hour}`}
+                    fill={
+                      entry.count >= ANALYTICS_HOURLY_BANDS.high
+                        ? ANALYTICS_HOURLY_BANDS.highColor
+                        : entry.count >= ANALYTICS_HOURLY_BANDS.medium
+                          ? ANALYTICS_HOURLY_BANDS.mediumColor
+                          : ANALYTICS_HOURLY_BANDS.baseColor
+                    }
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -293,7 +402,7 @@ export default function Analytics() {
         {/* Barangay comparison */}
         <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Barangay Incident Comparison</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Incidents reported vs. resolved by barangay</div>
+          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Incidents reported vs. resolved by barangay ({period})</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -301,9 +410,9 @@ export default function Analytics() {
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} />
               <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="incidents" key="bar-incidents" fill="#1E3A8A" name="Reported" radius={[3, 3, 0, 0]} barSize={18} />
-              <Bar dataKey="resolved" key="bar-resolved" fill="#059669" name="Resolved" radius={[3, 3, 0, 0]} barSize={18} />
-              <Bar dataKey="active" key="bar-active" fill="#B91C1C" name="Active" radius={[3, 3, 0, 0]} barSize={18} />
+              <Bar dataKey="incidents" key="bar-incidents" fill={ANALYTICS_BARANGAY_BAR_COLORS.incidents} name="Reported" radius={[3, 3, 0, 0]} barSize={18} />
+              <Bar dataKey="resolved" key="bar-resolved" fill={ANALYTICS_BARANGAY_BAR_COLORS.resolved} name="Resolved" radius={[3, 3, 0, 0]} barSize={18} />
+              <Bar dataKey="active" key="bar-active" fill={ANALYTICS_BARANGAY_BAR_COLORS.active} name="Active" radius={[3, 3, 0, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -311,10 +420,14 @@ export default function Analytics() {
         {/* Resource utilization */}
         <div style={{ flex: '2 1 240px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Resource Utilization</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Deployed vs. available units</div>
+          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Reported responders by incident type</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
-            const color = pct >= 80 ? '#B91C1C' : pct >= 60 ? '#B4730A' : '#059669';
+            const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
+              ? ANALYTICS_UTILIZATION_BANDS.highColor
+              : pct >= ANALYTICS_UTILIZATION_BANDS.medium
+                ? ANALYTICS_UTILIZATION_BANDS.mediumColor
+                : ANALYTICS_UTILIZATION_BANDS.baseColor;
             return (
               <div key={r.name} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -333,8 +446,8 @@ export default function Analytics() {
             );
           })}
           <div style={{ marginTop: 14, padding: '10px 12px', background: '#FEF3C7', borderRadius: 8, border: '1px solid #FDE68A' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#92400E', marginBottom: 2 }}>Resource Alert</div>
-            <div style={{ fontSize: 11, color: '#92400E' }}>BFP units at 55% capacity. Consider requesting mutual aid from neighboring municipalities.</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#92400E', marginBottom: 2 }}>Operational Note</div>
+            <div style={{ fontSize: 11, color: '#92400E' }}>Responder load is computed from assigned reports only. Unassigned incidents are excluded from deployed counts.</div>
           </div>
         </div>
       </div>

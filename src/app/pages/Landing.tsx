@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Shield, MapPin, AlertTriangle, CheckCircle2, Clock, Phone, Flame,
   Volume2, Car, ChevronRight, ArrowRight, Menu, X, Radio, Zap,
-  FileText, Users, Eye, Star, Navigation,
+  FileText, Users, Eye, Star, Navigation, Map as MapIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -271,7 +271,7 @@ function Hero() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.25)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.15)'; }}
             >
-              <Map size={16} /> View Community Map
+              <MapIcon size={16} /> View Community Map
             </button>
           </div>
 
@@ -511,7 +511,6 @@ function SupportedBarangays() {
 
               <button
                 onClick={() => navigate('/auth/register')}
-                onClick={() => navigate('/community-map')}
                 style={{
                   marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                   borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
