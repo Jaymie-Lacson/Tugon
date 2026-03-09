@@ -290,6 +290,10 @@ export const authService = {
       throw new AuthError("Invalid credentials.", 401);
     }
 
+    if (user.role === "CITIZEN" && !user.citizenProfile?.barangay?.code) {
+      throw new AuthError("Citizen account is missing an assigned barangay profile.", 403);
+    }
+
     const token = signToken(user);
     return {
       token,
@@ -313,6 +317,11 @@ export const authService = {
     if (!user) {
       throw new AuthError("User not found.", 404);
     }
+
+    if (user.role === "CITIZEN" && !user.citizenProfile?.barangay?.code) {
+      throw new AuthError("Citizen account is missing an assigned barangay profile.", 403);
+    }
+
     return asPublicUser(user);
   },
 

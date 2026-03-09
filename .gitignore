@@ -4,7 +4,14 @@ server/dist
 
 .env
 .env.*
-!.env.example
 server/.env
 server/.env.*
 !server/.env.example
+
+# Raw GIS source files (kept local, not committed)
+barangay-source/*.shp
+barangay-source/*.dbf
+barangay-source/*.shx
+barangay-source/*.prj
+barangay-source/*.cpg
+barangay-source/*.shp.*

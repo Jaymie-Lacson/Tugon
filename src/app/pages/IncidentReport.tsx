@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
   Shield, ChevronLeft, Check, MapPin, Navigation,
   Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
@@ -8,13 +9,14 @@ import {
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { citizenReportsApi } from '../services/citizenReportsApi';
+import { getAuthSession } from '../utils/authSession';
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 type IncidentCategory = 'fire' | 'pollution' | 'noise' | 'crime' | 'road_hazard' | 'other';
 type Severity = 'low' | 'medium' | 'high' | 'critical';
-interface PinData { x: number; y: number; barangay: string; district: string; }
+interface PinData { lat: number; lng: number; barangay: string; district: string; }
 interface ReportForm {
   category: IncidentCategory | null;
   severity: Severity | null;
@@ -45,32 +47,160 @@ const CATEGORIES: {
 
 const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
 
-const DISTRICTS_MAP = [
-  { id: 'D1', label: 'District I',   x: 90,  y: 10,  w: 190, h: 230, fill: '#EFF6FF', stroke: '#93C5FD', sw: 1.5 },
-  { id: 'D2', label: 'District II',  x: 285, y: 10,  w: 210, h: 230, fill: '#DBEAFE', stroke: '#3B82F6', sw: 2.5 },
-  { id: 'D3', label: 'District III', x: 500, y: 10,  w: 210, h: 230, fill: '#F0FDF4', stroke: '#86EFAC', sw: 1.5 },
-  { id: 'D4', label: 'District IV',  x: 90,  y: 245, w: 620, h: 230, fill: '#FDF4FF', stroke: '#D8B4FE', sw: 1.5 },
+type LatLng = [number, number];
+type LngLat = [number, number];
+
+const TONDO_MAP_CENTER: LatLng = [14.61515, 120.97805];
+const TONDO_MAP_BOUNDS: [LatLng, LatLng] = [
+  [14.61345, 120.97645],
+  [14.61675, 120.97965],
 ];
 
-const MAP_BUILDINGS = [
-  {x:100,y:20,w:70,h:65},{x:190,y:20,w:75,h:65},{x:300,y:20,w:90,h:65},
-  {x:410,y:20,w:60,h:90},{x:515,y:20,w:70,h:65},{x:615,y:20,w:60,h:65},
-  {x:100,y:115,w:70,h:55},{x:515,y:115,w:75,h:55},{x:615,y:120,w:60,h:60},
-  {x:190,y:270,w:70,h:65},{x:300,y:265,w:80,h:65},{x:510,y:265,w:75,h:65},
-  {x:615,y:265,w:65,h:65},{x:100,y:360,w:70,h:80},{x:190,y:365,w:90,h:70},
-  {x:300,y:355,w:80,h:80},{x:405,y:360,w:80,h:75},{x:510,y:360,w:80,h:75},
+const BARANGAY_BOUNDARIES: Array<{ code: string; name: string; district: string; boundary: LatLng[] }> = [
+  {
+    code: '251',
+    name: 'Barangay 251',
+    district: 'Tondo, Manila',
+    boundary: [
+      [14.6151576, 120.9778668],
+      [14.6151269, 120.9780734],
+      [14.6138576, 120.9777379],
+      [14.6138881, 120.9775742],
+      [14.6139514, 120.9772961],
+      [14.6139695, 120.9771491],
+      [14.6140086, 120.9771571],
+      [14.6152725, 120.977463],
+      [14.6151576, 120.9778668],
+    ],
+  },
+  {
+    code: '252',
+    name: 'Barangay 252',
+    district: 'Tondo, Manila',
+    boundary: [
+      [14.6152725, 120.977463],
+      [14.6140086, 120.9771571],
+      [14.6139695, 120.9771491],
+      [14.6138726, 120.9771203],
+      [14.6138888, 120.9770354],
+      [14.6137142, 120.9769944],
+      [14.6137978, 120.9766256],
+      [14.6140525, 120.9766893],
+      [14.6146931, 120.9768373],
+      [14.6153845, 120.9770152],
+      [14.6152725, 120.977463],
+    ],
+  },
+  {
+    code: '256',
+    name: 'Barangay 256',
+    district: 'Tondo, Manila',
+    boundary: [
+      [14.6165934, 120.9785196],
+      [14.6165675, 120.9787716],
+      [14.6164604, 120.9788136],
+      [14.616355, 120.9788522],
+      [14.616179, 120.9789493],
+      [14.6159963, 120.9790463],
+      [14.6157071, 120.9791867],
+      [14.6155382, 120.9792674],
+      [14.6153803, 120.9793486],
+      [14.6152404, 120.9794005],
+      [14.6151315, 120.9794212],
+      [14.6148209, 120.97942],
+      [14.6148861, 120.9791266],
+      [14.6149511, 120.9788318],
+      [14.6149661, 120.9787605],
+      [14.6150187, 120.9785164],
+      [14.6150567, 120.9783709],
+      [14.6150973, 120.9782174],
+      [14.6151269, 120.9780734],
+      [14.6151576, 120.9778668],
+      [14.6157229, 120.9779947],
+      [14.616262, 120.9781291],
+      [14.6166307, 120.9781571],
+      [14.6165934, 120.9785196],
+    ],
+  },
 ];
 
-function detectLocation(x: number, y: number): { barangay: string; district: string } {
-  if (x >= 285 && x <= 495 && y >= 10 && y <= 240)
-    return { barangay: y < 130 ? 'Brgy. San Antonio' : 'Brgy. Tumana', district: 'District II' };
-  if (x >= 90 && x <= 280 && y >= 10 && y <= 240)
-    return { barangay: y < 150 ? 'Brgy. Bagong Silang' : 'Brgy. Riverside', district: 'District I' };
-  if (x >= 500 && x <= 710 && y >= 10 && y <= 240)
-    return { barangay: y < 150 ? 'Brgy. Makiling' : 'Brgy. Balintawak', district: 'District III' };
-  if (y >= 245)
-    return { barangay: x < 280 ? 'Brgy. Bagbaguin' : x < 450 ? 'Brgy. Bagumbayan' : 'Brgy. Longos', district: 'District IV' };
-  return { barangay: 'Brgy. Poblacion', district: 'District II' };
+function getBoundaryBounds(boundaries: Array<{ boundary: LatLng[] }>): [LatLng, LatLng] {
+  let minLat = Number.POSITIVE_INFINITY;
+  let minLng = Number.POSITIVE_INFINITY;
+  let maxLat = Number.NEGATIVE_INFINITY;
+  let maxLng = Number.NEGATIVE_INFINITY;
+
+  for (const barangay of boundaries) {
+    for (const [lat, lng] of barangay.boundary) {
+      minLat = Math.min(minLat, lat);
+      minLng = Math.min(minLng, lng);
+      maxLat = Math.max(maxLat, lat);
+      maxLng = Math.max(maxLng, lng);
+    }
+  }
+
+  return [
+    [minLat, minLng],
+    [maxLat, maxLng],
+  ];
+}
+
+const BARANGAY_BOUNDARY_BOUNDS = getBoundaryBounds(BARANGAY_BOUNDARIES);
+
+function isPointInsideRing(point: LngLat, ring: LngLat[]): boolean {
+  let inside = false;
+  const [x, y] = point;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersects) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+function detectBarangayByCoordinate(lat: number, lng: number) {
+  const point: LngLat = [lng, lat];
+
+  for (const barangay of BARANGAY_BOUNDARIES) {
+    const ring: LngLat[] = barangay.boundary.map(([ringLat, ringLng]) => [ringLng, ringLat]);
+    if (isPointInsideRing(point, ring)) {
+      return barangay;
+    }
+  }
+
+  return null;
+}
+
+function isPinWithinSupportedBarangay(pin: PinData | null): boolean {
+  if (!pin) {
+    return false;
+  }
+  return detectBarangayByCoordinate(pin.lat, pin.lng) !== null;
+}
+
+function Step2MapClickCapture({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (event) => {
+      onMapClick(event.latlng.lat, event.latlng.lng);
+    },
+  });
+
+  return null;
+}
+
+function Step2FitToBoundaryBounds() {
+  const map = useMapEvents({});
+
+  useEffect(() => {
+    map.fitBounds(BARANGAY_BOUNDARY_BOUNDS, { padding: [24, 24] });
+  }, [map]);
+
+  return null;
 }
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -142,7 +272,7 @@ function StepIndicator({ current }: { current: number }) {
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
   return (
-    <div style={{ padding: '22px 16px 8px' }}>
+    <div className="incident-step2" style={{ padding: '22px 16px 8px' }}>
       <div style={{ marginBottom: 20 }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -270,47 +400,44 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
    STEP 2 - LOCATION
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
-  const svgRef = useRef<SVGSVGElement>(null);
+  const session = getAuthSession();
+  const userBarangayCode = session?.user.barangayCode ?? null;
+  const allowedBarangays = userBarangayCode
+    ? BARANGAY_BOUNDARIES.filter((barangay) => barangay.code === userBarangayCode)
+    : [];
+  const hasBarangayProfile = allowedBarangays.length > 0;
+  const assignedBarangayLabel = allowedBarangays[0]?.name ?? (userBarangayCode ? `Barangay ${userBarangayCode}` : 'your registered barangay');
+  const pinInSupportedArea = isPinWithinSupportedBarangay(form.pin);
 
-  const getSVGCoords = useCallback((clientX: number, clientY: number) => {
-    const svg = svgRef.current;
-    if (!svg) return null;
-    const rect = svg.getBoundingClientRect();
-    const svgW = 800, svgH = 480;
-    const cA = rect.width / rect.height;
-    const sA = svgW / svgH;
-    let offX = 0, offY = 0, scale = 1;
-    if (cA > sA) { scale = rect.height / svgH; offX = (rect.width - svgW * scale) / 2; }
-    else          { scale = rect.width  / svgW; offY = (rect.height - svgH * scale) / 2; }
-    const x = (clientX - rect.left - offX) / scale;
-    const y = (clientY - rect.top  - offY) / scale;
-    if (x < 0 || x > svgW || y < 0 || y > svgH) return null;
-    return { x, y };
-  }, []);
+  const placePin = (lat: number, lng: number) => {
+    if (!hasBarangayProfile) {
+      return;
+    }
+    const detected = detectBarangayByCoordinate(lat, lng);
+    if (!detected || detected.code !== userBarangayCode) {
+      setForm((p) => ({
+        ...p,
+        pin: {
+          lat,
+          lng,
+          barangay: 'Outside Your Registered Barangay',
+          district: 'Tondo, Manila',
+        },
+      }));
+      return;
+    }
 
-  const placePin = useCallback((x: number, y: number) => {
-    const { barangay, district } = detectLocation(x, y);
-    setForm(p => ({
+    setForm((p) => ({
       ...p,
-      pin: { x, y, barangay, district },
-      address: p.address || `${barangay}, ${district}`,
+      pin: {
+        lat,
+        lng,
+        barangay: detected?.name ?? 'Outside Supported Area',
+        district: detected?.district ?? 'Tondo, Manila',
+      },
+      address: p.address.trim() ? p.address : detected ? `${detected.name}, ${detected.district}` : '',
     }));
-  }, [setForm]);
-
-  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    const pt = getSVGCoords(e.clientX, e.clientY);
-    if (pt) placePin(pt.x, pt.y);
   };
-
-  const handleTouch = (e: React.TouchEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    const pt = getSVGCoords(t.clientX, t.clientY);
-    if (pt) placePin(pt.x, pt.y);
-  };
-
-  const H_ROADS = [245]; const V_ROADS = [285, 500];
-  const H_MINOR = [100, 155, 355, 410]; const V_MINOR = [180, 385, 605];
 
   return (
     <div style={{ padding: '22px 16px 8px' }}>
@@ -324,21 +451,19 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           Where did it happen?
         </h2>
         <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
-          Tap anywhere on the map to drop a pin. Your registered barangay boundary is highlighted in blue.
+          Tap on OpenStreetMap to drop a pin inside your registered barangay only.
         </p>
       </div>
 
-      {/* Interactive Map */}
-      <div style={{
+      <div className="incident-step2-map-shell" style={{
         borderRadius: 18, overflow: 'hidden', marginBottom: 12,
         border: `2.5px solid ${form.pin ? '#3B82F6' : '#E2E8F0'}`,
         boxShadow: form.pin ? '0 6px 24px rgba(59,130,246,0.18)' : '0 2px 10px rgba(0,0,0,0.08)',
-        cursor: 'crosshair', position: 'relative',
+        position: 'relative',
         transition: 'border-color 0.3s, box-shadow 0.3s',
       }}>
-        {/* Overlay hint when no pin */}
         {!form.pin && (
-          <div style={{
+          <div className="incident-step2-map-hint" style={{
             position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
             background: 'rgba(30,58,138,0.9)', backdropFilter: 'blur(8px)', color: '#fff',
             borderRadius: 24, padding: '8px 18px', fontSize: 12, fontWeight: 600,
@@ -350,109 +475,57 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           </div>
         )}
 
-        <svg
-          ref={svgRef}
-          viewBox="0 0 800 480"
-          width="100%"
-          style={{ display: 'block', height: 270 }}
-          preserveAspectRatio="xMidYMid meet"
-          onClick={handleClick}
-          onTouchStart={handleTouch}
+        <MapContainer
+          className="incident-step2-map"
+          center={TONDO_MAP_CENTER}
+          zoom={17}
+          minZoom={16}
+          maxZoom={22}
+          maxBounds={TONDO_MAP_BOUNDS}
+          maxBoundsViscosity={1}
+          style={{ display: 'block', height: 320, width: '100%' }}
         >
-          {/* Sky/base */}
-          <rect width="800" height="480" fill="#E2EDFF" />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+            maxNativeZoom={20}
+            maxZoom={22}
+          />
 
-          {/* Water / River */}
-          <polygon points="0,0 80,0 68,100 82,180 72,245 0,245" fill="#7DD3FC" opacity="0.75" />
-          <polygon points="0,245 72,245 82,360 68,480 0,480" fill="#7DD3FC" opacity="0.75" />
-          <text x="32" y="120" fill="#0369A1" fontSize="8" fontWeight="700" textAnchor="middle" transform="rotate(-90,32,120)" opacity="0.8">TUGON RIVER</text>
-
-          {/* Districts */}
-          {DISTRICTS_MAP.map(d => (
-            <g key={d.id}>
-              <rect x={d.x} y={d.y} width={d.w} height={d.h} fill={d.fill} stroke={d.stroke} strokeWidth={d.sw} rx="3" opacity="0.95" />
-              <text x={d.x + d.w - 8} y={d.y + 14} textAnchor="end"
-                fill={d.id === 'D2' ? '#1E40AF' : '#94A3B8'}
-                fontSize="8" fontWeight={d.id === 'D2' ? '800' : '600'}
-                letterSpacing="0.06em"
-              >
-                {d.label.toUpperCase()}
-              </text>
-            </g>
+          {allowedBarangays.map((barangay) => (
+            <Polygon
+              key={barangay.code}
+              positions={barangay.boundary}
+              pathOptions={{
+                color: form.pin?.barangay === barangay.name ? '#B91C1C' : '#1E3A8A',
+                weight: form.pin?.barangay === barangay.name ? 5 : 4,
+                dashArray: '10 6',
+                fillColor: '#93C5FD',
+                fillOpacity: form.pin?.barangay === barangay.name ? 0.26 : 0.18,
+              }}
+            >
+              <Tooltip direction="center" permanent sticky>
+                {barangay.name}
+              </Tooltip>
+            </Polygon>
           ))}
 
-          {/* Major roads */}
-          {H_ROADS.map(y => <rect key={y} x="80" y={y-5} width="630" height="10" fill="#F0F4F8" stroke="#CBD5E1" strokeWidth="0.5" />)}
-          {V_ROADS.map(x => <rect key={x} x={x-5} y="0" width="10" height="480" fill="#F0F4F8" stroke="#CBD5E1" strokeWidth="0.5" />)}
-          {H_MINOR.map(y => <line key={y} x1="80" y1={y} x2="710" y2={y} stroke="#DDE5EF" strokeWidth="3" />)}
-          {V_MINOR.map(x => <line key={x} x1={x} y1="0" x2={x} y2="480" stroke="#DDE5EF" strokeWidth="3" />)}
-          {H_ROADS.map(y => <line key={`cl-${y}`} x1="80" y1={y} x2="710" y2={y} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="14,8" />)}
-          <text x="695" y="238" fill="#94A3B8" fontSize="7" fontWeight="500" textAnchor="end">NATIONAL HWY</text>
+          <Step2FitToBoundaryBounds />
+          <Step2MapClickCapture onMapClick={placePin} />
 
-          {/* Buildings */}
-          {MAP_BUILDINGS.map((b, i) => (
-            <rect key={i} x={b.x} y={b.y} width={b.w} height={b.h}
-              fill="rgba(255,255,255,0.65)" stroke="#DCE4EF" strokeWidth="0.8" rx="2" />
-          ))}
-
-          {/* Parks */}
-          <rect x="310" y="120" width="80" height="60" fill="#A7F3D0" stroke="#6EE7B7" strokeWidth="1" rx="4" />
-          <text x="350" y="154" textAnchor="middle" fill="#065F46" fontSize="7" fontWeight="600">City Park</text>
-
-          {/* Registered barangay boundary - District II dashed highlight */}
-          <rect x="285" y="10" width="210" height="230" fill="rgba(59,130,246,0.06)"
-            stroke="#3B82F6" strokeWidth="2.5" strokeDasharray="8,5" rx="3" />
-          {/* "Your Area" label badge */}
-          <rect x="295" y="18" width="190" height="22" fill="rgba(59,130,246,0.18)" rx="3" />
-          <text x="390" y="33" textAnchor="middle" fill="#1E40AF" fontSize="9" fontWeight="800" letterSpacing="0.08em">
-            YOUR REGISTERED AREA
-          </text>
-
-          {/* Home marker */}
-          <circle cx="390" cy="90" r="7" fill="#1E3A8A" stroke="white" strokeWidth="2" opacity="0.7" />
-          <circle cx="390" cy="90" r="3" fill="white" />
-          <text x="390" y="107" textAnchor="middle" fill="#1E40AF" fontSize="7" fontWeight="600">Home</text>
-
-          {/* Dropped Pin */}
           {form.pin && (
-            <g>
-              {/* Outer pulse rings */}
-              <circle cx={form.pin.x} cy={form.pin.y} r="28" fill="none" stroke="#B91C1C" strokeWidth="1.5" opacity="0.2" />
-              <circle cx={form.pin.x} cy={form.pin.y} r="20" fill="none" stroke="#B91C1C" strokeWidth="2" opacity="0.3" />
-              {/* Ground shadow */}
-              <ellipse cx={form.pin.x} cy={form.pin.y + 20} rx="9" ry="4" fill="rgba(0,0,0,0.18)" />
-              {/* Pin teardrop body */}
-              <path
-                d={`M ${form.pin.x} ${form.pin.y + 17}
-                    C ${form.pin.x - 7} ${form.pin.y + 8}
-                      ${form.pin.x - 14} ${form.pin.y - 1}
-                      ${form.pin.x - 14} ${form.pin.y - 7}
-                    A 14 14 0 1 1 ${form.pin.x + 14} ${form.pin.y - 7}
-                    C ${form.pin.x + 14} ${form.pin.y - 1}
-                      ${form.pin.x + 7} ${form.pin.y + 8}
-                      ${form.pin.x} ${form.pin.y + 17} Z`}
-                fill="#B91C1C"
-                stroke="white"
-                strokeWidth="2.5"
-              />
-              <circle cx={form.pin.x} cy={form.pin.y - 7} r="5.5" fill="white" />
-            </g>
+            <CircleMarker center={[form.pin.lat, form.pin.lng]} radius={8} pathOptions={{ color: '#B91C1C', fillColor: '#B91C1C', fillOpacity: 1 }}>
+              <Tooltip direction="top" offset={[0, -8]} permanent>
+                Incident Pin
+              </Tooltip>
+            </CircleMarker>
           )}
-
-          {/* Scale bar */}
-          <g>
-            <line x1="90" y1="467" x2="190" y2="467" stroke="#94A3B8" strokeWidth="1.5" />
-            <line x1="90" y1="463" x2="90" y2="471" stroke="#94A3B8" strokeWidth="1.5" />
-            <line x1="190" y1="463" x2="190" y2="471" stroke="#94A3B8" strokeWidth="1.5" />
-            <text x="140" y="477" textAnchor="middle" fill="#94A3B8" fontSize="7">500 m</text>
-          </g>
-          <text x="710" y="477" fill="#94A3B8" fontSize="6.5" textAnchor="end">(c) TUGON GIS</text>
-        </svg>
+        </MapContainer>
       </div>
 
       {/* Pin confirmation chip */}
       {form.pin ? (
-        <div style={{
+        <div className="incident-step2-pin-chip" style={{
           background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
           borderRadius: 14, padding: '12px 14px', border: '1.5px solid #93C5FD',
           marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10,
@@ -468,7 +541,7 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>{form.pin.barangay}</div>
             <div style={{ fontSize: 11, color: '#3B82F6', marginTop: 1, fontWeight: 500 }}>
-              Pin: {form.pin.district} - Pin placed successfully
+              Pin: {form.pin.district} - lat {form.pin.lat.toFixed(6)}, lng {form.pin.lng.toFixed(6)}
             </div>
           </div>
           <button
@@ -481,18 +554,47 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       ) : (
         /* Use registered location button */
         <button
-          onClick={() => placePin(390, 100)}
+          onClick={() => placePin(TONDO_MAP_CENTER[0], TONDO_MAP_CENTER[1])}
+          disabled={!hasBarangayProfile}
           style={{
             width: '100%', padding: '13px', borderRadius: 13,
             border: '1.5px solid #BFDBFE', background: '#EFF6FF',
             color: '#1E3A8A', fontWeight: 700, fontSize: 13, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            marginBottom: 12, transition: 'all 0.15s',
+            marginBottom: 12, transition: 'all 0.15s', opacity: !hasBarangayProfile ? 0.6 : 1,
           }}
         >
           <Navigation size={15} /> Use My Registered Location
         </button>
       )}
+
+      {!hasBarangayProfile ? (
+        <div style={{
+          marginBottom: 12,
+          borderRadius: 10,
+          border: '1px solid #FCA5A5',
+          background: '#FEF2F2',
+          color: '#B91C1C',
+          fontSize: 12,
+          padding: '9px 11px',
+        }}>
+          Your account has no assigned barangay profile. Please contact barangay staff or super admin before submitting a report.
+        </div>
+      ) : null}
+
+      {form.pin && hasBarangayProfile && (!pinInSupportedArea || form.pin.barangay === 'Outside Your Registered Barangay') ? (
+        <div style={{
+          marginBottom: 12,
+          borderRadius: 10,
+          border: '1px solid #FCA5A5',
+          background: '#FEF2F2',
+          color: '#B91C1C',
+          fontSize: 12,
+          padding: '9px 11px',
+        }}>
+          Pin is outside {assignedBarangayLabel}. Please place the pin within your assigned barangay to continue.
+        </div>
+      ) : null}
 
       {/* Address text input */}
       <div>
@@ -1331,7 +1433,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const STEP_VALIDATION: Record<number, (f: ReportForm) => boolean> = {
   1: f => f.category !== null,
-  2: f => f.pin !== null || f.address.trim().length > 0,
+  2: f => isPinWithinSupportedBarangay(f.pin) && f.pin?.barangay !== 'Outside Your Registered Barangay',
   3: f => f.description.trim().length >= 10,
   4: () => true,
   5: () => true,
@@ -1381,8 +1483,8 @@ export default function IncidentReport() {
     try {
       const response = await citizenReportsApi.submitReport({
         type: mapTypeForApi(form.category),
-        latitude: form.pin?.y ?? Number.NaN,
-        longitude: form.pin?.x ?? Number.NaN,
+        latitude: form.pin?.lat ?? Number.NaN,
+        longitude: form.pin?.lng ?? Number.NaN,
         location: form.address.trim() || `${form.pin?.barangay ?? 'Unknown location'}`,
         description: form.description.trim(),
         severity: form.severity ?? 'medium',
