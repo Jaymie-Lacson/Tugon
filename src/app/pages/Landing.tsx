@@ -233,7 +233,7 @@ function Hero() {
           {/* CTA buttons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 48 }}>
             <button
-              onClick={() => navigate('/citizen')}
+              onClick={() => navigate('/auth/register')}
               style={{
                 background: '#B91C1C', border: 'none', borderRadius: 10, padding: '14px 28px',
                 color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
@@ -247,7 +247,7 @@ function Hero() {
               <AlertTriangle size={16} /> Report Incident
             </button>
             <button
-              onClick={() => navigate('/app')}
+              onClick={() => navigate('/auth/login')}
               style={{
                 background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.35)',
                 borderRadius: 10, padding: '14px 28px', color: 'white', fontSize: 14,
@@ -503,7 +503,7 @@ function SupportedBarangays() {
               </div>
 
               <button
-                onClick={() => navigate('/app')}
+                onClick={() => navigate('/community-map')}
                 style={{
                   marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                   borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
@@ -625,7 +625,7 @@ function SafetyTips() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => navigate('/app')}
+                  onClick={() => navigate('/auth/login')}
                   style={{
                     marginTop: 16, width: '100%', background: tip.bg, border: `1.5px solid ${tip.color}22`,
                     borderRadius: 8, padding: '10px', color: tip.color, fontSize: 12, fontWeight: 700,
