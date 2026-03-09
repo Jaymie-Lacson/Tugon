@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Shield, MapPin, AlertTriangle, CheckCircle2, Clock, Phone, Flame,
   Volume2, Car, ChevronRight, ArrowRight, Menu, X, Radio, Zap,
-  FileText, Users, Eye, Map, Star, Navigation,
+  FileText, Users, Eye, Star, Navigation,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -247,7 +247,7 @@ function Hero() {
               <AlertTriangle size={16} /> Report Incident
             </button>
             <button
-              onClick={() => navigate('/app')}
+              onClick={() => navigate('/auth/login')}
               style={{
                 background: 'rgba(255,255,255,0.12)', border: '1.5px solid rgba(255,255,255,0.35)',
                 borderRadius: 10, padding: '14px 28px', color: 'white', fontSize: 14,
@@ -257,20 +257,7 @@ function Hero() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
             >
-              <Eye size={16} /> Track Status
-            </button>
-            <button
-              onClick={() => navigate('/app')}
-              style={{
-                background: 'rgba(180,115,10,0.15)', border: '1.5px solid rgba(180,115,10,0.5)',
-                borderRadius: 10, padding: '14px 28px', color: '#FCD34D', fontSize: 14,
-                fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                backdropFilter: 'blur(8px)', transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(180,115,10,0.15)'; }}
-            >
-              <Map size={16} /> View Community Map
+              <Eye size={16} /> Track My Reports
             </button>
           </div>
 
@@ -278,14 +265,21 @@ function Hero() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28 }}>
             {[
               { value: 3, suffix: '', label: 'Barangays Covered' },
-              { value: 1247, suffix: '+', label: 'Reports Resolved' },
-              { value: 98, suffix: '%', label: 'Response Rate' },
-              { value: 8, suffix: ' min', label: 'Avg. Response Time' },
+              { value: 6, suffix: '', label: 'Incident Categories' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'left' }}>
                 <div style={{ color: '#FFFFFF', fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, lineHeight: 1 }}>
                   <Counter target={s.value} suffix={s.suffix} />
                 </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+            {[
+              { icon: '📡', label: 'Real-Time Tracking' },
+              { icon: '🔒', label: 'Secure & Private' },
+            ].map(s => (
+              <div key={s.label} style={{ textAlign: 'left' }}>
+                <div style={{ color: '#FFFFFF', fontSize: 'clamp(22px,3vw,28px)', fontWeight: 800, lineHeight: 1 }}>{s.icon}</div>
                 <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 4 }}>{s.label}</div>
               </div>
             ))}
@@ -404,22 +398,25 @@ function SupportedBarangays() {
   const barangays = [
     {
       num: '251', zone: 'Zone 24 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Balut, Bangkusay Channel', incidents: 42, resolved: 39,
+      landmarks: 'Near Balut, Bangkusay Channel',
       responders: ['MDRRMO', 'BFP', 'PNP'],
+      incidentTypes: ['Fire', 'Flood', 'Road Hazard', 'Noise', 'Crime', 'Pollution'],
       color: '#1E3A8A', light: '#EFF6FF',
       description: 'A densely populated coastal barangay with active flood and fire incident monitoring along the waterway corridors.',
     },
     {
       num: '252', zone: 'Zone 25 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Tondo Market, Moriones', incidents: 38, resolved: 35,
+      landmarks: 'Near Tondo Market, Moriones',
       responders: ['MDRRMO', 'PNP', 'EMS'],
+      incidentTypes: ['Road Hazard', 'Noise', 'Crime', 'Pollution', 'Fire', 'Other'],
       color: '#B91C1C', light: '#FEE2E2',
       description: 'A commercial hub barangay experiencing high foot traffic. Road accidents and noise disturbance are common incident types.',
     },
     {
       num: '256', zone: 'Zone 26 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Divisoria, Recto Avenue', incidents: 35, resolved: 34,
+      landmarks: 'Near Divisoria, Recto Avenue',
       responders: ['MDRRMO', 'BFP', 'EMS'],
+      incidentTypes: ['Fire', 'Road Hazard', 'Noise', 'Crime', 'Flood', 'Other'],
       color: '#B4730A', light: '#FEF3C7',
       description: "Adjacent to Divisoria, this barangay benefits from TUGON's real-time infrastructure and medical emergency reporting.",
     },
@@ -476,19 +473,15 @@ function SupportedBarangays() {
 
               <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, lineHeight: 1.6, marginBottom: 16 }}>{b.description}</p>
 
-              {/* Stats */}
-              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-                  <div style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 700 }}>{b.incidents}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Total Reports</div>
-                </div>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-                  <div style={{ color: '#4ADE80', fontSize: 20, fontWeight: 700 }}>{b.resolved}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Resolved</div>
-                </div>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-                  <div style={{ color: '#FCD34D', fontSize: 20, fontWeight: 700 }}>{b.incidents - b.resolved}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Active</div>
+              {/* Incident types covered */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>Incident Types Covered</div>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  {b.incidentTypes.map(t => (
+                    <span key={t} style={{ background: 'rgba(255,255,255,0.08)', color: '#E2E8F0', fontSize: 10, padding: '3px 8px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)' }}>
+                      {t}
+                    </span>
+                  ))}
                 </div>
               </div>
 
@@ -502,7 +495,7 @@ function SupportedBarangays() {
               </div>
 
               <button
-                onClick={() => navigate('/app')}
+                onClick={() => navigate('/auth/register')}
                 style={{
                   marginTop: 16, width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                   borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
@@ -512,7 +505,7 @@ function SupportedBarangays() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
               >
-                View Incidents <ChevronRight size={13} />
+                Register to Report <ChevronRight size={13} />
               </button>
             </div>
           ))}
