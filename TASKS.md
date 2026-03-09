@@ -127,6 +127,7 @@ Next priority:
 * Phase 6 in progress: `/api/admin` backend endpoints and Super Admin user list API wiring
 * Phase 6 in progress: Super Admin role update action and overview analytics summary wiring
 * Phase 6 in progress: Super Admin barangay map live data sync and boundary GeoJSON update action
+* Map reliability in progress: enforce high-zoom map clarity for incident pinning and dashboard maps
 
 ---
 
@@ -239,6 +240,22 @@ Tests should include:
 * geofencing tests
 * role permission tests
 * ticket lifecycle tests
+
+---
+
+## Phase 9 – Map Usability Hardening
+
+Goals:
+
+Ensure maps remain operational at practical street/house-level zoom for reporting and response workflows.
+
+Progress checklist:
+
+- [ ] verify high-zoom tile detail in Incident Report, Community Map, Official Map, and Super Admin Map
+- [ ] add fallback basemap option (e.g., alternate OSM style) when detail is insufficient
+- [ ] tune zoom constraints (`minZoom`, `maxZoom`, `maxNativeZoom`) per map screen
+- [ ] ensure barangay boundary overlays remain visible at all zoom levels
+- [ ] add regression test checklist for zoom/detail behavior on desktop and mobile browsers
 
 ---
 
