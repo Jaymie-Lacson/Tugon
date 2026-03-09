@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -68,6 +68,35 @@ function ZoomController() {
   );
 }
 
+function FitToBarangayBounds({ barangays }: { barangays: BarangayMapView[] }) {
+  const map = useMap();
+  const lastBoundsRef = useRef<string>('');
+
+  useEffect(() => {
+    const points = barangays
+      .flatMap((barangay) => sanitizeBoundary(barangay.boundary) ?? [])
+      .filter(isFiniteLatLng);
+    if (points.length === 0) {
+      return;
+    }
+
+    const signature = points.map(([lat, lng]) => `${lat.toFixed(6)},${lng.toFixed(6)}`).join('|');
+    if (signature === lastBoundsRef.current) {
+      return;
+    }
+
+    const bounds = L.latLngBounds(points.map(([lat, lng]) => L.latLng(lat, lng)));
+    if (!bounds.isValid()) {
+      return;
+    }
+
+    map.fitBounds(bounds.pad(0.08), { animate: false });
+    lastBoundsRef.current = signature;
+  }, [map, barangays]);
+
+  return null;
+}
+
 function MapBoundaryEditor({
   active,
   onAddPoint,
@@ -88,7 +117,12 @@ function MapBoundaryEditor({
 }
 
 const TONDO_TRI_BRGY_CENTER: [number, number] = [14.61495, 120.97795];
+const MAP_MIN_ZOOM = 15;
+const MAP_DEFAULT_ZOOM = 18;
+const MAP_MAX_ZOOM = 22;
 const BOUNDARY_EDIT_ENABLED = false;
+const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
+const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
   normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
@@ -117,8 +151,32 @@ function deriveCodeFromId(id: string): string {
   return match ? match[0] : '';
 }
 
+function normalizeLatLngPoint(point: [number, number]): [number, number] {
+  const [a, b] = point;
+
+  // Accept both [lat, lng] and [lng, lat] and normalize to [lat, lng].
+  if (Math.abs(a) > 90 && Math.abs(b) <= 90) {
+    return [b, a];
+  }
+  return [a, b];
+}
+
+function isFiniteLatLng(point: [number, number]): boolean {
+  const [lat, lng] = point;
+  return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+
+function isLikelyTondoPoint(point: [number, number]): boolean {
+  const [lat, lng] = point;
+  return lat >= TONDO_LAT_RANGE[0] && lat <= TONDO_LAT_RANGE[1] && lng >= TONDO_LNG_RANGE[0] && lng <= TONDO_LNG_RANGE[1];
+}
+
+function normalizeBoundaryPointsOrder(boundary: [number, number][]): [number, number][] {
+  return boundary.map((point) => normalizeLatLngPoint(point));
+}
+
 function boundaryToGeoJsonPolygon(boundary: [number, number][]) {
-  const coordinates = boundary.map(([lat, lng]) => [lng, lat]);
+  const coordinates = normalizeBoundaryPointsOrder(boundary).map(([lat, lng]) => [lng, lat]);
   const first = coordinates[0];
   const last = coordinates[coordinates.length - 1];
   const isClosed = first && last && first[0] === last[0] && first[1] === last[1];
@@ -130,14 +188,28 @@ function boundaryToGeoJsonPolygon(boundary: [number, number][]) {
 }
 
 function normalizeBoundaryPoints(boundary: [number, number][]): [number, number][] {
-  if (boundary.length < 2) {
-    return boundary;
+  const normalized = normalizeBoundaryPointsOrder(boundary);
+
+  if (normalized.length < 2) {
+    return normalized;
   }
 
-  const first = boundary[0];
-  const last = boundary[boundary.length - 1];
+  const first = normalized[0];
+  const last = normalized[normalized.length - 1];
   const isClosed = first[0] === last[0] && first[1] === last[1];
-  return isClosed ? boundary.slice(0, -1) : boundary;
+  return isClosed ? normalized.slice(0, -1) : normalized;
+}
+
+function sanitizeBoundary(boundary: [number, number][]): [number, number][] | null {
+  const normalized = normalizeBoundaryPointsOrder(boundary)
+    .filter(isFiniteLatLng)
+    .filter(isLikelyTondoPoint);
+
+  if (normalized.length < 3) {
+    return null;
+  }
+
+  return normalizeBoundaryPoints(normalized);
 }
 
 function formatBoundaryGeojson(boundary: [number, number][]) {
@@ -169,9 +241,9 @@ function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] 
     const ring = polygon[0] as Array<[number, number]>;
     const converted = ring
       .filter((point): point is [number, number] => Array.isArray(point) && point.length >= 2)
-      .map(([lng, lat]) => [lat, lng] as [number, number]);
+      .map((point) => normalizeLatLngPoint(point));
 
-    return converted.length >= 4 ? converted : null;
+    return sanitizeBoundary(converted);
   } catch {
     return null;
   }
@@ -180,6 +252,7 @@ function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] 
 function createInitialBarangays(): BarangayMapView[] {
   return fallbackBarangays.map((barangay) => ({
     ...barangay,
+    boundary: sanitizeBoundary(barangay.boundary) ?? normalizeBoundaryPointsOrder(barangay.boundary),
     code: deriveCodeFromId(barangay.id),
     boundaryGeojson: JSON.stringify(boundaryToGeoJsonPolygon(barangay.boundary)),
     source: 'mock',
@@ -223,24 +296,38 @@ export default function SABarangayMap() {
       const payload = await superAdminApi.getBarangays();
       const fallbackByCode = new Map(fallbackBarangays.map((barangay) => [deriveCodeFromId(barangay.id), barangay]));
       const defaultFallback = fallbackBarangays[0];
-      const mapped = payload.barangays.map((apiBarangay) => {
-        const fallback = fallbackByCode.get(apiBarangay.code);
+      const apiByCode = new Map(payload.barangays.map((barangay) => [barangay.code, barangay]));
+
+      const mapped = fallbackBarangays.map((fallback) => {
+        const code = deriveCodeFromId(fallback.id);
+        const apiBarangay = apiByCode.get(code);
+        const fallbackBoundary = sanitizeBoundary(fallback.boundary)
+          ?? sanitizeBoundary(defaultFallback.boundary)
+          ?? normalizeBoundaryPointsOrder(defaultFallback.boundary);
+
+        if (!apiBarangay) {
+          return {
+            ...fallback,
+            boundary: fallbackBoundary,
+            code,
+            boundaryGeojson: JSON.stringify(boundaryToGeoJsonPolygon(fallbackBoundary)),
+            source: 'mock' as const,
+          };
+        }
+
         const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
-        const boundary = parsedBoundary ?? fallback?.boundary ?? defaultFallback.boundary;
-        const color = fallback?.color ?? '#1E3A8A';
+  const boundary = sanitizeBoundary(parsedBoundary ?? fallback.boundary ?? defaultFallback.boundary) ?? fallbackBoundary;
         const activeIncidents = apiBarangay.activeReports;
         const responseRate = apiBarangay.totalReports > 0
           ? Math.max(0, Math.min(100, Math.round(((apiBarangay.totalReports - activeIncidents) / apiBarangay.totalReports) * 100)))
-          : (fallback?.responseRate ?? 100);
+          : fallback.responseRate;
 
         return {
-          ...(fallback ?? defaultFallback),
-          id: fallback?.id ?? `brgy${apiBarangay.code}`,
-          code: apiBarangay.code,
-          name: `Barangay ${apiBarangay.code}`,
-          color,
+          ...fallback,
+          code,
+          name: `Barangay ${code}`,
           boundary,
-          center: fallback?.center ?? boundary[0],
+          center: fallback.center ?? boundary[0],
           activeIncidents,
           totalThisMonth: apiBarangay.totalReports,
           resolvedThisMonth: Math.max(apiBarangay.totalReports - activeIncidents, 0),
@@ -252,7 +339,7 @@ export default function SABarangayMap() {
         };
       });
 
-      setBarangaysData(mapped.length > 0 ? mapped : createInitialBarangays());
+      setBarangaysData(mapped);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to load barangay data.';
       setBarangaysError(message);
@@ -495,18 +582,23 @@ export default function SABarangayMap() {
           <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
             <MapContainer
               center={TONDO_TRI_BRGY_CENTER}
-              zoom={18}
+              zoom={MAP_DEFAULT_ZOOM}
               style={{ width: '100%', height: '100%', minHeight: 500 }}
               zoomControl={false}
               attributionControl={true}
               scrollWheelZoom={true}
+              minZoom={MAP_MIN_ZOOM}
+              maxZoom={MAP_MAX_ZOOM}
             >
               {/* OSM tiles */}
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
+                maxNativeZoom={19}
+                maxZoom={MAP_MAX_ZOOM}
               />
+
+              <FitToBarangayBounds barangays={barangaysData} />
 
               {/* Barangay boundary polygons */}
               {barangaysData.map(b => (
