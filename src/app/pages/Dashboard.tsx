@@ -35,15 +35,6 @@ const TYPE_DIST = [
   { name: 'Typhoon', value: 1, color: '#0369A1' },
 ];
 
-const BARANGAY_DATA = [
-  { name: 'Brgy. Riverside', count: 4 },
-  { name: 'Brgy. Poblacion', count: 3 },
-  { name: 'Brgy. San Antonio', count: 3 },
-  { name: 'Brgy. Makiling', count: 2 },
-  { name: 'Brgy. Santo Niño', count: 2 },
-  { name: 'Brgy. Longos', count: 1 },
-];
-
 const typeIcons: Record<string, React.ReactNode> = {
   fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
@@ -567,29 +558,6 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Barangay breakdown */}
-        <div style={{ flex: '2 1 220px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Top Affected Barangays</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Incident count (current cycle)</div>
-          {BARANGAY_DATA.map((b) => (
-            <div key={b.name} style={{ marginBottom: 9 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                <span style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>{b.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{b.count}</span>
-              </div>
-              <div style={{ height: 5, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${(b.count / BARANGAY_DATA[0].count) * 100}%`,
-                  background: '#1E3A8A',
-                  borderRadius: 3,
-                  transition: 'width 0.5s',
-                }} />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 

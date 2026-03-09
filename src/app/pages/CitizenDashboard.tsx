@@ -426,28 +426,11 @@ export default function CitizenDashboard() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'rgba(255,255,255,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1.5px solid rgba(255,255,255,0.25)',
-                }}
-              >
-                <Shield size={20} color="#FFFFFF" />
-              </div>
-              <div>
-                <div style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 16, lineHeight: 1.1, letterSpacing: '0.03em' }}>
-                  TUGON
-                </div>
-                <div style={{ color: '#BFDBFE', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  Citizen Portal
-                </div>
-              </div>
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Citizen Portal"
+                style={{ height: 38, width: 'auto', display: 'block' }}
+              />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
