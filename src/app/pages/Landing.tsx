@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { getAuthSession } from '../utils/authSession';
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
@@ -954,6 +955,26 @@ export default function Landing() {
 
     return () => observer.disconnect();
   }, []);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (!session) {
+      return;
+    }
+
+    if (session.user.role === 'CITIZEN') {
+      navigate('/citizen', { replace: true });
+      return;
+    }
+
+    if (session.user.role === 'SUPER_ADMIN') {
+      navigate('/superadmin', { replace: true });
+      return;
+    }
+
+    navigate('/app', { replace: true });
+  }, [navigate]);
 
   return (
     <div style={{ fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif" }}>

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Shield, ChevronLeft, Search, Filter, X, ChevronRight,
+  Bell, Search, Filter, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
   Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
@@ -9,7 +9,9 @@ import {
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
+import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { citizenReportsApi, type ApiCitizenReport, type ApiIncidentType, type ApiTicketStatus } from '../services/citizenReportsApi';
+import { getAuthSession } from '../utils/authSession';
 
 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    CITIZEN REPORT STATUS TYPES
@@ -298,19 +300,19 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
     <button
       onClick={onClick}
       style={{
-        width: '100%', background: '#fff', border: 'none',
+        width: '100%', background: '#fff', border: '1px solid #E2E8F0',
         borderRadius: 18, padding: 0, cursor: 'pointer', textAlign: 'left',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.07)', marginBottom: 12,
+        boxShadow: '0 4px 14px rgba(15,23,42,0.06)', marginBottom: 12,
         overflow: 'hidden', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
         borderLeft: `4px solid ${sc.color}`,
       }}
       onMouseOver={e => {
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)';
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 10px 28px rgba(15,23,42,0.12)';
         (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
       }}
       onMouseOut={e => {
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 10px rgba(0,0,0,0.07)';
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(15,23,42,0.06)';
         (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
       }}
     >
@@ -385,7 +387,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       </div>
 
       {/* Workflow progress strip */}
-      <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
+      <div style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
         <WorkflowProgress status={report.status} />
       </div>
 
@@ -393,7 +395,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       <div style={{
         background: `${citizenStatusConfig[report.status].bg}`,
         borderTop: `1px solid ${citizenStatusConfig[report.status].border}`,
-        padding: '8px 14px',
+        padding: '10px 14px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <span style={{ fontSize: 11, color: citizenStatusConfig[report.status].color, fontWeight: 600 }}>
@@ -457,7 +459,7 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',
-        background: '#F1F5F9', borderRadius: '24px 24px 0 0',
+        background: '#F8FAFC', borderRadius: '24px 24px 0 0',
         overflow: 'hidden',
         animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
         maxWidth: 960, margin: '0 auto',
@@ -741,8 +743,10 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
 function EmptyState({ filter, query }: { filter: string; query: string }) {
   return (
     <div style={{
+      gridColumn: '1 / -1',
+      width: '100%',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '60px 32px', textAlign: 'center',
+      justifyContent: 'center', minHeight: 320, padding: '60px 32px', textAlign: 'center',
     }}>
       <div style={{
         width: 80, height: 80, borderRadius: '50%', background: '#F1F5F9',
@@ -774,12 +778,21 @@ type FilterKey = 'all' | 'active' | 'resolved';
 
 export default function CitizenMyReports() {
   const navigate = useNavigate();
+  const session = getAuthSession();
+  const fullName = session?.user.fullName?.trim() || 'Citizen User';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CU';
   const [reports, setReports]     = useState<CitizenReport[]>(MY_REPORTS);
   const [filter, setFilter]       = useState<FilterKey>('all');
   const [query, setQuery]         = useState('');
   const [selected, setSelected]   = useState<CitizenReport | null>(null);
   const [sortBy, setSortBy]       = useState<'newest' | 'oldest'>('newest');
   const [sortOpen, setSortOpen]   = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -825,11 +838,74 @@ export default function CitizenMyReports() {
   const activeCount   = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'active').length;
   const resolvedCount = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'resolved').length;
 
-  // Status summary
-  const statusCounts = reports.reduce<Record<CitizenReportStatus, number>>((acc, r) => {
-    acc[r.status] = (acc[r.status] || 0) + 1;
-    return acc;
-  }, {} as Record<CitizenReportStatus, number>);
+  const notificationItems = useMemo(() => {
+    const activeUpdates = reports
+      .filter((report) => citizenStatusConfig[report.status].filterGroup === 'active')
+      .slice(0, 2)
+      .map((report) => ({
+        icon: <Clock size={14} />,
+        color: '#1E3A8A',
+        bg: '#DBEAFE',
+        title: 'Report In Progress',
+        desc: `${report.id} is currently ${citizenStatusConfig[report.status].label.toLowerCase()}.`,
+        time: timeAgo(report.updatedAt),
+        unread: true,
+      }));
+
+    const resolvedUpdates = reports
+      .filter((report) => citizenStatusConfig[report.status].filterGroup === 'resolved')
+      .slice(0, 1)
+      .map((report) => ({
+        icon: <CheckCircle2 size={14} />,
+        color: '#059669',
+        bg: '#D1FAE5',
+        title: 'Report Resolved',
+        desc: `${report.id} has reached ${citizenStatusConfig[report.status].label}.`,
+        time: timeAgo(report.updatedAt),
+        unread: false,
+      }));
+
+    const items = [...activeUpdates, ...resolvedUpdates].slice(0, 3);
+    if (items.length > 0) {
+      return items;
+    }
+
+    return [{
+      icon: <Info size={14} />,
+      color: '#1E3A8A',
+      bg: '#DBEAFE',
+      title: 'No new updates',
+      desc: 'Your reports are up to date.',
+      time: 'Live',
+      unread: false,
+    }];
+  }, [reports]);
+
+  const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
+
+  useEffect(() => {
+    const handleOutsideHeaderTap = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.citizen-web-header')) {
+        return;
+      }
+
+      setNotifOpen(false);
+      setSortOpen(false);
+    };
+
+    const handleAnyScroll = () => {
+      setNotifOpen(false);
+      setSortOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsideHeaderTap);
+    document.addEventListener('scroll', handleAnyScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideHeaderTap);
+      document.removeEventListener('scroll', handleAnyScroll, true);
+    };
+  }, []);
 
   const FILTER_TABS: { key: FilterKey; label: string; count: number }[] = [
     { key: 'all',      label: 'All',      count: allCount },
@@ -862,61 +938,193 @@ export default function CitizenMyReports() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 12,
-                padding: '0 16px',
+                padding: '0 var(--citizen-content-gutter)',
                 height: '100%',
                 boxSizing: 'border-box',
+                position: 'relative',
               }}
             >
               <button
                 onClick={() => navigate('/citizen')}
-                style={{
-                  background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: 10, width: 38, height: 38, cursor: 'pointer', color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                aria-label="Go to citizen home"
               >
-                <ChevronLeft size={20} />
+                <img
+                  src="/tugon-header-logo.svg"
+                  alt="TUGON Citizen Portal"
+                  style={{ height: 38, width: 'auto', display: 'block' }}
+                />
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.14)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Shield size={16} color="#fff" />
-                </div>
-                <div>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>My Reports</div>
-                  <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    TUGON Citizen Portal
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={() => {
+                    setNotifOpen((prev) => !prev);
+                    setSortOpen(false);
+                  }}
+                  style={{
+                    position: 'relative',
+                    background: 'rgba(255,255,255,0.12)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: 10,
+                    width: 38,
+                    height: 38,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#fff',
+                  }}
+                  aria-label="Notifications"
+                >
+                  <Bell size={18} />
+                  {unreadNotificationCount > 0 ? (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: '#B91C1C',
+                        border: '1.5px solid #1E3A8A',
+                      }}
+                    />
+                  ) : null}
+                </button>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: 14,
+                  }}
+                >
+                  {initials}
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 10, padding: '5px 11px', color: '#BFDBFE',
-                fontSize: 12, fontWeight: 800,
-              }}>
-                {allCount} total
-              </div>
+              {notifOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 66,
+                    right: 16,
+                    width: 300,
+                    background: '#fff',
+                    borderRadius: 14,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                    zIndex: 100,
+                    overflow: 'hidden',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                    <span
+                      style={{
+                        background: '#B91C1C',
+                        color: '#fff',
+                        borderRadius: 20,
+                        padding: '1px 7px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
+                    </span>
+                  </div>
+                  {notificationItems.map((item, index) => (
+                    <div
+                      key={`${item.title}-${index}`}
+                      style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        gap: 10,
+                        alignItems: 'flex-start',
+                        borderBottom: index < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
+                        background: item.unread ? '#FFFBEB' : '#fff',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 8,
+                          background: item.bg,
+                          color: item.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{item.title}</div>
+                        <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.desc}</div>
+                        <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{item.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </header>
         }
         mobileMainPaddingBottom={16}
         desktopMainPaddingBottom={16}
         desktopMainMaxWidth={1320}
+        beforeMain={<CitizenDesktopNav activeKey="myreports" />}
+        mainOnClick={() => {
+          if (sortOpen) {
+            setSortOpen(false);
+          }
+          if (notifOpen) {
+            setNotifOpen(false);
+          }
+        }}
+        mainOnScroll={() => {
+          if (sortOpen) {
+            setSortOpen(false);
+          }
+          if (notifOpen) {
+            setNotifOpen(false);
+          }
+        }}
       >
-        <div style={{
-          position: 'sticky', top: 60, zIndex: 40,
-          background: '#fff', borderBottom: '1px solid #E8EEF4',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        }}>
-          <div style={{ padding: '12px 16px 0', display: 'flex', gap: 8 }}>
+        <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
+          <section
+            style={{
+              background: '#fff',
+              border: '1px solid #E2E8F0',
+              borderRadius: 16,
+              boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+              padding: 12,
+            }}
+          >
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <div style={{
               flex: 1, display: 'flex', alignItems: 'center', gap: 8,
               background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
               border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
+              minWidth: 240,
             }}>
               <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
               <input
@@ -940,7 +1148,7 @@ export default function CitizenMyReports() {
               <button
                 onClick={() => setSortOpen(v => !v)}
                 style={{
-                  height: '100%', background: '#F8FAFC', border: '1.5px solid #E2E8F0',
+                  height: 42, background: '#F8FAFC', border: '1.5px solid #E2E8F0',
                   borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
                   gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
                   whiteSpace: 'nowrap',
@@ -977,7 +1185,7 @@ export default function CitizenMyReports() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', padding: '10px 16px 0', gap: 0, borderBottom: 'none' }}>
+          <div style={{ display: 'flex', padding: '10px 2px 0', gap: 0, borderBottom: 'none' }}>
             {FILTER_TABS.map(tab => {
               const isActive = filter === tab.key;
               return (
@@ -1016,54 +1224,11 @@ export default function CitizenMyReports() {
               );
             })}
           </div>
+          </section>
         </div>
 
         <div onClick={() => sortOpen && setSortOpen(false)}>
-          {!query && filter === 'all' && (
-            <div style={{ padding: '16px 16px 0' }}>
-              <div style={{
-                background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-                borderRadius: 20, padding: '16px', marginBottom: 16,
-                color: '#fff', boxShadow: '0 4px 20px rgba(30,58,138,0.3)',
-              }}>
-                <div style={{ fontSize: 11, color: '#93C5FD', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
-                  Reports Overview
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                  {[
-                    { label: 'Active', value: activeCount, color: '#60A5FA', bg: 'rgba(96,165,250,0.18)' },
-                    { label: 'Resolved', value: resolvedCount - (statusCounts['unresolvable'] || 0), color: '#4ADE80', bg: 'rgba(74,222,128,0.18)' },
-                    { label: 'Total', value: allCount, color: '#FFFFFF', bg: 'rgba(255,255,255,0.14)' },
-                  ].map(s => (
-                    <div key={s.label} style={{ background: s.bg, borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 26, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 3, fontWeight: 600 }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {(Object.entries(statusCounts) as [CitizenReportStatus, number][]).map(([status, count]) => {
-                    const cfg = citizenStatusConfig[status];
-                    return (
-                      <div key={status} style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        background: 'rgba(255,255,255,0.12)', borderRadius: 20,
-                        padding: '4px 10px',
-                      }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dotColor, flexShrink: 0 }} />
-                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>
-                          {cfg.label} ({count})
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{ padding: '12px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="citizen-content-shell" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
               Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
               {query && ` for "${query}"`}
@@ -1075,7 +1240,7 @@ export default function CitizenMyReports() {
             )}
           </div>
 
-          <div className="citizen-reports-grid" style={{ padding: '0 16px 24px', display: 'grid', gap: 12 }}>
+          <div className="citizen-content-shell citizen-reports-grid" style={{ paddingTop: 0, paddingBottom: 24, display: 'grid', gap: 12 }}>
             {filtered.length === 0 ? (
               <EmptyState filter={filter} query={query} />
             ) : (
@@ -1090,7 +1255,7 @@ export default function CitizenMyReports() {
           </div>
 
           {filtered.length > 0 && (
-            <div style={{ padding: '0 16px 32px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div className="citizen-content-shell" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
                 Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
