@@ -5,7 +5,7 @@
     "buildCommand": "npm --prefix server ci && npm --prefix server run prisma:generate && npm --prefix server run build"
   },
   "deploy": {
-    "preDeployCommand": "npm --prefix server run prisma:migrate:deploy",
+    "preDeployCommand": "if [ -n \"$DIRECT_URL\" ]; then export DATABASE_URL=\"$DIRECT_URL\"; fi; npm --prefix server run prisma:migrate:deploy",
     "startCommand": "npm --prefix server run start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 120,
