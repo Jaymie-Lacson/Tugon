@@ -37,16 +37,16 @@ export default function Login() {
       saveAuthSession(session);
 
       if (session.user.role === 'CITIZEN') {
-        navigate('/citizen');
+        navigate('/citizen', { replace: true });
         return;
       }
 
       if (session.user.role === 'SUPER_ADMIN') {
-        navigate('/superadmin');
+        navigate('/superadmin', { replace: true });
         return;
       }
 
-      navigate('/app');
+      navigate('/app', { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to sign in.';
       setErrors({ general: message });

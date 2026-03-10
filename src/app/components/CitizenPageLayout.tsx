@@ -6,12 +6,14 @@ interface CitizenPageLayoutProps {
   children: React.ReactNode;
   afterMain?: React.ReactNode;
   mainOnClick?: () => void;
+  mainOnScroll?: React.UIEventHandler<HTMLElement>;
   mobileShellMaxWidth?: number;
   desktopMainMaxWidth?: number;
   mobileMainPaddingX?: number;
   desktopMainPaddingX?: number;
   mobileMainPaddingBottom?: number;
   desktopMainPaddingBottom?: number;
+  contentGutter?: number;
 }
 
 export function CitizenPageLayout({
@@ -20,12 +22,14 @@ export function CitizenPageLayout({
   children,
   afterMain,
   mainOnClick,
+  mainOnScroll,
   mobileShellMaxWidth = 560,
   desktopMainMaxWidth = 1260,
   mobileMainPaddingX = 0,
   desktopMainPaddingX = 24,
   mobileMainPaddingBottom = 84,
   desktopMainPaddingBottom = 28,
+  contentGutter = 16,
 }: CitizenPageLayoutProps) {
   const cssVars = {
     '--citizen-mobile-shell-max': `${mobileShellMaxWidth}px`,
@@ -34,6 +38,7 @@ export function CitizenPageLayout({
     '--citizen-desktop-main-padding-x': `${desktopMainPaddingX}px`,
     '--citizen-mobile-main-padding': `${mobileMainPaddingBottom}px`,
     '--citizen-desktop-main-padding': `${desktopMainPaddingBottom}px`,
+    '--citizen-content-gutter': `${contentGutter}px`,
   } as React.CSSProperties;
 
   return (
@@ -64,6 +69,7 @@ export function CitizenPageLayout({
           zIndex: 1,
         }}
         onClick={mainOnClick}
+        onScroll={mainOnScroll}
       >
         {children}
       </main>
@@ -114,8 +120,8 @@ export function CitizenPageLayout({
             margin: 0 auto;
           }
           .citizen-web-strip {
-            padding-left: var(--citizen-desktop-main-padding-x);
-            padding-right: var(--citizen-desktop-main-padding-x);
+            padding-left: var(--citizen-content-gutter);
+            padding-right: var(--citizen-content-gutter);
           }
           .citizen-only-desktop { display: block !important; }
           .citizen-only-mobile { display: none !important; }
@@ -127,6 +133,12 @@ export function CitizenPageLayout({
         }
 
         .citizen-web-strip {
+          box-sizing: border-box;
+        }
+
+        .citizen-content-shell {
+          padding-left: var(--citizen-content-gutter);
+          padding-right: var(--citizen-content-gutter);
           box-sizing: border-box;
         }
       `}</style>
