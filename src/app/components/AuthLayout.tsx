@@ -112,7 +112,9 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </div>
 
       {/* ── Right form panel ── */}
-      <div style={{
+      <div
+        className="auth-form-panel"
+        style={{
         flex: 1,
         display: 'flex',
         alignItems: 'center',
@@ -169,6 +171,11 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         @media (max-width: 768px) {
           .auth-panel { display: none !important; }
           .auth-mobile-logo { display: flex !important; }
+          .auth-form-panel {
+            align-items: flex-start !important;
+            padding-top: max(14px, env(safe-area-inset-top)) !important;
+            padding-bottom: 20px !important;
+          }
         }
       `}</style>
     </div>
