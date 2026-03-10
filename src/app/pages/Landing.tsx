@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
+  ChevronDown,
   CheckCircle2,
   FileText,
   Flame,
@@ -295,9 +296,22 @@ function Navbar() {
 
 function Hero() {
   const navigate = useNavigate();
+  const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
+
+  const navigateWithTransition = (action: 'report' | 'track' | 'community', path: string) => {
+    setActiveAction(action);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 170);
+  };
+
+  const scrollToQuickActions = () => {
+    document.querySelector('#quick-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <section
+      data-reveal
       style={{
         position: 'relative',
         minHeight: '100vh',
@@ -317,7 +331,11 @@ function Hero() {
         />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%' }}>
+      <div
+        data-reveal
+        className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
+        style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
+      >
         <div
           style={{
             display: 'inline-flex',
@@ -365,7 +383,8 @@ function Hero() {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 26 }}>
           <button
-            onClick={() => navigate('/auth/register')}
+            onClick={() => navigateWithTransition('report', '/auth/register')}
+            className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: '#B91C1C',
               border: 'none',
@@ -383,7 +402,8 @@ function Hero() {
             <AlertTriangle size={16} /> Report an Incident
           </button>
           <button
-            onClick={() => navigate('/auth/login')}
+            onClick={() => navigateWithTransition('track', '/auth/login')}
+            className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: 'rgba(255,255,255,0.12)',
               border: '1.5px solid rgba(255,255,255,0.35)',
@@ -403,7 +423,8 @@ function Hero() {
         </div>
 
         <button
-          onClick={() => navigate('/community-map')}
+          onClick={() => navigateWithTransition('community', '/community-map')}
+          className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
           style={{
             background: 'none',
             border: 'none',
@@ -420,6 +441,18 @@ function Hero() {
           <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
         </button>
       </div>
+
+      <button
+        data-reveal
+        onClick={scrollToQuickActions}
+        aria-label="Scroll to quick actions"
+        className="landing-scroll-cue"
+        style={{ transitionDelay: '220ms' }}
+      >
+        <span className="landing-scroll-cue-icon" aria-hidden="true">
+          <ChevronDown size={16} />
+        </span>
+      </button>
     </section>
   );
 }
@@ -455,7 +488,7 @@ function QuickActions() {
   ];
 
   return (
-    <section style={{ padding: '56px 24px', background: '#FFFFFF' }}>
+    <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Quick Access"
@@ -476,6 +509,7 @@ function QuickActions() {
         >
           {actions.map((item, index) => (
             <button
+              data-reveal
               key={item.title}
               onClick={item.action}
               style={{
@@ -485,6 +519,7 @@ function QuickActions() {
                 borderRight: index < actions.length - 1 ? '1px solid #E2E8F0' : 'none',
                 background: 'transparent',
                 cursor: 'pointer',
+                transitionDelay: `${index * 90}ms`,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -504,6 +539,7 @@ function QuickActions() {
         <div className="quick-actions-mobile" style={{ display: 'none', gap: 12 }}>
           {actions.map((item) => (
             <button
+              data-reveal
               key={item.title}
               onClick={item.action}
               style={{
@@ -513,6 +549,7 @@ function QuickActions() {
                 background: 'white',
                 padding: '14px',
                 cursor: 'pointer',
+                transitionDelay: '100ms',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -563,7 +600,7 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" style={{ padding: '88px 24px', background: '#F8FAFF' }}>
+    <section id="how" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="How It Works"
@@ -573,7 +610,11 @@ function HowToUse() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           {steps.map((step, index) => (
-            <div key={step.title} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20 }}>
+            <div
+              data-reveal
+              key={step.title}
+              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: step.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <step.icon size={17} color={step.color} />
@@ -610,7 +651,7 @@ function SupportedBarangays() {
   ];
 
   return (
-    <section id="barangays" style={{ padding: '88px 24px', background: '#1E3A8A' }}>
+    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: '#1E3A8A' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Coverage"
@@ -620,8 +661,12 @@ function SupportedBarangays() {
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
-          {barangays.map((item) => (
-            <div key={item.name} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18 }}>
+          {barangays.map((item, index) => (
+            <div
+              data-reveal
+              key={item.name}
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <MapPin size={16} color="#BFDBFE" />
                 <h3 style={{ margin: 0, color: 'white', fontSize: 17, fontWeight: 700 }}>{item.name}</h3>
@@ -662,7 +707,7 @@ function SafetyTips() {
   ];
 
   return (
-    <section id="safety" style={{ padding: '88px 24px', background: '#FFFFFF' }}>
+    <section id="safety" data-reveal style={{ padding: '88px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Awareness"
@@ -671,8 +716,12 @@ function SafetyTips() {
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
-          {tips.map((tip) => (
-            <div key={tip.title} style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white' }}>
+          {tips.map((tip, index) => (
+            <div
+              data-reveal
+              key={tip.title}
+              style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white', transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 38, height: 38, borderRadius: 10, background: tip.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <tip.icon size={17} color={tip.color} />
@@ -702,7 +751,7 @@ function EmergencyHotlines() {
   ];
 
   return (
-    <section id="hotlines" style={{ padding: '88px 24px', background: '#F8FAFF' }}>
+    <section id="hotlines" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Emergency Contacts"
@@ -711,6 +760,7 @@ function EmergencyHotlines() {
         />
 
         <div
+          data-reveal
           style={{
             background: 'linear-gradient(135deg, #B91C1C, #991B1B)',
             borderRadius: 14,
@@ -721,6 +771,7 @@ function EmergencyHotlines() {
             justifyContent: 'space-between',
             gap: 14,
             flexWrap: 'wrap',
+            transitionDelay: '80ms',
           }}
         >
           <div>
@@ -747,8 +798,12 @@ function EmergencyHotlines() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-          {hotlines.map((item) => (
-            <div key={item.name} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16 }}>
+          {hotlines.map((item, index) => (
+            <div
+              data-reveal
+              key={item.name}
+              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Phone size={15} color={item.color} />
@@ -875,6 +930,31 @@ function Footer() {
 }
 
 export default function Landing() {
+  useEffect(() => {
+    const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    if (!revealItems.length) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px',
+      },
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, []);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -906,6 +986,99 @@ export default function Landing() {
       <SafetyTips />
       <EmergencyHotlines />
       <Footer />
+
+      <style>{`
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(22px);
+          transition: opacity 640ms cubic-bezier(0.2, 0.65, 0.3, 1), transform 640ms cubic-bezier(0.2, 0.65, 0.3, 1);
+          will-change: opacity, transform;
+        }
+
+        [data-reveal].is-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .hero-transition-scope {
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .hero-transition-scope.is-routing {
+          opacity: 0.88;
+          transform: translateY(4px);
+        }
+
+        .hero-action-btn,
+        .hero-link-action {
+          transition: transform 160ms ease, filter 160ms ease, box-shadow 180ms ease;
+        }
+
+        .hero-action-btn.is-clicking,
+        .hero-link-action.is-clicking {
+          transform: scale(0.97);
+          filter: brightness(1.08);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+        }
+
+        .landing-scroll-cue {
+          position: absolute;
+          left: 50%;
+          bottom: 18px;
+          transform: translateX(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          background: rgba(15, 23, 42, 0.42);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 3;
+          animation: scrollCuePulse 1.8s ease-in-out infinite;
+        }
+
+        .landing-scroll-cue-icon {
+          display: inline-flex;
+          line-height: 0;
+          animation: scrollCueArrow 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollCuePulse {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(191, 219, 254, 0.18);
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(191, 219, 254, 0);
+          }
+        }
+
+        @keyframes scrollCueArrow {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(3px);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [data-reveal] {
+            opacity: 1;
+            transform: none;
+            transition: none;
+          }
+
+          .landing-scroll-cue,
+          .landing-scroll-cue-icon {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
