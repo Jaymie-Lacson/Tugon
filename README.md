@@ -54,12 +54,17 @@ This runs:
    - `OTP_DELIVERY_MODE=mock` (for capstone/demo OTP flow without SMS provider)
    - `DATABASE_URL=<your-supabase-session-pooler-url>`
    - `DIRECT_URL=<your-supabase-direct-postgres-url>`
-   - Railway predeploy migration uses `DIRECT_URL` when provided to avoid pooled max-client failures.
+   - `RUN_DB_MIGRATIONS=0` (default; avoids failing deploys when direct DB access is unavailable)
+   - Set `RUN_DB_MIGRATIONS=1` only when you intentionally want Railway to run `prisma migrate deploy` using `DIRECT_URL`.
 3. Railway uses [`railway.json`](./railway.json) to:
    - install/build server (`npm --prefix server ...`)
-   - run Prisma migrations before deploy
+   - optionally run Prisma migrations before deploy (enabled only when `RUN_DB_MIGRATIONS=1`)
    - start API server
    - health check on `/api/health`
-4. After first successful deploy, copy your Railway public URL and set frontend env:
+4. Recommended migration workflow:
+   - keep Railway at `RUN_DB_MIGRATIONS=0` for stable deploys
+   - run migrations manually from a machine that can reach Supabase direct host:
+     - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
+5. After first successful deploy, copy your Railway public URL and set frontend env:
    - `VITE_API_BASE_URL=https://<your-service>.up.railway.app/api`
   

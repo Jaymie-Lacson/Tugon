@@ -5,7 +5,7 @@
     "buildCommand": "npm --prefix server ci && npm --prefix server run prisma:generate && npm --prefix server run build"
   },
   "deploy": {
-    "preDeployCommand": "if [ -z \"$DIRECT_URL\" ]; then echo 'Missing DIRECT_URL for prisma:migrate:deploy'; exit 1; fi; DATABASE_URL=\"$DIRECT_URL\" npm --prefix server run prisma:migrate:deploy",
+    "preDeployCommand": "if [ \"$RUN_DB_MIGRATIONS\" = \"1\" ]; then if [ -z \"$DIRECT_URL\" ]; then echo 'Missing DIRECT_URL for prisma:migrate:deploy'; exit 1; fi; DATABASE_URL=\"$DIRECT_URL\" npm --prefix server run prisma:migrate:deploy; else echo 'Skipping prisma migrations (set RUN_DB_MIGRATIONS=1 to enable)'; fi",
     "startCommand": "npm --prefix server run start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 120,
