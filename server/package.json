@@ -10,11 +10,13 @@
     "test": "npm run test:integration",
     "start": "node dist/server.js",
     "start:prod": "npm run prisma:migrate:deploy && npm run start",
+    "seed": "tsx prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:status": "prisma migrate status",
     "prisma:validate": "prisma validate",
+    "prisma:seed": "npm run seed",
     "check:prod": "npm run prisma:validate && npm run prisma:generate && npm run build && npm run prisma:status"
   },
   "dependencies": {
