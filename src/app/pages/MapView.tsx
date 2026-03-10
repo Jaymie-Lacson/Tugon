@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
-import { incidents, Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { officialReportsApi } from '../services/officialReportsApi';
