@@ -52,8 +52,9 @@ This runs:
    - `JWT_EXPIRES_IN=8h`
    - `OTP_EXPIRY_MINUTES=5`
    - `OTP_DELIVERY_MODE=mock` (for capstone/demo OTP flow without SMS provider)
-    - `DATABASE_URL=<your-supabase-direct-postgres-url>`
-   - If direct URI is unreachable, use Supabase Session Pooler URI for `DATABASE_URL`
+   - `DATABASE_URL=<your-supabase-session-pooler-url>`
+   - `DIRECT_URL=<your-supabase-direct-postgres-url>`
+   - Railway predeploy migration uses `DIRECT_URL` when provided to avoid pooled max-client failures.
 3. Railway uses [`railway.json`](./railway.json) to:
    - install/build server (`npm --prefix server ...`)
    - run Prisma migrations before deploy
