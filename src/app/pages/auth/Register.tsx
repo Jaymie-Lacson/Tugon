@@ -5,9 +5,9 @@ import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../co
 import { authApi } from '../../services/authApi';
 
 const BARANGAYS = [
-  { value: '251', label: 'Barangay 251', sub: 'Zone 24 — Tondo I/II' },
-  { value: '252', label: 'Barangay 252', sub: 'Zone 25 — Tondo I/II' },
-  { value: '256', label: 'Barangay 256', sub: 'Zone 26 — Tondo I/II' },
+  { value: '251', label: 'Barangay 251', sub: 'Zone 23 — Tondo I/II' },
+  { value: '252', label: 'Barangay 252', sub: 'Zone 23 — Tondo I/II' },
+  { value: '256', label: 'Barangay 256', sub: 'Zone 23 — Tondo I/II' },
 ];
 
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';

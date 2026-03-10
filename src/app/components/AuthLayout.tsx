@@ -1,20 +1,34 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { MapPin, Radio } from 'lucide-react';
+import { MapPin, Radio, AlertTriangle, FileText, Clock3 } from 'lucide-react';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
-
-const STATS = [
-  { value: '3', label: 'Barangays' },
-  { value: '1,247+', label: 'Reports Resolved' },
-  { value: '24/7', label: 'Monitoring' },
-];
 
 interface AuthLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle: string;
 }
+
+const PANEL_FEATURES = [
+  {
+    icon: AlertTriangle,
+    title: 'Report hazards quickly',
+    description: 'Submit fire, noise, crime, pollution, and road hazard incidents in guided steps.',
+  },
+  {
+    icon: FileText,
+    title: 'Track your report status',
+    description: 'Follow updates from Submitted to Resolved with transparent progress from officials.',
+  },
+  {
+    icon: Clock3,
+    title: 'Stay response-ready',
+    description: 'Response teams stay aligned through real-time routing and barangay alert visibility.',
+  },
+];
+
+const INCIDENT_TYPES = ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'];
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   const navigate = useNavigate();
@@ -58,11 +72,11 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         }} />
 
         {/* Content */}
-        <div style={{ position: 'relative', zIndex: 2, flex: 1, display: 'flex', flexDirection: 'column', padding: '36px 40px' }}>
+        <div className="auth-panel-content">
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
-            style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 'auto' }}
+            className="auth-panel-logo-btn"
           >
             <img
               src="/tugon-header-logo.svg"
@@ -72,35 +86,52 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           </button>
 
           {/* Middle content */}
-          <div style={{ marginTop: 'auto', marginBottom: 'auto', paddingTop: 60 }}>
+          <div className="auth-panel-main">
             {/* Live badge */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(185,28,28,0.2)', border: '1px solid rgba(185,28,28,0.35)', borderRadius: 20, padding: '5px 12px', marginBottom: 24 }}>
+            <div className="auth-panel-live-badge">
               <Radio size={11} color="#F87171" />
               <span style={{ color: '#FCA5A5', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Live Monitoring Active</span>
             </div>
 
-            <h2 style={{ color: '#FFFFFF', fontSize: 28, fontWeight: 800, lineHeight: 1.2, marginBottom: 14 }}>
+            <h2 className="auth-panel-title">
               Community Safety<br />
               <span style={{ color: '#60A5FA' }}>Powered by Data.</span>
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, lineHeight: 1.7, maxWidth: 300, marginBottom: 32 }}>
+            <p className="auth-panel-description">
               Report incidents, track emergency response, and keep Barangays 251, 252, and 256 in Tondo safe — in real time.
             </p>
 
-            {/* Mini stats */}
-            <div style={{ display: 'flex', gap: 20 }}>
-              {STATS.map(s => (
-                <div key={s.label} style={{ textAlign: 'left' }}>
-                  <div style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 800, lineHeight: 1 }}>{s.value}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, marginTop: 3 }}>{s.label}</div>
-                </div>
-              ))}
+            <div className="auth-panel-features">
+              {PANEL_FEATURES.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={feature.title} className="auth-panel-feature-item">
+                    <div className="auth-panel-feature-icon">
+                      <Icon size={15} color="#BFDBFE" strokeWidth={2.1} />
+                    </div>
+                    <div>
+                      <div className="auth-panel-feature-title">{feature.title}</div>
+                      <div className="auth-panel-feature-description">{feature.description}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
+            <div className="auth-panel-types-wrap">
+              <div className="auth-panel-types-label">Supported Incident Types</div>
+              <div className="auth-panel-types-list">
+                {INCIDENT_TYPES.map((type) => (
+                  <span key={type} className="auth-panel-type-chip">{type}</span>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           {/* Footer */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <div className="auth-panel-footer">
+            <div className="auth-panel-location">
               <MapPin size={11} color="#93C5FD" />
               <span style={{ color: '#93C5FD', fontSize: 10 }}>Barangays 251, 252, 256 — Tondo, Manila</span>
             </div>
@@ -126,26 +157,21 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
           {/* Mobile logo (only visible on small screens) */}
-          <div className="auth-mobile-logo" style={{ display: 'none', justifyContent: 'center', marginBottom: 28 }}>
+          <div className="auth-mobile-strip" style={{ display: 'none' }}>
             <button
               onClick={() => navigate('/')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)',
-                border: '1px solid rgba(30,58,138,0.25)',
-                borderRadius: 12,
-                boxShadow: '0 6px 18px rgba(30,58,138,0.22)',
-                cursor: 'pointer',
-                padding: '9px 14px',
-              }}
+              className="auth-mobile-strip-logo"
             >
               <img
                 src="/tugon-header-logo.svg"
                 alt="TUGON Tondo Emergency Response"
-                style={{ height: 34, width: 'auto', display: 'block' }}
+                style={{ height: 30, width: 'auto', display: 'block' }}
               />
             </button>
+            <div className="auth-mobile-strip-text">
+              <div className="auth-mobile-strip-title">Barangays 251, 252, 256</div>
+              <div className="auth-mobile-strip-subtitle">Community safety monitoring active</div>
+            </div>
           </div>
 
           {/* Card */}
@@ -168,9 +194,190 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </div>
 
       <style>{`
+        .auth-panel-content {
+          position: relative;
+          z-index: 2;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          padding: 40px 38px 34px;
+        }
+
+        .auth-panel-logo-btn {
+          display: flex;
+          align-items: center;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          margin-bottom: auto;
+        }
+
+        .auth-panel-main {
+          margin-top: auto;
+          margin-bottom: auto;
+          padding-top: 44px;
+        }
+
+        .auth-panel-live-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          background: rgba(185, 28, 28, 0.2);
+          border: 1px solid rgba(185, 28, 28, 0.35);
+          border-radius: 999px;
+          padding: 5px 12px;
+          margin-bottom: 24px;
+        }
+
+        .auth-panel-title {
+          color: #ffffff;
+          font-size: 30px;
+          font-weight: 800;
+          line-height: 1.16;
+          margin-bottom: 16px;
+          letter-spacing: -0.01em;
+        }
+
+        .auth-panel-description {
+          color: rgba(255, 255, 255, 0.72);
+          font-size: 13px;
+          line-height: 1.72;
+          max-width: 320px;
+          margin-bottom: 20px;
+        }
+
+        .auth-panel-features {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-width: 350px;
+        }
+
+        .auth-panel-feature-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 10px;
+          padding: 10px;
+          background: rgba(15, 23, 42, 0.25);
+        }
+
+        .auth-panel-feature-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 1px;
+          background: rgba(30, 58, 138, 0.55);
+          border: 1px solid rgba(191, 219, 254, 0.45);
+        }
+
+        .auth-panel-feature-title {
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.3;
+        }
+
+        .auth-panel-feature-description {
+          color: rgba(255, 255, 255, 0.64);
+          font-size: 11px;
+          line-height: 1.45;
+          margin-top: 3px;
+        }
+
+        .auth-panel-types-wrap {
+          margin-top: 12px;
+          max-width: 350px;
+        }
+
+        .auth-panel-types-label {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+
+        .auth-panel-types-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .auth-panel-type-chip {
+          font-size: 10px;
+          font-weight: 600;
+          color: #dbeafe;
+          padding: 4px 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(191, 219, 254, 0.34);
+          background: rgba(15, 23, 42, 0.3);
+        }
+
+        .auth-panel-footer {
+          border-top: 1px solid rgba(255, 255, 255, 0.12);
+          padding-top: 18px;
+          margin-top: 8px;
+        }
+
+        .auth-panel-location {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 4px;
+        }
+
+        .auth-mobile-strip {
+          display: none;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 20px;
+          border: 1px solid #bfdbfe;
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border-radius: 12px;
+          padding: 10px 12px;
+        }
+
+        .auth-mobile-strip-logo {
+          display: flex;
+          align-items: center;
+          background: #1e3a8a;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          padding: 6px 9px;
+          flex-shrink: 0;
+        }
+
+        .auth-mobile-strip-text {
+          min-width: 0;
+        }
+
+        .auth-mobile-strip-title {
+          color: #1e3a8a;
+          font-size: 12px;
+          font-weight: 800;
+          line-height: 1.2;
+          letter-spacing: 0.02em;
+        }
+
+        .auth-mobile-strip-subtitle {
+          color: #1e40af;
+          font-size: 11px;
+          margin-top: 3px;
+          line-height: 1.3;
+        }
+
         @media (max-width: 768px) {
           .auth-panel { display: none !important; }
-          .auth-mobile-logo { display: flex !important; }
+          .auth-mobile-strip { display: flex !important; }
           .auth-form-panel {
             align-items: flex-start !important;
             padding-top: max(14px, env(safe-area-inset-top)) !important;
