@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
   plugins: [
@@ -9,6 +10,10 @@ export default defineConfig({
     // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
+    legacy({
+      // Keep support broad while excluding obsolete IE11.
+      targets: ['defaults', 'not IE 11'],
+    }),
   ],
   resolve: {
     alias: {
