@@ -27,4 +27,18 @@ jobs:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
           # Do not echo the hook URL; treat it as a credential.
-          curl --fail --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_URL"
+          echo "::add-mask::$VERCEL_DEPLOY_HOOK_URL"
+
+          http_code=$(curl --silent --show-error --output response.txt --write-out "%{http_code}" --request POST "$VERCEL_DEPLOY_HOOK_URL")
+
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "Deploy hook request failed with HTTP $http_code"
+            if [ "$http_code" = "404" ]; then
+              echo "Hint: VERCEL_DEPLOY_HOOK_URL is likely stale/invalid (revoked or copied incorrectly)."
+            fi
+            echo "Response body:"
+            cat response.txt
+            exit 1
+          fi
+
+          echo "Deploy hook triggered successfully (HTTP $http_code)."
