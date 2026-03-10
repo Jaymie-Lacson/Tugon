@@ -411,28 +411,28 @@ function SupportedBarangays() {
   const navigate = useNavigate();
   const barangays = [
     {
-      num: '251', zone: 'Zone 24 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Balut, Bangkusay Channel',
+      num: '251', zone: 'Zone 24 — Tondo I/II', district: 'District II',
+      landmarks: 'Near Moriones and adjacent residential blocks',
+      description: 'Handles incident reports from residents in Barangay 251 with coordinated barangay and emergency unit response.',
+      incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
       responders: ['MDRRMO', 'BFP', 'PNP'],
-      incidentTypes: ['Fire', 'Flood', 'Road Hazard', 'Noise', 'Crime', 'Pollution'],
       color: '#1E3A8A', light: '#EFF6FF',
-      description: 'A densely populated coastal barangay with active flood and fire incident monitoring along the waterway corridors.',
     },
     {
-      num: '252', zone: 'Zone 25 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Tondo Market, Moriones',
+      num: '252', zone: 'Zone 25 — Tondo I/II', district: 'District II',
+      landmarks: 'Near Capulong corridor and mixed-use blocks',
+      description: 'Supports rapid validation and status updates for reports submitted by residents of Barangay 252.',
+      incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
       responders: ['MDRRMO', 'PNP', 'EMS'],
-      incidentTypes: ['Road Hazard', 'Noise', 'Crime', 'Pollution', 'Fire', 'Other'],
       color: '#B91C1C', light: '#FEE2E2',
-      description: 'A commercial hub barangay experiencing high foot traffic. Road accidents and noise disturbance are common incident types.',
     },
     {
-      num: '256', zone: 'Zone 26 — Tondo I/II', district: 'District I',
-      landmarks: 'Near Divisoria, Recto Avenue',
+      num: '256', zone: 'Zone 26 — Tondo I/II', district: 'District II',
+      landmarks: 'Near key inner roads connecting to neighboring barangays',
+      description: 'Monitors local hazards and routes citizen reports to authorized responders in Barangay 256.',
+      incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
       responders: ['MDRRMO', 'BFP', 'EMS'],
-      incidentTypes: ['Fire', 'Road Hazard', 'Noise', 'Crime', 'Flood', 'Other'],
       color: '#B4730A', light: '#FEF3C7',
-      description: "Adjacent to Divisoria, this barangay benefits from TUGON's real-time infrastructure and medical emergency reporting.",
     },
   ];
 
