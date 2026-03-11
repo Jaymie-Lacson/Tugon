@@ -510,6 +510,8 @@ function QuickActions() {
           {actions.map((item, index) => (
             <button
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
@@ -540,6 +542,8 @@ function QuickActions() {
           {actions.map((item) => (
             <button
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
@@ -612,6 +616,8 @@ function HowToUse() {
           {steps.map((step, index) => (
             <div
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="right"
               key={step.title}
               style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20, transitionDelay: `${index * 90}ms` }}
             >
@@ -664,6 +670,8 @@ function SupportedBarangays() {
           {barangays.map((item, index) => (
             <div
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.name}
               style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18, transitionDelay: `${index * 90}ms` }}
             >
@@ -719,6 +727,8 @@ function SafetyTips() {
           {tips.map((tip, index) => (
             <div
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="right"
               key={tip.title}
               style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white', transitionDelay: `${index * 90}ms` }}
             >
@@ -801,6 +811,8 @@ function EmergencyHotlines() {
           {hotlines.map((item, index) => (
             <div
               data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.name}
               style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16, transitionDelay: `${index * 90}ms` }}
             >
@@ -941,7 +953,8 @@ export default function Landing() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
+          } else {
+            entry.target.classList.remove('is-visible');
           }
         });
       },
@@ -989,15 +1002,27 @@ export default function Landing() {
 
       <style>{`
         [data-reveal] {
+          --reveal-x: 0px;
+          --reveal-y: 22px;
           opacity: 0;
-          transform: translateY(22px);
+          transform: translate3d(var(--reveal-x), var(--reveal-y), 0);
           transition: opacity 640ms cubic-bezier(0.2, 0.65, 0.3, 1), transform 640ms cubic-bezier(0.2, 0.65, 0.3, 1);
           will-change: opacity, transform;
         }
 
+        [data-reveal][data-reveal-slide='x'][data-reveal-dir='left'] {
+          --reveal-x: -44px;
+          --reveal-y: 0px;
+        }
+
+        [data-reveal][data-reveal-slide='x'][data-reveal-dir='right'] {
+          --reveal-x: 44px;
+          --reveal-y: 0px;
+        }
+
         [data-reveal].is-visible {
           opacity: 1;
-          transform: translateY(0);
+          transform: translate3d(0, 0, 0);
         }
 
         .hero-transition-scope {
