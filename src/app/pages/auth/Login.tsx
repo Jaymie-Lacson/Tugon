@@ -17,7 +17,7 @@ export default function Login() {
     const e: typeof errors = {};
     const digits = phone.replace(/\D/g, '');
     if (!phone) e.phone = 'Phone number is required.';
-    else if (digits.length < 10) e.phone = 'Enter a valid Philippine phone number.';
+    else if (!/^09\d{9}$/.test(digits)) e.phone = 'Enter a valid Philippine mobile number starting with 09.';
     if (!password) e.password = 'Password is required.';
     else if (password.length < 6) e.password = 'Password must be at least 6 characters.';
     return e;

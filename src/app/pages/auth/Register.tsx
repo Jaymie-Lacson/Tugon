@@ -26,7 +26,7 @@ export default function Register() {
     if (!fullName.trim() || fullName.trim().split(' ').length < 2) e.fullName = 'Enter your complete full name (first and last).';
     const digits = phone.replace(/\D/g, '');
     if (!phone) e.phone = 'Phone number is required.';
-    else if (digits.length < 10) e.phone = 'Enter a valid Philippine phone number.';
+    else if (!/^09\d{9}$/.test(digits)) e.phone = 'Enter a valid Philippine mobile number starting with 09.';
     if (!barangay) e.barangay = 'Please select your barangay.';
     return e;
   };

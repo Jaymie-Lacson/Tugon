@@ -14,11 +14,14 @@ model User {
   passwordHash   String?
   role           Role
   isPhoneVerified Boolean @default(false)
+  isVerified     Boolean  @default(false) @map("is_verified")
+  idImageUrl     String?  @map("id_image_url")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   citizenProfile CitizenProfile?
   officialProfile OfficialProfile?
+  reports        CitizenReport[]
 }
 
 model CitizenProfile {
@@ -83,8 +86,11 @@ model CitizenReport {
   assignedUnit   String?
   resolutionNote String?
 
+  citizen       User                  @relation(fields: [citizenUserId], references: [id], onDelete: Cascade)
   statusHistory TicketStatusHistory[]
   crossBorderAlerts CrossBorderAlert[]
+
+  @@index([citizenUserId])
 }
 
 model CrossBorderAlert {

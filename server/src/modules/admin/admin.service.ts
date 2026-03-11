@@ -96,8 +96,11 @@ function normalizeAndValidatePhoneNumber(phoneNumber: unknown): string {
   }
 
   const normalized = phoneNumber.replace(/\D/g, "");
-  if (normalized.length < 10 || normalized.length > 11) {
-    throw new AdminError("Invalid phone number.", 400);
+  if (!/^09\d{9}$/.test(normalized)) {
+    throw new AdminError(
+      "Invalid phone number. Use an 11-digit mobile number starting with 09.",
+      400,
+    );
   }
 
   return normalized;

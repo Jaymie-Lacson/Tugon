@@ -20,7 +20,7 @@ export default function ForgotPassword() {
   const handleSend = async () => {
     const digits = phone.replace(/\D/g, '');
     if (!phone) { setError('Phone number is required.'); return; }
-    if (digits.length < 10) { setError('Enter a valid Philippine phone number.'); return; }
+    if (!/^09\d{9}$/.test(digits)) { setError('Enter a valid Philippine mobile number starting with 09.'); return; }
     setError('');
     setLoading(true);
     await new Promise(r => setTimeout(r, 1400));

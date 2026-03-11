@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
+import { saveAuthSession } from '../../utils/authSession';
 
 interface StrengthRule {
   label: string;
@@ -24,6 +25,8 @@ function getStrength(pw: string): { level: number; label: string; color: string 
   if (passed === 3) return { level: 3, label: 'Good', color: '#0891B2' };
   return { level: 4, label: 'Strong', color: '#059669' };
 }
+
+const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 export default function CreatePassword() {
   const navigate = useNavigate();
@@ -59,13 +62,28 @@ export default function CreatePassword() {
     setErrors({});
     setLoading(true);
     try {
-      await authApi.createPassword({
+      const session = await authApi.createPassword({
         phoneNumber: state.phone,
         password,
       });
+
+      saveAuthSession(session);
+      sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+
       setDone(true);
-      await new Promise(r => setTimeout(r, 1200));
-      navigate('/auth/login');
+      await new Promise(r => setTimeout(r, 700));
+
+      if (session.user.role === 'CITIZEN') {
+        navigate('/citizen', { replace: true });
+        return;
+      }
+
+      if (session.user.role === 'SUPER_ADMIN') {
+        navigate('/superadmin', { replace: true });
+        return;
+      }
+
+      navigate('/app', { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to create password.';
       setErrors({ general: message });
@@ -139,7 +157,7 @@ export default function CreatePassword() {
               <CheckCircle2 size={36} color="#059669" />
             </div>
             <div style={{ color: '#065F46', fontSize: 18, fontWeight: 800, marginBottom: 6 }}>Account Created!</div>
-            <div style={{ color: '#059669', fontSize: 13, marginBottom: 4 }}>Redirecting to login…</div>
+            <div style={{ color: '#059669', fontSize: 13, marginBottom: 4 }}>Signing you in…</div>
           </div>
         ) : (
           <form onSubmit={e => { e.preventDefault(); handleCreate(); }}>

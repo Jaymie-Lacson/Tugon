@@ -77,12 +77,12 @@ export function CitizenPageLayout({
       <style>{`
         @media (max-width: 900px) {
           .citizen-page-layout {
-            max-width: var(--citizen-mobile-shell-max);
-            margin: 0 auto;
+            max-width: none;
+            margin: 0;
           }
           .citizen-page-layout-main {
-            max-width: var(--citizen-mobile-shell-max);
-            margin: 0 auto;
+            max-width: none;
+            margin: 0;
             padding-left: var(--citizen-mobile-main-padding-x);
             padding-right: var(--citizen-mobile-main-padding-x);
             padding-bottom: var(--citizen-mobile-main-padding);
@@ -90,7 +90,7 @@ export function CitizenPageLayout({
           .citizen-web-header-inner,
           .citizen-web-strip-inner {
             width: 100%;
-            max-width: var(--citizen-mobile-shell-max);
+            max-width: none;
             margin: 0 auto;
           }
           .citizen-web-strip {

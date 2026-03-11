@@ -64,8 +64,8 @@ function assertCitizenRole(role: Role) {
 
 function normalizeAndValidatePhone(phoneNumber: string) {
   const normalized = authStore.normalizePhone(phoneNumber);
-  if (normalized.length < 10 || normalized.length > 11) {
-    throw new AuthError("Invalid phone number.", 400);
+  if (!/^09\d{9}$/.test(normalized)) {
+    throw new AuthError("Invalid phone number. Use an 11-digit mobile number starting with 09.", 400);
   }
   return normalized;
 }
@@ -194,7 +194,7 @@ export const authService = {
     };
   },
 
-  async createPassword(input: { phoneNumber: string; password: string }) {
+  async createPassword(input: { phoneNumber: string; password: string }): Promise<AuthSession> {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
     const otpRecord = authStore.getOtp(phoneNumber);
 
@@ -260,8 +260,9 @@ export const authService = {
       return user;
     });
 
+    const token = signToken(saved);
     return {
-      message: "Password created successfully.",
+      token,
       user: asPublicUser(saved),
     };
   },

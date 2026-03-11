@@ -12,6 +12,42 @@ Web-based incident management and geospatial decision-support system for Baranga
    - copy `.env.example` to `.env`
    - copy `server/.env.example` to `server/.env` (or keep only root `.env`)
 3. Set a real Supabase PostgreSQL `DATABASE_URL` in the env file used by the server.
+4. Configure frontend Supabase variables in root `.env`:
+   - `VITE_SUPABASE_URL=<your-supabase-project-url>`
+   - `VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>`
+   - `VITE_SUPABASE_ID_BUCKET=resident-ids` (optional, defaults to `resident-ids`)
+5. In Supabase Storage, create the bucket used for resident ID uploads (for example `resident-ids`).
+
+## Supabase Storage Policies (Resident ID Uploads)
+
+If you see: `new row violates row-level security policy` while uploading an ID, add these policies in Supabase SQL Editor (adjust bucket name if needed):
+
+```sql
+-- 1) Allow uploads for projects using backend JWT auth (no Supabase login session).
+-- The app path format is: <user-id>/<timestamp>-<uuid>.<ext>
+create policy "resident_ids_insert_own_folder"
+on storage.objects
+for insert
+to anon, authenticated
+with check (
+   bucket_id = 'resident-ids'
+   and coalesce((storage.foldername(name))[1], '') <> ''
+);
+
+-- 2) Allow read access to uploaded files in this bucket.
+create policy "resident_ids_select_own_folder"
+on storage.objects
+for select
+to anon, authenticated
+using (
+   bucket_id = 'resident-ids'
+);
+```
+
+Notes:
+- If you use a different bucket name, update both SQL snippets and `VITE_SUPABASE_ID_BUCKET`.
+- TUGON user IDs are Prisma CUID values, so do not use UUID-only regex checks for the folder segment.
+- Keep RLS enabled on `storage.objects`; narrow policies further if you later move to Supabase Auth sessions and can enforce `auth.uid()` matching.
 
 ## Run
 

@@ -18,6 +18,55 @@ import {
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { getSupabaseClient, hasSupabaseConfig } from '../services/supabaseClient';
+import {
+  getProfileVerificationStatus,
+  uploadResidentIdAndLinkProfile,
+} from '../services/profileVerificationApi';
+
+function useSession() {
+  const [session, setSession] = useState<ReturnType<ReturnType<typeof getSupabaseClient>["auth"]["getSession"]> extends Promise<infer T>
+    ? T extends { data: { session: infer S } }
+      ? S | null
+      : null
+    : null>(null);
+
+  useEffect(() => {
+    if (!hasSupabaseConfig) {
+      return;
+    }
+
+    const supabase = getSupabaseClient();
+    let isMounted = true;
+
+    const loadSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (isMounted) {
+        setSession(session);
+      }
+    };
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isMounted) {
+        setSession(session);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return session;
+}
 
 /* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface CitizenMyReport {
@@ -93,6 +142,106 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
       >
         x
       </button>
+    </div>
+  );
+}
+
+function VerificationStatusCard({
+  pendingReview,
+  isUploading,
+  message,
+  error,
+  onUploadClick,
+  onFileSelected,
+  fileInputRef,
+}: {
+  pendingReview: boolean;
+  isUploading: boolean;
+  message: string;
+  error: string;
+  onUploadClick: () => void;
+  onFileSelected: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const icon = pendingReview ? <Clock size={16} /> : <Shield size={16} />;
+  const title = pendingReview ? 'Verification in Review' : 'Verify Your Account';
+
+  return (
+    <div className="citizen-content-shell" style={{ paddingTop: 12, paddingBottom: 10 }}>
+      <div
+        style={{
+          background: pendingReview
+            ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)'
+            : 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+          border: `1px solid ${pendingReview ? '#FCD34D' : '#FDBA74'}`,
+          borderRadius: 14,
+          padding: '12px 14px',
+          boxShadow: '0 6px 18px rgba(15,23,42,0.07)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0, flex: 1 }}>
+            <span
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: pendingReview ? '#F59E0B22' : '#EA580C22',
+                color: pendingReview ? '#B45309' : '#C2410C',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {icon}
+            </span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#7C2D12' }}>{title}</div>
+              <div style={{ marginTop: 2, fontSize: 12, color: '#9A3412', lineHeight: 1.45 }}>{message}</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onUploadClick}
+            disabled={isUploading || pendingReview}
+            style={{
+              border: '1px solid #FDBA74',
+              background: pendingReview ? '#FFFFFFAA' : '#fff',
+              color: pendingReview ? '#B45309' : '#9A3412',
+              borderRadius: 10,
+              padding: '8px 14px',
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: isUploading || pendingReview ? 'not-allowed' : 'pointer',
+              opacity: isUploading ? 0.7 : 1,
+            }}
+          >
+            {pendingReview ? 'Under Review' : isUploading ? 'Uploading...' : 'Upload ID'}
+          </button>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png"
+          className="hidden"
+          onChange={onFileSelected}
+        />
+
+        {error ? (
+          <div style={{ marginTop: 8, fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>{error}</div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -350,8 +499,8 @@ type Tab = 'home' | 'report' | 'map' | 'myreports' | 'profile';
 export default function CitizenDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const session = getAuthSession();
-  const fullName = session?.user.fullName?.trim() || 'Citizen';
+  const authSession = getAuthSession();
+  const fullName = authSession?.user.fullName?.trim() || 'Citizen';
   const firstName = fullName.split(' ')[0] || 'Citizen';
   const initials = fullName
     .split(' ')
@@ -359,7 +508,7 @@ export default function CitizenDashboard() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'CU';
-  const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Tondo Cluster';
+  const barangayLabel = authSession?.user.barangayCode ? `Barangay ${authSession.user.barangayCode}` : 'Tondo Cluster';
   const todayLabel = new Date().toLocaleDateString('en-PH', {
     month: 'long',
     day: 'numeric',
@@ -373,6 +522,19 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const supabaseSession = useSession();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [idUploadedPendingReview, setIdUploadedPendingReview] = useState(false);
+  const [isUploadingId, setIsUploadingId] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const currentUserId = supabaseSession?.user?.id ?? authSession?.user?.id ?? null;
+
+  useEffect(() => {
+    if (!hasSupabaseConfig) {
+      setVerificationError('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+    }
+  }, []);
 
   const notificationItems = React.useMemo(() => {
     const criticalItems = incidents
@@ -418,6 +580,77 @@ export default function CitizenDashboard() {
   }, [incidents, myReports]);
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
+
+  useEffect(() => {
+    const userId = currentUserId;
+    if (!userId) {
+      setIsVerified(null);
+      setIdUploadedPendingReview(false);
+      return;
+    }
+
+    const loadVerification = async () => {
+      try {
+        const profile = await getProfileVerificationStatus(userId);
+        setIsVerified(profile?.is_verified ?? false);
+        setIdUploadedPendingReview(Boolean(profile?.id_image_url) && !Boolean(profile?.is_verified));
+      } catch {
+        setIsVerified(false);
+      }
+    };
+
+    void loadVerification();
+  }, [currentUserId]);
+
+  const onUploadIdClick = () => {
+    if (isUploadingId || idUploadedPendingReview) {
+      return;
+    }
+
+    fileInputRef.current?.click();
+  };
+
+  const onIdFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const userId = currentUserId;
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    setVerificationError('');
+
+    if (!userId || !file) {
+      if (!userId) {
+        setVerificationError('Unable to determine your user session. Please sign in again before uploading your ID.');
+      }
+      return;
+    }
+
+    const allowedTypes = new Set(['image/jpeg', 'image/png']);
+    if (!allowedTypes.has(file.type)) {
+      setVerificationError('Please upload a JPG or PNG file only.');
+      return;
+    }
+
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setVerificationError('File size must be 5MB or less.');
+      return;
+    }
+
+    try {
+      setIsUploadingId(true);
+      await uploadResidentIdAndLinkProfile(userId, file);
+      setIdUploadedPendingReview(true);
+      setIsVerified(false);
+    } catch (error) {
+      setVerificationError(error instanceof Error ? error.message : 'Failed to upload ID. Please try again.');
+    } finally {
+      setIsUploadingId(false);
+    }
+  };
+
+  const shouldShowVerificationBanner = activeTab === 'home' && isVerified === false;
+  const verificationBannerMessage = idUploadedPendingReview
+    ? 'ID uploaded, pending review.'
+    : 'Your account is unverified. You can submit reports, but verifying your ID helps the barangay prioritize your concerns.';
 
   useEffect(() => {
     const load = async () => {
@@ -763,6 +996,17 @@ export default function CitizenDashboard() {
       }
       beforeMain={
         <>
+          {shouldShowVerificationBanner ? (
+            <VerificationStatusCard
+              pendingReview={idUploadedPendingReview}
+              isUploading={isUploadingId}
+              message={verificationBannerMessage}
+              error={verificationError}
+              onUploadClick={onUploadIdClick}
+              onFileSelected={onIdFileSelected}
+              fileInputRef={fileInputRef}
+            />
+          ) : null}
           <AlertBanner incidents={incidents} />
           <div
             className="citizen-only-desktop citizen-web-strip"
