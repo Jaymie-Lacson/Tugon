@@ -25,7 +25,7 @@ const PERIODS = [...ANALYTICS_PERIODS];
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
   return (
-    <div style={{ background: 'white', borderRadius: 12, padding: '16px 18px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', borderLeft: `4px solid ${color}` }}>
+    <div style={{ background: 'white', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 5px rgba(15, 23, 42, 0.06)', border: '1px solid #E2E8F0' }}>
       <div style={{ color: '#64748B', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>{title}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>{value}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -193,9 +193,13 @@ export default function Analytics() {
   const totalIncidents = filteredIncidents.length;
   const resolvedIncidents = filteredIncidents.filter((incident) => incident.status === 'resolved').length;
   const resolutionRate = totalIncidents > 0 ? (resolvedIncidents / totalIncidents) * 100 : 0;
-  const avgResponse = RESPONSE_TIME.filter((row) => row.avgMin > 0).reduce((sum, row, _index, arr) => {
-    return sum + row.avgMin / (arr.length || 1);
-  }, 0);
+  const avgResponse = React.useMemo(() => {
+    const values = RESPONSE_TIME.filter((row) => row.avgMin > 0).map((row) => row.avgMin);
+    if (values.length === 0) {
+      return null;
+    }
+    return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
+  }, [RESPONSE_TIME]);
   const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
   const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
 
@@ -213,12 +217,13 @@ export default function Analytics() {
           <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Analytics & Insights</h1>
           <p style={{ color: '#64748B', fontSize: 12 }}>Incident data analysis — TUGON Decision Support System</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', background: 'white', borderRadius: 8, border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="analytics-header-controls" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="analytics-period-tabs" style={{ display: 'flex', background: 'white', borderRadius: 8, border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             {PERIODS.map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
+                className="analytics-period-tab-btn"
                 style={{
                   padding: '7px 13px',
                   border: 'none',
@@ -245,7 +250,7 @@ export default function Analytics() {
       <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
         <MetricCard title="Total Incidents" value={totalIncidents.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B91C1C" />
         <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#059669" />
-        <MetricCard title="Avg. Response" value={`${avgResponse.toFixed(1)} min`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B4730A" />
+        <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change={loading ? 'Loading' : 'Live'} up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
         <MetricCard title="Deployed Units" value={deployedUnits.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub="reported assignment load" color="#1E3A8A" />
       </div>
 
@@ -284,7 +289,7 @@ export default function Analytics() {
               <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={1} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+              <Legend align="left" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
               {ANALYTICS_TREND_SERIES.map((series) => (
                 <Area
                   key={`area-${series.key}`}
@@ -303,7 +308,7 @@ export default function Analytics() {
               <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={1} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
-              <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+              <Legend align="left" iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
               {ANALYTICS_TREND_SERIES.map((series) => (
                 <Bar
                   key={`bar-${series.key}`}
@@ -461,6 +466,33 @@ export default function Analytics() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .analytics-header-controls {
+            width: 100%;
+            align-items: stretch !important;
+          }
+
+          .analytics-period-tabs {
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .analytics-period-tab-btn {
+            width: 100%;
+            border-right: none !important;
+            border-bottom: 1px solid #F1F5F9;
+            min-height: 44px;
+          }
+
+          .analytics-header-controls > button {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }

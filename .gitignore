@@ -4,9 +4,6 @@ server/dist
 
 .env
 .env.*
-server/.env
-server/.env.*
-!server/.env.example
 
 # Raw GIS source files (kept local, not committed)
 barangay-source/*.shp

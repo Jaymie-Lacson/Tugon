@@ -45,8 +45,8 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
       background: 'white',
       borderRadius: 12,
       padding: '18px 20px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-      borderTop: `4px solid ${accent}`,
+      boxShadow: '0 1px 5px rgba(15, 23, 42, 0.06)',
+      border: '1px solid #E2E8F0',
       display: 'flex',
       flexDirection: 'column',
       gap: 10,
@@ -630,15 +630,15 @@ export default function Dashboard() {
         <div style={{ flex: '2 1 220px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Incident by Category</div>
           <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Current category distribution</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <PieChart width={120} height={120}>
+          <div className="type-dist-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <PieChart className="type-dist-pie" width={120} height={120}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
                 {typeDist.map((entry, index) => (
                   <Cell key={`cell-${index}-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
             </PieChart>
-            <div style={{ flex: 1 }}>
+            <div className="type-dist-list" style={{ flex: 1 }}>
               {typeDist.map(item => (
                 <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -652,6 +652,24 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .type-dist-wrap {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+          }
+
+          .type-dist-pie {
+            align-self: center;
+          }
+
+          .type-dist-list {
+            width: 100%;
+          }
+        }
+      `}</style>
 
       {/* Recent Incidents Table */}
       <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: 8 }}>

@@ -29,6 +29,15 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
   typhoon: <Zap size={14} />,
 };
 
+const CATEGORY_FILTER_OPTIONS = [
+  'Garbage and Sanitation',
+  'Public Disturbance',
+  'Road and Street Issues',
+  'Hazards and Safety',
+  'Neighbor Disputes / Lupon',
+  'Others',
+] as const;
+
 function mapIncidentType(category: ReportCategory): IncidentType {
   if (category === 'Hazards and Safety') return 'fire';
   if (category === 'Neighbor Disputes / Lupon') return 'crime';
@@ -295,7 +304,7 @@ export default function Incidents() {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<IncidentType | ''>('');
+  const [filterCategory, setFilterCategory] = useState<string>('');
   const [filterSeverity, setFilterSeverity] = useState<Severity | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
   const [sortKey, setSortKey] = useState<keyof IncidentView>('reportedAt');
@@ -335,7 +344,7 @@ export default function Incidents() {
         ) {
           return false;
         }
-        if (filterType && inc.type !== filterType) return false;
+        if (filterCategory && getCategoryLabelForIncidentType(inc.type) !== filterCategory) return false;
         if (filterSeverity && inc.severity !== filterSeverity) return false;
         if (filterStatus && inc.status !== filterStatus) return false;
         return true;
@@ -345,7 +354,7 @@ export default function Incidents() {
         const vb = String(b[sortKey] ?? '');
         return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       });
-  }, [incidents, search, filterType, filterSeverity, filterStatus, sortKey, sortDir]);
+  }, [incidents, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
@@ -386,7 +395,7 @@ export default function Incidents() {
     return sortDir === 'asc' ? <ChevronUp size={12} color="#1E3A8A" /> : <ChevronDown size={12} color="#1E3A8A" />;
   };
 
-  const hasFilter = search || filterType || filterSeverity || filterStatus;
+  const hasFilter = search || filterCategory || filterSeverity || filterStatus;
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
@@ -422,12 +431,12 @@ export default function Incidents() {
         {[
           {
             label: 'All Categories',
-            value: filterType,
+            value: filterCategory,
             setter: (v: string) => {
-              setFilterType(v as IncidentType | '');
+              setFilterCategory(v);
               setPage(1);
             },
-            options: Object.entries(incidentTypeConfig).map(([k]) => ({ value: k, label: getCategoryLabelForIncidentType(k as IncidentType) })),
+            options: CATEGORY_FILTER_OPTIONS.map((label) => ({ value: label, label })),
           },
           {
             label: 'All Severity',
@@ -452,7 +461,25 @@ export default function Incidents() {
             key={f.label}
             value={f.value}
             onChange={(e) => f.setter(e.target.value)}
-            style={{ flex: '1 1 130px', padding: '10px 10px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 13, background: '#F8FAFC', color: f.value ? '#1E293B' : '#94A3B8', outline: 'none', cursor: 'pointer' }}
+            style={{
+              flex: '1 1 130px',
+              minWidth: 0,
+              width: '100%',
+              padding: '10px 34px 10px 10px',
+              border: '1px solid #E2E8F0',
+              borderRadius: 8,
+              fontSize: 13,
+              background: '#F8FAFC',
+              color: f.value ? '#1E293B' : '#94A3B8',
+              outline: 'none',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              appearance: 'none',
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%2394A3B8\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"%3E%3Cpolyline points=\"6 9 12 15 18 9\"/%3E%3C/svg%3E")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 10px center',
+              backgroundSize: '14px 14px',
+            }}
           >
             <option value="">{f.label}</option>
             {f.options.map((o) => (
@@ -467,7 +494,7 @@ export default function Incidents() {
           <button
             onClick={() => {
               setSearch('');
-              setFilterType('');
+              setFilterCategory('');
               setFilterSeverity('');
               setFilterStatus('');
               setPage(1);

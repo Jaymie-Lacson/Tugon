@@ -118,13 +118,24 @@ export default function MapView() {
         <div className="map-panel-header">
           <div className="map-panel-header-row">
             <span className="map-panel-title">Active Incidents</span>
-            <button
-              onClick={() => setShowFilters(v => !v)}
-              className={`map-filter-button${showFilters ? ' is-active' : ''}`}
-            >
-              <Filter size={12} color={showFilters ? '#1E3A8A' : '#94A3B8'} />
-              <span className="map-filter-button-text">Filter</span>
-            </button>
+            <div className="map-panel-actions">
+              <button
+                onClick={() => setShowFilters(v => !v)}
+                className={`map-filter-button${showFilters ? ' is-active' : ''}`}
+              >
+                <Filter size={12} color={showFilters ? '#1E3A8A' : '#94A3B8'} />
+                <span className="map-filter-button-text">Filter</span>
+              </button>
+              <button
+                onClick={() => setPanelOpen(false)}
+                className="map-panel-close-btn"
+                title="Hide panel"
+                aria-label="Hide panel"
+              >
+                <X size={12} color="#64748B" />
+                <span className="map-panel-close-text">Hide Panel</span>
+              </button>
+            </div>
           </div>
 
           <div className="map-search-wrap">
