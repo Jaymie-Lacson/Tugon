@@ -97,6 +97,14 @@ export default function MapView() {
     return true;
   });
 
+  const coverageSubtitle = React.useMemo(() => {
+    const barangays = [...new Set(incidents.map((incident) => incident.barangay).filter(Boolean))];
+    if (barangays.length === 0) {
+      return 'Barangay Coverage: Awaiting live incident data';
+    }
+    return `Barangay Coverage: ${barangays.join(' • ')} — OpenStreetMap`;
+  }, [incidents]);
+
   return (
     <div className={`map-view-root${isPublicCommunityMap ? ' map-view-root-public' : ''}`}>
       {panelOpen && (
@@ -216,7 +224,7 @@ export default function MapView() {
 
           <div className="map-header-title">
             <span className="map-header-title-main">TUGON Incident Map</span>
-            <span className="map-header-title-sub">Municipality of Tugon — OpenStreetMap</span>
+            <span className="map-header-title-sub">{coverageSubtitle}</span>
           </div>
 
           <div className="map-mobile-title">

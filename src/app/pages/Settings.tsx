@@ -3,6 +3,7 @@ import {
   Settings as SettingsIcon, User, Bell, Shield, Database, Wifi,
   Monitor, Globe, Key, Save, ToggleLeft, ToggleRight, ChevronRight,
 } from 'lucide-react';
+import { getAuthSession } from '../utils/authSession';
 
 const SECTIONS = [
   { id: 'profile', label: 'User Profile', icon: User },
@@ -43,10 +44,50 @@ function SettingRow({ label, description, children }: { label: string; descripti
 }
 
 export default function Settings() {
+  const session = getAuthSession();
+  const currentUser = session?.user;
   const [activeSection, setActiveSection] = useState('profile');
   const [notifs, setNotifs] = useState({ critical: true, high: true, medium: false, sms: false, email: true, push: true });
   const [sys, setSys] = useState({ darkMode: false, autoRefresh: true, soundAlerts: true, compactView: false });
   const [saved, setSaved] = useState(false);
+
+  const fullName = currentUser?.fullName?.trim() || 'Official User';
+  const role = currentUser?.role ?? 'OFFICIAL';
+  const roleLabel =
+    role === 'SUPER_ADMIN'
+      ? 'Super Admin'
+      : role === 'OFFICIAL'
+        ? 'Barangay Official'
+        : 'Citizen';
+  const areaLabel = currentUser?.barangayCode
+    ? `Barangay ${currentUser.barangayCode}, Tondo, Manila`
+    : 'No assigned barangay';
+  const phoneLabel = currentUser?.phoneNumber || 'No contact number on file';
+  const emailLabel = 'No email on file';
+  const activeSessionsCount = session?.token ? 1 : 0;
+  const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'Build Unspecified';
+  const retentionDays = (import.meta.env.VITE_DATA_RETENTION_DAYS as string | undefined) ?? '365';
+  const regionLabel = currentUser?.barangayCode
+    ? `Barangay ${currentUser.barangayCode} (Tondo, Manila)`
+    : 'No assigned barangay';
+  const settingsSubtitle = `${roleLabel} controls for ${regionLabel}`;
+  const integrationScope = currentUser?.barangayCode
+    ? `Operational scope: Barangay ${currentUser.barangayCode}`
+    : 'Operational scope: No assigned barangay';
+  const integrationItems = [
+    { name: 'NDRRMC Data Feed', desc: `${integrationScope} incident advisory sync`, status: 'connected', color: '#059669' },
+    { name: 'PAGASA Weather API', desc: `${integrationScope} weather and flooding advisories`, status: 'connected', color: '#059669' },
+    { name: 'BFP Dispatch System', desc: `${integrationScope} fire-response dispatch coordination`, status: 'connected', color: '#059669' },
+    { name: 'PNP Command System', desc: `${integrationScope} law-enforcement coordination channel`, status: 'pending', color: '#B4730A' },
+    { name: 'DOH Health Surveillance', desc: `${integrationScope} health-event alert integration`, status: 'disconnected', color: '#B91C1C' },
+  ] as const;
+  const initials = fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'TU';
+
   const now = new Date();
   const lastLoginLabel = now.toLocaleString('en-PH', {
     month: 'short',
@@ -63,6 +104,9 @@ export default function Settings() {
   });
 
   const handleSave = () => {
+    if (activeSection === 'profile') {
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -75,7 +119,7 @@ export default function Settings() {
           <SettingsIcon size={20} color="#1E3A8A" />
           <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700 }}>Settings</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 12 }}>System configuration — TUGON Incident Management System</p>
+        <p style={{ color: '#64748B', fontSize: 12 }}>{settingsSubtitle}</p>
       </div>
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -114,40 +158,44 @@ export default function Settings() {
           {activeSection === 'profile' && (
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', marginBottom: 16 }}>User Profile</div>
+              <div style={{ marginBottom: 14, fontSize: 11, color: '#64748B' }}>
+                Profile information is synced from your authenticated account session.
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: '14px 16px', background: '#F8FAFC', borderRadius: 10 }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: '50%',
                   background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 700, color: 'white', fontSize: 20, flexShrink: 0,
-                }}>JR</div>
+                }}>{initials}</div>
                 <div>
-                  <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 15 }}>Juan R. Reyes</div>
-                  <div style={{ color: '#64748B', fontSize: 12 }}>MDRRMO Officer · Municipality of Tugon</div>
+                  <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 15 }}>{fullName}</div>
+                  <div style={{ color: '#64748B', fontSize: 12 }}>{roleLabel} · {areaLabel}</div>
                   <div style={{ marginTop: 4 }}>
                     <span style={{ background: '#DBEAFE', color: '#1E3A8A', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
-                      ADMIN
+                      {role}
                     </span>
                   </div>
                 </div>
               </div>
               {[
-                { label: 'Full Name', value: 'Juan R. Reyes' },
-                { label: 'Position', value: 'MDRRMO Officer' },
-                { label: 'Email', value: 'jreyes@tugon.gov.ph' },
-                { label: 'Contact', value: '+63 917 123 4567' },
-                { label: 'Assigned Area', value: 'Municipality of Tugon, Region IV-A' },
+                { label: 'Full Name', value: fullName },
+                { label: 'Position', value: roleLabel },
+                { label: 'Email', value: emailLabel },
+                { label: 'Contact', value: phoneLabel },
+                { label: 'Assigned Area', value: areaLabel },
               ].map(field => (
                 <div key={field.label} style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {field.label}
                   </label>
                   <input
-                    defaultValue={field.value}
+                    value={field.value}
+                    readOnly
                     style={{
                       width: '100%', padding: '9px 12px', borderRadius: 8,
                       border: '1px solid #E2E8F0', fontSize: 13, color: '#1E293B',
-                      background: 'white', boxSizing: 'border-box', outline: 'none',
+                      background: '#F8FAFC', boxSizing: 'border-box', outline: 'none',
                     }}
                   />
                 </div>
@@ -170,10 +218,10 @@ export default function Settings() {
                 <Toggle value={notifs.medium} onChange={v => setNotifs({ ...notifs, medium: v })} />
               </SettingRow>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, marginTop: 16 }}>Channels</div>
-              <SettingRow label="Email Notifications" description="Send alerts to jreyes@tugon.gov.ph">
+              <SettingRow label="Email Notifications" description={`Send alerts to ${emailLabel}`}>
                 <Toggle value={notifs.email} onChange={v => setNotifs({ ...notifs, email: v })} />
               </SettingRow>
-              <SettingRow label="SMS Alerts" description="Send SMS to registered mobile number">
+              <SettingRow label="SMS Alerts" description={`Send SMS to ${phoneLabel}`}>
                 <Toggle value={notifs.sms} onChange={v => setNotifs({ ...notifs, sms: v })} />
               </SettingRow>
               <SettingRow label="Push Notifications" description="In-browser push notifications">
@@ -192,8 +240,8 @@ export default function Settings() {
               </div>
               {[
                 { label: 'Change Password', desc: 'Update your account password', icon: Key },
-                { label: 'Two-Factor Authentication', desc: 'Currently enabled via authenticator app', icon: Shield },
-                { label: 'Active Sessions', desc: '1 active session on this device', icon: Monitor },
+                { label: 'Two-Factor Authentication', desc: `Configured for ${roleLabel.toLowerCase()} access`, icon: Shield },
+                { label: 'Active Sessions', desc: `${activeSessionsCount} active session${activeSessionsCount === 1 ? '' : 's'} on this device`, icon: Monitor },
                 { label: 'API Access Keys', desc: 'Manage integration tokens', icon: Key },
               ].map(item => (
                 <div key={item.label} style={{
@@ -232,10 +280,10 @@ export default function Settings() {
               <div style={{ marginTop: 16, padding: '12px 14px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 6 }}>SYSTEM INFO</div>
                 {[
-                  { label: 'Version', value: 'TUGON v2.4.1' },
+                  { label: 'Version', value: appVersion },
                   { label: 'Last Updated', value: lastUpdatedLabel },
-                  { label: 'Region', value: 'Region IV-A (CALABARZON)' },
-                  { label: 'Data Retention', value: '365 days' },
+                  { label: 'Coverage', value: regionLabel },
+                  { label: 'Data Retention', value: `${retentionDays} days` },
                 ].map(info => (
                   <div key={info.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: '#94A3B8' }}>{info.label}</span>
@@ -249,14 +297,8 @@ export default function Settings() {
           {activeSection === 'integrations' && (
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>Integrations</div>
-              <div style={{ color: '#94A3B8', fontSize: 12, marginBottom: 16 }}>Connected government systems and data sources</div>
-              {[
-                { name: 'NDRRMC Data Feed', desc: 'National Disaster Risk Reduction & Management Council', status: 'connected', color: '#059669' },
-                { name: 'PAGASA Weather API', desc: 'Weather and typhoon tracking data', status: 'connected', color: '#059669' },
-                { name: 'BFP Dispatch System', desc: 'Bureau of Fire Protection dispatch integration', status: 'connected', color: '#059669' },
-                { name: 'PNP Command System', desc: 'Philippine National Police command interface', status: 'pending', color: '#B4730A' },
-                { name: 'DOH Health Surveillance', desc: 'Department of Health epidemiology alerts', status: 'disconnected', color: '#B91C1C' },
-              ].map(integ => (
+              <div style={{ color: '#94A3B8', fontSize: 12, marginBottom: 16 }}>{integrationScope}</div>
+              {integrationItems.map(integ => (
                 <div key={integ.name} style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0',
                   borderBottom: '1px solid #F1F5F9',
@@ -284,15 +326,18 @@ export default function Settings() {
           <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
             <button
               onClick={handleSave}
+              disabled={activeSection === 'profile'}
               style={{
-                background: saved ? '#059669' : '#1E3A8A',
+                background: activeSection === 'profile' ? '#94A3B8' : saved ? '#059669' : '#1E3A8A',
                 color: 'white', border: 'none', borderRadius: 8,
-                padding: '10px 22px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                padding: '10px 22px', fontSize: 13, fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 6, transition: 'background 0.3s',
+                opacity: activeSection === 'profile' ? 0.8 : 1,
+                cursor: activeSection === 'profile' ? 'not-allowed' : 'pointer',
               }}
             >
               <Save size={14} />
-              {saved ? 'Saved!' : 'Save Changes'}
+              {activeSection === 'profile' ? 'Read-only Profile' : saved ? 'Saved!' : 'Save Changes'}
             </button>
           </div>
         </div>

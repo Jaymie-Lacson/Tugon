@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import type { Incident } from '../data/incidents';
 
 const REPORT_TEMPLATES = [
   {
@@ -18,7 +19,6 @@ const REPORT_TEMPLATES = [
     category: 'Operations',
     color: '#1E3A8A',
     bg: '#EFF6FF',
-    lastGen: '2026-03-06 06:00',
     frequency: 'Daily',
   },
   {
@@ -29,7 +29,6 @@ const REPORT_TEMPLATES = [
     category: 'Statistical',
     color: '#B4730A',
     bg: '#FEF3C7',
-    lastGen: '2026-03-05 23:59',
     frequency: 'Weekly',
   },
   {
@@ -40,7 +39,6 @@ const REPORT_TEMPLATES = [
     category: 'Resources',
     color: '#059669',
     bg: '#D1FAE5',
-    lastGen: '2026-03-05 23:00',
     frequency: 'Weekly',
   },
   {
@@ -51,7 +49,6 @@ const REPORT_TEMPLATES = [
     category: 'Executive',
     color: '#B91C1C',
     bg: '#FEE2E2',
-    lastGen: '2026-03-05 18:00',
     frequency: 'Per incident',
   },
   {
@@ -62,7 +59,6 @@ const REPORT_TEMPLATES = [
     category: 'Geospatial',
     color: '#0369A1',
     bg: '#E0F2FE',
-    lastGen: '2026-03-01 08:00',
     frequency: 'Monthly',
   },
   {
@@ -73,7 +69,6 @@ const REPORT_TEMPLATES = [
     category: 'Analytics',
     color: '#7C3AED',
     bg: '#EDE9FE',
-    lastGen: '2026-03-01 09:00',
     frequency: 'Monthly',
   },
 ];
@@ -99,56 +94,140 @@ function incidentTypeToReportCategory(type: string): string {
   return 'Statistical';
 }
 
-const DSS_RECOMMENDATIONS = [
-  {
-    id: 1,
-    priority: 'critical',
-    icon: <CloudRain size={16} />,
-    title: 'Flood Pre-Positioning Alert',
-    description: 'Based on PAGASA weather data and historical incident patterns, Brgy. Riverside and Brgy. Bagbaguin show a 78% likelihood of flooding in the next 48 hours. Pre-deploy water rescue teams and open evacuation centers.',
-    actions: ['Activate Evacuation Center 1 & 2', 'Deploy 2 water rescue units to Riverside', 'Issue community flood advisory'],
-    confidence: 78,
-    color: '#1D4ED8',
-    bg: '#EFF6FF',
-    source: 'Weather API + Historical Data',
-  },
-  {
-    id: 2,
-    priority: 'high',
-    icon: <ShieldAlert size={16} />,
-    title: 'Crime Hotspot Pattern Detected',
-    description: 'Incident clustering analysis shows elevated crime activity in the Market Area of Brgy. Santo Niño over the past 7 days. Recommend increased PNP patrol presence during market hours (06:00–20:00).',
-    actions: ['Assign 2 additional patrol units to Santo Niño Market', 'Coordinate with Barangay Tanod for perimeter monitoring', 'Install temporary CCTV coverage'],
-    confidence: 65,
-    color: '#7C3AED',
-    bg: '#EDE9FE',
-    source: 'Incident Pattern Analysis',
-  },
-  {
-    id: 3,
+function formatEvidenceSummary(photoCount: number, hasAudio: boolean): string {
+  const parts: string[] = [];
+  if (photoCount > 0) {
+    parts.push(`${photoCount} photo${photoCount > 1 ? 's' : ''}`);
+  }
+  if (hasAudio) {
+    parts.push('voice clip');
+  }
+  return parts.length > 0 ? parts.join(' + ') : 'No attachments';
+}
+
+type RecommendationPriority = 'critical' | 'high' | 'medium' | 'info';
+
+interface DSSRecommendation {
+  id: number;
+  priority: RecommendationPriority;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  actions: string[];
+  confidence: number;
+  color: string;
+  bg: string;
+  source: string;
+}
+
+function getRecommendationStyle(priority: RecommendationPriority): Pick<DSSRecommendation, 'icon' | 'color' | 'bg'> {
+  if (priority === 'critical') {
+    return { icon: <ShieldAlert size={16} />, color: '#B91C1C', bg: '#FEE2E2' };
+  }
+  if (priority === 'high') {
+    return { icon: <CloudRain size={16} />, color: '#1D4ED8', bg: '#EFF6FF' };
+  }
+  if (priority === 'medium') {
+    return { icon: <Users size={16} />, color: '#B4730A', bg: '#FEF3C7' };
+  }
+  return { icon: <TrendingUp size={16} />, color: '#059669', bg: '#D1FAE5' };
+}
+
+function toMinutes(start: string, end: string): number {
+  const diff = new Date(end).getTime() - new Date(start).getTime();
+  return Math.max(0, Math.round(diff / 60000));
+}
+
+function buildRecommendations(incidents: Incident[]): DSSRecommendation[] {
+  if (incidents.length === 0) {
+    return [];
+  }
+
+  const now = Date.now();
+  const unresolved = incidents.filter((incident) => incident.status !== 'resolved');
+  const criticalUnresolved = unresolved.filter((incident) => incident.severity === 'critical');
+  const unresolvedOlderThan24h = unresolved.filter((incident) => now - new Date(incident.reportedAt).getTime() >= 24 * 60 * 60 * 1000);
+  const recentWeek = incidents.filter((incident) => now - new Date(incident.reportedAt).getTime() <= 7 * 24 * 60 * 60 * 1000);
+
+  const byBarangay = new Map<string, number>();
+  for (const incident of recentWeek) {
+    byBarangay.set(incident.barangay, (byBarangay.get(incident.barangay) ?? 0) + 1);
+  }
+  const topBarangay = [...byBarangay.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  const respondersTotal = incidents.reduce((sum, incident) => sum + Math.max(incident.responders || 0, 0), 0);
+  const assignedRate = incidents.length > 0 ? Math.round((respondersTotal / incidents.length) * 100) : 0;
+  const responseMinutes = incidents
+    .filter((incident) => incident.respondedAt)
+    .map((incident) => toMinutes(incident.reportedAt, incident.respondedAt ?? incident.reportedAt));
+  const avgResponse = responseMinutes.length > 0
+    ? Number((responseMinutes.reduce((sum, value) => sum + value, 0) / responseMinutes.length).toFixed(1))
+    : null;
+
+  const recommendations: Array<Omit<DSSRecommendation, 'id' | 'icon' | 'color' | 'bg'>> = [];
+
+  if (criticalUnresolved.length > 0) {
+    recommendations.push({
+      priority: 'critical',
+      title: 'Critical Incidents Need Immediate Action',
+      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? 's are' : ' is'} still unresolved in your queue. Prioritize verification and dispatch to reduce escalation risk.`,
+      actions: ['Escalate critical queue to duty officer', 'Confirm responder assignment for each critical case', 'Post barangay situational update for ongoing risks'],
+      confidence: Math.min(95, 70 + criticalUnresolved.length * 5),
+      source: 'Live Incident Queue',
+    });
+  }
+
+  if (topBarangay) {
+    recommendations.push({
+      priority: 'high',
+      title: 'Weekly Hotspot Concentration Detected',
+      description: `${topBarangay[0]} logged ${topBarangay[1]} incident${topBarangay[1] > 1 ? 's' : ''} in the last 7 days, higher than other covered areas. Plan targeted patrol and preventive advisories.`,
+      actions: ['Increase field monitoring in hotspot puroks', 'Coordinate with barangay tanod for peak-hour visibility', 'Issue focused community safety advisory'],
+      confidence: Math.min(92, 55 + topBarangay[1] * 6),
+      source: '7-Day Incident Distribution',
+    });
+  }
+
+  recommendations.push({
     priority: 'medium',
-    icon: <Users size={16} />,
-    title: 'BFP Capacity Optimization',
-    description: 'Current BFP deployment rate is at 55% with 22 units deployed from 40 available. Response time for fire incidents averages 7.2 minutes, below the 8-minute target. Consider rotating 4 units for maintenance.',
-    actions: ['Schedule maintenance for 4 BFP units', 'Maintain current deployment configuration', 'Monitor for surge events'],
-    confidence: 82,
-    color: '#B4730A',
-    bg: '#FEF3C7',
-    source: 'Resource Utilization Analysis',
-  },
-  {
-    id: 4,
-    priority: 'info',
-    icon: <TrendingUp size={16} />,
-    title: 'Positive Response Time Trend',
-    description: 'Medical emergency response times have improved by 18% over the past 2 weeks (9.8 min → 6.4 min). The new EMS route optimization protocol appears to be effective. Recommend formalizing as standard procedure.',
-    actions: ['Document EMS route optimization protocol', 'Share best practice with adjacent municipalities', 'Maintain current EMS deployment pattern'],
-    confidence: 91,
-    color: '#059669',
-    bg: '#D1FAE5',
-    source: 'Response Time Analytics',
-  },
-];
+    title: 'Responder Assignment Coverage',
+    description: `${respondersTotal} responder unit assignment${respondersTotal !== 1 ? 's' : ''} recorded across ${incidents.length} report${incidents.length > 1 ? 's' : ''}. Current assignment intensity is ${assignedRate}%.`,
+    actions: ['Review unresolved reports without assigned responders', 'Balance assignment load across ongoing incidents', 'Document reassignment for shift handover'],
+    confidence: Math.min(90, 50 + Math.round(assignedRate * 0.4)),
+    source: 'Responder Utilization Metrics',
+  });
+
+  if (avgResponse !== null) {
+    recommendations.push({
+      priority: 'info',
+      title: 'Average First Response Insight',
+      description: `Current average time to first response is ${avgResponse} minutes based on ${responseMinutes.length} responded report${responseMinutes.length > 1 ? 's' : ''}. Track this against barangay operational targets.`,
+      actions: ['Review delayed responses above average', 'Highlight fast-response workflow for replication', 'Include response-time summary in shift briefing'],
+      confidence: Math.min(96, 65 + responseMinutes.length),
+      source: 'Response Timeline Analysis',
+    });
+  }
+
+  if (unresolvedOlderThan24h.length > 0) {
+    recommendations.push({
+      priority: 'high',
+      title: 'Aging Unresolved Reports',
+      description: `${unresolvedOlderThan24h.length} unresolved report${unresolvedOlderThan24h.length > 1 ? 's are' : ' is'} older than 24 hours. Consider focused review to prevent backlog growth.`,
+      actions: ['Tag aging incidents for priority reassessment', 'Assign resolution owner per aging report', 'Update status notes for pending field verification'],
+      confidence: Math.min(94, 60 + unresolvedOlderThan24h.length * 6),
+      source: 'Queue Aging Monitor',
+    });
+  }
+
+  return recommendations.slice(0, 4).map((rec, index) => {
+    const style = getRecommendationStyle(rec.priority);
+    return {
+      id: index + 1,
+      ...rec,
+      ...style,
+    };
+  });
+}
 
 const priorityStyle = {
   critical: { color: '#B91C1C', bg: '#FEE2E2', label: 'CRITICAL' },
@@ -157,7 +236,7 @@ const priorityStyle = {
   info: { color: '#065F46', bg: '#D1FAE5', label: 'INSIGHT' },
 };
 
-function DSSCard({ rec }: { rec: typeof DSS_RECOMMENDATIONS[0] }) {
+function DSSCard({ rec }: { rec: DSSRecommendation }) {
   const [expanded, setExpanded] = useState(false);
   const pStyle = priorityStyle[rec.priority as keyof typeof priorityStyle];
 
@@ -241,6 +320,7 @@ export default function Reports() {
   const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportsError, setReportsError] = useState<string | null>(null);
+  const [incidentData, setIncidentData] = useState<Incident[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -248,10 +328,11 @@ export default function Reports() {
       setReportsError(null);
       try {
         const payload = await officialReportsApi.getReports();
-        const mapped = payload.reports
-          .map((report) => reportToIncident(report))
-          .slice(0, 8)
-          .map((incident) => ({
+        const mapped = payload.reports.map((report) => reportToIncident(report));
+        setIncidentData(mapped);
+        const historyRows = payload.reports.slice(0, 8).map((report) => {
+          const incident = reportToIncident(report);
+          return {
             name: `${incident.id} — ${incident.location}`,
             type: incidentTypeToReportCategory(incident.type),
             time: new Date(incident.reportedAt).toLocaleString('en-PH', {
@@ -263,12 +344,14 @@ export default function Reports() {
               hour12: false,
             }),
             by: incident.reportedBy,
-            size: 'N/A',
-          }));
-        setRecentReports(mapped);
+            size: formatEvidenceSummary(report.photoCount, report.hasAudio),
+          };
+        });
+        setRecentReports(historyRows);
       } catch (loadError) {
         const message = loadError instanceof Error ? loadError.message : 'Failed to load report history.';
         setReportsError(message);
+        setIncidentData([]);
       } finally {
         setReportsLoading(false);
       }
@@ -281,6 +364,38 @@ export default function Reports() {
     setGenerating(id);
     setTimeout(() => setGenerating(null), 2500);
   };
+
+  const dssRecommendations = React.useMemo(() => buildRecommendations(incidentData), [incidentData]);
+  const dssActionCount = dssRecommendations.reduce((sum, rec) => sum + rec.actions.length, 0);
+  const resolvedThisWeek = React.useMemo(() => {
+    const now = Date.now();
+    return incidentData.filter((incident) => incident.resolvedAt && now - new Date(incident.resolvedAt).getTime() <= 7 * 24 * 60 * 60 * 1000).length;
+  }, [incidentData]);
+  const avgConfidence = dssRecommendations.length > 0
+    ? Math.round(dssRecommendations.reduce((sum, rec) => sum + rec.confidence, 0) / dssRecommendations.length)
+    : 0;
+  const analysisWindowDays = React.useMemo(() => {
+    if (incidentData.length === 0) {
+      return 0;
+    }
+    const minTs = Math.min(...incidentData.map((incident) => new Date(incident.reportedAt).getTime()));
+    const diffDays = Math.floor((Date.now() - minTs) / (24 * 60 * 60 * 1000)) + 1;
+    return Math.max(1, diffDays);
+  }, [incidentData]);
+  const latestIncidentTime = React.useMemo(() => {
+    if (incidentData.length === 0) {
+      return 'No data yet';
+    }
+    const latestTs = Math.max(...incidentData.map((incident) => new Date(incident.reportedAt).getTime()));
+    return new Date(latestTs).toLocaleString('en-PH', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }, [incidentData]);
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
@@ -343,7 +458,9 @@ export default function Reports() {
               </div>
               <div style={{ color: 'white', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>TUGON Intelligence Engine</div>
               <div style={{ color: '#93C5FD', fontSize: 12 }}>
-                Analyzing 13 days of incident data, weather patterns, and resource utilization to surface actionable recommendations.
+                {analysisWindowDays > 0
+                  ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data and responder utilization to surface actionable recommendations.`
+                  : 'Waiting for incident data to generate recommendations.'}
               </div>
             </div>
             <button style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
@@ -354,10 +471,10 @@ export default function Reports() {
           {/* Stats row */}
           <div className="dss-stats-row" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
             {[
-              { label: 'Active Recommendations', value: 4, color: '#1E3A8A', bg: '#EFF6FF' },
-              { label: 'Pending Actions', value: 8, color: '#B4730A', bg: '#FEF3C7' },
-              { label: 'Approved This Week', value: 12, color: '#059669', bg: '#D1FAE5' },
-              { label: 'Avg. Confidence Score', value: '79%', color: '#7C3AED', bg: '#EDE9FE' },
+              { label: 'Active Recommendations', value: dssRecommendations.length, color: '#1E3A8A', bg: '#EFF6FF' },
+              { label: 'Pending Actions', value: dssActionCount, color: '#B4730A', bg: '#FEF3C7' },
+              { label: 'Resolved This Week', value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
+              { label: 'Avg. Confidence Score', value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
               <div key={s.label} style={{ flex: '1 1 120px', background: 'white', borderRadius: 10, padding: '12px 14px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', borderLeft: `3px solid ${s.color}` }}>
                 <div style={{ fontSize: 22, fontWeight: 700, color: s.color, marginBottom: 2 }}>{s.value}</div>
@@ -372,7 +489,13 @@ export default function Reports() {
               <Lightbulb size={15} color="#B4730A" />
               Current Recommendations
             </div>
-            {DSS_RECOMMENDATIONS.map(rec => <DSSCard key={rec.id} rec={rec} />)}
+            {dssRecommendations.length > 0 ? (
+              dssRecommendations.map((rec) => <DSSCard key={rec.id} rec={rec} />)
+            ) : (
+              <div style={{ background: 'white', borderRadius: 12, border: '1px solid #E2E8F0', color: '#64748B', fontSize: 12, padding: '12px 14px' }}>
+                No live recommendation available yet. Submit or process incidents to unlock DSS insights.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -401,7 +524,7 @@ export default function Reports() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
                       <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 2 }}>Last Generated</div>
-                      <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{t.lastGen}</div>
+                      <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{latestIncidentTime}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 2 }}>Frequency</div>
