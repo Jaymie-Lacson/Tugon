@@ -24,6 +24,7 @@ const CATEGORY_DIST_CONFIG = [
   { name: 'Hazards and Safety', color: '#B91C1C' },
   { name: 'Neighbor Disputes / Lupon', color: '#1E3A8A' },
   { name: 'Others', color: '#475569' },
+];
 
 const TREND_DATA = [
   { day: 'Feb 28', incidents: 8, resolved: 7 },
