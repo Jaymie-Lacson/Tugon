@@ -9,8 +9,10 @@ import {
   incidentTypeConfig, severityConfig, statusConfig,
 } from '../data/incidents';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import type { ApiCitizenReport, ApiIncidentType, ApiTicketStatus } from '../services/citizenReportsApi';
+import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
 import { officialReportsApi } from '../services/officialReportsApi';
+import type { ReportCategory } from '../data/reportTaxonomy';
+import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 type IncidentView = Incident & {
   ticketStatus: ApiTicketStatus;
@@ -27,20 +29,12 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
   typhoon: <Zap size={14} />,
 };
 
-function mapIncidentType(type: ApiIncidentType): IncidentType {
-  switch (type) {
-    case 'Fire':
-      return 'fire';
-    case 'Crime':
-      return 'crime';
-    case 'Road Hazard':
-      return 'accident';
-    case 'Pollution':
-    case 'Noise':
-    case 'Other':
-    default:
-      return 'infrastructure';
-  }
+function mapIncidentType(category: ReportCategory): IncidentType {
+  if (category === 'Hazards and Safety') return 'fire';
+  if (category === 'Neighbor Disputes / Lupon') return 'crime';
+  if (category === 'Road and Street Issues') return 'accident';
+  if (category === 'Garbage and Sanitation') return 'flood';
+  return 'infrastructure';
 }
 
 function mapTicketStatus(status: ApiTicketStatus): IncidentStatus {
@@ -75,7 +69,7 @@ function toIncidentView(report: ApiCitizenReport): IncidentView {
 
   return {
     id: report.id,
-    type: mapIncidentType(report.type),
+    type: mapIncidentType(report.category),
     severity: report.severity,
     status: mapTicketStatus(report.status),
     ticketStatus: report.status,
@@ -425,13 +419,13 @@ export default function Incidents() {
 
         {[
           {
-            label: 'All Types',
+            label: 'All Categories',
             value: filterType,
             setter: (v: string) => {
               setFilterType(v as IncidentType | '');
               setPage(1);
             },
-            options: Object.entries(incidentTypeConfig).map(([k, v]) => ({ value: k, label: v.label })),
+            options: Object.entries(incidentTypeConfig).map(([k]) => ({ value: k, label: getCategoryLabelForIncidentType(k as IncidentType) })),
           },
           {
             label: 'All Severity',

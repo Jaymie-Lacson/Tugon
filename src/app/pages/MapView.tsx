@@ -10,6 +10,7 @@ import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
   fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -184,8 +185,10 @@ export default function MapView() {
                 onChange={e => setFilterType(e.target.value as IncidentType | '')}
                 style={{ flex: 1, padding: '6px 8px', border: '1px solid #E2E8F0', borderRadius: 6, fontSize: 11, background: '#F8FAFC', color: '#64748B', outline: 'none' }}
               >
-                <option value="">All Types</option>
-                {Object.entries(incidentTypeConfig).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                <option value="">All Categories</option>
+                {Object.entries(incidentTypeConfig).map(([k]) => (
+                  <option key={k} value={k}>{getCategoryLabelForIncidentType(k as IncidentType)}</option>
+                ))}
               </select>
               <select
                 value={filterStatus}

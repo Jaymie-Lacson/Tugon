@@ -1,5 +1,6 @@
 import React from 'react';
 import { Severity, IncidentStatus, IncidentType, severityConfig, statusConfig, incidentTypeConfig } from '../data/incidents';
+import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 interface SeverityBadgeProps {
   severity: Severity;
@@ -132,7 +133,7 @@ export function TypeBadge({ type, size = 'md' }: TypeBadgeProps) {
         whiteSpace: 'nowrap',
       }}
     >
-      {config.label}
+      {getCategoryLabelForIncidentType(type)}
     </span>
   );
 }

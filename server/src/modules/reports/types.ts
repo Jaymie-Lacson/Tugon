@@ -6,13 +6,7 @@ export type TicketStatus =
   | "Closed"
   | "Unresolvable";
 
-export type IncidentType =
-  | "Fire"
-  | "Pollution"
-  | "Noise"
-  | "Crime"
-  | "Road Hazard"
-  | "Other";
+import type { ReportCategory, ReportSubcategory } from "./taxonomy.js";
 
 export type ReportSeverity = "low" | "medium" | "high" | "critical";
 
@@ -32,7 +26,10 @@ export interface CitizenReportRecord {
   routedBarangayCode: string;
   latitude: number;
   longitude: number;
-  type: IncidentType;
+  category: ReportCategory;
+  subcategory: ReportSubcategory;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
   status: TicketStatus;
   location: string;
   barangay: string;
@@ -52,7 +49,10 @@ export interface CitizenReportRecord {
 }
 
 export interface CreateCitizenReportInput {
-  type: IncidentType;
+  category: string;
+  subcategory: string;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
   latitude: number;
   longitude: number;
   location: string;
@@ -73,7 +73,10 @@ export interface CrossBorderAlertRecord {
   readAt: string | null;
   report: {
     id: string;
-    type: IncidentType;
+    category: ReportCategory;
+    subcategory: ReportSubcategory;
+    requiresMediation: boolean;
+    mediationWarning: string | null;
     status: TicketStatus;
     location: string;
     barangay: string;
@@ -83,7 +86,7 @@ export interface CrossBorderAlertRecord {
 }
 
 export interface HeatmapQueryInput {
-  incidentType?: string;
+  category?: string;
   fromDate?: string;
   toDate?: string;
   days?: number;
@@ -93,7 +96,7 @@ export interface HeatmapQueryInput {
 
 export interface HeatmapClusterRecord {
   clusterId: string;
-  incidentType: IncidentType;
+  category: ReportCategory;
   incidentCount: number;
   centerLatitude: number;
   centerLongitude: number;

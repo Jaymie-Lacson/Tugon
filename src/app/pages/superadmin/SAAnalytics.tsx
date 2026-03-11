@@ -154,7 +154,7 @@ export default function SAAnalytics() {
         </div>
 
         <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB' }}>
-          <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Report Type Mix</div>
+          <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Report Category Mix</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75}>

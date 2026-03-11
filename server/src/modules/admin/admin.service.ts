@@ -5,6 +5,7 @@ import {
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../config/prisma.js";
+import { defaultBarangayBoundaries } from "../map/defaultBarangayBoundaries.js";
 import type { Role } from "../auth/types.js";
 
 const MANAGED_BARANGAYS = ["251", "252", "256"] as const;
@@ -198,6 +199,45 @@ function stringifyAuditDetails(details: Record<string, unknown>): string {
   } catch {
     return "{}";
   }
+}
+
+async function ensureManagedBarangaysWithBoundaries() {
+  const defaultsByCode = new Map(
+    defaultBarangayBoundaries.map((boundary) => [boundary.code, boundary]),
+  );
+  const existing = await prisma.barangay.findMany({
+    where: {
+      code: {
+        in: [...MANAGED_BARANGAYS],
+      },
+    },
+    select: {
+      code: true,
+      boundaryGeojson: true,
+    },
+  });
+  const existingByCode = new Map(existing.map((barangay) => [barangay.code, barangay]));
+
+  await Promise.all(
+    MANAGED_BARANGAYS.filter((code) => {
+      const current = existingByCode.get(code);
+      return !current || !current.boundaryGeojson;
+    }).map((code) => {
+      const fallback = defaultsByCode.get(code);
+      return prisma.barangay.upsert({
+        where: { code },
+        update: {
+          name: `Barangay ${code}`,
+          ...(fallback ? { boundaryGeojson: fallback.boundaryGeojson } : {}),
+        },
+        create: {
+          code,
+          name: `Barangay ${code}`,
+          boundaryGeojson: fallback?.boundaryGeojson ?? null,
+        },
+      });
+    }),
+  );
 }
 
 async function createAdminAuditLog(
@@ -580,20 +620,7 @@ export const adminService = {
   },
 
   async listBarangays() {
-    await Promise.all(
-      MANAGED_BARANGAYS.map((code) =>
-        prisma.barangay.upsert({
-          where: { code },
-          update: {
-            name: `Barangay ${code}`,
-          },
-          create: {
-            code,
-            name: `Barangay ${code}`,
-          },
-        }),
-      ),
-    );
+    await ensureManagedBarangaysWithBoundaries();
 
     const [barangays, totalByBarangay, activeByBarangay] = await Promise.all([
       prisma.barangay.findMany({

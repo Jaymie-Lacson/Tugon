@@ -2,17 +2,26 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
-  ChevronDown,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
   FileText,
   Flame,
   Map as MapIcon,
   MapPin,
   Menu,
+  Navigation,
   Phone,
   Radio,
+  Shield,
+  Star,
   Users,
+  Volume2,
   X,
+  Zap,
+  Car,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
@@ -633,22 +642,40 @@ function HowToUse() {
 
 function SupportedBarangays() {
   const barangays = [
-    {
-      name: 'Barangay 251',
-      district: 'District I',
-      note: 'Coastal and flood-prone areas with active fire and hazard monitoring.',
-    },
-    {
-      name: 'Barangay 252',
-      district: 'District I',
-      note: 'Commercial activity zone with frequent traffic and noise concerns.',
-    },
-    {
-      name: 'Barangay 256',
-      district: 'District I',
-      note: 'High-density roads and market corridors requiring quick incident response.',
-    },
-  ];
+  {
+    name: 'Barangay 251',
+    zone: 'Zone 24 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near Moriones and adjacent residential blocks',
+    description: 'Handles incident reports from residents in Barangay 251 with coordinated barangay and emergency unit response.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'BFP', 'PNP'],
+    color: '#1E3A8A',
+    light: '#EFF6FF',
+  },
+  {
+    name: 'Barangay 252',
+    zone: 'Zone 25 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near Capulong corridor and surrounding mixed-use residential blocks',
+    description: 'Supports rapid validation, routing, and status updates for incident reports submitted by residents of Barangay 252.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'PNP', 'EMS'],
+    color: '#B91C1C',
+    light: '#FEE2E2',
+  },
+  {
+    name: 'Barangay 256',
+    zone: 'Zone 26 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near key inner roads and access points connecting to neighboring barangays',
+    description: 'Monitors local hazards and routes citizen incident reports to authorized responders within Barangay 256.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'BFP', 'EMS'],
+    color: '#B4730A',
+    light: '#FEF3C7',
+  },
+];
 
   return (
     <section id="barangays" data-reveal style={{ padding: '88px 24px', background: '#1E3A8A' }}>
@@ -671,8 +698,32 @@ function SupportedBarangays() {
                 <MapPin size={16} color="#BFDBFE" />
                 <h3 style={{ margin: 0, color: 'white', fontSize: 17, fontWeight: 700 }}>{item.name}</h3>
               </div>
+
+              {/* Responders */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+                {b.responders.map(r => (
+                  <span key={r} style={{ background: 'rgba(255,255,255,0.1)', color: '#BFDBFE', fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.15)' }}>
+                    {r}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/auth/register')}
+                style={{
+                  marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              >
+                Register to Report <ChevronRight size={13} />
+              </button>
               <p style={{ margin: '0 0 8px', fontSize: 12, color: '#BFDBFE' }}>{item.district}</p>
-              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55 }}>{item.note}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55 }}> {item.description}
+              </p>
             </div>
           ))}
         </div>
