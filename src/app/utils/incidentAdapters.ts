@@ -39,6 +39,8 @@ export function reportToIncident(report: ApiCitizenReport): Incident {
   const respondedAt =
     report.timeline.find((entry) => entry.status === 'Under Review' || entry.status === 'In Progress')?.timestamp;
   const resolvedAt = report.timeline.find((entry) => entry.status === 'Resolved' || entry.status === 'Closed')?.timestamp;
+  const createdEntry = report.timeline.find((entry) => entry.status === 'Created');
+  const reportedBy = createdEntry?.actor?.trim() || report.timeline[0]?.actor?.trim() || 'Citizen';
 
   return {
     id: report.id,
@@ -53,7 +55,7 @@ export function reportToIncident(report: ApiCitizenReport): Incident {
     resolvedAt,
     responders: report.assignedOfficer ? 1 : 0,
     description: report.description,
-    reportedBy: 'Citizen Report',
+    reportedBy,
     affectedPersons: parseAffectedCount(report.affectedCount),
     mapX: 0,
     mapY: 0,

@@ -6,8 +6,8 @@ import {
   ChevronRight, RefreshCw, Navigation2, Bell,
 } from 'lucide-react';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { type Incident, incidentTypeConfig } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
@@ -25,35 +25,6 @@ const CATEGORY_DIST_CONFIG = [
   { name: 'Neighbor Disputes / Lupon', color: '#1E3A8A' },
   { name: 'Others', color: '#475569' },
 ];
-
-const TREND_DATA = [
-  { day: 'Feb 28', incidents: 8, resolved: 7 },
-  { day: 'Mar 1', incidents: 14, resolved: 12 },
-  { day: 'Mar 2', incidents: 11, resolved: 9 },
-  { day: 'Mar 3', incidents: 19, resolved: 17 },
-  { day: 'Mar 4', incidents: 16, resolved: 14 },
-  { day: 'Mar 5', incidents: 22, resolved: 18 },
-  { day: 'Mar 6', incidents: 15, resolved: 6 },
-];
-
-const TYPE_DIST = [
-  { name: 'Fire', value: 4, color: '#B91C1C' },
-  { name: 'Flood', value: 5, color: '#1D4ED8' },
-  { name: 'Accident', value: 3, color: '#B4730A' },
-  { name: 'Medical', value: 3, color: '#0F766E' },
-  { name: 'Crime', value: 2, color: '#7C3AED' },
-  { name: 'Infra.', value: 2, color: '#374151' },
-  { name: 'Typhoon', value: 1, color: '#0369A1' },
-];
-const TYPE_DIST_CONFIG = [
-  { key: 'fire', name: 'Fire', color: '#B91C1C' },
-  { key: 'flood', name: 'Flood', color: '#1D4ED8' },
-  { key: 'accident', name: 'Accident', color: '#B4730A' },
-  { key: 'medical', name: 'Medical', color: '#0F766E' },
-  { key: 'crime', name: 'Crime', color: '#7C3AED' },
-  { key: 'infrastructure', name: 'Infra.', color: '#374151' },
-  { key: 'typhoon', name: 'Typhoon', color: '#0369A1' },
-] as const;
 
 const typeIcons: Record<string, React.ReactNode> = {
   fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -302,6 +273,7 @@ export default function Dashboard() {
   const trendWindowLabel = trendData.length >= 2
     ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
     : 'Latest reporting window';
+  const staffedActiveIncidents = activeIncidents.filter((incident) => incident.responders > 0).length;
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
@@ -441,7 +413,7 @@ export default function Dashboard() {
         <KPICard
           title="Deployed Units"
           value={deployedUnits}
-          subtitle="BFP, PNP, MDRRMO, EMS"
+          subtitle={staffedActiveIncidents > 0 ? `${staffedActiveIncidents} cases with assigned responders` : 'No assigned responders yet'}
           icon={<Users size={20} />}
           accent="#1E3A8A"
           bgLight="#DBEAFE"
@@ -626,7 +598,7 @@ export default function Dashboard() {
         <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>7-Day Incident Trend</div>
+              <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>{trendData.length}-Day Incident Trend</div>
               <div style={{ color: '#94A3B8', fontSize: 11 }}>{trendWindowLabel}</div>
             </div>
             <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
