@@ -1,5 +1,6 @@
 import { getAuthSession } from "../utils/authSession";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
+import { apiErrorDebugStore, parseJsonResponse } from "./apiErrorDebug";
 
 export type ApiTicketStatus =
   | "Submitted"
@@ -54,22 +55,31 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.token}`,
-      ...(init?.headers ?? {}),
-    },
-  });
+  const method = (init?.method ?? "GET").toUpperCase();
+  const url = `${API_BASE}${path}`;
+  let response: Response;
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
-    throw new Error(message);
+  try {
+    response = await fetch(url, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    const message = `Unable to reach the API server (${API_BASE}).`;
+    const record = apiErrorDebugStore.recordNetworkError({
+      method,
+      url,
+      message,
+      error,
+    });
+    throw new Error(`${record.message} [status=${record.status} code=${record.code ?? record.statusText}]`);
   }
 
-  return payload as T;
+  return parseJsonResponse<T>(response, method, url);
 }
 
 export const citizenReportsApi = {

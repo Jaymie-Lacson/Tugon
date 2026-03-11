@@ -127,7 +127,8 @@ export default function Analytics() {
           }, 0) / withResponse.length).toFixed(1));
 
       return {
-        type: ANALYTICS_TYPE_LABELS[type],
+        typeKey: type,
+        typeLabel: ANALYTICS_TYPE_LABELS[type],
         avgMin,
         target: ANALYTICS_RESPONSE_TARGETS[type],
       };
@@ -168,6 +169,7 @@ export default function Analytics() {
       const deployed = subset.reduce((sum, incident) => sum + Math.max(incident.responders || 0, 0), 0);
       const total = Math.max(subset.length, deployed, 1);
       return {
+        type,
         name: ANALYTICS_TYPE_LABELS[type],
         deployed,
         available: Math.max(total - deployed, 0),
@@ -329,7 +331,15 @@ export default function Analytics() {
             <BarChart data={RESPONSE_TIME} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} unit="m" />
-              <YAxis dataKey="type" type="category" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={55} />
+              <YAxis
+                dataKey="typeKey"
+                type="category"
+                tick={{ fontSize: 11, fill: '#475569' }}
+                axisLine={false}
+                tickLine={false}
+                width={55}
+                tickFormatter={(value) => ANALYTICS_TYPE_LABELS[value as keyof typeof ANALYTICS_TYPE_LABELS] ?? String(value)}
+              />
               <Tooltip
                 formatter={(value, name) => [
                   `${value} min`,
@@ -340,7 +350,7 @@ export default function Analytics() {
               <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
               <Bar dataKey="avgMin" key="bar-avgmin" fill="#1E3A8A" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
                 {RESPONSE_TIME.map((entry, index) => (
-                  <Cell key={`cell-rt-${index}-${entry.type}`} fill={entry.avgMin <= entry.target ? '#059669' : '#B91C1C'} />
+                  <Cell key={`cell-rt-${index}-${entry.typeKey}`} fill={entry.avgMin <= entry.target ? '#059669' : '#B91C1C'} />
                 ))}
               </Bar>
             </BarChart>
@@ -439,7 +449,7 @@ export default function Analytics() {
                 ? ANALYTICS_UTILIZATION_BANDS.mediumColor
                 : ANALYTICS_UTILIZATION_BANDS.baseColor;
             return (
-              <div key={r.name} style={{ marginBottom: 12 }}>
+              <div key={r.type} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: '#475569', fontWeight: 500 }}>{r.name}</span>
                   <div style={{ display: 'flex', gap: 8, fontSize: 11, color: '#64748B' }}>

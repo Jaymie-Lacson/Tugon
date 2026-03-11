@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { getAuthSession, clearAuthSession } from '../utils/authSession';
+import { ApiDebugBanner } from './ApiDebugBanner';
 
 const BASE_NAV_ITEMS = [
   { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -280,6 +281,8 @@ export function Layout() {
             }}>JR</div>
           </div>
         </header>
+
+        <ApiDebugBanner />
 
         {/* Page content */}
         <main className="page-content" style={{ flex: 1, overflowY: 'auto' }}>

@@ -1,8 +1,27 @@
 import { getAuthSession } from "../utils/authSession";
 import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
+import { ApiRequestError, apiErrorDebugStore, parseJsonResponse } from "./apiErrorDebug";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
+
+function shouldUseSoftFallback(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError)) {
+    return false;
+  }
+
+  // Temporary client-side compatibility mode while production backend is being fixed.
+  return error.details.status >= 500;
+}
+
+function getDateRangeFromDays(days: number): { fromDate: string; toDate: string } {
+  const toDate = new Date();
+  const fromDate = new Date(toDate.getTime() - days * 24 * 60 * 60 * 1000);
+  return {
+    fromDate: fromDate.toISOString(),
+    toDate: toDate.toISOString(),
+  };
+}
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
@@ -10,22 +29,31 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.token}`,
-      ...(init?.headers ?? {}),
-    },
-  });
+  const method = (init?.method ?? "GET").toUpperCase();
+  const url = `${API_BASE}${path}`;
+  let response: Response;
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
-    throw new Error(message);
+  try {
+    response = await fetch(url, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    const message = `Unable to reach the API server (${API_BASE}).`;
+    const record = apiErrorDebugStore.recordNetworkError({
+      method,
+      url,
+      message,
+      error,
+    });
+    throw new Error(`${record.message} [status=${record.status} code=${record.code ?? record.statusText}]`);
   }
 
-  return payload as T;
+  return parseJsonResponse<T>(response, method, url);
 }
 
 export interface ApiCrossBorderAlert {
@@ -90,10 +118,17 @@ export interface ApiPendingVerification {
 export type ApiVerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
 
 export const officialReportsApi = {
-  getReports() {
-    return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
-      method: "GET",
-    });
+  async getReports() {
+    try {
+      return await authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
+        method: "GET",
+      });
+    } catch (error) {
+      if (shouldUseSoftFallback(error)) {
+        return { reports: [] };
+      }
+      throw error;
+    }
   },
 
   getReportById(reportId: string) {
@@ -112,10 +147,17 @@ export const officialReportsApi = {
     );
   },
 
-  getAlerts() {
-    return authedRequest<{ alerts: ApiCrossBorderAlert[] }>("/official/alerts", {
-      method: "GET",
-    });
+  async getAlerts() {
+    try {
+      return await authedRequest<{ alerts: ApiCrossBorderAlert[] }>("/official/alerts", {
+        method: "GET",
+      });
+    } catch (error) {
+      if (shouldUseSoftFallback(error)) {
+        return { alerts: [] };
+      }
+      throw error;
+    }
   },
 
   markAlertRead(alertId: string) {
@@ -124,7 +166,7 @@ export const officialReportsApi = {
     });
   },
 
-  getHeatmap(params?: {
+  async getHeatmap(params?: {
     category?: ReportCategory;
     days?: number;
     threshold?: number;
@@ -145,9 +187,29 @@ export const officialReportsApi = {
     }
 
     const query = search.toString();
-    return authedRequest<ApiHeatmapResponse>(`/official/heatmap${query ? `?${query}` : ""}`, {
-      method: "GET",
-    });
+
+    try {
+      return await authedRequest<ApiHeatmapResponse>(`/official/heatmap${query ? `?${query}` : ""}`, {
+        method: "GET",
+      });
+    } catch (error) {
+      if (shouldUseSoftFallback(error)) {
+        const days = typeof params?.days === "number" ? params.days : 14;
+        const { fromDate, toDate } = getDateRangeFromDays(days);
+
+        return {
+          clusters: [],
+          applied: {
+            category: params?.category ?? null,
+            fromDate,
+            toDate,
+            threshold: typeof params?.threshold === "number" ? params.threshold : 3,
+            cellSize: typeof params?.cellSize === "number" ? params.cellSize : 0.0025,
+          },
+        };
+      }
+      throw error;
+    }
   },
 
   getPendingVerifications() {

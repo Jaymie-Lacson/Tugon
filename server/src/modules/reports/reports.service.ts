@@ -1,4 +1,5 @@
 import {
+  Prisma,
   ReportSeverity as PrismaReportSeverity,
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
@@ -36,6 +37,75 @@ const ALLOWED_TICKET_STATUSES: TicketStatus[] = [
 const DEFAULT_HEATMAP_DAYS = 14;
 const DEFAULT_HEATMAP_THRESHOLD = 3;
 const DEFAULT_HEATMAP_CELL_SIZE = 0.0025;
+
+type LegacyIncidentType = "FIRE" | "POLLUTION" | "NOISE" | "CRIME" | "ROAD_HAZARD" | "OTHER";
+
+function mapLegacyIncidentType(type: string): {
+  category: ReportCategory;
+  subcategory: ReportSubcategory;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
+} {
+  const normalized = type as LegacyIncidentType;
+  switch (normalized) {
+    case "FIRE":
+      return {
+        category: "Hazards and Safety",
+        subcategory: "Fire hazards",
+        requiresMediation: false,
+        mediationWarning: null,
+      };
+    case "POLLUTION":
+      return {
+        category: "Garbage and Sanitation",
+        subcategory: "Illegal dumping",
+        requiresMediation: false,
+        mediationWarning: null,
+      };
+    case "NOISE":
+      return {
+        category: "Public Disturbance",
+        subcategory: "Loud noises or late-night karaoke",
+        requiresMediation: false,
+        mediationWarning: null,
+      };
+    case "ROAD_HAZARD":
+      return {
+        category: "Road and Street Issues",
+        subcategory: "Potholes",
+        requiresMediation: false,
+        mediationWarning: null,
+      };
+    case "CRIME":
+    case "OTHER":
+    default:
+      return {
+        category: "Others",
+        subcategory: "Unlisted general issues",
+        requiresMediation: false,
+        mediationWarning: null,
+      };
+  }
+}
+
+function categoryToLegacyTypes(category: ReportCategory): LegacyIncidentType[] {
+  switch (category) {
+    case "Hazards and Safety":
+      return ["FIRE"];
+    case "Garbage and Sanitation":
+      return ["POLLUTION"];
+    case "Public Disturbance":
+      return ["NOISE"];
+    case "Road and Street Issues":
+      return ["ROAD_HAZARD"];
+    case "Others":
+      return ["CRIME", "OTHER"];
+    case "Neighbor Disputes / Lupon":
+      return [];
+    default:
+      return [];
+  }
+}
 
 const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   "Submitted": ["Under Review"],
@@ -223,6 +293,13 @@ class ReportsError extends Error {
   }
 }
 
+type ParsedReportsError = {
+  status: number;
+  message: string;
+  code: string;
+  details?: string;
+};
+
 function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenReportInput & {
   category: ReportCategory;
   subcategory: ReportSubcategory;
@@ -351,6 +428,303 @@ function validateHeatmapInput(input: HeatmapQueryInput): {
     toDate: parsedTo,
     threshold,
     cellSize,
+  };
+}
+
+function isLegacyCitizenReportSchemaError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P2021" || error.code === "P2022";
+  }
+
+  if (error instanceof Error) {
+    const maybeCode = (error as { code?: string }).code;
+    return maybeCode === "P2021" || maybeCode === "P2022";
+  }
+
+  return false;
+}
+
+async function listLegacyStatusHistory(reportIds: string[]) {
+  if (reportIds.length === 0) {
+    return new Map<string, Array<{
+      status: TicketStatus | "Created";
+      label: string;
+      description: string;
+      timestamp: string;
+      actor: string;
+      actorRole: string;
+      note?: string;
+    }>>();
+  }
+
+  const rows = await prisma.$queryRaw<Array<{
+    reportId: string;
+    status: string;
+    label: string;
+    description: string;
+    actor: string;
+    actorRole: string;
+    note: string | null;
+    createdAt: Date;
+  }>>(Prisma.sql`
+    SELECT
+      tsh."reportId" as "reportId",
+      tsh."status"::text as "status",
+      tsh."label" as "label",
+      tsh."description" as "description",
+      tsh."actor" as "actor",
+      tsh."actorRole" as "actorRole",
+      tsh."note" as "note",
+      tsh."createdAt" as "createdAt"
+    FROM "TicketStatusHistory" tsh
+    WHERE tsh."reportId" IN (${Prisma.join(reportIds)})
+    ORDER BY tsh."createdAt" ASC
+  `);
+
+  const historyByReport = new Map<string, Array<{
+    status: TicketStatus | "Created";
+    label: string;
+    description: string;
+    timestamp: string;
+    actor: string;
+    actorRole: string;
+    note?: string;
+  }>>();
+
+  for (const row of rows) {
+    const existing = historyByReport.get(row.reportId) ?? [];
+    const status = row.label === "Report Created"
+      ? "Created"
+      : (ticketStatusMap[row.status as PrismaTicketStatus] ?? "Submitted");
+
+    existing.push({
+      status,
+      label: row.label,
+      description: row.description,
+      timestamp: new Date(row.createdAt).toISOString(),
+      actor: row.actor,
+      actorRole: row.actorRole,
+      ...(row.note ? { note: row.note } : {}),
+    });
+    historyByReport.set(row.reportId, existing);
+  }
+
+  return historyByReport;
+}
+
+async function listReportsForOfficialLegacyFallback(
+  user: { role: Role; barangayCode: string | null },
+): Promise<CitizenReportRecord[]> {
+  const whereSql =
+    user.role === "OFFICIAL"
+      ? Prisma.sql`WHERE cr."routedBarangayCode" = ${user.barangayCode!}`
+      : Prisma.sql``;
+
+  const rows = await prisma.$queryRaw<Array<{
+    id: string;
+    citizenUserId: string;
+    routedBarangayCode: string;
+    latitude: number;
+    longitude: number;
+    type: string;
+    status: string;
+    location: string;
+    barangay: string;
+    district: string;
+    description: string;
+    severity: ReportSeverity;
+    affectedCount: string | null;
+    submittedAt: Date;
+    updatedAt: Date;
+    hasPhotos: boolean;
+    photoCount: number;
+    hasAudio: boolean;
+    assignedOfficer: string | null;
+    assignedUnit: string | null;
+    resolutionNote: string | null;
+  }>>(Prisma.sql`
+    SELECT
+      cr."id" as "id",
+      cr."citizenUserId" as "citizenUserId",
+      cr."routedBarangayCode" as "routedBarangayCode",
+      cr."latitude" as "latitude",
+      cr."longitude" as "longitude",
+      cr."type"::text as "type",
+      cr."status"::text as "status",
+      cr."location" as "location",
+      cr."barangay" as "barangay",
+      cr."district" as "district",
+      cr."description" as "description",
+      cr."severity"::text as "severity",
+      cr."affectedCount" as "affectedCount",
+      cr."submittedAt" as "submittedAt",
+      cr."updatedAt" as "updatedAt",
+      cr."hasPhotos" as "hasPhotos",
+      cr."photoCount" as "photoCount",
+      cr."hasAudio" as "hasAudio",
+      cr."assignedOfficer" as "assignedOfficer",
+      cr."assignedUnit" as "assignedUnit",
+      cr."resolutionNote" as "resolutionNote"
+    FROM "CitizenReport" cr
+    ${whereSql}
+    ORDER BY cr."submittedAt" DESC
+  `);
+
+  const historyByReport = await listLegacyStatusHistory(rows.map((row) => row.id));
+
+  const records: CitizenReportRecord[] = rows.map((row) => {
+    const mapped = mapLegacyIncidentType(row.type);
+    return {
+      id: row.id,
+      citizenUserId: row.citizenUserId,
+      routedBarangayCode: row.routedBarangayCode,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      category: mapped.category,
+      subcategory: mapped.subcategory,
+      requiresMediation: mapped.requiresMediation,
+      mediationWarning: mapped.mediationWarning,
+      status: ticketStatusMap[row.status as PrismaTicketStatus] ?? "Submitted",
+      location: row.location,
+      barangay: row.barangay,
+      district: row.district,
+      description: row.description,
+      severity: row.severity,
+      affectedCount: row.affectedCount,
+      submittedAt: new Date(row.submittedAt).toISOString(),
+      updatedAt: new Date(row.updatedAt).toISOString(),
+      hasPhotos: row.hasPhotos,
+      photoCount: row.photoCount,
+      hasAudio: row.hasAudio,
+      assignedOfficer: row.assignedOfficer,
+      assignedUnit: row.assignedUnit,
+      resolutionNote: row.resolutionNote,
+      timeline: historyByReport.get(row.id) ?? [],
+    };
+  });
+
+  return user.role === "SUPER_ADMIN" ? records.map(anonymizeReportForSuperAdmin) : records;
+}
+
+async function listHeatmapForOfficialLegacyFallback(
+  user: { role: Role; barangayCode: string | null },
+  validated: {
+    category?: ReportCategory;
+    fromDate: Date;
+    toDate: Date;
+    threshold: number;
+    cellSize: number;
+  },
+): Promise<{
+  clusters: HeatmapClusterRecord[];
+  applied: {
+    category: ReportCategory | null;
+    fromDate: string;
+    toDate: string;
+    threshold: number;
+    cellSize: number;
+  };
+}> {
+  const legacyTypes = validated.category ? categoryToLegacyTypes(validated.category) : null;
+  if (legacyTypes && legacyTypes.length === 0) {
+    return {
+      clusters: [],
+      applied: {
+        category: validated.category ?? null,
+        fromDate: validated.fromDate.toISOString(),
+        toDate: validated.toDate.toISOString(),
+        threshold: validated.threshold,
+        cellSize: validated.cellSize,
+      },
+    };
+  }
+
+  const barangaySql =
+    user.role === "OFFICIAL"
+      ? Prisma.sql`AND cr."routedBarangayCode" = ${user.barangayCode!}`
+      : Prisma.sql``;
+  const categorySql =
+    legacyTypes && legacyTypes.length > 0
+      ? Prisma.sql`AND cr."type"::text IN (${Prisma.join(legacyTypes)})`
+      : Prisma.sql``;
+
+  const reports = await prisma.$queryRaw<Array<{
+    category: string;
+    latitude: number;
+    longitude: number;
+    routedBarangayCode: string;
+  }>>(Prisma.sql`
+    SELECT
+      cr."type"::text as "category",
+      cr."latitude" as "latitude",
+      cr."longitude" as "longitude",
+      cr."routedBarangayCode" as "routedBarangayCode"
+    FROM "CitizenReport" cr
+    WHERE cr."submittedAt" >= ${validated.fromDate}
+      AND cr."submittedAt" <= ${validated.toDate}
+      ${barangaySql}
+      ${categorySql}
+  `);
+
+  const clustersMap = new Map<
+    string,
+    {
+      category: ReportCategory;
+      incidentCount: number;
+      sumLatitude: number;
+      sumLongitude: number;
+      barangayCodes: Set<string>;
+    }
+  >();
+
+  for (const report of reports) {
+    const mapped = mapLegacyIncidentType(report.category);
+    const cellLat = Math.floor(report.latitude / validated.cellSize);
+    const cellLng = Math.floor(report.longitude / validated.cellSize);
+    const key = `${mapped.category}:${cellLat}:${cellLng}`;
+    const existing = clustersMap.get(key);
+
+    if (existing) {
+      existing.incidentCount += 1;
+      existing.sumLatitude += report.latitude;
+      existing.sumLongitude += report.longitude;
+      existing.barangayCodes.add(report.routedBarangayCode);
+    } else {
+      clustersMap.set(key, {
+        category: mapped.category,
+        incidentCount: 1,
+        sumLatitude: report.latitude,
+        sumLongitude: report.longitude,
+        barangayCodes: new Set([report.routedBarangayCode]),
+      });
+    }
+  }
+
+  const clusters: HeatmapClusterRecord[] = Array.from(clustersMap.entries())
+    .filter(([, cluster]) => cluster.incidentCount >= validated.threshold)
+    .map(([clusterId, cluster]) => ({
+      clusterId,
+      category: cluster.category,
+      incidentCount: cluster.incidentCount,
+      centerLatitude: Number((cluster.sumLatitude / cluster.incidentCount).toFixed(6)),
+      centerLongitude: Number((cluster.sumLongitude / cluster.incidentCount).toFixed(6)),
+      intensity: Number((cluster.incidentCount / validated.threshold).toFixed(2)),
+      threshold: validated.threshold,
+      timeWindowStart: validated.fromDate.toISOString(),
+      timeWindowEnd: validated.toDate.toISOString(),
+      barangayCodes: Array.from(cluster.barangayCodes).sort(),
+    }))
+    .sort((a, b) => b.incidentCount - a.incidentCount);
+
+  return {
+    clusters,
+    applied: {
+      category: validated.category ?? null,
+      fromDate: validated.fromDate.toISOString(),
+      toDate: validated.toDate.toISOString(),
+      threshold: validated.threshold,
+      cellSize: validated.cellSize,
+    },
   };
 }
 
@@ -551,18 +925,25 @@ export const reportsService = {
     }
 
     const where = user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {};
-    const persisted = await prisma.citizenReport.findMany({
-      where,
-      include: {
-        statusHistory: {
-          orderBy: { createdAt: "asc" },
+    try {
+      const persisted = await prisma.citizenReport.findMany({
+        where,
+        include: {
+          statusHistory: {
+            orderBy: { createdAt: "asc" },
+          },
         },
-      },
-      orderBy: { submittedAt: "desc" },
-    });
+        orderBy: { submittedAt: "desc" },
+      });
 
-    const records = persisted.map((row: Parameters<typeof mapPersistedReport>[0]) => mapPersistedReport(row));
-    return user.role === "SUPER_ADMIN" ? records.map(anonymizeReportForSuperAdmin) : records;
+      const records = persisted.map((row) => mapPersistedReport(row));
+      return user.role === "SUPER_ADMIN" ? records.map(anonymizeReportForSuperAdmin) : records;
+    } catch (error) {
+      if (isLegacyCitizenReportSchemaError(error)) {
+        return listReportsForOfficialLegacyFallback(user);
+      }
+      throw error;
+    }
   },
 
   async getForOfficialById(
@@ -800,83 +1181,154 @@ export const reportsService = {
       },
     };
 
-    const reports = await prisma.citizenReport.findMany({
-      where,
-      select: {
-        id: true,
-        category: true,
-        latitude: true,
-        longitude: true,
-        routedBarangayCode: true,
-        submittedAt: true,
-      },
-    });
+    try {
+      const reports = await prisma.citizenReport.findMany({
+        where,
+        select: {
+          id: true,
+          category: true,
+          latitude: true,
+          longitude: true,
+          routedBarangayCode: true,
+          submittedAt: true,
+        },
+      });
 
-    const clustersMap = new Map<
-      string,
-      {
-        category: string;
-        incidentCount: number;
-        sumLatitude: number;
-        sumLongitude: number;
-        barangayCodes: Set<string>;
+      const clustersMap = new Map<
+        string,
+        {
+          category: string;
+          incidentCount: number;
+          sumLatitude: number;
+          sumLongitude: number;
+          barangayCodes: Set<string>;
+        }
+      >();
+
+      for (const report of reports) {
+        const cellLat = Math.floor(report.latitude / validated.cellSize);
+        const cellLng = Math.floor(report.longitude / validated.cellSize);
+        const key = `${report.category}:${cellLat}:${cellLng}`;
+        const existing = clustersMap.get(key);
+
+        if (existing) {
+          existing.incidentCount += 1;
+          existing.sumLatitude += report.latitude;
+          existing.sumLongitude += report.longitude;
+          existing.barangayCodes.add(report.routedBarangayCode);
+        } else {
+          clustersMap.set(key, {
+            category: report.category,
+            incidentCount: 1,
+            sumLatitude: report.latitude,
+            sumLongitude: report.longitude,
+            barangayCodes: new Set([report.routedBarangayCode]),
+          });
+        }
       }
-    >();
 
-    for (const report of reports) {
-      const cellLat = Math.floor(report.latitude / validated.cellSize);
-      const cellLng = Math.floor(report.longitude / validated.cellSize);
-      const key = `${report.category}:${cellLat}:${cellLng}`;
-      const existing = clustersMap.get(key);
+      const clusters: HeatmapClusterRecord[] = Array.from(clustersMap.entries())
+        .filter(([, cluster]) => cluster.incidentCount >= validated.threshold)
+        .map(([clusterId, cluster]) => ({
+          clusterId,
+          category: cluster.category as ReportCategory,
+          incidentCount: cluster.incidentCount,
+          centerLatitude: Number((cluster.sumLatitude / cluster.incidentCount).toFixed(6)),
+          centerLongitude: Number((cluster.sumLongitude / cluster.incidentCount).toFixed(6)),
+          intensity: Number((cluster.incidentCount / validated.threshold).toFixed(2)),
+          threshold: validated.threshold,
+          timeWindowStart: validated.fromDate.toISOString(),
+          timeWindowEnd: validated.toDate.toISOString(),
+          barangayCodes: Array.from(cluster.barangayCodes).sort(),
+        }))
+        .sort((a, b) => b.incidentCount - a.incidentCount);
 
-      if (existing) {
-        existing.incidentCount += 1;
-        existing.sumLatitude += report.latitude;
-        existing.sumLongitude += report.longitude;
-        existing.barangayCodes.add(report.routedBarangayCode);
-      } else {
-        clustersMap.set(key, {
-          category: report.category,
-          incidentCount: 1,
-          sumLatitude: report.latitude,
-          sumLongitude: report.longitude,
-          barangayCodes: new Set([report.routedBarangayCode]),
-        });
+      return {
+        clusters,
+        applied: {
+          category: validated.category ?? null,
+          fromDate: validated.fromDate.toISOString(),
+          toDate: validated.toDate.toISOString(),
+          threshold: validated.threshold,
+          cellSize: validated.cellSize,
+        },
+      };
+    } catch (error) {
+      if (isLegacyCitizenReportSchemaError(error)) {
+        return listHeatmapForOfficialLegacyFallback(user, validated);
       }
+      throw error;
     }
-
-    const clusters: HeatmapClusterRecord[] = Array.from(clustersMap.entries())
-      .filter(([, cluster]) => cluster.incidentCount >= validated.threshold)
-      .map(([clusterId, cluster]) => ({
-        clusterId,
-        category: cluster.category as ReportCategory,
-        incidentCount: cluster.incidentCount,
-        centerLatitude: Number((cluster.sumLatitude / cluster.incidentCount).toFixed(6)),
-        centerLongitude: Number((cluster.sumLongitude / cluster.incidentCount).toFixed(6)),
-        intensity: Number((cluster.incidentCount / validated.threshold).toFixed(2)),
-        threshold: validated.threshold,
-        timeWindowStart: validated.fromDate.toISOString(),
-        timeWindowEnd: validated.toDate.toISOString(),
-        barangayCodes: Array.from(cluster.barangayCodes).sort(),
-      }))
-      .sort((a, b) => b.incidentCount - a.incidentCount);
-
-    return {
-      clusters,
-      applied: {
-        category: validated.category ?? null,
-        fromDate: validated.fromDate.toISOString(),
-        toDate: validated.toDate.toISOString(),
-        threshold: validated.threshold,
-        cellSize: validated.cellSize,
-      },
-    };
   },
 
-  parseError(error: unknown) {
+  parseError(error: unknown): ParsedReportsError {
     if (error instanceof ReportsError) {
-      return { status: error.status, message: error.message };
+      return {
+        status: error.status,
+        message: error.message,
+        code: error.status >= 500 ? "REPORTS_SERVICE_ERROR" : "REPORTS_VALIDATION_ERROR",
+      };
     }
-    return { status: 500, message: "Unexpected reports service error." };
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2021" || error.code === "P2022") {
+        return {
+          status: 503,
+          message: "Database schema is outdated for reports endpoints. Run server Prisma migrations and redeploy.",
+          code: error.code,
+          details: error.message,
+        };
+      }
+
+      return {
+        status: 503,
+        message: "Database request failed in reports service.",
+        code: error.code,
+        details: error.message,
+      };
+    }
+
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return {
+        status: 503,
+        message: "Database schema or Prisma client is out of sync for reports endpoints.",
+        code: "PRISMA_CLIENT_VALIDATION_ERROR",
+        details: error.message,
+      };
+    }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return {
+        status: 503,
+        message: "Database connection is unavailable for reports service.",
+        code: "PRISMA_CLIENT_INITIALIZATION_ERROR",
+        details: error.message,
+      };
+    }
+
+    if (error instanceof Error) {
+      const maybeCode = (error as { code?: string }).code;
+      if (maybeCode === "P2021" || maybeCode === "P2022") {
+        return {
+          status: 503,
+          message: "Database schema is outdated for reports endpoints. Run server Prisma migrations and redeploy.",
+          code: maybeCode,
+          details: error.message,
+        };
+      }
+
+      return {
+        status: 500,
+        message: "Unexpected reports service error.",
+        code: "REPORTS_UNEXPECTED_ERROR",
+        details: error.message,
+      };
+    }
+
+    return {
+      status: 500,
+      message: "Unexpected reports service error.",
+      code: "REPORTS_UNEXPECTED_ERROR",
+    };
   },
 };

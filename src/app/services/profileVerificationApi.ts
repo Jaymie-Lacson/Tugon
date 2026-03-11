@@ -2,6 +2,10 @@ import { getSupabaseClient, supabaseIdBucket } from "./supabaseClient";
 
 const ID_BUCKET = supabaseIdBucket;
 
+function isUuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 function isMissingColumnError(message: string): boolean {
   return /could not find the .* column .* in the schema cache/i.test(message);
 }
@@ -13,6 +17,10 @@ function buildIdFilePath(userId: string, file: File): string {
 }
 
 export async function uploadResidentIdAndLinkProfile(userId: string, file: File): Promise<string> {
+  if (!isUuidLike(userId)) {
+    throw new Error("Profile verification upload is unavailable for mock accounts with non-UUID IDs.");
+  }
+
   const supabase = getSupabaseClient();
   const filePath = buildIdFilePath(userId, file);
 
@@ -75,6 +83,10 @@ export async function uploadResidentIdAndLinkProfile(userId: string, file: File)
 }
 
 export async function getProfileVerificationStatus(userId: string) {
+  if (!isUuidLike(userId)) {
+    return null;
+  }
+
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")

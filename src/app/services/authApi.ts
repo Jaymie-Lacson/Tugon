@@ -1,3 +1,5 @@
+import { apiErrorDebugStore, parseJsonResponse } from "./apiErrorDebug";
+
 export type Role = "CITIZEN" | "OFFICIAL" | "SUPER_ADMIN";
 
 export interface SessionUser {
@@ -29,30 +31,30 @@ const API_BASE =
   );
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const url = `${API_BASE}${path}`;
   let response: Response;
 
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
       },
       ...init,
     });
-  } catch {
-    throw new Error(
-      `Unable to reach the API server (${API_BASE}). Check VITE_API_BASE_URL and make sure the backend is running.`,
-    );
+  } catch (error) {
+    const message = `Unable to reach the API server (${API_BASE}). Check VITE_API_BASE_URL and make sure the backend is running.`;
+    const record = apiErrorDebugStore.recordNetworkError({
+      method,
+      url,
+      message,
+      error,
+    });
+    throw new Error(`${record.message} [status=${record.status} code=${record.code ?? record.statusText}]`);
   }
 
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
-    throw new Error(message);
-  }
-
-  return payload as T;
+  return parseJsonResponse<T>(response, method, url);
 }
 
 export const authApi = {

@@ -1,9 +1,16 @@
-import { Router } from "express";
+import { type Response, Router } from "express";
 import { prisma } from "../../config/prisma.js";
 import { reportsService } from "./reports.service.js";
 
 export const citizenReportsRouter = Router();
 export const officialReportsRouter = Router();
+
+function sendParsedError(res: Response, error: unknown) {
+  const parsed = reportsService.parseError(error);
+  return res
+    .status(parsed.status)
+    .json({ message: parsed.message, code: parsed.code, ...(parsed.details ? { details: parsed.details } : {}) });
+}
 
 citizenReportsRouter.post("/reports", async (req, res) => {
   try {
@@ -58,8 +65,7 @@ citizenReportsRouter.post("/reports", async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -73,8 +79,7 @@ citizenReportsRouter.get("/reports", async (req, res) => {
     const reports = await reportsService.listMine(authUser.id);
     res.status(200).json({ reports });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -88,8 +93,7 @@ citizenReportsRouter.get("/reports/:reportId", async (req, res) => {
     const report = await reportsService.getMineById(authUser.id, req.params.reportId);
     res.status(200).json({ report });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -127,8 +131,7 @@ officialReportsRouter.get("/reports", async (req, res) => {
 
     return res.status(200).json({ reports });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    return res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -169,8 +172,7 @@ officialReportsRouter.get("/reports/:reportId", async (req, res) => {
 
     return res.status(200).json({ report });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    return res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -219,8 +221,7 @@ officialReportsRouter.patch("/reports/:reportId/status", async (req, res) => {
 
     return res.status(200).json({ message: "Report status updated.", report });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    return res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -258,8 +259,7 @@ officialReportsRouter.get("/alerts", async (req, res) => {
 
     return res.status(200).json({ alerts });
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    return res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
@@ -308,8 +308,7 @@ officialReportsRouter.get("/heatmap", async (req, res) => {
 
     return res.status(200).json(heatmap);
   } catch (error) {
-    const parsed = reportsService.parseError(error);
-    return res.status(parsed.status).json({ message: parsed.message });
+    return sendParsedError(res, error);
   }
 });
 
