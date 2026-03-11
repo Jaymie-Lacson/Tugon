@@ -74,10 +74,26 @@ function SectionHeading({
   );
 }
 
+function AuthRedirectOverlay({ visible }: { visible: boolean }) {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div className="auth-redirect-overlay" aria-live="polite" aria-busy="true">
+      <div className="auth-redirect-loader" role="status" aria-label="Redirecting">
+        <span className="auth-redirect-ring" aria-hidden="true" />
+        <img src="/favicon.svg" alt="TUGON" className="auth-redirect-logo" />
+      </div>
+    </div>
+  );
+}
+
 function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -96,8 +112,17 @@ function Navbar() {
     setMobileOpen(false);
   };
 
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    setMobileOpen(false);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
+
   return (
     <>
+      <AuthRedirectOverlay visible={authRedirecting} />
       <nav
         style={{
           position: 'fixed',
@@ -165,7 +190,7 @@ function Navbar() {
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} className="nav-cta">
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => navigateAuthWithOverlay('/auth/login')}
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.25)',
@@ -180,7 +205,7 @@ function Navbar() {
               Login
             </button>
             <button
-              onClick={() => navigate('/auth/register')}
+              onClick={() => navigateAuthWithOverlay('/auth/register')}
               style={{
                 background: '#B91C1C',
                 border: 'none',
@@ -247,7 +272,7 @@ function Navbar() {
             ))}
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               <button
-                onClick={() => navigate('/auth/login')}
+                onClick={() => navigateAuthWithOverlay('/auth/login')}
                 style={{
                   width: '100%',
                   background: '#B91C1C',
@@ -263,7 +288,7 @@ function Navbar() {
                 Login to Continue
               </button>
               <button
-                onClick={() => navigate('/auth/register')}
+                onClick={() => navigateAuthWithOverlay('/auth/register')}
                 style={{
                   width: '100%',
                   background: 'rgba(255,255,255,0.12)',
@@ -297,12 +322,16 @@ function Navbar() {
 function Hero() {
   const navigate = useNavigate();
   const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
 
-  const navigateWithTransition = (action: 'report' | 'track' | 'community', path: string) => {
+  const navigateWithTransition = (action: 'report' | 'track' | 'community', path: string, isAuth = false) => {
     setActiveAction(action);
+    if (isAuth) {
+      setAuthRedirecting(true);
+    }
     window.setTimeout(() => {
       navigate(path);
-    }, 170);
+    }, isAuth ? 260 : 170);
   };
 
   const scrollToQuickActions = () => {
@@ -310,7 +339,9 @@ function Hero() {
   };
 
   return (
-    <section
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section
       data-reveal
       style={{
         position: 'relative',
@@ -383,7 +414,7 @@ function Hero() {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 26 }}>
           <button
-            onClick={() => navigateWithTransition('report', '/auth/register')}
+            onClick={() => navigateWithTransition('report', '/auth/register', true)}
             className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: '#B91C1C',
@@ -402,7 +433,7 @@ function Hero() {
             <AlertTriangle size={16} /> Report an Incident
           </button>
           <button
-            onClick={() => navigateWithTransition('track', '/auth/login')}
+            onClick={() => navigateWithTransition('track', '/auth/login', true)}
             className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: 'rgba(255,255,255,0.12)',
@@ -453,12 +484,22 @@ function Hero() {
           <ChevronDown size={16} />
         </span>
       </button>
-    </section>
+      </section>
+    </>
   );
 }
 
 function QuickActions() {
   const navigate = useNavigate();
+
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
 
   const actions = [
     {
@@ -467,7 +508,7 @@ function QuickActions() {
       icon: AlertTriangle,
       color: '#B91C1C',
       bg: '#FEE2E2',
-      action: () => navigate('/auth/register'),
+      action: () => navigateAuthWithOverlay('/auth/register'),
     },
     {
       title: 'Track Status',
@@ -475,7 +516,7 @@ function QuickActions() {
       icon: FileText,
       color: '#1E3A8A',
       bg: '#DBEAFE',
-      action: () => navigate('/auth/login'),
+      action: () => navigateAuthWithOverlay('/auth/login'),
     },
     {
       title: 'View Community Map',
@@ -488,7 +529,9 @@ function QuickActions() {
   ];
 
   return (
-    <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Quick Access"
@@ -574,7 +617,8 @@ function QuickActions() {
           }
         `}</style>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
 
@@ -835,14 +879,26 @@ function EmergencyHotlines() {
 function Footer() {
   const navigate = useNavigate();
   const year = new Date().getFullYear();
+
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
+
   const quickLinks = [
-    { label: 'Register', action: () => navigate('/auth/register') },
-    { label: 'Login', action: () => navigate('/auth/login') },
+    { label: 'Register', action: () => navigateAuthWithOverlay('/auth/register') },
+    { label: 'Login', action: () => navigateAuthWithOverlay('/auth/login') },
     { label: 'Community Map', action: () => navigate('/community-map') },
   ];
 
   return (
-    <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '38px 24px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 22, marginBottom: 22 }}>
           <div>
@@ -937,7 +993,8 @@ function Footer() {
           footer button, footer a { min-height: 40px; }
         }
       `}</style>
-    </footer>
+      </footer>
+    </>
   );
 }
 
@@ -1046,6 +1103,53 @@ export default function Landing() {
           box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
         }
 
+        .auth-redirect-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 999;
+          background: rgba(15, 23, 42, 0.34);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .auth-redirect-loader {
+          width: 108px;
+          height: 108px;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .auth-redirect-ring {
+          position: absolute;
+          inset: -6px;
+          border-radius: 9999px;
+          border: 4px solid rgba(30, 58, 138, 0.16);
+          border-top-color: #B91C1C;
+          border-right-color: #1E3A8A;
+          animation: authRedirectSpin 0.9s linear infinite;
+        }
+
+        .auth-redirect-logo {
+          width: 42px;
+          height: 42px;
+          display: block;
+          filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15));
+        }
+
+        @keyframes authRedirectSpin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         .landing-scroll-cue {
           position: absolute;
           left: 50%;
@@ -1096,6 +1200,10 @@ export default function Landing() {
             opacity: 1;
             transform: none;
             transition: none;
+          }
+
+          .auth-redirect-ring {
+            animation: none;
           }
 
           .landing-scroll-cue,
