@@ -1,4 +1,4 @@
-name: Trigger Vercel Deploy Hook
+name: Deploy To Vercel (CLI)
 
 on:
   push:
@@ -10,35 +10,38 @@ permissions:
   contents: read
 
 jobs:
-  trigger-vercel-deploy:
+  deploy-vercel:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate deploy hook secret exists
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Vercel secrets exist
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
-            echo "Missing required secret: VERCEL_DEPLOY_HOOK_URL"
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "Missing required secret: VERCEL_TOKEN"
+            exit 1
+          fi
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "Missing required secret: VERCEL_ORG_ID"
+            exit 1
+          fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Missing required secret: VERCEL_PROJECT_ID"
             exit 1
           fi
 
-      - name: Trigger Vercel deploy hook
+      - name: Deploy production via Vercel CLI
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # Do not echo the hook URL; treat it as a credential.
-          echo "::add-mask::$VERCEL_DEPLOY_HOOK_URL"
-
-          http_code=$(curl --silent --show-error --output response.txt --write-out "%{http_code}" --request POST "$VERCEL_DEPLOY_HOOK_URL")
-
-          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
-            echo "Deploy hook request failed with HTTP $http_code"
-            if [ "$http_code" = "404" ]; then
-              echo "Hint: VERCEL_DEPLOY_HOOK_URL is likely stale/invalid (revoked or copied incorrectly)."
-            fi
-            echo "Response body:"
-            cat response.txt
-            exit 1
-          fi
-
-          echo "Deploy hook triggered successfully (HTTP $http_code)."
+          npm i -g vercel@latest
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          vercel build --prod --token "$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
