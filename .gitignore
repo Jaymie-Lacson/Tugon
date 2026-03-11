@@ -15,3 +15,5 @@ barangay-source/*.shx
 barangay-source/*.prj
 barangay-source/*.cpg
 barangay-source/*.shp.*
+.vercel
+.env*.local
