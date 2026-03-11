@@ -122,9 +122,9 @@ export default function Settings() {
         <p style={{ color: '#64748B', fontSize: 12 }}>{settingsSubtitle}</p>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div className="settings-layout" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         {/* Sidebar nav */}
-        <div style={{
+        <div className="settings-sidebar" style={{
           width: 200, flexShrink: 0, background: 'white', borderRadius: 12,
           boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden',
         }}>
@@ -154,7 +154,7 @@ export default function Settings() {
         </div>
 
         {/* Content panel */}
-        <div style={{ flex: 1, minWidth: 280, background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '20px 24px' }}>
+        <div className="settings-content" style={{ flex: 1, minWidth: 280, background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '20px 24px' }}>
           {activeSection === 'profile' && (
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', marginBottom: 16 }}>User Profile</div>
@@ -342,6 +342,21 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .settings-layout {
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .settings-sidebar,
+          .settings-content {
+            width: 100% !important;
+            min-width: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

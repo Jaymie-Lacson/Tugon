@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router';
+import { NavLink, useLocation, Outlet, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
   AlertTriangle,
@@ -16,6 +16,7 @@ import {
   Wifi,
   ExternalLink,
 } from 'lucide-react';
+import { clearAuthSession, getAuthSession } from '../utils/authSession';
 
 const NAV_ITEMS = [
   { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -40,12 +41,27 @@ function LiveClock() {
 
 export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [alertCount] = useState(5);
+  const navigate = useNavigate();
   const location = useLocation();
+  const session = getAuthSession();
+  const userFullName = session?.user.fullName?.trim() || 'Barangay Official';
+  const userInitials = userFullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'BO';
+  const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Barangay Official';
 
   const currentPage = NAV_ITEMS.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'
   ) || NAV_ITEMS[0];
+
+  const handleSignOut = () => {
+    clearAuthSession();
+    setDrawerOpen(false);
+    navigate('/auth/login', { replace: true });
+  };
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -55,7 +71,7 @@ export function Layout() {
         <div
           onClick={() => setDrawerOpen(false)}
           className="mobile-overlay"
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40, display: 'none' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1300, display: 'none' }}
         />
       )}
 
@@ -69,18 +85,17 @@ export function Layout() {
       >
         {/* Logo */}
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <div style={{
-              width: 38, height: 38, background: '#B91C1C', borderRadius: 8,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <Shield size={20} color="white" />
-            </div>
-            <div>
-              <div style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 700, lineHeight: 1.1, letterSpacing: '0.02em' }}>TUGON</div>
-              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Incident Mgmt. System</div>
-            </div>
-          </div>
+          <NavLink
+            to="/app"
+            aria-label="Go to TUGON dashboard"
+            style={{ display: 'inline-flex', marginBottom: 8 }}
+          >
+            <img
+              src="/tugon-header-logo.svg"
+              alt="TUGON Tondo Emergency Response"
+              style={{ width: 166, maxWidth: '100%', height: 'auto' }}
+            />
+          </NavLink>
           <div style={{
             background: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: '6px 10px',
             display: 'flex', alignItems: 'center', gap: 8,
@@ -110,18 +125,17 @@ export function Layout() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
                   borderRadius: 8, textDecoration: 'none', marginBottom: 2,
-                  background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
-                  borderLeft: active ? '3px solid #B4730A' : '3px solid transparent',
+                  background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  borderLeft: '3px solid transparent',
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
-                <item.icon size={17} color={active ? '#FFFFFF' : '#93C5FD'} />
-                <span style={{ color: active ? '#FFFFFF' : '#BFDBFE', fontSize: 13, fontWeight: active ? 600 : 400, flex: 1 }}>
+                <item.icon size={17} color={active ? '#BFDBFE' : '#93C5FD'} />
+                <span style={{ color: active ? '#DBEAFE' : '#BFDBFE', fontSize: 13, fontWeight: 400, flex: 1 }}>
                   {item.label}
                 </span>
-                {active && <ChevronRight size={13} color="rgba(255,255,255,0.5)" />}
               </NavLink>
             );
           })}
@@ -167,12 +181,29 @@ export function Layout() {
               background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, fontWeight: 700, color: 'white', fontSize: 13,
-            }}>JR</div>
+            }}>{userInitials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Juan R. Reyes</div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>MDRRMO Officer</div>
+              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userFullName}</div>
+              <div style={{ color: '#93C5FD', fontSize: 10 }}>{userRoleLabel}</div>
             </div>
-            <LogOut size={15} color="#93C5FD" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            <button
+              type="button"
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              title="Sign out"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <LogOut size={15} color="#93C5FD" />
+            </button>
           </div>
         </div>
       </aside>
@@ -187,25 +218,19 @@ export function Layout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
         }}>
-          {/* Mobile hamburger — opens extra links drawer */}
-          <button
-            onClick={() => setDrawerOpen(!drawerOpen)}
-            className="mobile-menu-btn"
-            style={{
-              background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-              padding: '8px', cursor: 'pointer', display: 'none', alignItems: 'center',
-              justifyContent: 'center', minHeight: 40, minWidth: 40,
-            }}
-          >
-            <Menu size={20} color="white" />
-          </button>
-
           {/* Mobile logo */}
-          <div className="mobile-logo" style={{ display: 'none', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, background: '#B91C1C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Shield size={15} color="white" />
-            </div>
-            <span style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '0.02em' }}>TUGON</span>
+          <div className="mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
+            <NavLink
+              to="/app"
+              aria-label="Go to TUGON dashboard"
+              style={{ display: 'inline-flex' }}
+            >
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                style={{ width: 124, maxWidth: '100%', height: 'auto' }}
+              />
+            </NavLink>
           </div>
 
           {/* Desktop breadcrumb */}
@@ -219,8 +244,10 @@ export function Layout() {
           </div>
 
           {/* Mobile page label */}
-          <div className="mobile-page-label" style={{ display: 'none', flex: 1 }}>
-            <span style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 700 }}>{currentPage?.label}</span>
+          <div className="mobile-page-label" style={{ display: 'none', flex: 1, minWidth: 0 }}>
+            <span style={{ color: '#FFFFFF', fontSize: 17, fontWeight: 700, lineHeight: '56px', display: 'block' }}>
+              {currentPage?.label}
+            </span>
           </div>
 
           {/* Right area */}
@@ -235,31 +262,42 @@ export function Layout() {
 
             {/* Alert bell */}
             <div style={{ position: 'relative' }}>
-              <button style={{
+              <button
+                type="button"
+                aria-label="No notifications"
+                title="No notifications yet"
+                disabled
+                style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                padding: '8px', cursor: 'default', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', minHeight: 40, minWidth: 40, position: 'relative',
-              }}>
+                opacity: 0.8,
+              }}
+              >
                 <Bell size={18} color="white" />
-                {alertCount > 0 && (
-                  <span style={{
-                    position: 'absolute', top: 4, right: 4,
-                    width: 16, height: 16, background: '#B91C1C', borderRadius: '50%',
-                    fontSize: 9, fontWeight: 700, color: 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: '2px solid #1E3A8A',
-                  }}>{alertCount}</span>
-                )}
               </button>
             </div>
+
+            {/* Mobile hamburger — on the right of the bell */}
+            <button
+              onClick={() => setDrawerOpen(!drawerOpen)}
+              className="mobile-menu-btn"
+              style={{
+                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
+                padding: '8px', cursor: 'pointer', display: 'none', alignItems: 'center',
+                justifyContent: 'center', minHeight: 40, minWidth: 40,
+              }}
+            >
+              <Menu size={20} color="white" />
+            </button>
 
             {/* User avatar */}
             <div className="header-avatar" style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'pointer', flexShrink: 0,
-            }}>JR</div>
+              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'default', flexShrink: 0,
+            }}>{userInitials}</div>
           </div>
         </header>
 
@@ -272,20 +310,23 @@ export function Layout() {
       {/* ── Mobile Extra Drawer (Settings + Super Admin) ── */}
       {drawerOpen && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, bottom: 0, width: 280,
-          background: '#1E3A8A', zIndex: 50, display: 'flex', flexDirection: 'column',
-          boxShadow: '4px 0 24px rgba(0,0,0,0.35)',
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
+          background: '#1E3A8A', zIndex: 1400, display: 'flex', flexDirection: 'column',
+          boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
         }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 32, height: 32, background: '#B91C1C', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Shield size={17} color="white" />
-              </div>
-              <div>
-                <div style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>TUGON</div>
-                <div style={{ color: '#93C5FD', fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Mgmt. System</div>
-              </div>
-            </div>
+            <NavLink
+              to="/app"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Go to TUGON dashboard"
+              style={{ display: 'inline-flex' }}
+            >
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                style={{ width: 148, maxWidth: '100%', height: 'auto' }}
+              />
+            </NavLink>
             <button onClick={() => setDrawerOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px', cursor: 'pointer', minHeight: 40, minWidth: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={18} color="white" />
             </button>
@@ -293,10 +334,10 @@ export function Layout() {
 
           {/* User info */}
           <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 14, flexShrink: 0 }}>JR</div>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 14, flexShrink: 0 }}>{userInitials}</div>
             <div>
-              <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>Juan R. Reyes</div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>MDRRMO Officer</div>
+              <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{userFullName}</div>
+              <div style={{ color: '#93C5FD', fontSize: 10 }}>{userRoleLabel}</div>
             </div>
           </div>
 
@@ -322,7 +363,11 @@ export function Layout() {
             </NavLink>
 
             <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}
+              >
                 <LogOut size={18} color="#FCA5A5" />
                 <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
               </button>
@@ -336,7 +381,7 @@ export function Layout() {
         className="mobile-bottom-nav bottom-nav-bar"
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: '#1E3A8A', display: 'none', zIndex: 30,
+          background: '#1E3A8A', display: 'none', zIndex: 1200,
           borderTop: '1px solid rgba(255,255,255,0.15)',
           boxShadow: '0 -4px 20px rgba(30,58,138,0.45)',
         }}
@@ -357,12 +402,12 @@ export function Layout() {
                 alignItems: 'center', justifyContent: 'center',
                 padding: '10px 4px 8px',
                 textDecoration: 'none', gap: 4,
-                borderTop: isActive ? '3px solid #B4730A' : '3px solid transparent',
+                borderTop: '3px solid transparent',
                 minHeight: 60,
               }}
             >
-              <item.icon size={22} color={isActive ? '#FFFFFF' : '#93C5FD'} />
-              <span style={{ fontSize: 10, color: isActive ? '#FFFFFF' : '#93C5FD', fontWeight: isActive ? 700 : 400, letterSpacing: '0.03em' }}>
+              <item.icon size={22} color={isActive ? '#DBEAFE' : '#93C5FD'} />
+              <span style={{ fontSize: 10, color: isActive ? '#DBEAFE' : '#93C5FD', fontWeight: 400, letterSpacing: '0.03em' }}>
                 {item.label.split(' ')[0]}
               </span>
             </NavLink>
@@ -378,9 +423,9 @@ export function Layout() {
           .header-breadcrumb  { display: none !important; }
           .header-datetime    { display: none !important; }
           .header-avatar      { display: none !important; }
-          .mobile-page-label  { display: block !important; }
+          .mobile-page-label  { display: flex !important; align-items: center !important; }
           .mobile-bottom-nav  { display: flex !important; }
-          .page-content       { padding-bottom: 68px !important; }
+          .page-content       { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
           .mobile-overlay     { display: block !important; }
         }
         @media (min-width: 769px) {

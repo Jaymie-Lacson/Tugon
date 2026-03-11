@@ -4,6 +4,18 @@ import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
 
+function normalizeOfficialApiMessage(message: string): string {
+  const session = getAuthSession();
+  if (
+    message === "Unexpected reports service error." &&
+    session?.user.role === "OFFICIAL" &&
+    !session.user.barangayCode
+  ) {
+    return "Your official account has no assigned barangay yet. Please contact Super Admin to assign your barangay profile.";
+  }
+  return message;
+}
+
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
   if (!session?.token) {
@@ -21,8 +33,8 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
-    throw new Error(message);
+    const rawMessage = typeof payload?.message === "string" ? payload.message : "Request failed.";
+    throw new Error(normalizeOfficialApiMessage(rawMessage));
   }
 
   return payload as T;
