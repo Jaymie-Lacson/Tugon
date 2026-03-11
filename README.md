@@ -1,4 +1,3 @@
-
 # TUGON
 
 Web-based incident management and geospatial decision-support system for Barangays 251, 252, and 256 in Tondo, Manila.
@@ -45,6 +44,7 @@ using (
 ```
 
 Notes:
+
 - If you use a different bucket name, update both SQL snippets and `VITE_SUPABASE_ID_BUCKET`.
 - TUGON user IDs are Prisma CUID values, so do not use UUID-only regex checks for the folder segment.
 - Keep RLS enabled on `storage.objects`; narrow policies further if you later move to Supabase Auth sessions and can enforce `auth.uid()` matching.
@@ -67,6 +67,7 @@ Notes:
   - `npm run check:prod`
 
 This runs:
+
 - frontend build
 - backend build
 - Prisma schema validate
@@ -103,4 +104,3 @@ This runs:
      - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
 5. After first successful deploy, copy your Railway public URL and set frontend env:
    - `VITE_API_BASE_URL=https://<your-service>.up.railway.app/api`
-  

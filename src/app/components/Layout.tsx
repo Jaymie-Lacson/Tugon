@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router';
+import { NavLink, useLocation, Outlet, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
   AlertTriangle,
@@ -16,8 +16,9 @@ import {
   Wifi,
   ExternalLink,
 } from 'lucide-react';
+import { getAuthSession, clearAuthSession } from '../utils/authSession';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { path: '/app/incidents',  label: 'Incidents',  icon: AlertTriangle },
   { path: '/app/map',        label: 'Map',        icon: Map },
@@ -42,10 +43,20 @@ export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [alertCount] = useState(5);
   const location = useLocation();
+  const navigate = useNavigate();
+  const authSession = getAuthSession();
+  const navItems = authSession?.user.role === 'OFFICIAL'
+    ? [...BASE_NAV_ITEMS, { path: '/app/verifications', label: 'Verifications', icon: Shield }]
+    : BASE_NAV_ITEMS;
 
-  const currentPage = NAV_ITEMS.find(n =>
+  const currentPage = navItems.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'
-  ) || NAV_ITEMS[0];
+  ) || navItems[0];
+
+  const handleSignOut = () => {
+    clearAuthSession();
+    navigate('/auth/login', { replace: true });
+  };
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -96,7 +107,7 @@ export function Layout() {
           <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 4 }}>
             Navigation
           </div>
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.path
               : location.pathname.startsWith(item.path) && item.path !== '/app';
@@ -172,7 +183,14 @@ export function Layout() {
               <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Juan R. Reyes</div>
               <div style={{ color: '#93C5FD', fontSize: 10 }}>MDRRMO Officer</div>
             </div>
-            <LogOut size={15} color="#93C5FD" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            <button
+              onClick={handleSignOut}
+              aria-label="Sign Out"
+              title="Sign Out"
+              style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}
+            >
+              <LogOut size={15} color="#93C5FD" />
+            </button>
           </div>
         </div>
       </aside>
@@ -322,7 +340,10 @@ export function Layout() {
             </NavLink>
 
             <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}>
+              <button
+                onClick={handleSignOut}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}
+              >
                 <LogOut size={18} color="#FCA5A5" />
                 <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
               </button>
@@ -341,7 +362,7 @@ export function Layout() {
           boxShadow: '0 -4px 20px rgba(30,58,138,0.45)',
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = item.exact
             ? location.pathname === item.path
             : location.pathname.startsWith(item.path) && item.path !== '/app';

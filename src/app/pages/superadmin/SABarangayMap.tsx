@@ -9,6 +9,7 @@ import { barangays as fallbackBarangays } from '../../data/superAdminData';
 import { superAdminApi } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import type { BarangayProfile } from '../../data/superAdminData';
+import type { IncidentType } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../../utils/mapCategoryLabels';
 
@@ -566,7 +567,7 @@ export default function SABarangayMap() {
                   color: filterType === t ? 'white' : '#6B7280',
                 }}
               >
-                {INCIDENT_EMOJI[t] ?? ''} {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as keyof typeof INCIDENT_EMOJI)}
+                {INCIDENT_EMOJI[t] ?? ''} {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
               </button>
             ))}
             <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
@@ -690,7 +691,7 @@ export default function SABarangayMap() {
                         color: SEVERITY_COLORS[inc.severity], fontWeight: 600,
                         textTransform: 'capitalize', marginTop: 2,
                       }}>
-                        {getCategoryLabelForIncidentType(inc.type as keyof typeof INCIDENT_EMOJI)} · {inc.severity}
+                        {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
                       </div>
                     </div>
                   </Tooltip>
@@ -721,7 +722,7 @@ export default function SABarangayMap() {
                 {Object.entries(INCIDENT_EMOJI).map(([type, emoji]) => (
                   <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
                     <span style={{ fontSize: 11 }}>{emoji}</span>
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type as keyof typeof INCIDENT_EMOJI)}</span>
+                    <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type as IncidentType)}</span>
                   </div>
                 ))}
               </div>

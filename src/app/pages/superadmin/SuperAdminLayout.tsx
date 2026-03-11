@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router';
+import { NavLink, useLocation, Outlet, useNavigate } from 'react-router';
 import {
   LayoutDashboard, Map, BarChart2, Users, Bell, ChevronRight,
   Shield, LogOut, Menu, X, Clock, Wifi, Settings, Activity,
   Lock, AlertCircle, Database,
 } from 'lucide-react';
 import { superAdminApi } from '../../services/superAdminApi';
+import { clearAuthSession } from '../../utils/authSession';
 
 const NAV_ITEMS = [
   { path: '/superadmin',           label: 'SA Overview',    icon: LayoutDashboard, exact: true },
@@ -57,6 +58,12 @@ export default function SuperAdminLayout() {
     { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
   ]);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    clearAuthSession();
+    navigate('/auth/login', { replace: true });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -255,7 +262,14 @@ export default function SuperAdminLayout() {
               </div>
               <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Super Administrator</div>
             </div>
-            <LogOut size={14} color="#93C5FD" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            <button
+              onClick={handleSignOut}
+              aria-label="Sign Out"
+              title="Sign Out"
+              style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}
+            >
+              <LogOut size={14} color="#93C5FD" />
+            </button>
           </div>
         </div>
       </aside>

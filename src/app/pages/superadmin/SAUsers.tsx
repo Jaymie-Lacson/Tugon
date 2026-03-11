@@ -42,8 +42,13 @@ type SAUserRow = Omit<SAUser, 'role' | 'status'> & {
 
 function formatLastActive(ts: string) {
   const d = new Date(ts);
-  const now = new Date('2026-03-06T07:00:00');
-  const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
+  if (Number.isNaN(d.getTime())) return 'N/A';
+
+  const now = Date.now();
+  const diffMs = Math.max(0, now - d.getTime());
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return 'Just now';
   if (diffMin < 60) return `${diffMin}m ago`;
   if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`;
   return `${Math.floor(diffMin / 1440)}d ago`;
@@ -177,7 +182,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
               <div>
                 <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{user.name}</div>
                 <div style={{ color: '#6B7280', fontSize: 12 }}>{user.email}</div>
-                <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Last active: {formatLastActive(user.lastActive)}</div>
+                <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Last Active: {formatLastActive(user.lastActive)}</div>
               </div>
             </div>
           )}

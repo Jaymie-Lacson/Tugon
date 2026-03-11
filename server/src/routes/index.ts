@@ -4,6 +4,7 @@ import { authenticate } from "../middleware/auth.js";
 import { requireRole } from "../middleware/requireRole.js";
 import { citizenReportsRouter, officialReportsRouter } from "../modules/reports/reports.routes.js";
 import { adminRouter } from "../modules/admin/admin.routes.js";
+import { officialVerificationRouter } from "../modules/verification/verification.routes.js";
 
 export const apiRouter = Router();
 
@@ -29,6 +30,13 @@ apiRouter.use(
   authenticate,
   requireRole(["OFFICIAL", "SUPER_ADMIN"]),
   officialReportsRouter,
+);
+
+apiRouter.use(
+  "/official",
+  authenticate,
+  requireRole(["OFFICIAL"]),
+  officialVerificationRouter,
 );
 
 apiRouter.use(

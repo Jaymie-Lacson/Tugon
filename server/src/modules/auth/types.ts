@@ -39,6 +39,7 @@ export interface PublicUser {
   role: Role;
   barangayCode?: string;
   isPhoneVerified: boolean;
+  isBanned: boolean;
 }
 
 export interface AuthSession {

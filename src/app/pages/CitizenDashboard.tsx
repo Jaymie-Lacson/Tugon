@@ -147,33 +147,61 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
 }
 
 function VerificationStatusCard({
-  pendingReview,
+  status,
   isUploading,
   message,
+  rejectionReason,
+  bannedReason,
   error,
   onUploadClick,
   onFileSelected,
   fileInputRef,
 }: {
-  pendingReview: boolean;
+  status: 'UNVERIFIED' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'BANNED';
   isUploading: boolean;
   message: string;
+  rejectionReason: string;
+  bannedReason: string;
   error: string;
   onUploadClick: () => void;
   onFileSelected: (event: React.ChangeEvent<HTMLInputElement>) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
-  const icon = pendingReview ? <Clock size={16} /> : <Shield size={16} />;
-  const title = pendingReview ? 'Verification in Review' : 'Verify Your Account';
+  const isPending = status === 'PENDING';
+  const isRejected = status === 'REJECTED';
+  const isBanned = status === 'BANNED';
+  const isApproved = status === 'APPROVED';
+  const icon = isPending
+    ? <Clock size={16} />
+    : isRejected
+    ? <AlertTriangle size={16} />
+    : isApproved
+    ? <CheckCircle2 size={16} />
+    : <Shield size={16} />;
+  const title = isPending
+    ? 'Verification in Review'
+    : isRejected
+    ? 'Verification Rejected'
+    : isBanned
+    ? 'Account Restricted'
+    : isApproved
+    ? 'Account Verified'
+    : 'Verify Your Account';
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 12, paddingBottom: 10 }}>
       <div
         style={{
-          background: pendingReview
+          background: isPending
             ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)'
+            : isRejected
+            ? 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)'
+            : isBanned
+            ? 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)'
+            : isApproved
+            ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)'
             : 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-          border: `1px solid ${pendingReview ? '#FCD34D' : '#FDBA74'}`,
+          border: `1px solid ${isPending ? '#FCD34D' : isRejected ? '#FCA5A5' : isBanned ? '#F87171' : isApproved ? '#6EE7B7' : '#FDBA74'}`,
           borderRadius: 14,
           padding: '12px 14px',
           boxShadow: '0 6px 18px rgba(15,23,42,0.07)',
@@ -194,8 +222,8 @@ function VerificationStatusCard({
                 width: 30,
                 height: 30,
                 borderRadius: 9,
-                background: pendingReview ? '#F59E0B22' : '#EA580C22',
-                color: pendingReview ? '#B45309' : '#C2410C',
+                background: isPending ? '#F59E0B22' : isRejected ? '#B91C1C22' : isBanned ? '#B91C1C33' : isApproved ? '#05966922' : '#EA580C22',
+                color: isPending ? '#B45309' : isRejected || isBanned ? '#B91C1C' : isApproved ? '#047857' : '#C2410C',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -205,29 +233,46 @@ function VerificationStatusCard({
               {icon}
             </span>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#7C2D12' }}>{title}</div>
-              <div style={{ marginTop: 2, fontSize: 12, color: '#9A3412', lineHeight: 1.45 }}>{message}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: isApproved ? '#065F46' : isRejected || isBanned ? '#7F1D1D' : '#7C2D12' }}>{title}</div>
+                <span
+                  style={{
+                    borderRadius: 999,
+                    padding: '2px 8px',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    color: '#fff',
+                    background: isPending ? '#B45309' : isRejected ? '#B91C1C' : isBanned ? '#991B1B' : isApproved ? '#047857' : '#C2410C',
+                  }}
+                >
+                  {status}
+                </span>
+              </div>
+              <div style={{ marginTop: 2, fontSize: 12, color: isApproved ? '#065F46' : isRejected || isBanned ? '#7F1D1D' : '#9A3412', lineHeight: 1.45 }}>{message}</div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onUploadClick}
-            disabled={isUploading || pendingReview}
-            style={{
-              border: '1px solid #FDBA74',
-              background: pendingReview ? '#FFFFFFAA' : '#fff',
-              color: pendingReview ? '#B45309' : '#9A3412',
-              borderRadius: 10,
-              padding: '8px 14px',
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: isUploading || pendingReview ? 'not-allowed' : 'pointer',
-              opacity: isUploading ? 0.7 : 1,
-            }}
-          >
-            {pendingReview ? 'Under Review' : isUploading ? 'Uploading...' : 'Upload ID'}
-          </button>
+          {status !== 'APPROVED' ? (
+            <button
+              type="button"
+              onClick={onUploadClick}
+              disabled={isUploading || isPending || isBanned}
+              style={{
+                border: '1px solid #FDBA74',
+                background: isPending || isBanned ? '#FFFFFFAA' : '#fff',
+                color: isPending ? '#B45309' : isBanned ? '#991B1B' : '#9A3412',
+                borderRadius: 10,
+                padding: '8px 14px',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: isUploading || isPending || isBanned ? 'not-allowed' : 'pointer',
+                opacity: isUploading ? 0.7 : 1,
+              }}
+            >
+              {isPending ? 'Under Review' : isBanned ? 'Restricted' : isUploading ? 'Uploading...' : isRejected ? 'Upload New ID' : 'Upload ID'}
+            </button>
+          ) : null}
         </div>
 
         <input
@@ -237,6 +282,18 @@ function VerificationStatusCard({
           className="hidden"
           onChange={onFileSelected}
         />
+
+        {isRejected && rejectionReason ? (
+          <div style={{ marginTop: 8, fontSize: 12, color: '#991B1B', fontWeight: 700 }}>
+            Rejection reason: {rejectionReason}
+          </div>
+        ) : null}
+
+        {isBanned && bannedReason ? (
+          <div style={{ marginTop: 8, fontSize: 12, color: '#7F1D1D', fontWeight: 700 }}>
+            Restriction note: {bannedReason}
+          </div>
+        ) : null}
 
         {error ? (
           <div style={{ marginTop: 8, fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>{error}</div>
@@ -524,7 +581,9 @@ export default function CitizenDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const supabaseSession = useSession();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
-  const [idUploadedPendingReview, setIdUploadedPendingReview] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'UNVERIFIED' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'BANNED'>('UNVERIFIED');
+  const [verificationRejectionReason, setVerificationRejectionReason] = useState('');
+  const [banReason, setBanReason] = useState('');
   const [isUploadingId, setIsUploadingId] = useState(false);
   const [verificationError, setVerificationError] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -585,17 +644,48 @@ export default function CitizenDashboard() {
     const userId = currentUserId;
     if (!userId) {
       setIsVerified(null);
-      setIdUploadedPendingReview(false);
+      setVerificationStatus('UNVERIFIED');
+      setVerificationRejectionReason('');
+      setBanReason('');
       return;
     }
 
     const loadVerification = async () => {
       try {
         const profile = await getProfileVerificationStatus(userId);
-        setIsVerified(profile?.is_verified ?? false);
-        setIdUploadedPendingReview(Boolean(profile?.id_image_url) && !Boolean(profile?.is_verified));
+        const isVerifiedProfile = Boolean(profile?.is_verified);
+        const isBannedProfile = Boolean(profile?.is_banned);
+        const statusFromProfile = profile?.verification_status;
+        const hasIdImage = Boolean(profile?.id_image_url);
+
+        setIsVerified(isVerifiedProfile);
+        setVerificationRejectionReason(profile?.verification_rejection_reason ?? '');
+        setBanReason(profile?.banned_reason ?? '');
+
+        if (isBannedProfile) {
+          setVerificationStatus('BANNED');
+          return;
+        }
+
+        if (statusFromProfile === 'APPROVED' || isVerifiedProfile) {
+          setVerificationStatus('APPROVED');
+          return;
+        }
+
+        if (statusFromProfile === 'REJECTED') {
+          setVerificationStatus('REJECTED');
+          return;
+        }
+
+        if (statusFromProfile === 'PENDING' || (hasIdImage && !isVerifiedProfile)) {
+          setVerificationStatus('PENDING');
+          return;
+        }
+
+        setVerificationStatus('UNVERIFIED');
       } catch {
         setIsVerified(false);
+        setVerificationStatus('UNVERIFIED');
       }
     };
 
@@ -603,7 +693,7 @@ export default function CitizenDashboard() {
   }, [currentUserId]);
 
   const onUploadIdClick = () => {
-    if (isUploadingId || idUploadedPendingReview) {
+    if (isUploadingId || verificationStatus === 'PENDING' || verificationStatus === 'BANNED') {
       return;
     }
 
@@ -638,7 +728,8 @@ export default function CitizenDashboard() {
     try {
       setIsUploadingId(true);
       await uploadResidentIdAndLinkProfile(userId, file);
-      setIdUploadedPendingReview(true);
+      setVerificationStatus('PENDING');
+      setVerificationRejectionReason('');
       setIsVerified(false);
     } catch (error) {
       setVerificationError(error instanceof Error ? error.message : 'Failed to upload ID. Please try again.');
@@ -647,10 +738,14 @@ export default function CitizenDashboard() {
     }
   };
 
-  const shouldShowVerificationBanner = activeTab === 'home' && isVerified === false;
-  const verificationBannerMessage = idUploadedPendingReview
-    ? 'ID uploaded, pending review.'
-    : 'Your account is unverified. You can submit reports, but verifying your ID helps the barangay prioritize your concerns.';
+  const shouldShowVerificationBanner = activeTab === 'home' && verificationStatus !== 'APPROVED';
+  const verificationBannerMessage = verificationStatus === 'PENDING'
+    ? 'ID uploaded and queued for official review.'
+    : verificationStatus === 'REJECTED'
+    ? 'Your submitted ID was not approved. Upload a new, clearer ID image to continue verification.'
+    : verificationStatus === 'BANNED'
+    ? 'Your account has been restricted by your barangay office. Contact your barangay for clarification.'
+    : 'Your account is unverified. Verifying your ID helps officials prioritize legitimate concerns.';
 
   useEffect(() => {
     const load = async () => {
@@ -998,9 +1093,11 @@ export default function CitizenDashboard() {
         <>
           {shouldShowVerificationBanner ? (
             <VerificationStatusCard
-              pendingReview={idUploadedPendingReview}
+              status={verificationStatus}
               isUploading={isUploadingId}
               message={verificationBannerMessage}
+              rejectionReason={verificationRejectionReason}
+              bannedReason={banReason}
               error={verificationError}
               onUploadClick={onUploadIdClick}
               onFileSelected={onIdFileSelected}

@@ -133,6 +133,11 @@ export interface Database {
           id: string;
           is_verified: boolean;
           id_image_url: string | null;
+          verification_status: "PENDING" | "APPROVED" | "REJECTED" | null;
+          verification_rejection_reason: string | null;
+          verified_at: string | null;
+          is_banned: boolean;
+          banned_reason: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -140,6 +145,11 @@ export interface Database {
           id: string;
           is_verified?: boolean;
           id_image_url?: string | null;
+          verification_status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+          verification_rejection_reason?: string | null;
+          verified_at?: string | null;
+          is_banned?: boolean;
+          banned_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -147,6 +157,11 @@ export interface Database {
           id?: string;
           is_verified?: boolean;
           id_image_url?: string | null;
+          verification_status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+          verification_rejection_reason?: string | null;
+          verified_at?: string | null;
+          is_banned?: boolean;
+          banned_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };

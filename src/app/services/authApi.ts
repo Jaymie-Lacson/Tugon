@@ -7,6 +7,7 @@ export interface SessionUser {
   role: Role;
   barangayCode?: string;
   isPhoneVerified: boolean;
+  isBanned: boolean;
 }
 
 export interface AuthSession {

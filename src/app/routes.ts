@@ -7,6 +7,7 @@ import Incidents from './pages/Incidents';
 import MapView from './pages/MapView';
 import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
+import Verifications from './pages/Verifications';
 import Settings from './pages/Settings';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -156,6 +157,7 @@ export const router = createBrowserRouter([
       { path: 'map', Component: MapView },
       { path: 'analytics', Component: Analytics },
       { path: 'reports', Component: Reports },
+      { path: 'verifications', Component: Verifications },
       { path: 'settings', Component: Settings },
     ],
   },

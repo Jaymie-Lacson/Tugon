@@ -139,6 +139,7 @@ export default function Dashboard() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [incidentsLoading, setIncidentsLoading] = useState(true);
   const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const [officialProfileError, setOfficialProfileError] = useState<string | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [alerts, setAlerts] = useState<ApiCrossBorderAlert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(true);
@@ -222,6 +223,7 @@ export default function Dashboard() {
   const loadReports = async () => {
     setIncidentsLoading(true);
     setIncidentsError(null);
+    setOfficialProfileError(null);
     try {
       const payload = await officialReportsApi.getReports();
       const mapped = payload.reports.map((report) => reportToIncident(report));
@@ -234,6 +236,12 @@ export default function Dashboard() {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load incidents.';
+      if (/official barangay profile is required/i.test(message)) {
+        setOfficialProfileError(message);
+        setIncidentsError(null);
+        setIncidents([]);
+        return;
+      }
       setIncidentsError(message);
     } finally {
       setIncidentsLoading(false);
@@ -248,6 +256,12 @@ export default function Dashboard() {
       setAlerts(payload.alerts);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
+      if (/official barangay profile is required/i.test(message)) {
+        setOfficialProfileError(message);
+        setAlertsError(null);
+        setAlerts([]);
+        return;
+      }
       setAlertsError(message);
     } finally {
       setAlertsLoading(false);
@@ -265,6 +279,12 @@ export default function Dashboard() {
       setHeatmapClusters(payload.clusters);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
+      if (/official barangay profile is required/i.test(message)) {
+        setOfficialProfileError(message);
+        setHeatmapError(null);
+        setHeatmapClusters([]);
+        return;
+      }
       setHeatmapError(message);
     } finally {
       setHeatmapLoading(false);
@@ -314,6 +334,12 @@ export default function Dashboard() {
         </div>
       ) : null}
 
+      {officialProfileError ? (
+        <div style={{ marginBottom: 12, background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 8, color: '#92400E', fontSize: 12, padding: '10px 12px', fontWeight: 600 }}>
+          Account setup incomplete: your official barangay profile is not linked yet. Please contact your super admin to assign your barangay before using alerts and heatmap tools.
+        </div>
+      ) : null}
+
       <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -335,14 +361,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {alertsError ? (
+        {!officialProfileError && alertsError ? (
           <div style={{ margin: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
             {alertsError}
           </div>
         ) : null}
 
         <div style={{ padding: '8px 16px 14px' }}>
-          {alertsLoading ? (
+          {officialProfileError ? (
+            <div style={{ color: '#92400E', fontSize: 12, padding: '8px 0' }}>Cross-border alerts are unavailable until your official barangay assignment is completed.</div>
+          ) : alertsLoading ? (
             <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Loading cross-border alerts...</div>
           ) : alerts.length === 0 ? (
             <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>No nearby cross-border alerts for your barangay right now.</div>
@@ -397,7 +425,11 @@ export default function Dashboard() {
           </button>
         </div>
         <div style={{ padding: '10px 16px 14px' }}>
-          {heatmapError ? (
+          {officialProfileError ? (
+            <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 8, color: '#92400E', fontSize: 12, padding: '8px 10px' }}>
+              Heatmap hotspots are unavailable until your official barangay assignment is completed.
+            </div>
+          ) : heatmapError ? (
             <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
               {heatmapError}
             </div>
