@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { Shield, MapPin, Radio } from 'lucide-react';
+import { MapPin, Radio } from 'lucide-react';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
 
@@ -21,7 +21,8 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
 
   return (
     <div style={{
-      minHeight: '100dvh',
+      minHeight: '100vh',
+      height: '100dvh',
       display: 'flex',
       fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
       background: '#F0F4FF',
@@ -61,15 +62,13 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 'auto' }}
+            style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 'auto' }}
           >
-            <div style={{ width: 44, height: 44, background: '#B91C1C', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(185,28,28,0.4)' }}>
-              <Shield size={22} color="white" />
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 800, letterSpacing: '0.04em', lineHeight: 1 }}>TUGON</div>
-              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Tondo Emergency Response</div>
-            </div>
+            <img
+              src="/tugon-header-logo.svg"
+              alt="TUGON Tondo Emergency Response"
+              style={{ height: 42, width: 'auto', display: 'block' }}
+            />
           </button>
 
           {/* Middle content */}
@@ -113,29 +112,39 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </div>
 
       {/* ── Right form panel ── */}
-      <div style={{
+      <div
+        className="auth-form-panel"
+        style={{
         flex: 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px 16px',
         overflowY: 'auto',
-        minHeight: '100dvh',
+        minHeight: '100vh',
+        height: '100dvh',
       }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
           {/* Mobile logo (only visible on small screens) */}
           <div className="auth-mobile-logo" style={{ display: 'none', justifyContent: 'center', marginBottom: 28 }}>
             <button
               onClick={() => navigate('/')}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)',
+                border: '1px solid rgba(30,58,138,0.25)',
+                borderRadius: 12,
+                boxShadow: '0 6px 18px rgba(30,58,138,0.22)',
+                cursor: 'pointer',
+                padding: '9px 14px',
+              }}
             >
-              <div style={{ width: 40, height: 40, background: '#1E3A8A', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Shield size={20} color="white" />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ color: '#1E3A8A', fontSize: 20, fontWeight: 800, letterSpacing: '0.04em', lineHeight: 1 }}>TUGON</div>
-                <div style={{ color: '#64748B', fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Emergency Response System</div>
-              </div>
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                style={{ height: 34, width: 'auto', display: 'block' }}
+              />
             </button>
           </div>
 
@@ -162,6 +171,11 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         @media (max-width: 768px) {
           .auth-panel { display: none !important; }
           .auth-mobile-logo { display: flex !important; }
+          .auth-form-panel {
+            align-items: flex-start !important;
+            padding-top: max(14px, env(safe-area-inset-top)) !important;
+            padding-bottom: 20px !important;
+          }
         }
       `}</style>
     </div>

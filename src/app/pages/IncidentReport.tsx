@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
-  Shield, ChevronLeft, Check, MapPin, Navigation,
+  Bell, ChevronLeft, Check, MapPin, Navigation,
   Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
+import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { getAuthSession } from '../utils/authSession';
 import {
@@ -1482,11 +1483,20 @@ const STEP_VALIDATION: Record<number, (f: ReportForm) => boolean> = {
 
 export default function IncidentReport() {
   const navigate = useNavigate();
+  const session = getAuthSession();
+  const fullName = session?.user.fullName?.trim() || 'Citizen User';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CU';
   const [step, setStep]         = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submittedReportId, setSubmittedReportId] = useState('');
+  const [notifOpen, setNotifOpen] = useState(false);
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<ReportForm>({
@@ -1501,6 +1511,70 @@ export default function IncidentReport() {
   useEffect(() => {
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
+
+  const notificationItems = useMemo(() => {
+    const stepHints = [
+      {
+        icon: <Info size={14} />,
+        color: '#1E3A8A',
+        bg: '#DBEAFE',
+        title: 'Step-by-step reporting',
+        desc: 'Use the guided form to submit complete and accurate report details.',
+        time: 'Guide',
+        unread: false,
+      },
+    ];
+
+    if (step >= 4) {
+      stepHints.unshift({
+        icon: <CheckCircle2 size={14} />,
+        color: '#059669',
+        bg: '#D1FAE5',
+        title: 'Almost ready to submit',
+        desc: 'Review your details before sending the report to your barangay.',
+        time: 'Now',
+        unread: true,
+      });
+    }
+
+    if (submitted) {
+      stepHints.unshift({
+        icon: <FileText size={14} />,
+        color: '#1E3A8A',
+        bg: '#DBEAFE',
+        title: 'Report submitted',
+        desc: submittedReportId ? `Ticket ${submittedReportId} has been created.` : 'Your incident report was submitted successfully.',
+        time: 'Just now',
+        unread: true,
+      });
+    }
+
+    return stepHints.slice(0, 3);
+  }, [step, submitted, submittedReportId]);
+
+  const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
+
+  useEffect(() => {
+    const handleOutsideHeaderTap = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.citizen-web-header')) {
+        return;
+      }
+
+      setNotifOpen(false);
+    };
+
+    const handleAnyScroll = () => {
+      setNotifOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsideHeaderTap);
+    document.addEventListener('scroll', handleAnyScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideHeaderTap);
+      document.removeEventListener('scroll', handleAnyScroll, true);
+    };
+  }, []);
 
   const canProceed = STEP_VALIDATION[step]?.(form) ?? true;
 
@@ -1588,58 +1662,166 @@ export default function IncidentReport() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 12,
-                padding: '0 16px',
+                padding: '0 var(--citizen-content-gutter)',
                 width: '100%',
                 height: '100%',
                 boxSizing: 'border-box',
+                position: 'relative',
               }}
             >
               <button
-                onClick={goBack}
-                style={{
-                  background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: 10, width: 38, height: 38, cursor: 'pointer', color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background 0.15s',
-                }}
+                onClick={() => navigate('/citizen')}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                aria-label="Go to citizen home"
               >
-                <ChevronLeft size={20} />
+                <img
+                  src="/tugon-header-logo.svg"
+                  alt="TUGON Citizen Portal"
+                  style={{ height: 38, width: 'auto', display: 'block' }}
+                />
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8,
-                  background: 'rgba(255,255,255,0.14)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Shield size={16} color="#fff" />
-                </div>
-                <div>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Report Incident</div>
-                  <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    TUGON Citizen Portal
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={() => setNotifOpen((prev) => !prev)}
+                  style={{
+                    position: 'relative',
+                    background: 'rgba(255,255,255,0.12)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: 10,
+                    width: 38,
+                    height: 38,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#fff',
+                  }}
+                  aria-label="Notifications"
+                >
+                  <Bell size={18} />
+                  {unreadNotificationCount > 0 ? (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: '#B91C1C',
+                        border: '1.5px solid #1E3A8A',
+                      }}
+                    />
+                  ) : null}
+                </button>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: 14,
+                  }}
+                >
+                  {initials}
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 10, padding: '5px 11px',
-                color: '#BFDBFE', fontSize: 12, fontWeight: 800,
-                fontVariantNumeric: 'tabular-nums',
-              }}>
-                {step} / 5
-              </div>
+              {notifOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 66,
+                    right: 16,
+                    width: 300,
+                    background: '#fff',
+                    borderRadius: 14,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                    zIndex: 100,
+                    overflow: 'hidden',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                    <span
+                      style={{
+                        background: '#B91C1C',
+                        color: '#fff',
+                        borderRadius: 20,
+                        padding: '1px 7px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
+                    </span>
+                  </div>
+                  {notificationItems.map((item, index) => (
+                    <div
+                      key={`${item.title}-${index}`}
+                      style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        gap: 10,
+                        alignItems: 'flex-start',
+                        borderBottom: index < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
+                        background: item.unread ? '#FFFBEB' : '#fff',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 8,
+                          background: item.bg,
+                          color: item.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{item.title}</div>
+                        <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.desc}</div>
+                        <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{item.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </header>
         }
-        beforeMain={<StepIndicator current={step} />}
+        beforeMain={
+          <>
+            <CitizenDesktopNav activeKey="report" />
+            <StepIndicator current={step} />
+          </>
+        }
         afterMain={
           <>
             <div className="citizen-report-footer" style={{
               position: 'sticky', bottom: 0, left: 0, transform: 'none',
-              width: '100%', maxWidth: 1260, margin: '0 auto', background: '#fff',
-              borderTop: '1px solid #E2E8F0', padding: '12px 16px',
+              width: '100%', maxWidth: 'var(--citizen-desktop-main-max)', margin: '0 auto', background: '#fff',
+              borderTop: '1px solid #E2E8F0', padding: '12px var(--citizen-content-gutter)',
               display: 'flex', gap: 10, zIndex: 50,
               boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
               boxSizing: 'border-box',
@@ -1715,11 +1897,21 @@ export default function IncidentReport() {
         }
         mobileMainPaddingBottom={96}
         desktopMainPaddingBottom={24}
-        desktopMainMaxWidth={1260}
+        desktopMainMaxWidth={1320}
+        mainOnClick={() => {
+          if (notifOpen) {
+            setNotifOpen(false);
+          }
+        }}
+        mainOnScroll={() => {
+          if (notifOpen) {
+            setNotifOpen(false);
+          }
+        }}
       >
         {submitError && step === 5 && (
-          <div style={{
-            margin: '12px 16px 0',
+          <div className="citizen-content-shell" style={{
+            marginTop: 12,
             background: '#FEF2F2',
             border: '1px solid #FECACA',
             borderRadius: 12,
