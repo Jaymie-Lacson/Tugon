@@ -641,6 +641,8 @@ function HowToUse() {
 }
 
 function SupportedBarangays() {
+  const navigate = useNavigate();
+
   const barangays = [
   {
     name: 'Barangay 251',
@@ -701,7 +703,7 @@ function SupportedBarangays() {
 
               {/* Responders */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-                {b.responders.map(r => (
+                {item.responders.map(r => (
                   <span key={r} style={{ background: 'rgba(255,255,255,0.1)', color: '#BFDBFE', fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.15)' }}>
                     {r}
                   </span>
