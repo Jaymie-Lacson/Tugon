@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -94,12 +94,77 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authRedirecting, setAuthRedirecting] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => {
+      const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
+      const nextScrolled = isMobileViewport ? true : window.scrollY > 20;
+      setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+      return;
+    }
+
+    const syncViewportTop = () => {
+      const topOffset = Math.max(0, viewport.offsetTop || 0);
+      const leftOffset = Math.max(0, viewport.offsetLeft || 0);
+      const viewportWidth = Math.max(0, viewport.width || window.innerWidth);
+      document.documentElement.style.setProperty('--landing-nav-top', `${topOffset}px`);
+      document.documentElement.style.setProperty('--landing-nav-left', `${leftOffset}px`);
+      document.documentElement.style.setProperty('--landing-nav-width', `${viewportWidth}px`);
+    };
+
+    syncViewportTop();
+    viewport.addEventListener('resize', syncViewportTop);
+    viewport.addEventListener('scroll', syncViewportTop);
+    window.addEventListener('orientationchange', syncViewportTop);
+
+    return () => {
+      viewport.removeEventListener('resize', syncViewportTop);
+      viewport.removeEventListener('scroll', syncViewportTop);
+      window.removeEventListener('orientationchange', syncViewportTop);
+      document.documentElement.style.removeProperty('--landing-nav-top');
+      document.documentElement.style.removeProperty('--landing-nav-left');
+      document.documentElement.style.removeProperty('--landing-nav-width');
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const closeMenuOnScroll = () => {
+      setMobileOpen(false);
+    };
+
+    const closeMenuOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && navRef.current?.contains(target)) {
+        return;
+      }
+
+      setMobileOpen(false);
+    };
+
+    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
+    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+
+    return () => {
+      window.removeEventListener('scroll', closeMenuOnScroll);
+      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    };
+  }, [mobileOpen]);
 
   const navLinks = [
     { label: 'How It Works', href: '#how' },
@@ -124,17 +189,22 @@ function Navbar() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <nav
+        className="landing-navbar"
+        ref={navRef}
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
+          top: 'var(--landing-nav-top, 0px)',
+          left: 'var(--landing-nav-left, 0px)',
+          width: 'var(--landing-nav-width, 100%)',
           zIndex: 100,
           background: scrolled ? 'rgba(15,23,42,0.95)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
           transition: 'background 0.3s, backdrop-filter 0.3s',
           borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
         }}
       >
         <div
@@ -309,7 +379,23 @@ function Navbar() {
       </nav>
 
       <style>{`
+        .landing-navbar {
+          isolation: isolate;
+          max-width: 100%;
+        }
+
         @media (max-width: 768px) {
+          .landing-navbar {
+            position: fixed !important;
+            top: var(--landing-nav-top, 0px) !important;
+            left: var(--landing-nav-left, 0px) !important;
+            width: var(--landing-nav-width, 100%) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(15, 23, 42, 0.98) !important;
+            transition: none !important;
+          }
+
           .nav-desktop { display: none !important; }
           .nav-cta { display: none !important; }
           .nav-mobile-btn { display: flex !important; }
@@ -454,7 +540,7 @@ function Hero() {
         </div>
 
         <button
-          onClick={() => navigateWithTransition('community', '/community-map')}
+          onClick={() => navigateWithTransition('community', '/community-map', true)}
           className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
           style={{
             background: 'none',
@@ -524,7 +610,7 @@ function QuickActions() {
       icon: MapIcon,
       color: '#B4730A',
       bg: '#FEF3C7',
-      action: () => navigate('/community-map'),
+      action: () => navigateAuthWithOverlay('/community-map'),
     },
   ];
 
@@ -544,14 +630,12 @@ function QuickActions() {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: 14,
-            overflow: 'hidden',
+            gap: 12,
           }}
         >
           {actions.map((item, index) => (
             <button
+              className="quick-action-btn"
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
@@ -560,22 +644,28 @@ function QuickActions() {
               style={{
                 textAlign: 'left',
                 padding: '18px 18px 16px',
-                border: 'none',
-                borderRight: index < actions.length - 1 ? '1px solid #E2E8F0' : 'none',
-                background: 'transparent',
+                minHeight: 176,
+                border: '1px solid rgba(255,255,255,0.32)',
+                borderRadius: 14,
+                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
                 cursor: 'pointer',
                 transitionDelay: `${index * 90}ms`,
+                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={16} color={item.color} />
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <item.icon size={16} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B' }}>{item.title}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
               </div>
-              <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5, marginBottom: 8 }}>{item.desc}</div>
-              <div style={{ color: item.color, fontSize: 12, fontWeight: 700 }}>
-                Open <ArrowRight size={12} style={{ display: 'inline', marginLeft: 4 }} />
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>{item.desc}</div>
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+                <span className="quick-action-open">
+                  Open <ArrowRight size={12} />
+                </span>
               </div>
             </button>
           ))}
@@ -584,6 +674,7 @@ function QuickActions() {
         <div className="quick-actions-mobile" style={{ display: 'none', gap: 12 }}>
           {actions.map((item) => (
             <button
+              className="quick-action-btn"
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
@@ -592,25 +683,64 @@ function QuickActions() {
               style={{
                 width: '100%',
                 borderRadius: 12,
-                border: '1px solid #E2E8F0',
-                background: 'white',
+                border: '1px solid rgba(255,255,255,0.32)',
+                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
                 padding: '14px',
                 cursor: 'pointer',
                 transitionDelay: '100ms',
+                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 162,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={15} color={item.color} />
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <item.icon size={15} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{item.title}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
               </div>
-              <div style={{ textAlign: 'left', fontSize: 12, color: '#64748B', lineHeight: 1.45 }}>{item.desc}</div>
+              <div style={{ textAlign: 'left', fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45 }}>{item.desc}</div>
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+                <span className="quick-action-open">
+                  Open <ArrowRight size={12} />
+                </span>
+              </div>
             </button>
           ))}
         </div>
 
         <style>{`
+          .quick-action-btn {
+            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
+          }
+
+          .quick-action-open {
+            color: #0F172A;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #FFFFFF;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: 9999px;
+            padding: 5px 12px;
+          }
+
+          .quick-action-btn:hover,
+          .quick-action-btn:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(15,23,42,0.24) !important;
+            border-color: rgba(255,255,255,0.58) !important;
+            outline: none;
+          }
+
+          .quick-action-btn:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 5px 12px rgba(15,23,42,0.12) !important;
+          }
+
           @media (max-width: 768px) {
             .quick-actions-desktop { display: none !important; }
             .quick-actions-mobile { display: grid !important; }
@@ -892,7 +1022,7 @@ function Footer() {
   const quickLinks = [
     { label: 'Register', action: () => navigateAuthWithOverlay('/auth/register') },
     { label: 'Login', action: () => navigateAuthWithOverlay('/auth/login') },
-    { label: 'Community Map', action: () => navigate('/community-map') },
+    { label: 'Community Map', action: () => navigateAuthWithOverlay('/community-map') },
   ];
 
   return (
@@ -1046,8 +1176,31 @@ export default function Landing() {
     navigate('/app', { replace: true });
   }, [navigate]);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflowX = html.style.overflowX;
+    const previousBodyOverflowX = body.style.overflowX;
+
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+
+    return () => {
+      html.style.overflowX = previousHtmlOverflowX;
+      body.style.overflowX = previousBodyOverflowX;
+    };
+  }, []);
+
   return (
-    <div style={{ fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif" }}>
+    <div
+      style={{
+        fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'clip',
+        touchAction: 'pan-y',
+      }}
+    >
       <Navbar />
       <Hero />
       <QuickActions />
@@ -1080,6 +1233,14 @@ export default function Landing() {
         [data-reveal].is-visible {
           opacity: 1;
           transform: translate3d(0, 0, 0);
+        }
+
+        [data-reveal].landing-scroll-cue {
+          transform: translate3d(-50%, var(--reveal-y), 0);
+        }
+
+        [data-reveal].landing-scroll-cue.is-visible {
+          transform: translate3d(-50%, 0, 0);
         }
 
         .hero-transition-scope {
@@ -1200,6 +1361,10 @@ export default function Landing() {
             opacity: 1;
             transform: none;
             transition: none;
+          }
+
+          [data-reveal].landing-scroll-cue {
+            transform: translateX(-50%);
           }
 
           .auth-redirect-ring {
