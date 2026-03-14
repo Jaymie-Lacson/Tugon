@@ -34,8 +34,75 @@ class GeofencingError extends Error {
   }
 }
 
+const TONDO_LAT_RANGE: [number, number] = [14.0, 15.0];
+const TONDO_LNG_RANGE: [number, number] = [120.0, 121.5];
+const EDGE_EPSILON = 1e-6;
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function looksLikeLngLat(point: Position): boolean {
+  const [a, b] = point;
+  return (
+    a >= TONDO_LNG_RANGE[0] &&
+    a <= TONDO_LNG_RANGE[1] &&
+    b >= TONDO_LAT_RANGE[0] &&
+    b <= TONDO_LAT_RANGE[1]
+  );
+}
+
+function looksLikeLatLng(point: Position): boolean {
+  const [a, b] = point;
+  return (
+    a >= TONDO_LAT_RANGE[0] &&
+    a <= TONDO_LAT_RANGE[1] &&
+    b >= TONDO_LNG_RANGE[0] &&
+    b <= TONDO_LNG_RANGE[1]
+  );
+}
+
+function normalizePosition(point: Position): Position {
+  if (looksLikeLatLng(point) && !looksLikeLngLat(point)) {
+    return [point[1], point[0]];
+  }
+  return point;
+}
+
+function normalizeRing(ring: LinearRing): LinearRing {
+  return ring
+    .filter((point): point is Position =>
+      Array.isArray(point) && point.length >= 2 && isFiniteNumber(point[0]) && isFiniteNumber(point[1]),
+    )
+    .map((point) => normalizePosition(point));
+}
+
+function normalizeGeometry(geometry: SupportedGeoJson): SupportedGeoJson {
+  if (geometry.type === "Polygon") {
+    return {
+      type: "Polygon",
+      coordinates: geometry.coordinates.map((ring) => normalizeRing(ring)),
+    };
+  }
+
+  return {
+    type: "MultiPolygon",
+    coordinates: geometry.coordinates.map((polygon) => polygon.map((ring) => normalizeRing(ring))),
+  };
+}
+
+function isPointOnSegment(point: Position, segmentStart: Position, segmentEnd: Position): boolean {
+  const [px, py] = point;
+  const [x1, y1] = segmentStart;
+  const [x2, y2] = segmentEnd;
+
+  const cross = (py - y1) * (x2 - x1) - (px - x1) * (y2 - y1);
+  if (Math.abs(cross) > EDGE_EPSILON) {
+    return false;
+  }
+
+  const dot = (px - x1) * (px - x2) + (py - y1) * (py - y2);
+  return dot <= EDGE_EPSILON;
 }
 
 function isPointInsideRing(point: Position, ring: LinearRing): boolean {
@@ -45,6 +112,10 @@ function isPointInsideRing(point: Position, ring: LinearRing): boolean {
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
     const [xi, yi] = ring[i];
     const [xj, yj] = ring[j];
+
+    if (isPointOnSegment(point, [xi, yi], [xj, yj])) {
+      return true;
+    }
 
     const intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
     if (intersects) {
@@ -83,7 +154,7 @@ function parseBoundary(rawBoundary: string): SupportedGeoJson {
     throw new GeofencingError("Invalid boundary coordinates.", 500);
   }
 
-  return parsed as SupportedGeoJson;
+  return normalizeGeometry(parsed as SupportedGeoJson);
 }
 
 function toLocalMeters(point: Position, originLatitude: number): Position {
