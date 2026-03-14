@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
+import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { getAuthSession } from '../utils/authSession';
 
@@ -1456,6 +1457,7 @@ export default function IncidentReport() {
   const [submitError, setSubmitError] = useState('');
   const [submittedReportId, setSubmittedReportId] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<ReportForm>({
@@ -1520,10 +1522,12 @@ export default function IncidentReport() {
       }
 
       setNotifOpen(false);
+      setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
+      setMobileMenuOpen(false);
     };
 
     document.addEventListener('pointerdown', handleOutsideHeaderTap);
@@ -1646,8 +1650,27 @@ export default function IncidentReport() {
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CitizenMobileMenu
+                  activeKey="report"
+                  open={mobileMenuOpen}
+                  onToggle={() => {
+                    setMobileMenuOpen((prev) => !prev);
+                    setNotifOpen(false);
+                  }}
+                  onNavigate={(key) => {
+                    setMobileMenuOpen(false);
+                    if (key === 'report') navigate('/citizen/report');
+                    else if (key === 'myreports') navigate('/citizen/my-reports');
+                    else if (key === 'map') navigate('/citizen?tab=map');
+                    else if (key === 'profile') navigate('/citizen?tab=profile');
+                    else navigate('/citizen');
+                  }}
+                />
                 <button
-                  onClick={() => setNotifOpen((prev) => !prev)}
+                  onClick={() => {
+                    setNotifOpen((prev) => !prev);
+                    setMobileMenuOpen(false);
+                  }}
                   style={{
                     position: 'relative',
                     background: 'rgba(255,255,255,0.12)',
@@ -1866,10 +1889,16 @@ export default function IncidentReport() {
           if (notifOpen) {
             setNotifOpen(false);
           }
+          if (mobileMenuOpen) {
+            setMobileMenuOpen(false);
+          }
         }}
         mainOnScroll={() => {
           if (notifOpen) {
             setNotifOpen(false);
+          }
+          if (mobileMenuOpen) {
+            setMobileMenuOpen(false);
           }
         }}
       >

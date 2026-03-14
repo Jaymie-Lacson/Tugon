@@ -8,6 +8,7 @@ import {
   ArrowRight, TrendingUp, Map, Menu,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
+import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 import {
@@ -539,30 +540,22 @@ export default function CitizenDashboard() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div className="citizen-only-mobile">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen((prev) => !prev);
-                    setNotifOpen(false);
-                  }}
-                  style={{
-                    background: 'rgba(255,255,255,0.12)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 10,
-                    width: 38,
-                    height: 38,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    padding: 0,
-                  }}
-                  aria-label="Open navigation menu"
-                >
-                  <Menu size={18} />
-                </button>
-              </div>
+              <CitizenMobileMenu
+                activeKey={activeTab}
+                open={mobileMenuOpen}
+                onToggle={() => {
+                  setMobileMenuOpen((prev) => !prev);
+                  setNotifOpen(false);
+                }}
+                onNavigate={(key) => {
+                  setMobileMenuOpen(false);
+                  if (key === 'report') navigate('/citizen/report');
+                  else if (key === 'myreports') navigate('/citizen/my-reports');
+                  else if (key === 'map') setActiveTab('map');
+                  else if (key === 'profile') setActiveTab('profile');
+                  else setActiveTab('home');
+                }}
+              />
               <button
                 onClick={() => {
                   setNotifOpen(!notifOpen);
@@ -617,71 +610,6 @@ export default function CitizenDashboard() {
                 {initials}
               </div>
             </div>
-
-            {mobileMenuOpen && (
-              <div
-                className="citizen-only-mobile"
-                style={{
-                  position: 'absolute',
-                  top: 66,
-                  left: 16,
-                  right: 16,
-                  background: '#fff',
-                  borderRadius: 14,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                  zIndex: 101,
-                  overflow: 'hidden',
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '10px 14px',
-                    borderBottom: '1px solid #F1F5F9',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#64748B',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  Navigation
-                </div>
-                {navItems.map((item) => {
-                  const isActionRoute = item.key === 'report' || item.key === 'myreports';
-                  const isActive = activeTab === item.key;
-                  return (
-                    <button
-                      key={`mobile-menu-${item.key}`}
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        if (item.key === 'report') navigate('/citizen/report');
-                        else if (item.key === 'myreports') navigate('/citizen/my-reports');
-                        else setActiveTab(item.key);
-                      }}
-                      style={{
-                        width: '100%',
-                        background: isActive ? '#EFF6FF' : '#fff',
-                        border: 'none',
-                        borderBottom: '1px solid #F8FAFC',
-                        padding: '12px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#1E293B',
-                        fontSize: 13,
-                        fontWeight: isActive ? 700 : 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      {item.icon}
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
 
             {notifOpen && (
               <div
