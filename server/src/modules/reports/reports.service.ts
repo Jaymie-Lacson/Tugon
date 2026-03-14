@@ -975,6 +975,24 @@ export const reportsService = {
     if (error instanceof ReportsError) {
       return { status: error.status, message: error.message };
     }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return {
+        status: 503,
+        message: "Database connection failed. Verify DATABASE_URL and database availability.",
+      };
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2021" || error.code === "P2022" || error.code === "P2010") {
+        return {
+          status: 503,
+          message: "Database schema is not ready for report operations. Run Prisma migrations on production.",
+        };
+      }
+    }
+
+    console.error("[REPORTS] Unexpected error:", error);
     return { status: 500, message: "Unexpected reports service error." };
   },
 };
