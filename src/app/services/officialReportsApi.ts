@@ -1,7 +1,20 @@
 import { getAuthSession } from "../utils/authSession";
 import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
+import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
+
+function normalizeOfficialApiMessage(message: string): string {
+  const session = getAuthSession();
+  if (
+    message === "Unexpected reports service error." &&
+    session?.user.role === "OFFICIAL" &&
+    !session.user.barangayCode
+  ) {
+    return "Your official account has no assigned barangay yet. Please contact Super Admin to assign your barangay profile.";
+  }
+  return message;
+}
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
@@ -20,8 +33,8 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
-    throw new Error(message);
+    const rawMessage = typeof payload?.message === "string" ? payload.message : "Request failed.";
+    throw new Error(normalizeOfficialApiMessage(rawMessage));
   }
 
   return payload as T;
@@ -37,7 +50,10 @@ export interface ApiCrossBorderAlert {
   readAt: string | null;
   report: {
     id: string;
-    type: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+    category: ReportCategory;
+    subcategory: ReportSubcategory;
+    requiresMediation: boolean;
+    mediationWarning: string | null;
     status: ApiTicketStatus;
     location: string;
     barangay: string;
@@ -48,7 +64,7 @@ export interface ApiCrossBorderAlert {
 
 export interface ApiHeatmapCluster {
   clusterId: string;
-  incidentType: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+  category: ReportCategory;
   incidentCount: number;
   centerLatitude: number;
   centerLongitude: number;
@@ -62,7 +78,7 @@ export interface ApiHeatmapCluster {
 export interface ApiHeatmapResponse {
   clusters: ApiHeatmapCluster[];
   applied: {
-    incidentType: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other" | null;
+    category: ReportCategory | null;
     fromDate: string;
     toDate: string;
     threshold: number;
@@ -106,14 +122,14 @@ export const officialReportsApi = {
   },
 
   getHeatmap(params?: {
-    type?: "Fire" | "Pollution" | "Noise" | "Crime" | "Road Hazard" | "Other";
+    category?: ReportCategory;
     days?: number;
     threshold?: number;
     cellSize?: number;
   }) {
     const search = new URLSearchParams();
-    if (params?.type) {
-      search.set("type", params.type);
+    if (params?.category) {
+      search.set("category", params.category);
     }
     if (typeof params?.days === "number") {
       search.set("days", String(params.days));

@@ -1,11 +1,18 @@
 import {
-  IncidentType as PrismaIncidentType,
   ReportSeverity as PrismaReportSeverity,
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
 import { prisma } from "../../config/prisma.js";
 import { geofencingService } from "../map/geofencing.service.js";
 import { reportsStore } from "./store.js";
+import {
+  getCategoryMetadata,
+  isValidCategorySubcategoryPair,
+  isValidReportCategory,
+  isValidReportSubcategory,
+  type ReportCategory,
+  type ReportSubcategory,
+} from "./taxonomy.js";
 import type { Role } from "../auth/types.js";
 import type {
   CrossBorderAlertRecord,
@@ -13,19 +20,9 @@ import type {
   CreateCitizenReportInput,
   HeatmapClusterRecord,
   HeatmapQueryInput,
-  IncidentType,
   ReportSeverity,
   TicketStatus,
 } from "./types.js";
-
-const ALLOWED_TYPES: IncidentType[] = [
-  "Fire",
-  "Pollution",
-  "Noise",
-  "Crime",
-  "Road Hazard",
-  "Other",
-];
 
 const ALLOWED_SEVERITIES: ReportSeverity[] = ["low", "medium", "high", "critical"];
 const ALLOWED_TICKET_STATUSES: TicketStatus[] = [
@@ -49,15 +46,6 @@ const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   "Unresolvable": [],
 };
 
-const prismaTypeMap: Record<IncidentType, PrismaIncidentType> = {
-  "Fire": PrismaIncidentType.FIRE,
-  "Pollution": PrismaIncidentType.POLLUTION,
-  "Noise": PrismaIncidentType.NOISE,
-  "Crime": PrismaIncidentType.CRIME,
-  "Road Hazard": PrismaIncidentType.ROAD_HAZARD,
-  "Other": PrismaIncidentType.OTHER,
-};
-
 const prismaSeverityMap: Record<ReportSeverity, PrismaReportSeverity> = {
   low: PrismaReportSeverity.low,
   medium: PrismaReportSeverity.medium,
@@ -72,15 +60,6 @@ const ticketStatusMap: Record<PrismaTicketStatus, CitizenReportRecord["status"]>
   RESOLVED: "Resolved",
   CLOSED: "Closed",
   UNRESOLVABLE: "Unresolvable",
-};
-
-const incidentTypeMap: Record<PrismaIncidentType, CitizenReportRecord["type"]> = {
-  FIRE: "Fire",
-  POLLUTION: "Pollution",
-  NOISE: "Noise",
-  CRIME: "Crime",
-  ROAD_HAZARD: "Road Hazard",
-  OTHER: "Other",
 };
 
 const toPrismaStatusMap: Record<TicketStatus, PrismaTicketStatus> = {
@@ -170,7 +149,10 @@ function mapPersistedReport(row: {
   routedBarangayCode: string;
   latitude: number;
   longitude: number;
-  type: PrismaIncidentType;
+  category: string;
+  subcategory: string;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
   status: PrismaTicketStatus;
   location: string;
   barangay: string;
@@ -202,7 +184,10 @@ function mapPersistedReport(row: {
     routedBarangayCode: row.routedBarangayCode,
     latitude: row.latitude,
     longitude: row.longitude,
-    type: incidentTypeMap[row.type],
+    category: row.category as ReportCategory,
+    subcategory: row.subcategory as ReportSubcategory,
+    requiresMediation: row.requiresMediation,
+    mediationWarning: row.mediationWarning,
     status: ticketStatusMap[row.status],
     location: row.location,
     barangay: row.barangay,
@@ -238,9 +223,38 @@ class ReportsError extends Error {
   }
 }
 
-function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenReportInput {
-  if (!ALLOWED_TYPES.includes(input.type)) {
-    throw new ReportsError("Invalid incident type.", 400);
+function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenReportInput & {
+  category: ReportCategory;
+  subcategory: ReportSubcategory;
+  mediationWarning: string | null;
+} {
+  const category = input.category?.trim();
+  const subcategory = input.subcategory?.trim();
+
+  if (!category || !isValidReportCategory(category)) {
+    throw new ReportsError("Invalid report category.", 400);
+  }
+
+  if (!subcategory || !isValidReportSubcategory(subcategory)) {
+    throw new ReportsError("Invalid report subcategory.", 400);
+  }
+
+  if (!isValidCategorySubcategoryPair(category, subcategory)) {
+    throw new ReportsError("Subcategory does not belong to the selected category.", 400);
+  }
+
+  const metadata = getCategoryMetadata(category);
+  if (input.requiresMediation !== metadata.requiresMediation) {
+    throw new ReportsError("Invalid mediation requirement for selected category.", 400);
+  }
+
+  const warning = input.mediationWarning?.trim() ?? null;
+  if (metadata.requiresMediation) {
+    if (warning !== metadata.mediationWarning) {
+      throw new ReportsError("Invalid mediation warning for selected category.", 400);
+    }
+  } else if (warning !== null) {
+    throw new ReportsError("Mediation warning is only allowed for Lupon reports.", 400);
   }
 
   if (!ALLOWED_SEVERITIES.includes(input.severity)) {
@@ -271,6 +285,9 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
 
   return {
     ...input,
+    category,
+    subcategory: subcategory as ReportSubcategory,
+    mediationWarning: warning,
     location,
     latitude,
     longitude,
@@ -281,7 +298,7 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
 }
 
 function validateHeatmapInput(input: HeatmapQueryInput): {
-  incidentType?: IncidentType;
+  category?: ReportCategory;
   fromDate: Date;
   toDate: Date;
   threshold: number;
@@ -303,13 +320,13 @@ function validateHeatmapInput(input: HeatmapQueryInput): {
     throw new ReportsError("Heatmap cell size must be greater than 0 and at most 0.02.", 400);
   }
 
-  let incidentType: IncidentType | undefined;
-  if (typeof input.incidentType === "string") {
-    const candidate = input.incidentType.trim() as IncidentType;
-    if (!ALLOWED_TYPES.includes(candidate)) {
-      throw new ReportsError("Invalid heatmap incident type filter.", 400);
+  let category: ReportCategory | undefined;
+  if (typeof input.category === "string") {
+    const candidate = input.category.trim();
+    if (!isValidReportCategory(candidate)) {
+      throw new ReportsError("Invalid heatmap category filter.", 400);
     }
-    incidentType = candidate;
+    category = candidate;
   }
 
   const parsedTo = input.toDate ? new Date(input.toDate) : now;
@@ -329,7 +346,7 @@ function validateHeatmapInput(input: HeatmapQueryInput): {
   }
 
   return {
-    incidentType,
+    category,
     fromDate: parsedFrom,
     toDate: parsedTo,
     threshold,
@@ -338,7 +355,7 @@ function validateHeatmapInput(input: HeatmapQueryInput): {
 }
 
 // Super Admin must not see the citizenUserId that would allow cross-referencing
-// a specific citizen to their report (RA 10173 — Data Privacy Act of 2012).
+// a specific citizen to their report (RA 10173 � Data Privacy Act of 2012).
 function anonymizeReportForSuperAdmin(report: CitizenReportRecord): CitizenReportRecord {
   return { ...report, citizenUserId: "[protected]" };
 }
@@ -354,7 +371,6 @@ export const reportsService = {
       validated.longitude,
     );
 
-    // Enforce citizen registration jurisdiction for report submissions.
     if (routedBarangay.code !== citizenUser.barangayCode) {
       throw new ReportsError(
         `Pinned location belongs to Barangay ${routedBarangay.code}. You can only submit incidents within Barangay ${citizenUser.barangayCode}.`,
@@ -370,13 +386,18 @@ export const reportsService = {
       routedBarangay.code,
     );
 
+    const metadata = getCategoryMetadata(validated.category);
+
     const report: CitizenReportRecord = {
       id: reportId,
       citizenUserId: citizenUser.id,
       routedBarangayCode: routedBarangay.code,
       latitude: validated.latitude,
       longitude: validated.longitude,
-      type: validated.type,
+      category: validated.category,
+      subcategory: validated.subcategory,
+      requiresMediation: metadata.requiresMediation,
+      mediationWarning: metadata.mediationWarning,
       status: "Submitted",
       location: validated.location,
       barangay: routedBarangay.name,
@@ -422,7 +443,10 @@ export const reportsService = {
           routedBarangayCode: report.routedBarangayCode,
           latitude: report.latitude,
           longitude: report.longitude,
-          type: prismaTypeMap[report.type],
+          category: report.category,
+          subcategory: report.subcategory,
+          requiresMediation: report.requiresMediation,
+          mediationWarning: report.mediationWarning,
           status: PrismaTicketStatus.SUBMITTED,
           location: report.location,
           barangay: report.barangay,
@@ -440,7 +464,10 @@ export const reportsService = {
           routedBarangayCode: report.routedBarangayCode,
           latitude: report.latitude,
           longitude: report.longitude,
-          type: prismaTypeMap[report.type],
+          category: report.category,
+          subcategory: report.subcategory,
+          requiresMediation: report.requiresMediation,
+          mediationWarning: report.mediationWarning,
           status: PrismaTicketStatus.SUBMITTED,
           location: report.location,
           barangay: report.barangay,
@@ -632,7 +659,10 @@ export const reportsService = {
         report: {
           select: {
             id: true,
-            type: true,
+            category: true,
+            subcategory: true,
+            requiresMediation: true,
+            mediationWarning: true,
             status: true,
             location: true,
             barangay: true,
@@ -654,7 +684,10 @@ export const reportsService = {
       readAt: alert.readAt ? alert.readAt.toISOString() : null,
       report: {
         id: alert.report.id,
-        type: incidentTypeMap[alert.report.type],
+        category: alert.report.category as ReportCategory,
+        subcategory: alert.report.subcategory as ReportSubcategory,
+        requiresMediation: alert.report.requiresMediation,
+        mediationWarning: alert.report.mediationWarning,
         status: ticketStatusMap[alert.report.status],
         location: alert.report.location,
         barangay: alert.report.barangay,
@@ -674,7 +707,10 @@ export const reportsService = {
         report: {
           select: {
             id: true,
-            type: true,
+            category: true,
+            subcategory: true,
+            requiresMediation: true,
+            mediationWarning: true,
             status: true,
             location: true,
             barangay: true,
@@ -700,7 +736,10 @@ export const reportsService = {
         report: {
           select: {
             id: true,
-            type: true,
+            category: true,
+            subcategory: true,
+            requiresMediation: true,
+            mediationWarning: true,
             status: true,
             location: true,
             barangay: true,
@@ -721,7 +760,10 @@ export const reportsService = {
       readAt: updatedAlert.readAt ? updatedAlert.readAt.toISOString() : null,
       report: {
         id: updatedAlert.report.id,
-        type: incidentTypeMap[updatedAlert.report.type],
+        category: updatedAlert.report.category as ReportCategory,
+        subcategory: updatedAlert.report.subcategory as ReportSubcategory,
+        requiresMediation: updatedAlert.report.requiresMediation,
+        mediationWarning: updatedAlert.report.mediationWarning,
         status: ticketStatusMap[updatedAlert.report.status],
         location: updatedAlert.report.location,
         barangay: updatedAlert.report.barangay,
@@ -737,7 +779,7 @@ export const reportsService = {
   ): Promise<{
     clusters: HeatmapClusterRecord[];
     applied: {
-      incidentType: IncidentType | null;
+      category: ReportCategory | null;
       fromDate: string;
       toDate: string;
       threshold: number;
@@ -751,7 +793,7 @@ export const reportsService = {
     const validated = validateHeatmapInput(input);
     const where = {
       ...(user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {}),
-      ...(validated.incidentType ? { type: prismaTypeMap[validated.incidentType] } : {}),
+      ...(validated.category ? { category: validated.category } : {}),
       submittedAt: {
         gte: validated.fromDate,
         lte: validated.toDate,
@@ -762,7 +804,7 @@ export const reportsService = {
       where,
       select: {
         id: true,
-        type: true,
+        category: true,
         latitude: true,
         longitude: true,
         routedBarangayCode: true,
@@ -773,7 +815,7 @@ export const reportsService = {
     const clustersMap = new Map<
       string,
       {
-        incidentType: PrismaIncidentType;
+        category: string;
         incidentCount: number;
         sumLatitude: number;
         sumLongitude: number;
@@ -784,7 +826,7 @@ export const reportsService = {
     for (const report of reports) {
       const cellLat = Math.floor(report.latitude / validated.cellSize);
       const cellLng = Math.floor(report.longitude / validated.cellSize);
-      const key = `${report.type}:${cellLat}:${cellLng}`;
+      const key = `${report.category}:${cellLat}:${cellLng}`;
       const existing = clustersMap.get(key);
 
       if (existing) {
@@ -794,7 +836,7 @@ export const reportsService = {
         existing.barangayCodes.add(report.routedBarangayCode);
       } else {
         clustersMap.set(key, {
-          incidentType: report.type,
+          category: report.category,
           incidentCount: 1,
           sumLatitude: report.latitude,
           sumLongitude: report.longitude,
@@ -807,7 +849,7 @@ export const reportsService = {
       .filter(([, cluster]) => cluster.incidentCount >= validated.threshold)
       .map(([clusterId, cluster]) => ({
         clusterId,
-        incidentType: incidentTypeMap[cluster.incidentType],
+        category: cluster.category as ReportCategory,
         incidentCount: cluster.incidentCount,
         centerLatitude: Number((cluster.sumLatitude / cluster.incidentCount).toFixed(6)),
         centerLongitude: Number((cluster.sumLongitude / cluster.incidentCount).toFixed(6)),
@@ -822,7 +864,7 @@ export const reportsService = {
     return {
       clusters,
       applied: {
-        incidentType: validated.incidentType ?? null,
+        category: validated.category ?? null,
         fromDate: validated.fromDate.toISOString(),
         toDate: validated.toDate.toISOString(),
         threshold: validated.threshold,

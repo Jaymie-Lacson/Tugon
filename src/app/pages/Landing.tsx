@@ -1,17 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
   FileText,
   Flame,
   Map as MapIcon,
   MapPin,
   Menu,
+  Navigation,
   Phone,
   Radio,
+  Shield,
+  Star,
   Users,
+  Volume2,
   X,
+  Zap,
+  Car,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
@@ -73,16 +83,97 @@ function SectionHeading({
   );
 }
 
+function AuthRedirectOverlay({ visible }: { visible: boolean }) {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div className="auth-redirect-overlay" aria-live="polite" aria-busy="true">
+      <div className="auth-redirect-loader" role="status" aria-label="Redirecting">
+        <span className="auth-redirect-ring" aria-hidden="true" />
+        <img src="/favicon.svg" alt="TUGON" className="auth-redirect-logo" />
+      </div>
+    </div>
+  );
+}
+
 function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => {
+      const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
+      const nextScrolled = isMobileViewport ? true : window.scrollY > 20;
+      setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+      return;
+    }
+
+    const syncViewportTop = () => {
+      const topOffset = Math.max(0, viewport.offsetTop || 0);
+      const leftOffset = Math.max(0, viewport.offsetLeft || 0);
+      const viewportWidth = Math.max(0, viewport.width || window.innerWidth);
+      document.documentElement.style.setProperty('--landing-nav-top', `${topOffset}px`);
+      document.documentElement.style.setProperty('--landing-nav-left', `${leftOffset}px`);
+      document.documentElement.style.setProperty('--landing-nav-width', `${viewportWidth}px`);
+    };
+
+    syncViewportTop();
+    viewport.addEventListener('resize', syncViewportTop);
+    viewport.addEventListener('scroll', syncViewportTop);
+    window.addEventListener('orientationchange', syncViewportTop);
+
+    return () => {
+      viewport.removeEventListener('resize', syncViewportTop);
+      viewport.removeEventListener('scroll', syncViewportTop);
+      window.removeEventListener('orientationchange', syncViewportTop);
+      document.documentElement.style.removeProperty('--landing-nav-top');
+      document.documentElement.style.removeProperty('--landing-nav-left');
+      document.documentElement.style.removeProperty('--landing-nav-width');
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const closeMenuOnScroll = () => {
+      setMobileOpen(false);
+    };
+
+    const closeMenuOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && navRef.current?.contains(target)) {
+        return;
+      }
+
+      setMobileOpen(false);
+    };
+
+    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
+    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+
+    return () => {
+      window.removeEventListener('scroll', closeMenuOnScroll);
+      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    };
+  }, [mobileOpen]);
 
   const navLinks = [
     { label: 'How It Works', href: '#how' },
@@ -95,20 +186,34 @@ function Navbar() {
     setMobileOpen(false);
   };
 
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    setMobileOpen(false);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
+
   return (
     <>
+      <AuthRedirectOverlay visible={authRedirecting} />
       <nav
+        className="landing-navbar"
+        ref={navRef}
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
+          top: 'var(--landing-nav-top, 0px)',
+          left: 'var(--landing-nav-left, 0px)',
+          width: 'var(--landing-nav-width, 100%)',
           zIndex: 100,
           background: scrolled ? 'rgba(15,23,42,0.95)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
           transition: 'background 0.3s, backdrop-filter 0.3s',
           borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
         }}
       >
         <div
@@ -164,7 +269,7 @@ function Navbar() {
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} className="nav-cta">
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => navigateAuthWithOverlay('/auth/login')}
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.25)',
@@ -179,7 +284,7 @@ function Navbar() {
               Login
             </button>
             <button
-              onClick={() => navigate('/auth/register')}
+              onClick={() => navigateAuthWithOverlay('/auth/register')}
               style={{
                 background: '#B91C1C',
                 border: 'none',
@@ -246,7 +351,7 @@ function Navbar() {
             ))}
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               <button
-                onClick={() => navigate('/auth/login')}
+                onClick={() => navigateAuthWithOverlay('/auth/login')}
                 style={{
                   width: '100%',
                   background: '#B91C1C',
@@ -262,7 +367,7 @@ function Navbar() {
                 Login to Continue
               </button>
               <button
-                onClick={() => navigate('/auth/register')}
+                onClick={() => navigateAuthWithOverlay('/auth/register')}
                 style={{
                   width: '100%',
                   background: 'rgba(255,255,255,0.12)',
@@ -283,7 +388,23 @@ function Navbar() {
       </nav>
 
       <style>{`
+        .landing-navbar {
+          isolation: isolate;
+          max-width: 100%;
+        }
+
         @media (max-width: 768px) {
+          .landing-navbar {
+            position: fixed !important;
+            top: var(--landing-nav-top, 0px) !important;
+            left: var(--landing-nav-left, 0px) !important;
+            width: var(--landing-nav-width, 100%) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(15, 23, 42, 0.98) !important;
+            transition: none !important;
+          }
+
           .nav-desktop { display: none !important; }
           .nav-cta { display: none !important; }
           .nav-mobile-btn { display: flex !important; }
@@ -295,9 +416,28 @@ function Navbar() {
 
 function Hero() {
   const navigate = useNavigate();
+  const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const navigateWithTransition = (action: 'report' | 'track' | 'community', path: string, isAuth = false) => {
+    setActiveAction(action);
+    if (isAuth) {
+      setAuthRedirecting(true);
+    }
+    window.setTimeout(() => {
+      navigate(path);
+    }, isAuth ? 260 : 170);
+  };
+
+  const scrollToQuickActions = () => {
+    document.querySelector('#quick-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
-    <section
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section
+      data-reveal
       style={{
         position: 'relative',
         minHeight: '100vh',
@@ -317,7 +457,11 @@ function Hero() {
         />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%' }}>
+      <div
+        data-reveal
+        className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
+        style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
+      >
         <div
           style={{
             display: 'inline-flex',
@@ -365,7 +509,8 @@ function Hero() {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 26 }}>
           <button
-            onClick={() => navigate('/auth/register')}
+            onClick={() => navigateWithTransition('report', '/auth/register', true)}
+            className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: '#B91C1C',
               border: 'none',
@@ -383,7 +528,8 @@ function Hero() {
             <AlertTriangle size={16} /> Report an Incident
           </button>
           <button
-            onClick={() => navigate('/auth/login')}
+            onClick={() => navigateWithTransition('track', '/auth/login', true)}
+            className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
             style={{
               background: 'rgba(255,255,255,0.12)',
               border: '1.5px solid rgba(255,255,255,0.35)',
@@ -403,7 +549,8 @@ function Hero() {
         </div>
 
         <button
-          onClick={() => navigate('/community-map')}
+          onClick={() => navigateWithTransition('community', '/community-map', true)}
+          className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
           style={{
             background: 'none',
             border: 'none',
@@ -420,12 +567,34 @@ function Hero() {
           <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
         </button>
       </div>
-    </section>
+
+      <button
+        data-reveal
+        onClick={scrollToQuickActions}
+        aria-label="Scroll to quick actions"
+        className="landing-scroll-cue"
+        style={{ transitionDelay: '220ms' }}
+      >
+        <span className="landing-scroll-cue-icon" aria-hidden="true">
+          <ChevronDown size={16} />
+        </span>
+      </button>
+      </section>
+    </>
   );
 }
 
 function QuickActions() {
   const navigate = useNavigate();
+
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
 
   const actions = [
     {
@@ -434,7 +603,7 @@ function QuickActions() {
       icon: AlertTriangle,
       color: '#B91C1C',
       bg: '#FEE2E2',
-      action: () => navigate('/auth/register'),
+      action: () => navigateAuthWithOverlay('/auth/register'),
     },
     {
       title: 'Track Status',
@@ -442,7 +611,7 @@ function QuickActions() {
       icon: FileText,
       color: '#1E3A8A',
       bg: '#DBEAFE',
-      action: () => navigate('/auth/login'),
+      action: () => navigateAuthWithOverlay('/auth/login'),
     },
     {
       title: 'View Community Map',
@@ -450,12 +619,14 @@ function QuickActions() {
       icon: MapIcon,
       color: '#B4730A',
       bg: '#FEF3C7',
-      action: () => navigate('/community-map'),
+      action: () => navigateAuthWithOverlay('/community-map'),
     },
   ];
 
   return (
-    <section style={{ padding: '56px 24px', background: '#FFFFFF' }}>
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Quick Access"
@@ -468,34 +639,42 @@ function QuickActions() {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: 14,
-            overflow: 'hidden',
+            gap: 12,
           }}
         >
           {actions.map((item, index) => (
             <button
+              className="quick-action-btn"
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
                 textAlign: 'left',
                 padding: '18px 18px 16px',
-                border: 'none',
-                borderRight: index < actions.length - 1 ? '1px solid #E2E8F0' : 'none',
-                background: 'transparent',
+                minHeight: 176,
+                border: '1px solid rgba(255,255,255,0.32)',
+                borderRadius: 14,
+                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
                 cursor: 'pointer',
+                transitionDelay: `${index * 90}ms`,
+                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={16} color={item.color} />
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <item.icon size={16} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B' }}>{item.title}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
               </div>
-              <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5, marginBottom: 8 }}>{item.desc}</div>
-              <div style={{ color: item.color, fontSize: 12, fontWeight: 700 }}>
-                Open <ArrowRight size={12} style={{ display: 'inline', marginLeft: 4 }} />
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>{item.desc}</div>
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+                <span className="quick-action-open">
+                  Open <ArrowRight size={12} />
+                </span>
               </div>
             </button>
           ))}
@@ -504,36 +683,81 @@ function QuickActions() {
         <div className="quick-actions-mobile" style={{ display: 'none', gap: 12 }}>
           {actions.map((item) => (
             <button
+              className="quick-action-btn"
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
                 width: '100%',
                 borderRadius: 12,
-                border: '1px solid #E2E8F0',
-                background: 'white',
+                border: '1px solid rgba(255,255,255,0.32)',
+                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
                 padding: '14px',
                 cursor: 'pointer',
+                transitionDelay: '100ms',
+                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 162,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={15} color={item.color} />
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <item.icon size={15} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>{item.title}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
               </div>
-              <div style={{ textAlign: 'left', fontSize: 12, color: '#64748B', lineHeight: 1.45 }}>{item.desc}</div>
+              <div style={{ textAlign: 'left', fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45 }}>{item.desc}</div>
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+                <span className="quick-action-open">
+                  Open <ArrowRight size={12} />
+                </span>
+              </div>
             </button>
           ))}
         </div>
 
         <style>{`
+          .quick-action-btn {
+            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
+          }
+
+          .quick-action-open {
+            color: #0F172A;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #FFFFFF;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: 9999px;
+            padding: 5px 12px;
+          }
+
+          .quick-action-btn:hover,
+          .quick-action-btn:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(15,23,42,0.24) !important;
+            border-color: rgba(255,255,255,0.58) !important;
+            outline: none;
+          }
+
+          .quick-action-btn:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 5px 12px rgba(15,23,42,0.12) !important;
+          }
+
           @media (max-width: 768px) {
             .quick-actions-desktop { display: none !important; }
             .quick-actions-mobile { display: grid !important; }
           }
         `}</style>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
 
@@ -563,7 +787,7 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" style={{ padding: '88px 24px', background: '#F8FAFF' }}>
+    <section id="how" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="How It Works"
@@ -573,7 +797,13 @@ function HowToUse() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           {steps.map((step, index) => (
-            <div key={step.title} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20 }}>
+            <div
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="right"
+              key={step.title}
+              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: step.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <step.icon size={17} color={step.color} />
@@ -591,26 +821,46 @@ function HowToUse() {
 }
 
 function SupportedBarangays() {
+  const navigate = useNavigate();
+
   const barangays = [
-    {
-      name: 'Barangay 251',
-      district: 'District I',
-      note: 'Coastal and flood-prone areas with active fire and hazard monitoring.',
-    },
-    {
-      name: 'Barangay 252',
-      district: 'District I',
-      note: 'Commercial activity zone with frequent traffic and noise concerns.',
-    },
-    {
-      name: 'Barangay 256',
-      district: 'District I',
-      note: 'High-density roads and market corridors requiring quick incident response.',
-    },
-  ];
+  {
+    name: 'Barangay 251',
+    zone: 'Zone 24 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near Moriones and adjacent residential blocks',
+    description: 'Handles incident reports from residents in Barangay 251 with coordinated barangay and emergency unit response.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'BFP', 'PNP'],
+    color: '#1E3A8A',
+    light: '#EFF6FF',
+  },
+  {
+    name: 'Barangay 252',
+    zone: 'Zone 25 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near Capulong corridor and surrounding mixed-use residential blocks',
+    description: 'Supports rapid validation, routing, and status updates for incident reports submitted by residents of Barangay 252.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'PNP', 'EMS'],
+    color: '#B91C1C',
+    light: '#FEE2E2',
+  },
+  {
+    name: 'Barangay 256',
+    zone: 'Zone 26 — Tondo I/II',
+    district: 'District II',
+    landmarks: 'Near key inner roads and access points connecting to neighboring barangays',
+    description: 'Monitors local hazards and routes citizen incident reports to authorized responders within Barangay 256.',
+    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    responders: ['MDRRMO', 'BFP', 'EMS'],
+    color: '#B4730A',
+    light: '#FEF3C7',
+  },
+];
 
   return (
-    <section id="barangays" style={{ padding: '88px 24px', background: '#1E3A8A' }}>
+    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: '#1E3A8A' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Coverage"
@@ -620,14 +870,44 @@ function SupportedBarangays() {
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
-          {barangays.map((item) => (
-            <div key={item.name} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18 }}>
+          {barangays.map((item, index) => (
+            <div
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
+              key={item.name}
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <MapPin size={16} color="#BFDBFE" />
                 <h3 style={{ margin: 0, color: 'white', fontSize: 17, fontWeight: 700 }}>{item.name}</h3>
               </div>
+
+              {/* Responders */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+                {item.responders.map(r => (
+                  <span key={r} style={{ background: 'rgba(255,255,255,0.1)', color: '#BFDBFE', fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.15)' }}>
+                    {r}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/auth/register')}
+                style={{
+                  marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              >
+                Register to Report <ChevronRight size={13} />
+              </button>
               <p style={{ margin: '0 0 8px', fontSize: 12, color: '#BFDBFE' }}>{item.district}</p>
-              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55 }}>{item.note}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55 }}> {item.description}
+              </p>
             </div>
           ))}
         </div>
@@ -662,7 +942,7 @@ function SafetyTips() {
   ];
 
   return (
-    <section id="safety" style={{ padding: '88px 24px', background: '#FFFFFF' }}>
+    <section id="safety" data-reveal style={{ padding: '88px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Awareness"
@@ -671,8 +951,14 @@ function SafetyTips() {
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
-          {tips.map((tip) => (
-            <div key={tip.title} style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white' }}>
+          {tips.map((tip, index) => (
+            <div
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="right"
+              key={tip.title}
+              style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white', transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 38, height: 38, borderRadius: 10, background: tip.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <tip.icon size={17} color={tip.color} />
@@ -702,7 +988,7 @@ function EmergencyHotlines() {
   ];
 
   return (
-    <section id="hotlines" style={{ padding: '88px 24px', background: '#F8FAFF' }}>
+    <section id="hotlines" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Emergency Contacts"
@@ -711,6 +997,7 @@ function EmergencyHotlines() {
         />
 
         <div
+          data-reveal
           style={{
             background: 'linear-gradient(135deg, #B91C1C, #991B1B)',
             borderRadius: 14,
@@ -721,6 +1008,7 @@ function EmergencyHotlines() {
             justifyContent: 'space-between',
             gap: 14,
             flexWrap: 'wrap',
+            transitionDelay: '80ms',
           }}
         >
           <div>
@@ -747,8 +1035,14 @@ function EmergencyHotlines() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-          {hotlines.map((item) => (
-            <div key={item.name} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16 }}>
+          {hotlines.map((item, index) => (
+            <div
+              data-reveal
+              data-reveal-slide="x"
+              data-reveal-dir="left"
+              key={item.name}
+              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16, transitionDelay: `${index * 90}ms` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Phone size={15} color={item.color} />
@@ -768,14 +1062,26 @@ function EmergencyHotlines() {
 function Footer() {
   const navigate = useNavigate();
   const year = new Date().getFullYear();
+
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => {
+      navigate(path);
+    }, 260);
+  };
+
   const quickLinks = [
-    { label: 'Register', action: () => navigate('/auth/register') },
-    { label: 'Login', action: () => navigate('/auth/login') },
-    { label: 'Community Map', action: () => navigate('/community-map') },
+    { label: 'Register', action: () => navigateAuthWithOverlay('/auth/register') },
+    { label: 'Login', action: () => navigateAuthWithOverlay('/auth/login') },
+    { label: 'Community Map', action: () => navigateAuthWithOverlay('/community-map') },
   ];
 
   return (
-    <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '38px 24px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 22, marginBottom: 22 }}>
           <div>
@@ -870,11 +1176,38 @@ function Footer() {
           footer button, footer a { min-height: 40px; }
         }
       `}</style>
-    </footer>
+      </footer>
+    </>
   );
 }
 
 export default function Landing() {
+  useEffect(() => {
+    const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    if (!revealItems.length) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          } else {
+            entry.target.classList.remove('is-visible');
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px',
+      },
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, []);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -896,8 +1229,31 @@ export default function Landing() {
     navigate('/app', { replace: true });
   }, [navigate]);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflowX = html.style.overflowX;
+    const previousBodyOverflowX = body.style.overflowX;
+
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+
+    return () => {
+      html.style.overflowX = previousHtmlOverflowX;
+      body.style.overflowX = previousBodyOverflowX;
+    };
+  }, []);
+
   return (
-    <div style={{ fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif" }}>
+    <div
+      style={{
+        fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'clip',
+        touchAction: 'pan-y',
+      }}
+    >
       <Navbar />
       <Hero />
       <QuickActions />
@@ -906,6 +1262,174 @@ export default function Landing() {
       <SafetyTips />
       <EmergencyHotlines />
       <Footer />
+
+      <style>{`
+        [data-reveal] {
+          --reveal-x: 0px;
+          --reveal-y: 22px;
+          opacity: 0;
+          transform: translate3d(var(--reveal-x), var(--reveal-y), 0);
+          transition: opacity 640ms cubic-bezier(0.2, 0.65, 0.3, 1), transform 640ms cubic-bezier(0.2, 0.65, 0.3, 1);
+          will-change: opacity, transform;
+        }
+
+        [data-reveal][data-reveal-slide='x'][data-reveal-dir='left'] {
+          --reveal-x: -44px;
+          --reveal-y: 0px;
+        }
+
+        [data-reveal][data-reveal-slide='x'][data-reveal-dir='right'] {
+          --reveal-x: 44px;
+          --reveal-y: 0px;
+        }
+
+        [data-reveal].is-visible {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+
+        [data-reveal].landing-scroll-cue {
+          transform: translate3d(-50%, var(--reveal-y), 0);
+        }
+
+        [data-reveal].landing-scroll-cue.is-visible {
+          transform: translate3d(-50%, 0, 0);
+        }
+
+        .hero-transition-scope {
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .hero-transition-scope.is-routing {
+          opacity: 0.88;
+          transform: translateY(4px);
+        }
+
+        .hero-action-btn,
+        .hero-link-action {
+          transition: transform 160ms ease, filter 160ms ease, box-shadow 180ms ease;
+        }
+
+        .hero-action-btn.is-clicking,
+        .hero-link-action.is-clicking {
+          transform: scale(0.97);
+          filter: brightness(1.08);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+        }
+
+        .auth-redirect-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 999;
+          background: rgba(15, 23, 42, 0.34);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .auth-redirect-loader {
+          width: 108px;
+          height: 108px;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .auth-redirect-ring {
+          position: absolute;
+          inset: -6px;
+          border-radius: 9999px;
+          border: 4px solid rgba(30, 58, 138, 0.16);
+          border-top-color: #B91C1C;
+          border-right-color: #1E3A8A;
+          animation: authRedirectSpin 0.9s linear infinite;
+        }
+
+        .auth-redirect-logo {
+          width: 42px;
+          height: 42px;
+          display: block;
+          filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15));
+        }
+
+        @keyframes authRedirectSpin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .landing-scroll-cue {
+          position: absolute;
+          left: 50%;
+          bottom: 18px;
+          transform: translateX(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          background: rgba(15, 23, 42, 0.42);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 3;
+          animation: scrollCuePulse 1.8s ease-in-out infinite;
+        }
+
+        .landing-scroll-cue-icon {
+          display: inline-flex;
+          line-height: 0;
+          animation: scrollCueArrow 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollCuePulse {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(191, 219, 254, 0.18);
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(191, 219, 254, 0);
+          }
+        }
+
+        @keyframes scrollCueArrow {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(3px);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [data-reveal] {
+            opacity: 1;
+            transform: none;
+            transition: none;
+          }
+
+          [data-reveal].landing-scroll-cue {
+            transform: translateX(-50%);
+          }
+
+          .auth-redirect-ring {
+            animation: none;
+          }
+
+          .landing-scroll-cue,
+          .landing-scroll-cue-icon {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

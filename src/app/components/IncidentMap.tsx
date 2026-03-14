@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Incident, incidentTypeConfig } from '../data/incidents';
+import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 // ── Leaflet default-icon fix for Vite bundler ──────────────────────────────
 // Vite mangles asset paths, so we use DivIcon for all markers instead.
@@ -268,7 +269,11 @@ export function IncidentMap({
           const normalizedType = cluster.incidentType.toLowerCase();
           const color =
             TYPE_COLORS[normalizedType] ??
-            (cluster.incidentType === 'Road Hazard' ? TYPE_COLORS.accident : TYPE_COLORS.infrastructure);
+            (cluster.incidentType === 'Road and Street Issues' ? TYPE_COLORS.accident :
+              cluster.incidentType === 'Hazards and Safety' ? TYPE_COLORS.fire :
+                cluster.incidentType === 'Garbage and Sanitation' ? TYPE_COLORS.flood :
+                  cluster.incidentType === 'Neighbor Disputes / Lupon' ? TYPE_COLORS.crime :
+                    TYPE_COLORS.infrastructure);
           const radius = Math.max(55, Math.round(45 + cluster.intensity * 45));
 
           return (
@@ -323,7 +328,7 @@ export function IncidentMap({
                     <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>{inc.id}</div>
                     <div style={{ color: '#475569', marginBottom: 2 }}>{inc.barangay}</div>
                     <div style={{ color: TYPE_COLORS[inc.type], fontWeight: 600, textTransform: 'capitalize' }}>
-                      {inc.type} · {inc.severity}
+                      {getCategoryLabelForIncidentType(inc.type)} · {inc.severity}
                     </div>
                   </div>
                 </Tooltip>
@@ -335,7 +340,7 @@ export function IncidentMap({
 
       {/* Legend — only when not compact */}
       {!compact && (
-        <div style={{
+        <div className="incident-map-legend-overlay" style={{
           position: 'absolute',
           bottom: 28,
           right: 10,
@@ -348,11 +353,39 @@ export function IncidentMap({
           minWidth: 115,
           border: '1px solid #E2E8F0',
         }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Types</div>
+          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
           {Object.entries(incidentTypeConfig).map(([key, cfg]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
               <span style={{ fontSize: 11 }}>{TYPE_EMOJI[key]}</span>
-              <span style={{ color: '#475569', fontSize: 9 }}>{cfg.label}</span>
+              <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
+            </div>
+          ))}
+          <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', display: 'inline-block' }} />
+              <span style={{ color: '#94A3B8', fontSize: 9 }}>Resolved</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile legend section — outside map overlay area */}
+      {!compact && (
+        <div className="incident-map-legend-mobile" style={{
+          display: 'none',
+          marginTop: 10,
+          background: 'rgba(255,255,255,0.97)',
+          borderRadius: 8,
+          padding: '8px 10px',
+          fontSize: 10,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+          border: '1px solid #E2E8F0',
+        }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
+          {Object.entries(incidentTypeConfig).map(([key]) => (
+            <div key={`mobile-${key}`} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+              <span style={{ fontSize: 11 }}>{TYPE_EMOJI[key]}</span>
+              <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}
           <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
@@ -370,6 +403,16 @@ export function IncidentMap({
           0%   { transform: scale(1);   opacity: 0.22; }
           70%  { transform: scale(2.2); opacity: 0; }
           100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+          .incident-map-legend-overlay {
+            display: none !important;
+          }
+
+          .incident-map-legend-mobile {
+            display: block !important;
+          }
         }
       `}</style>
     </div>

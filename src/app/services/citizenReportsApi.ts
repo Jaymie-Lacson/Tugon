@@ -1,4 +1,5 @@
 import { getAuthSession } from "../utils/authSession";
+import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 export type ApiTicketStatus =
   | "Submitted"
@@ -7,14 +8,6 @@ export type ApiTicketStatus =
   | "Resolved"
   | "Closed"
   | "Unresolvable";
-
-export type ApiIncidentType =
-  | "Fire"
-  | "Pollution"
-  | "Noise"
-  | "Crime"
-  | "Road Hazard"
-  | "Other";
 
 export interface ApiTimelineEntry {
   status: "Created" | ApiTicketStatus;
@@ -31,7 +24,10 @@ export interface ApiCitizenReport {
   routedBarangayCode: string;
   latitude: number;
   longitude: number;
-  type: ApiIncidentType;
+  category: ReportCategory;
+  subcategory: ReportSubcategory;
+  requiresMediation: boolean;
+  mediationWarning: string | null;
   status: ApiTicketStatus;
   location: string;
   barangay: string;
@@ -78,7 +74,10 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const citizenReportsApi = {
   submitReport(input: {
-    type: ApiIncidentType;
+    category: ReportCategory;
+    subcategory: ReportSubcategory;
+    requiresMediation: boolean;
+    mediationWarning: string | null;
     latitude: number;
     longitude: number;
     location: string;

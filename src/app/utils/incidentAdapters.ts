@@ -1,21 +1,13 @@
 import type { Incident, IncidentStatus, IncidentType } from '../data/incidents';
-import type { ApiCitizenReport, ApiIncidentType, ApiTicketStatus } from '../services/citizenReportsApi';
+import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
+import type { ReportCategory } from '../data/reportTaxonomy';
 
-export function mapIncidentType(type: ApiIncidentType): IncidentType {
-  switch (type) {
-    case 'Fire':
-      return 'fire';
-    case 'Crime':
-      return 'crime';
-    case 'Road Hazard':
-      return 'accident';
-    case 'Pollution':
-      return 'flood';
-    case 'Noise':
-    case 'Other':
-    default:
-      return 'infrastructure';
-  }
+export function mapIncidentType(category: ReportCategory): IncidentType {
+  if (category === 'Hazards and Safety') return 'fire';
+  if (category === 'Neighbor Disputes / Lupon') return 'crime';
+  if (category === 'Road and Street Issues') return 'accident';
+  if (category === 'Garbage and Sanitation') return 'flood';
+  return 'infrastructure';
 }
 
 export function mapTicketStatus(status: ApiTicketStatus): IncidentStatus {
@@ -47,10 +39,12 @@ export function reportToIncident(report: ApiCitizenReport): Incident {
   const respondedAt =
     report.timeline.find((entry) => entry.status === 'Under Review' || entry.status === 'In Progress')?.timestamp;
   const resolvedAt = report.timeline.find((entry) => entry.status === 'Resolved' || entry.status === 'Closed')?.timestamp;
+  const createdEntry = report.timeline.find((entry) => entry.status === 'Created');
+  const reportedBy = createdEntry?.actor?.trim() || report.timeline[0]?.actor?.trim() || 'Citizen';
 
   return {
     id: report.id,
-    type: mapIncidentType(report.type),
+    type: mapIncidentType(report.category),
     severity: report.severity,
     status: mapTicketStatus(report.status),
     barangay: report.barangay,
@@ -61,7 +55,7 @@ export function reportToIncident(report: ApiCitizenReport): Incident {
     resolvedAt,
     responders: report.assignedOfficer ? 1 : 0,
     description: report.description,
-    reportedBy: 'Citizen Report',
+    reportedBy,
     affectedPersons: parseAffectedCount(report.affectedCount),
     mapX: 0,
     mapY: 0,

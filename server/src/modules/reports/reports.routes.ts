@@ -40,7 +40,11 @@ citizenReportsRouter.post("/reports", async (req, res) => {
     const result = await reportsService.create(
       { id: citizenUser.id, fullName: citizenUser.fullName, barangayCode: citizenBarangayCode },
       {
-        type: req.body?.type,
+        category: req.body?.category,
+        subcategory: req.body?.subcategory,
+        requiresMediation: Boolean(req.body?.requiresMediation),
+        mediationWarning:
+          typeof req.body?.mediationWarning === "string" ? req.body.mediationWarning : null,
         latitude: Number(req.body?.latitude),
         longitude: Number(req.body?.longitude),
         location: req.body?.location,
@@ -293,7 +297,7 @@ officialReportsRouter.get("/heatmap", async (req, res) => {
         barangayCode: user.officialProfile?.barangay?.code ?? null,
       },
       {
-        incidentType: typeof query.type === "string" ? query.type : undefined,
+        category: typeof query.category === "string" ? query.category : undefined,
         fromDate: typeof query.fromDate === "string" ? query.fromDate : undefined,
         toDate: typeof query.toDate === "string" ? query.toDate : undefined,
         days: typeof query.days === "string" ? Number(query.days) : undefined,
