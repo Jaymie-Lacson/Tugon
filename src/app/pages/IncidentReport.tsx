@@ -1963,7 +1963,7 @@ export default function IncidentReport() {
   const stepValidationMessage = STEP_REQUIREMENTS[step]?.(form) ?? null;
   const canProceed = !stepValidationMessage;
   const voiceAllowed = (form.category === 'Public Disturbance') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
-  const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '0') === '1';
+  const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '1') !== '0';
 
   useEffect(() => {
     if (voiceAllowed) {
@@ -2030,6 +2030,8 @@ export default function IncidentReport() {
         }
       }
 
+      const selectedPhotoCount = form.photoFiles.length;
+
       const response = await citizenReportsApi.submitReport({
         category: form.category,
         subcategory: form.subcategory,
@@ -2042,7 +2044,7 @@ export default function IncidentReport() {
         description: form.description.trim(),
         severity: form.severity ?? 'medium',
         affectedCount: form.affectedCount,
-        photoCount: photoPayloads.length,
+        photoCount: enableInlineEvidenceUpload ? photoPayloads.length : selectedPhotoCount,
         hasAudio: Boolean(form.audioBlob),
         photos: enableInlineEvidenceUpload ? photoPayloads : undefined,
         audio: enableInlineEvidenceUpload ? encodedAudio : null,
