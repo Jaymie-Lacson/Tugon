@@ -1,9 +1,11 @@
 import {
+  Prisma,
   ReportSeverity as PrismaReportSeverity,
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
 import { prisma } from "../../config/prisma.js";
 import { geofencingService } from "../map/geofencing.service.js";
+import { evidenceStorageService } from "./evidenceStorage.service.js";
 import { reportsStore } from "./store.js";
 import {
   getCategoryMetadata,
@@ -227,6 +229,16 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   category: ReportCategory;
   subcategory: ReportSubcategory;
   mediationWarning: string | null;
+  photos: Array<{
+    fileName?: string;
+    mimeType?: string;
+    dataUrl: string;
+  }>;
+  audio: {
+    fileName?: string;
+    mimeType?: string;
+    dataUrl: string;
+  } | null;
 } {
   const category = input.category?.trim();
   const subcategory = input.subcategory?.trim();
@@ -283,6 +295,23 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     throw new ReportsError("Invalid photo count.", 400);
   }
 
+  if (photoCount < 1) {
+    throw new ReportsError("At least one photo evidence is required.", 400);
+  }
+
+  const isNoiseRelated = category === "Public Disturbance" || subcategory.toLowerCase().includes("noise");
+  if (input.hasAudio && !isNoiseRelated) {
+    throw new ReportsError("Voice recording is only allowed for noise-related incidents.", 400);
+  }
+
+  const photos = Array.isArray(input.photos)
+    ? input.photos.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.trim().length > 0)
+    : [];
+
+  const audio = input.audio && typeof input.audio.dataUrl === "string" && input.audio.dataUrl.trim().length > 0
+    ? input.audio
+    : null;
+
   return {
     ...input,
     category,
@@ -294,6 +323,8 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     description,
     photoCount,
     affectedCount: input.affectedCount ?? null,
+    photos,
+    audio,
   };
 }
 
@@ -366,10 +397,17 @@ export const reportsService = {
     input: CreateCitizenReportInput,
   ) {
     const validated = validateCreateInput(input);
-    const routedBarangay = await geofencingService.resolveBarangayFromCoordinates(
-      validated.latitude,
-      validated.longitude,
-    );
+    let routedBarangay: Awaited<ReturnType<typeof geofencingService.resolveBarangayFromCoordinates>>;
+
+    try {
+      routedBarangay = await geofencingService.resolveBarangayFromCoordinates(
+        validated.latitude,
+        validated.longitude,
+      );
+    } catch (error) {
+      const parsed = geofencingService.parseError(error);
+      throw new ReportsError(parsed.message, parsed.status);
+    }
 
     if (routedBarangay.code !== citizenUser.barangayCode) {
       throw new ReportsError(
@@ -380,13 +418,37 @@ export const reportsService = {
 
     const now = new Date().toISOString();
     const reportId = reportsStore.nextReportId();
-    const nearbyBarangays = await geofencingService.findNearbyBarangaysForAlert(
-      validated.latitude,
-      validated.longitude,
-      routedBarangay.code,
-    );
+    let nearbyBarangays: Awaited<ReturnType<typeof geofencingService.findNearbyBarangaysForAlert>> = [];
+
+    try {
+      nearbyBarangays = await geofencingService.findNearbyBarangaysForAlert(
+        validated.latitude,
+        validated.longitude,
+        routedBarangay.code,
+      );
+    } catch (error) {
+      const parsed = geofencingService.parseError(error);
+      throw new ReportsError(parsed.message, parsed.status);
+    }
+
+    let uploadedEvidence: Awaited<ReturnType<typeof evidenceStorageService.uploadReportEvidence>> = [];
+    try {
+      uploadedEvidence = await evidenceStorageService.uploadReportEvidence({
+        reportId,
+        citizenUserId: citizenUser.id,
+        photos: validated.photos,
+        audio: validated.audio,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to upload evidence files.";
+      throw new ReportsError(message, 400);
+    }
 
     const metadata = getCategoryMetadata(validated.category);
+    const uploadedPhotoCount = uploadedEvidence.filter((item) => item.kind === "photo").length;
+    const hasUploadedAudio = uploadedEvidence.some((item) => item.kind === "audio");
+    const effectivePhotoCount = uploadedPhotoCount > 0 ? uploadedPhotoCount : validated.photoCount;
+    const effectiveHasAudio = hasUploadedAudio || validated.hasAudio;
 
     const report: CitizenReportRecord = {
       id: reportId,
@@ -407,9 +469,9 @@ export const reportsService = {
       affectedCount: validated.affectedCount,
       submittedAt: now,
       updatedAt: now,
-      hasPhotos: validated.photoCount > 0,
-      photoCount: validated.photoCount,
-      hasAudio: validated.hasAudio,
+      hasPhotos: effectivePhotoCount > 0,
+      photoCount: effectivePhotoCount,
+      hasAudio: effectiveHasAudio,
       assignedOfficer: null,
       assignedUnit: null,
       resolutionNote: null,
@@ -435,7 +497,7 @@ export const reportsService = {
 
     reportsStore.save(report);
 
-    await prisma.$transaction([
+    const txOperations: Prisma.PrismaPromise<unknown>[] = [
       prisma.citizenReport.upsert({
         where: { id: report.id },
         update: {
@@ -510,7 +572,43 @@ export const reportsService = {
           alertReason: "Incident reported near shared jurisdiction boundary.",
         })),
       }),
-    ]);
+    ];
+
+    if (uploadedEvidence.length > 0) {
+      txOperations.push(
+        prisma.$executeRaw(Prisma.sql`DELETE FROM "IncidentEvidence" WHERE "reportId" = ${report.id}`),
+      );
+
+      for (const evidence of uploadedEvidence) {
+        txOperations.push(
+          prisma.$executeRaw(
+            Prisma.sql`
+              INSERT INTO "IncidentEvidence" (
+                "reportId",
+                "kind",
+                "storageProvider",
+                "storagePath",
+                "publicUrl",
+                "fileName",
+                "mimeType",
+                "sizeBytes"
+              ) VALUES (
+                ${report.id},
+                ${evidence.kind},
+                ${evidence.storageProvider},
+                ${evidence.storagePath},
+                ${evidence.publicUrl},
+                ${evidence.fileName},
+                ${evidence.mimeType},
+                ${evidence.sizeBytes}
+              )
+            `,
+          ),
+        );
+      }
+    }
+
+    await prisma.$transaction(txOperations);
 
     return {
       message: "Report submitted successfully.",
