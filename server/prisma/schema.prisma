@@ -85,6 +85,24 @@ model CitizenReport {
 
   statusHistory TicketStatusHistory[]
   crossBorderAlerts CrossBorderAlert[]
+  evidences IncidentEvidence[]
+}
+
+model IncidentEvidence {
+  id              String   @id @default(cuid())
+  reportId        String
+  kind            String
+  storageProvider String
+  storagePath     String?
+  publicUrl       String?
+  fileName        String
+  mimeType        String
+  sizeBytes       Int
+  createdAt       DateTime @default(now())
+
+  report CitizenReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, createdAt])
 }
 
 model CrossBorderAlert {

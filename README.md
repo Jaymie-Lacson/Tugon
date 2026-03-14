@@ -56,6 +56,10 @@ This runs:
    - `DIRECT_URL=<your-supabase-direct-postgres-url>`
    - `RUN_DB_MIGRATIONS=0` (default; avoids failing deploys when direct DB access is unavailable)
    - Set `RUN_DB_MIGRATIONS=1` only when you intentionally want Railway to run `prisma migrate deploy` using `DIRECT_URL`.
+   - `SUPABASE_URL=<your-supabase-project-url>`
+   - `SUPABASE_SERVICE_ROLE_KEY=<service-role-key-for-storage-upload>`
+   - `SUPABASE_STORAGE_BUCKET=incident-evidence`
+   - `REQUIRE_EVIDENCE_STORAGE_UPLOAD=1` (recommended for production; rejects report submit when storage upload is unavailable)
 3. Railway uses [`railway.json`](./railway.json) to:
    - install/build server (`npm --prefix server ...`)
    - optionally run Prisma migrations before deploy (enabled only when `RUN_DB_MIGRATIONS=1`)
@@ -67,4 +71,17 @@ This runs:
      - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
 5. After first successful deploy, copy your Railway public URL and set frontend env:
    - `VITE_API_BASE_URL=https://<your-service>.up.railway.app/api`
+
+## Railway Deployment Health Checklist
+
+Run this in `server/` before deploying backend changes:
+
+- `npm run deploy:railway:check`
+
+What it checks:
+
+- required env vars are present (`JWT_SECRET`, `DATABASE_URL`, and `DIRECT_URL` when migrations are enabled)
+- Prisma schema validation passes
+- Prisma client generation passes
+- migration status is reachable when `RUN_DB_MIGRATIONS=1`
   

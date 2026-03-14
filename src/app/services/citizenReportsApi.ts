@@ -1,6 +1,8 @@
 import { getAuthSession } from "../utils/authSession";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
+export type ApiIncidentType = "FIRE" | "POLLUTION" | "NOISE" | "CRIME" | "ROAD_HAZARD" | "OTHER";
+
 export type ApiTicketStatus =
   | "Submitted"
   | "Under Review"
@@ -86,6 +88,17 @@ export const citizenReportsApi = {
     affectedCount: string | null;
     photoCount: number;
     hasAudio: boolean;
+    type?: ApiIncidentType;
+    photos?: Array<{
+      fileName?: string;
+      mimeType?: string;
+      dataUrl: string;
+    }>;
+    audio?: {
+      fileName?: string;
+      mimeType?: string;
+      dataUrl: string;
+    } | null;
   }) {
     return authedRequest<{ message: string; report: ApiCitizenReport }>("/citizen/reports", {
       method: "POST",

@@ -61,6 +61,16 @@ export interface CreateCitizenReportInput {
   affectedCount: string | null;
   photoCount: number;
   hasAudio: boolean;
+  photos?: Array<{
+    fileName?: string;
+    mimeType?: string;
+    dataUrl: string;
+  }>;
+  audio?: {
+    fileName?: string;
+    mimeType?: string;
+    dataUrl: string;
+  } | null;
 }
 
 export interface CrossBorderAlertRecord {

@@ -35,6 +35,7 @@ interface ReportForm {
   pin: PinData | null;
   address: string;
   description: string;
+  quickTags: string[];
   affectedCount: string | null;
   photoPreviews: string[];
   photoFiles: File[];
@@ -158,6 +159,66 @@ function getBoundaryBounds(boundaries: Array<{ boundary: LatLng[] }>): [LatLng, 
 }
 
 const BARANGAY_BOUNDARY_BOUNDS = getBoundaryBounds(BARANGAY_BOUNDARIES);
+
+function toLegacyIncidentType(category: IncidentCategory | null): 'FIRE' | 'POLLUTION' | 'NOISE' | 'CRIME' | 'ROAD_HAZARD' | 'OTHER' {
+  if (category === 'Hazards and Safety') return 'FIRE';
+  if (category === 'Garbage and Sanitation') return 'POLLUTION';
+  if (category === 'Public Disturbance') return 'NOISE';
+  if (category === 'Neighbor Disputes / Lupon') return 'CRIME';
+  if (category === 'Road and Street Issues') return 'ROAD_HAZARD';
+  return 'OTHER';
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error('Failed to read file data.'));
+    };
+    reader.onerror = () => reject(new Error('Failed to read file data.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function compressImageToDataUrl(file: File): Promise<string> {
+  const sourceDataUrl = await blobToDataUrl(file);
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const maxDimension = 1280;
+      let { width, height } = image;
+
+      if (width > height && width > maxDimension) {
+        height = Math.round((height * maxDimension) / width);
+        width = maxDimension;
+      } else if (height >= width && height > maxDimension) {
+        width = Math.round((width * maxDimension) / height);
+        height = maxDimension;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Unable to process image for upload.'));
+        return;
+      }
+
+      ctx.drawImage(image, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.72);
+      resolve(compressed);
+    };
+    image.onerror = () => reject(new Error('Unable to process image for upload.'));
+    image.src = sourceDataUrl;
+  });
+}
 
 function isPointInsideRing(point: LngLat, ring: LngLat[]): boolean {
   let inside = false;
@@ -303,7 +364,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {/* Category Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
         {CATEGORIES.map(({ type, label, icon: Icon, color, bg, desc, emoji }) => {
           const sel = form.category === type;
           return (
@@ -322,12 +383,12 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
               style={{
                 background: sel ? `linear-gradient(145deg, ${color}, ${color}CC)` : '#fff',
                 border: `2px solid ${sel ? color : '#E8EEF4'}`,
-                borderRadius: 18, padding: '18px 14px 14px',
+                borderRadius: 16, padding: '14px 12px 12px',
                 cursor: 'pointer', display: 'flex', flexDirection: 'column',
                 alignItems: 'flex-start', gap: 10, textAlign: 'left',
                 transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
                 boxShadow: sel ? `0 8px 24px ${color}38` : '0 1px 3px rgba(0,0,0,0.06)',
-                position: 'relative', overflow: 'hidden', minHeight: 140,
+                position: 'relative', overflow: 'hidden', minHeight: 124,
               }}
             >
               {/* Subtle bg pattern for unselected */}
@@ -439,18 +500,69 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   );
 }
 
+function Step1WithValidation({
+  form,
+  setForm,
+  validationError,
+}: {
+  form: ReportForm;
+  setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
+  validationError?: string;
+}) {
+  return (
+    <>
+      <Step1 form={form} setForm={setForm} />
+      {validationError ? (
+        <div
+          style={{
+            margin: '0 16px 10px',
+            borderRadius: 10,
+            border: '1px solid #FECACA',
+            background: '#FEF2F2',
+            color: '#B91C1C',
+            fontSize: 12,
+            padding: '9px 11px',
+          }}
+        >
+          {validationError}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STEP 2 - LOCATION
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
+function Step2({
+  form,
+  setForm,
+  validationError,
+}: {
+  form: ReportForm;
+  setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
+  validationError?: string;
+}) {
   const session = getAuthSession();
   const userBarangayCode = session?.user.barangayCode ?? null;
   const allowedBarangays = userBarangayCode
     ? BARANGAY_BOUNDARIES.filter((barangay) => barangay.code === userBarangayCode)
     : [];
+  const [mapExpanded, setMapExpanded] = useState(false);
   const hasBarangayProfile = allowedBarangays.length > 0;
   const assignedBarangayLabel = allowedBarangays[0]?.name ?? (userBarangayCode ? `Barangay ${userBarangayCode}` : 'your registered barangay');
   const pinInSupportedArea = isPinWithinSupportedBarangay(form.pin);
+
+  useEffect(() => {
+    if (!mapExpanded) {
+      return;
+    }
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [mapExpanded]);
 
   const placePin = (lat: number, lng: number) => {
     if (!hasBarangayProfile) {
@@ -482,6 +594,55 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
     }));
   };
 
+  const renderMap = (height: number | string) => (
+    <MapContainer
+      className="incident-step2-map"
+      center={TONDO_MAP_CENTER}
+      zoom={18}
+      minZoom={17}
+      maxZoom={22}
+      maxBounds={TONDO_MAP_BOUNDS}
+      maxBoundsViscosity={1}
+      style={{ display: 'block', height, width: '100%' }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+        maxNativeZoom={20}
+        maxZoom={22}
+      />
+
+      {allowedBarangays.map((barangay) => (
+        <Polygon
+          key={barangay.code}
+          positions={barangay.boundary}
+          pathOptions={{
+            color: form.pin?.barangay === barangay.name ? '#B91C1C' : '#1E3A8A',
+            weight: form.pin?.barangay === barangay.name ? 5 : 4,
+            dashArray: '10 6',
+            fillColor: '#93C5FD',
+            fillOpacity: form.pin?.barangay === barangay.name ? 0.26 : 0.18,
+          }}
+        >
+          <Tooltip direction="center" permanent sticky>
+            {barangay.name}
+          </Tooltip>
+        </Polygon>
+      ))}
+
+      <Step2FitToBoundaryBounds />
+      <Step2MapClickCapture onMapClick={placePin} />
+
+      {form.pin && (
+        <CircleMarker center={[form.pin.lat, form.pin.lng]} radius={8} pathOptions={{ color: '#B91C1C', fillColor: '#B91C1C', fillOpacity: 1 }}>
+          <Tooltip direction="top" offset={[0, -8]} permanent>
+            Incident Pin
+          </Tooltip>
+        </CircleMarker>
+      )}
+    </MapContainer>
+  );
+
   return (
     <div style={{ padding: '22px 16px 8px' }}>
       <div style={{ marginBottom: 16 }}>
@@ -505,6 +666,27 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         position: 'relative',
         transition: 'border-color 0.3s, box-shadow 0.3s',
       }}>
+        <button
+          type="button"
+          onClick={() => setMapExpanded(true)}
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            zIndex: 11,
+            border: '1px solid rgba(255,255,255,0.7)',
+            background: 'rgba(15,23,42,0.72)',
+            color: '#fff',
+            borderRadius: 10,
+            padding: '6px 10px',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Expand Map
+        </button>
+
         {!form.pin && (
           <div className="incident-step2-map-hint" style={{
             position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
@@ -517,54 +699,55 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
             <MapPin size={13} /> Tap map to pin location
           </div>
         )}
+        {renderMap(320)}
+      </div>
 
-        <MapContainer
-          className="incident-step2-map"
-          center={TONDO_MAP_CENTER}
-          zoom={17}
-          minZoom={16}
-          maxZoom={22}
-          maxBounds={TONDO_MAP_BOUNDS}
-          maxBoundsViscosity={1}
-          style={{ display: 'block', height: 320, width: '100%' }}
+      {mapExpanded ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 250,
+            background: '#0B1220',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-            maxNativeZoom={20}
-            maxZoom={22}
-          />
-
-          {allowedBarangays.map((barangay) => (
-            <Polygon
-              key={barangay.code}
-              positions={barangay.boundary}
-              pathOptions={{
-                color: form.pin?.barangay === barangay.name ? '#B91C1C' : '#1E3A8A',
-                weight: form.pin?.barangay === barangay.name ? 5 : 4,
-                dashArray: '10 6',
-                fillColor: '#93C5FD',
-                fillOpacity: form.pin?.barangay === barangay.name ? 0.26 : 0.18,
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '12px 14px',
+              color: '#fff',
+              borderBottom: '1px solid rgba(255,255,255,0.15)',
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700 }}>Expanded Map Pinning</div>
+            <button
+              type="button"
+              onClick={() => setMapExpanded(false)}
+              style={{
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'rgba(255,255,255,0.08)',
+                color: '#fff',
+                borderRadius: 10,
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
               }}
             >
-              <Tooltip direction="center" permanent sticky>
-                {barangay.name}
-              </Tooltip>
-            </Polygon>
-          ))}
-
-          <Step2FitToBoundaryBounds />
-          <Step2MapClickCapture onMapClick={placePin} />
-
-          {form.pin && (
-            <CircleMarker center={[form.pin.lat, form.pin.lng]} radius={8} pathOptions={{ color: '#B91C1C', fillColor: '#B91C1C', fillOpacity: 1 }}>
-              <Tooltip direction="top" offset={[0, -8]} permanent>
-                Incident Pin
-              </Tooltip>
-            </CircleMarker>
-          )}
-        </MapContainer>
-      </div>
+              Close
+            </button>
+          </div>
+          <div style={{ flex: 1 }}>{renderMap('100%')}</div>
+          <div style={{ padding: '10px 14px', color: '#BFDBFE', fontSize: 12 }}>
+            Tip: pinch or zoom in for precise pinning, then tap to place your incident pin.
+          </div>
+        </div>
+      ) : null}
 
       {/* Pin confirmation chip */}
       {form.pin ? (
@@ -662,6 +845,22 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           onBlur={e => (e.target.style.borderColor = '#E2E8F0')}
         />
       </div>
+
+      {validationError ? (
+        <div
+          style={{
+            marginTop: 10,
+            borderRadius: 10,
+            border: '1px solid #FECACA',
+            background: '#FEF2F2',
+            color: '#B91C1C',
+            fontSize: 12,
+            padding: '9px 11px',
+          }}
+        >
+          {validationError}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -669,7 +868,15 @@ function Step2({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STEP 3 - DESCRIPTION
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
+function Step3({
+  form,
+  setForm,
+  validationError,
+}: {
+  form: ReportForm;
+  setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
+  validationError?: string;
+}) {
   const MAX = 500;
   const charColor = form.description.length >= MAX * 0.9 ? '#B91C1C' : form.description.length >= MAX * 0.7 ? '#B4730A' : '#94A3B8';
 
@@ -679,11 +886,15 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
     'Children involved', 'Elderly at risk',
   ];
 
-  const appendTag = (tag: string) => {
-    setForm(p => {
-      if (p.description.includes(tag)) return p;
-      const sep = p.description.trim().length > 0 ? '. ' : '';
-      return { ...p, description: p.description + sep + tag };
+  const toggleTag = (tag: string) => {
+    setForm((p) => {
+      if (p.quickTags.includes(tag)) {
+        return {
+          ...p,
+          quickTags: p.quickTags.filter((item) => item !== tag),
+        };
+      }
+      return { ...p, quickTags: [...p.quickTags, tag] };
     });
   };
 
@@ -749,11 +960,11 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {QUICK_TAGS.map(tag => {
-            const added = form.description.includes(tag);
+            const added = form.quickTags.includes(tag);
             return (
               <button
                 key={tag}
-                onClick={() => appendTag(tag)}
+                onClick={() => toggleTag(tag)}
                 style={{
                   padding: '6px 11px', borderRadius: 20,
                   border: `1.5px solid ${added ? '#1E3A8A' : '#E2E8F0'}`,
@@ -763,19 +974,41 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                   boxShadow: added ? '0 1px 4px rgba(30,58,138,0.12)' : 'none',
                 }}
               >
-                {added ? 'OK ' : '+ '}{tag}
+                {added ? 'Selected ' : '+ '}{tag}
               </button>
             );
           })}
         </div>
+
+        {form.quickTags.length > 0 ? (
+          <div style={{ marginTop: 10, fontSize: 11, color: '#1E3A8A', fontWeight: 600 }}>
+            Selected tags: {form.quickTags.join(', ')}
+          </div>
+        ) : null}
       </div>
+
+      {validationError ? (
+        <div
+          style={{
+            marginBottom: 14,
+            borderRadius: 10,
+            border: '1px solid #FECACA',
+            background: '#FEF2F2',
+            color: '#B91C1C',
+            fontSize: 12,
+            padding: '9px 11px',
+          }}
+        >
+          {validationError}
+        </div>
+      ) : null}
 
       {/* Affected persons */}
       <div>
         <label style={{ fontSize: 11, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           Estimated People Affected
         </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+        <div className="incident-affected-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {[
             { val: '1-5', label: '1-5', sublabel: 'Few' },
             { val: '6-20', label: '6-20', sublabel: 'Several' },
@@ -802,6 +1035,14 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           })}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 520px) {
+          .incident-affected-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -809,12 +1050,22 @@ function Step3({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STEP 4 - EVIDENCE UPLOAD
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
+function Step4({
+  form,
+  setForm,
+  validationError,
+  showVoiceRecorder,
+}: {
+  form: ReportForm;
+  setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
+  validationError?: string;
+  showVoiceRecorder: boolean;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [recording, setRecording] = useState(false);
   const [recTime, setRecTime] = useState(0);
   const [micError, setMicError] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const mediaRecRef  = useRef<MediaRecorder | null>(null);
   const chunksRef    = useRef<Blob[]>([]);
   const timerRef     = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -887,9 +1138,25 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           Add Evidence
         </h2>
         <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
-          Photos and audio help responders assess the situation faster. You can skip this step if you have none.
+          Photo evidence is required. Voice recording is only available for noise-related incidents.
         </p>
       </div>
+
+      {validationError ? (
+        <div
+          style={{
+            marginBottom: 12,
+            borderRadius: 10,
+            border: '1px solid #FECACA',
+            background: '#FEF2F2',
+            color: '#B91C1C',
+            fontSize: 12,
+            padding: '9px 11px',
+          }}
+        >
+          {validationError}
+        </div>
+      ) : null}
 
       {/* â”€ Photo Upload â”€ */}
       <div style={{
@@ -919,7 +1186,21 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
               position: 'relative', border: '2px solid #E2E8F0', flexShrink: 0,
               boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
             }}>
-              <img src={src} alt={`evidence-${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <button
+                type="button"
+                onClick={() => setPreviewIndex(i)}
+                style={{
+                  padding: 0,
+                  margin: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'zoom-in',
+                }}
+              >
+                <img src={src} alt={`evidence-${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </button>
               <button
                 onClick={() => removePhoto(i)}
                 style={{
@@ -974,13 +1255,20 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
             {form.photoPreviews.length < 4 && ` - ${4 - form.photoPreviews.length} remaining`}
           </div>
         )}
+
+        {form.photoPreviews.length === 0 ? (
+          <div style={{ marginTop: 10, fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>
+            At least one photo is required before continuing.
+          </div>
+        ) : null}
       </div>
 
-      {/* â”€ Voice Recording â”€ */}
-      <div style={{
-        background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
-        padding: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      }}>
+        {/* â”€ Voice Recording â”€ */}
+        {showVoiceRecorder ? (
+        <div style={{
+          background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
+          padding: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
           <div style={{
             width: 34, height: 34, borderRadius: 10, background: '#EDE9FE',
@@ -1124,6 +1412,43 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           </div>
         )}
       </div>
+      ) : (
+        <div
+          style={{
+            background: '#F8FAFC',
+            borderRadius: 14,
+            border: '1px solid #E2E8F0',
+            padding: '12px 14px',
+            color: '#475569',
+            fontSize: 12,
+            lineHeight: 1.6,
+          }}
+        >
+          Voice recording is only available for noise-related incidents.
+        </div>
+      )}
+
+      {previewIndex !== null ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 260,
+            background: 'rgba(2,6,23,0.88)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setPreviewIndex(null)}
+        >
+          <img
+            src={form.photoPreviews[previewIndex]}
+            alt={`preview-${previewIndex + 1}`}
+            style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }}
+          />
+        </div>
+      ) : null}
 
       <style>{`
         @keyframes wave-bar {
@@ -1142,7 +1467,16 @@ function Step4({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STEP 5 - REVIEW & SUBMIT
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function Step5({ form }: { form: ReportForm }) {
+function Step5({
+  form,
+  reporterName,
+  reporterBarangayCode,
+}: {
+  form: ReportForm;
+  reporterName: string;
+  reporterBarangayCode: string | null;
+}) {
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const cat = CATEGORIES.find(c => c.type === form.category);
   const Icon = cat?.icon ?? MoreHorizontal;
 
@@ -1183,7 +1517,7 @@ function Step5({ form }: { form: ReportForm }) {
     {
       label: 'Reporter',
       icon: <User size={14} />,
-      value: 'Juan Dela Cruz - Brgy. San Antonio, District II',
+      value: `${reporterName} - ${reporterBarangayCode ? `Barangay ${reporterBarangayCode}` : 'Registered barangay not set'}`,
       accent: '#475569',
     },
     {
@@ -1237,7 +1571,7 @@ function Step5({ form }: { form: ReportForm }) {
               {cat?.label ?? 'Incident'} Report
             </div>
             <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
-              Submitted by Juan Dela Cruz - {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Submitted by {reporterName} - {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
           </div>
           {/* Severity pill */}
@@ -1297,7 +1631,13 @@ function Step5({ form }: { form: ReportForm }) {
                 width: 68, height: 68, borderRadius: 12, overflow: 'hidden',
                 border: '2px solid #E2E8F0', flexShrink: 0, position: 'relative',
               }}>
-                <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button
+                  type="button"
+                  onClick={() => setPreviewIndex(i)}
+                  style={{ width: '100%', height: '100%', border: 'none', padding: 0, margin: 0, background: 'transparent', cursor: 'zoom-in' }}
+                >
+                  <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </button>
                 <div style={{
                   position: 'absolute', inset: 0,
                   background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.4))',
@@ -1326,6 +1666,28 @@ function Step5({ form }: { form: ReportForm }) {
           By submitting this report, you certify that the information provided is <strong>true and accurate</strong> to the best of your knowledge. Filing a false incident report is a punishable offense under Philippine law (RA 10173, LGU ordinances).
         </p>
       </div>
+
+      {previewIndex !== null ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 260,
+            background: 'rgba(2,6,23,0.88)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          onClick={() => setPreviewIndex(null)}
+        >
+          <img
+            src={form.photoPreviews[previewIndex]}
+            alt={`review-preview-${previewIndex + 1}`}
+            style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1474,12 +1836,30 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN EXPORT
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-const STEP_VALIDATION: Record<number, (f: ReportForm) => boolean> = {
-  1: f => f.category !== null && f.subcategory !== null,
-  2: f => isPinWithinSupportedBarangay(f.pin) && f.pin?.barangay !== 'Outside Your Registered Barangay',
-  3: f => f.description.trim().length >= 10,
-  4: () => true,
-  5: () => true,
+const STEP_REQUIREMENTS: Record<number, (f: ReportForm) => string | null> = {
+  1: (f) => {
+    if (!f.category) return 'Select an incident category to continue.';
+    if (!f.subcategory) return 'Select a subcategory to continue.';
+    if (!f.severity) return 'Select incident severity to continue.';
+    return null;
+  },
+  2: (f) => {
+    if (!f.pin) return 'Drop a map pin inside your registered barangay to continue.';
+    if (!isPinWithinSupportedBarangay(f.pin) || f.pin.barangay === 'Outside Your Registered Barangay') {
+      return 'Your pin must be inside your registered barangay.';
+    }
+    if (!f.address.trim()) return 'Enter a specific address or landmark to continue.';
+    return null;
+  },
+  3: (f) => {
+    if (f.description.trim().length < 10) return 'Provide at least 10 characters in the incident description.';
+    return null;
+  },
+  4: (f) => {
+    if (f.photoPreviews.length === 0) return 'Attach at least one photo before continuing.';
+    return null;
+  },
+  5: () => null,
 };
 
 export default function IncidentReport() {
@@ -1504,7 +1884,7 @@ export default function IncidentReport() {
   const [form, setForm] = useState<ReportForm>({
     category: null, subcategory: null, requiresMediation: false, mediationWarning: null,
     severity: null, pin: null, address: '',
-    description: '', affectedCount: null,
+    description: '', quickTags: [], affectedCount: null,
     photoPreviews: [], photoFiles: [],
     audioUrl: null, audioBlob: null,
   });
@@ -1580,7 +1960,27 @@ export default function IncidentReport() {
     };
   }, []);
 
-  const canProceed = STEP_VALIDATION[step]?.(form) ?? true;
+  const stepValidationMessage = STEP_REQUIREMENTS[step]?.(form) ?? null;
+  const canProceed = !stepValidationMessage;
+  const voiceAllowed = (form.category === 'Public Disturbance') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
+  const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '0') === '1';
+
+  useEffect(() => {
+    if (voiceAllowed) {
+      return;
+    }
+
+    setForm((prev) => {
+      if (!prev.audioBlob && !prev.audioUrl) {
+        return prev;
+      }
+      return {
+        ...prev,
+        audioBlob: null,
+        audioUrl: null,
+      };
+    });
+  }, [voiceAllowed]);
 
   const submitReport = async () => {
     if (!form.category || !form.subcategory) {
@@ -1592,9 +1992,48 @@ export default function IncidentReport() {
     setSubmitting(true);
 
     try {
+      const photoPayloads: Array<{ fileName: string; mimeType: string; dataUrl: string }> = [];
+      let encodedAudio: { fileName: string; mimeType: string; dataUrl: string } | null = null;
+
+      if (enableInlineEvidenceUpload) {
+        const MAX_EVIDENCE_PAYLOAD_BYTES = 450_000;
+        let runningEvidenceBytes = 0;
+
+        for (const file of form.photoFiles.slice(0, 2)) {
+          const compressedDataUrl = await compressImageToDataUrl(file);
+          const candidateSize = compressedDataUrl.length;
+          if (runningEvidenceBytes + candidateSize > MAX_EVIDENCE_PAYLOAD_BYTES) {
+            continue;
+          }
+
+          photoPayloads.push({
+            fileName: file.name,
+            mimeType: 'image/jpeg',
+            dataUrl: compressedDataUrl,
+          });
+          runningEvidenceBytes += candidateSize;
+        }
+
+        if (photoPayloads.length === 0) {
+          throw new Error('Selected photos are too large to upload. Please attach at least one smaller photo.');
+        }
+
+        if (form.audioBlob) {
+          const audioDataUrl = await blobToDataUrl(form.audioBlob);
+          if (runningEvidenceBytes + audioDataUrl.length <= MAX_EVIDENCE_PAYLOAD_BYTES) {
+            encodedAudio = {
+              fileName: 'voice-note.webm',
+              mimeType: form.audioBlob.type || 'audio/webm',
+              dataUrl: audioDataUrl,
+            };
+          }
+        }
+      }
+
       const response = await citizenReportsApi.submitReport({
         category: form.category,
         subcategory: form.subcategory,
+        type: toLegacyIncidentType(form.category),
         requiresMediation: form.requiresMediation,
         mediationWarning: form.mediationWarning,
         latitude: form.pin?.lat ?? Number.NaN,
@@ -1603,8 +2042,10 @@ export default function IncidentReport() {
         description: form.description.trim(),
         severity: form.severity ?? 'medium',
         affectedCount: form.affectedCount,
-        photoCount: form.photoFiles.length,
+        photoCount: photoPayloads.length,
         hasAudio: Boolean(form.audioBlob),
+        photos: enableInlineEvidenceUpload ? photoPayloads : undefined,
+        audio: enableInlineEvidenceUpload ? encodedAudio : null,
       });
 
       setSubmittedReportId(response.report.id);
@@ -1618,6 +2059,10 @@ export default function IncidentReport() {
   };
 
   const goNext = async () => {
+    if (!canProceed && step < 5) {
+      return;
+    }
+
     if (step < 5) {
       setStep(s => s + 1);
       return;
@@ -1632,11 +2077,11 @@ export default function IncidentReport() {
   };
 
   const stepContent: Record<number, React.ReactNode> = {
-    1: <Step1 form={form} setForm={setForm} />,
-    2: <Step2 form={form} setForm={setForm} />,
-    3: <Step3 form={form} setForm={setForm} />,
-    4: <Step4 form={form} setForm={setForm} />,
-    5: <Step5 form={form} />,
+    1: <Step1WithValidation form={form} setForm={setForm} validationError={step === 1 ? stepValidationMessage || undefined : undefined} />,
+    2: <Step2 form={form} setForm={setForm} validationError={step === 2 ? stepValidationMessage || undefined : undefined} />,
+    3: <Step3 form={form} setForm={setForm} validationError={step === 3 ? stepValidationMessage || undefined : undefined} />,
+    4: <Step4 form={form} setForm={setForm} showVoiceRecorder={voiceAllowed} validationError={step === 4 ? stepValidationMessage || undefined : undefined} />,
+    5: <Step5 form={form} reporterName={fullName} reporterBarangayCode={session?.user.barangayCode ?? null} />,
   };
 
   return (
@@ -1845,10 +2290,11 @@ export default function IncidentReport() {
               position: 'sticky', bottom: 0, left: 0, transform: 'none',
               width: '100%', maxWidth: 'var(--citizen-desktop-main-max)', margin: '0 auto', background: '#fff',
               borderTop: '1px solid #E2E8F0', padding: '12px var(--citizen-content-gutter)',
-              display: 'flex', gap: 10, zIndex: 50,
+              display: 'block', zIndex: 50,
               boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
               boxSizing: 'border-box',
             }}>
+              <div style={{ display: 'flex', gap: 10 }}>
               {step > 1 && (
                 <button
                   onClick={goBack}
@@ -1865,19 +2311,19 @@ export default function IncidentReport() {
 
               <button
                 onClick={goNext}
-                disabled={!canProceed || submitting}
+                disabled={submitting || (!canProceed && step < 5)}
                 style={{
                   flex: step === 1 ? 1 : 2,
                   padding: '14px', borderRadius: 14, border: 'none',
-                  background: !canProceed || submitting
+                  background: (!canProceed && step < 5) || submitting
                     ? '#E2E8F0'
                     : step === 5
                       ? 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)'
                       : 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
-                  color: canProceed && !submitting ? '#fff' : '#94A3B8',
+                  color: (canProceed || step === 5) && !submitting ? '#fff' : '#94A3B8',
                   fontWeight: 700, fontSize: 14,
-                  cursor: canProceed && !submitting ? 'pointer' : 'not-allowed',
-                  boxShadow: canProceed && !submitting
+                  cursor: (canProceed || step === 5) && !submitting ? 'pointer' : 'not-allowed',
+                  boxShadow: (canProceed || step === 5) && !submitting
                     ? step === 5
                       ? '0 4px 16px rgba(185,28,28,0.4)'
                       : '0 4px 16px rgba(30,58,138,0.35)'
@@ -1896,6 +2342,7 @@ export default function IncidentReport() {
                   <>Continue {'->'}</>
                 )}
               </button>
+              </div>
             </div>
             <style>{`
               @media (max-width: 900px) {

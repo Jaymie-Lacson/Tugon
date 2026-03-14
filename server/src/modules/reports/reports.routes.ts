@@ -53,6 +53,25 @@ citizenReportsRouter.post("/reports", async (req, res) => {
         affectedCount: req.body?.affectedCount ?? null,
         photoCount: req.body?.photoCount ?? 0,
         hasAudio: Boolean(req.body?.hasAudio),
+        photos: Array.isArray(req.body?.photos)
+          ? req.body.photos
+              .filter((item: unknown) => Boolean(item && typeof item === "object"))
+              .map((item: { fileName?: unknown; mimeType?: unknown; dataUrl?: unknown }) => ({
+                fileName: typeof item.fileName === "string" ? item.fileName : undefined,
+                mimeType: typeof item.mimeType === "string" ? item.mimeType : undefined,
+                dataUrl: typeof item.dataUrl === "string" ? item.dataUrl : "",
+              }))
+          : [],
+        audio:
+          req.body?.audio && typeof req.body.audio === "object"
+            ? {
+                fileName:
+                  typeof req.body.audio.fileName === "string" ? req.body.audio.fileName : undefined,
+                mimeType:
+                  typeof req.body.audio.mimeType === "string" ? req.body.audio.mimeType : undefined,
+                dataUrl: typeof req.body.audio.dataUrl === "string" ? req.body.audio.dataUrl : "",
+              }
+            : null,
       },
     );
 
