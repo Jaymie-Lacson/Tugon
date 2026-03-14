@@ -256,18 +256,7 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   }
 
   const metadata = getCategoryMetadata(category);
-  if (input.requiresMediation !== metadata.requiresMediation) {
-    throw new ReportsError("Invalid mediation requirement for selected category.", 400);
-  }
-
-  const warning = input.mediationWarning?.trim() ?? null;
-  if (metadata.requiresMediation) {
-    if (warning !== metadata.mediationWarning) {
-      throw new ReportsError("Invalid mediation warning for selected category.", 400);
-    }
-  } else if (warning !== null) {
-    throw new ReportsError("Mediation warning is only allowed for Lupon reports.", 400);
-  }
+  const warning = metadata.requiresMediation ? metadata.mediationWarning : null;
 
   if (!ALLOWED_SEVERITIES.includes(input.severity)) {
     throw new ReportsError("Invalid report severity.", 400);
@@ -290,20 +279,6 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     throw new ReportsError("Description must be at least 10 characters.", 400);
   }
 
-  const photoCount = Number(input.photoCount ?? 0);
-  if (Number.isNaN(photoCount) || photoCount < 0) {
-    throw new ReportsError("Invalid photo count.", 400);
-  }
-
-  if (photoCount < 1) {
-    throw new ReportsError("At least one photo evidence is required.", 400);
-  }
-
-  const isNoiseRelated = category === "Public Disturbance" || subcategory.toLowerCase().includes("noise");
-  if (input.hasAudio && !isNoiseRelated) {
-    throw new ReportsError("Voice recording is only allowed for noise-related incidents.", 400);
-  }
-
   const photos = Array.isArray(input.photos)
     ? input.photos.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.trim().length > 0)
     : [];
@@ -311,6 +286,22 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   const audio = input.audio && typeof input.audio.dataUrl === "string" && input.audio.dataUrl.trim().length > 0
     ? input.audio
     : null;
+
+  const rawPhotoCount = Number(input.photoCount ?? 0);
+  if (Number.isNaN(rawPhotoCount) || rawPhotoCount < 0) {
+    throw new ReportsError("Invalid photo count.", 400);
+  }
+
+  const effectivePhotoCount = Math.max(rawPhotoCount, photos.length);
+  if (effectivePhotoCount < 1) {
+    throw new ReportsError("At least one photo evidence is required.", 400);
+  }
+
+  const isNoiseRelated = category === "Public Disturbance" || subcategory.toLowerCase().includes("noise");
+  const hasAnyAudio = Boolean(input.hasAudio || audio);
+  if (hasAnyAudio && !isNoiseRelated) {
+    throw new ReportsError("Voice recording is only allowed for noise-related incidents.", 400);
+  }
 
   return {
     ...input,
@@ -321,7 +312,7 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     latitude,
     longitude,
     description,
-    photoCount,
+    photoCount: effectivePhotoCount,
     affectedCount: input.affectedCount ?? null,
     photos,
     audio,
