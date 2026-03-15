@@ -179,7 +179,7 @@ function IncidentDetailModal({
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         }}
       >
-        <div style={{ background: '#1E3A8A', padding: '16px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderRadius: '14px 14px 0 0' }}>
+        <div style={{ background: '#1E3A8A', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '14px 14px 0 0' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 30, height: 30, borderRadius: 7, background: cfg.bgColor, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -189,7 +189,11 @@ function IncidentDetailModal({
             </div>
             <div style={{ color: '#93C5FD', fontSize: 12 }}>{incident.location}</div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 7, padding: 8, cursor: 'pointer', color: 'white' }}>
+          <button
+            onClick={onClose}
+            className="icon-btn-square"
+            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 7, cursor: 'pointer', color: 'white' }}
+          >
             <X size={16} color="white" />
           </button>
         </div>
@@ -595,6 +599,109 @@ export default function Incidents() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div
+        className="incidents-mobile-cards"
+        style={{
+          display: 'none',
+          flexDirection: 'column',
+          gap: 10,
+          marginBottom: 14,
+        }}
+      >
+        {loading ? (
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+              padding: '22px 16px',
+              textAlign: 'center',
+              color: '#94A3B8',
+              fontSize: 13,
+            }}
+          >
+            Loading reports...
+          </div>
+        ) : paginated.length === 0 ? (
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+              padding: '22px 16px',
+              textAlign: 'center',
+              color: '#94A3B8',
+              fontSize: 13,
+            }}
+          >
+            No reports match your filters.
+          </div>
+        ) : (
+          paginated.map((inc) => (
+            <article
+              key={inc.id}
+              style={{
+                background: 'white',
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                padding: '12px 12px 10px',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+                <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
+              </div>
+
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                <TypeBadge type={inc.type} size="sm" />
+                <SeverityBadge severity={inc.severity} size="sm" />
+              </div>
+
+              <div style={{ color: '#1E293B', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{inc.barangay}</div>
+              <div style={{ color: '#64748B', fontSize: 12, marginBottom: 6 }}>{inc.location}</div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+                <div style={{ color: '#94A3B8', fontSize: 11 }}>
+                  {new Date(inc.reportedAt).toLocaleString('en-PH', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Users size={12} color="#94A3B8" />
+                  <span style={{ color: '#475569', fontWeight: 500, fontSize: 12 }}>{inc.responders}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedIncident(inc)}
+                style={{
+                  width: '100%',
+                  background: '#EFF6FF',
+                  color: '#1E3A8A',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '9px 12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                <Eye size={13} /> View Details
+              </button>
+            </article>
+          ))
+        )}
       </div>
 
       {selectedIncident ? (

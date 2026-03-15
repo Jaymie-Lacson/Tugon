@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -22,6 +22,33 @@ import {
 } from '../data/analyticsConfig';
 
 const PERIODS = [...ANALYTICS_PERIODS];
+
+function toSeriesLegendName(seriesKey: string): string {
+  if (seriesKey === 'fire') return 'Hazard (Fire)';
+  if (seriesKey === 'flood') return 'Garbage';
+  if (seriesKey === 'accident') return 'Road Issues';
+  if (seriesKey === 'medical') return 'Hazard (Medical)';
+  if (seriesKey === 'crime') return 'Disputes';
+  if (seriesKey === 'infrastructure') return 'Others';
+  return seriesKey;
+}
+
+function getResponseAxisLabel(type: Incident['type'], mobile = false): string {
+  if (type === 'fire') return mobile ? 'Fire' : 'Hazards and Safety (Fire)';
+  if (type === 'medical') return mobile ? 'Medical' : 'Hazards and Safety (Medical)';
+  if (type === 'flood') return mobile ? 'Garbage' : 'Garbage and Sanitation';
+  if (type === 'accident') return mobile ? 'Road' : 'Road and Street Issues';
+  if (type === 'crime') return mobile ? 'Disputes' : 'Neighbor Disputes / Lupon';
+  return mobile ? 'Others' : 'Others';
+}
+
+function toLocalDateKey(value: string | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
@@ -49,6 +76,14 @@ function formatTrendDayLabel(date: Date, period: string): string {
   return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
 }
 
+function getCompactCategoryLabel(label: string): string {
+  if (label === 'Hazards and Safety') return 'Haz/Safety';
+  if (label === 'Garbage and Sanitation') return 'Garbage';
+  if (label === 'Road and Street Issues') return 'Road Issues';
+  if (label === 'Neighbor Disputes / Lupon') return 'Disputes';
+  return label;
+}
+
 export default function Analytics() {
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
@@ -56,25 +91,48 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
 
-  useEffect(() => {
-    const load = async () => {
+  const loadReports = useCallback(async (silent = false) => {
+    if (!silent) {
       setLoading(true);
-      setError(null);
-      try {
-        const payload = await officialReportsApi.getReports();
-        setIncidents(payload.reports.map((report) => reportToIncident(report)));
-      } catch (loadError) {
-        const message = loadError instanceof Error ? loadError.message : 'Failed to load analytics data.';
-        setError(message);
+    }
+    setError(null);
+    try {
+      const payload = await officialReportsApi.getReports();
+      setIncidents(payload.reports.map((report) => reportToIncident(report)));
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : 'Failed to load analytics data.';
+      setError(message);
+      if (!silent) {
         setIncidents([]);
-      } finally {
+      }
+    } finally {
+      if (!silent) {
         setLoading(false);
       }
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void loadReports(true);
+    }, 30000);
+
+    const handleFocusRefresh = () => {
+      void loadReports(true);
     };
 
-    void load();
-  }, []);
+    window.addEventListener('focus', handleFocusRefresh);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocusRefresh);
+    };
+  }, [loadReports]);
 
   useEffect(() => {
     if (!initialLoadPending) {
@@ -85,6 +143,16 @@ export default function Analytics() {
       setInitialLoadPending(false);
     }
   }, [initialLoadPending, loading]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const filteredIncidents = useMemo(() => {
     const days = ANALYTICS_PERIOD_DAYS[period as keyof typeof ANALYTICS_PERIOD_DAYS] ?? 7;
@@ -101,7 +169,7 @@ export default function Analytics() {
       date.setHours(0, 0, 0, 0);
       date.setDate(date.getDate() - (days - 1 - index));
       return {
-        key: date.toISOString().slice(0, 10),
+        key: toLocalDateKey(date),
         day: formatTrendDayLabel(date, period),
         total: 0,
         fire: 0,
@@ -115,7 +183,7 @@ export default function Analytics() {
 
     const byDay = new Map(buckets.map((bucket) => [bucket.key, bucket]));
     for (const incident of filteredIncidents) {
-      const key = incident.reportedAt.slice(0, 10);
+      const key = toLocalDateKey(incident.reportedAt);
       const row = byDay.get(key);
       if (!row) {
         continue;
@@ -139,12 +207,21 @@ export default function Analytics() {
           }, 0) / withResponse.length).toFixed(1));
 
       return {
+        typeKey: type,
         type: ANALYTICS_TYPE_LABELS[type],
+        axisLabel: getResponseAxisLabel(type, false),
+        mobileAxisLabel: getResponseAxisLabel(type, true),
+        respondedCount: withResponse.length,
         avgMin,
         target: ANALYTICS_RESPONSE_TARGETS[type],
       };
     });
   }, [filteredIncidents]);
+
+  const RESPONSE_TIME_VISIBLE = useMemo(
+    () => RESPONSE_TIME.filter((row) => row.respondedCount > 0),
+    [RESPONSE_TIME],
+  );
 
   const SEVERITY_DATA = useMemo(() => {
     const counts = { critical: 0, high: 0, medium: 0, low: 0 };
@@ -180,7 +257,9 @@ export default function Analytics() {
       const deployed = subset.reduce((sum, incident) => sum + Math.max(incident.responders || 0, 0), 0);
       const total = Math.max(subset.length, deployed, 1);
       return {
+        type,
         name: ANALYTICS_TYPE_LABELS[type],
+        mobileName: getCompactCategoryLabel(ANALYTICS_TYPE_LABELS[type]),
         deployed,
         available: Math.max(total - deployed, 0),
         total,
@@ -205,6 +284,23 @@ export default function Analytics() {
   const totalIncidents = filteredIncidents.length;
   const resolvedIncidents = filteredIncidents.filter((incident) => incident.status === 'resolved').length;
   const resolutionRate = totalIncidents > 0 ? (resolvedIncidents / totalIncidents) * 100 : 0;
+  const chartTitleSize = isMobile ? 18 : 13;
+  const chartSubtitleSize = isMobile ? 14 : 11;
+  const trendChartHeight = isMobile ? 300 : 240;
+  const responseChartHeight = isMobile ? 230 : 200;
+  const hourlyChartHeight = isMobile ? 230 : 200;
+  const barangayChartHeight = isMobile ? 260 : 220;
+  const TREND_SERIES_FOR_CHART = React.useMemo(() => {
+    const labelCounts = ANALYTICS_TREND_SERIES.reduce<Record<string, number>>((acc, series) => {
+      acc[series.label] = (acc[series.label] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    return ANALYTICS_TREND_SERIES.map((series) => ({
+      ...series,
+      chartName: (labelCounts[series.label] ?? 0) > 1 ? toSeriesLegendName(series.key) : series.label,
+    }));
+  }, []);
   const avgResponse = React.useMemo(() => {
     const values = RESPONSE_TIME.filter((row) => row.avgMin > 0).map((row) => row.avgMin);
     if (values.length === 0) {
@@ -263,7 +359,7 @@ export default function Analytics() {
       </div>
 
       {/* Metric Cards */}
-      <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: isMobile ? 14 : 12, marginBottom: isMobile ? 22 : 18 }}>
         <MetricCard title="Total Incidents" value={totalIncidents.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B91C1C" />
         <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#059669" />
         <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change={loading ? 'Loading' : 'Live'} up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
@@ -271,16 +367,16 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px', marginBottom: 14 }}>
+      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px', marginBottom: isMobile ? 18 : 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Incident Trend by Category</div>
-            <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>{period} — daily incident count by category</div>
+            <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize }}>Incident Trend by Category</div>
+            <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginTop: 2 }}>{period} — daily incident count by category</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['area', 'bar'] as const).map(t => (
               <button key={t} onClick={() => setChartType(t)} style={{
-                padding: '5px 12px', borderRadius: 6, border: '1px solid', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                padding: isMobile ? '8px 14px' : '5px 12px', borderRadius: 6, border: '1px solid', fontSize: isMobile ? 13 : 11, fontWeight: 600, cursor: 'pointer',
                 borderColor: chartType === t ? '#1E3A8A' : '#E2E8F0',
                 background: chartType === t ? '#1E3A8A' : 'white',
                 color: chartType === t ? 'white' : '#64748B',
@@ -290,11 +386,11 @@ export default function Analytics() {
             ))}
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={240}>
+        <ResponsiveContainer width="100%" height={trendChartHeight}>
           {chartType === 'area' ? (
-            <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 32 : 22 }}>
               <defs>
-                {ANALYTICS_TREND_SERIES.map(({ key, color }) => (
+                {TREND_SERIES_FOR_CHART.map(({ key, color }) => (
                   <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={color} stopOpacity={0.2} />
                     <stop offset="95%" stopColor={color} stopOpacity={0} />
@@ -302,11 +398,11 @@ export default function Analytics() {
                 ))}
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={1} />
-              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
-              <Legend align="left" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              {ANALYTICS_TREND_SERIES.map((series) => (
+              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 'preserveStartEnd' : 1} />
+              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
+              <Legend align="center" verticalAlign="bottom" iconType="circle" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11, lineHeight: isMobile ? '18px' : '16px', width: '100%', left: 0 }} />
+              {TREND_SERIES_FOR_CHART.map((series) => (
                 <Area
                   key={`area-${series.key}`}
                   type="monotone"
@@ -314,24 +410,24 @@ export default function Analytics() {
                   stroke={series.color}
                   fill={`url(#grad-${series.key})`}
                   strokeWidth={1.5}
-                  name={series.label}
+                  name={series.chartName}
                 />
               ))}
             </AreaChart>
           ) : (
-            <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 32 : 22 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={1} />
-              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }} />
-              <Legend align="left" iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              {ANALYTICS_TREND_SERIES.map((series) => (
+              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 'preserveStartEnd' : 1} />
+              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
+              <Legend align="center" verticalAlign="bottom" iconType="square" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11, lineHeight: isMobile ? '18px' : '16px', width: '100%', left: 0 }} />
+              {TREND_SERIES_FOR_CHART.map((series) => (
                 <Bar
                   key={`bar-${series.key}`}
                   dataKey={series.key}
                   stackId="a"
                   fill={series.color}
-                  name={series.label}
+                  name={series.chartName}
                   radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined}
                 />
               ))}
@@ -341,42 +437,50 @@ export default function Analytics() {
       </div>
 
       {/* Middle row charts */}
-      <div className="analytics-middle-row" style={{ display: 'flex', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
+      <div className="analytics-middle-row" style={{ display: 'flex', gap: 14, marginBottom: isMobile ? 18 : 14, flexWrap: 'wrap' }}>
         {/* Response time */}
-        <div style={{ flex: '2 1 280px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Average Response Time by Category</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Minutes from report to first response (target overlay)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={RESPONSE_TIME} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} unit="m" />
-              <YAxis dataKey="type" type="category" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={55} />
-              <Tooltip
-                formatter={(value, name) => [
-                  `${value} min`,
-                  name === 'avgMin' ? 'Avg. Response' : 'Target',
-                ]}
-                contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 11 }}
-              />
-              <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
-              <Bar dataKey="avgMin" key="bar-avgmin" fill="#1E3A8A" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
-                {RESPONSE_TIME.map((entry, index) => (
-                  <Cell key={`cell-rt-${index}-${entry.type}`} fill={entry.avgMin <= entry.target ? '#059669' : '#B91C1C'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, marginTop: 8 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#059669', display: 'inline-block' }} /> Within target</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#B91C1C', display: 'inline-block' }} /> Exceeds target</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#F1F5F9', border: '1px solid #E2E8F0', display: 'inline-block' }} /> Target</span>
-          </div>
+        <div style={{ flex: '2 1 280px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Average Response Time by Category</div>
+          <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 12 }}>Minutes from report to first response (target overlay)</div>
+          {RESPONSE_TIME_VISIBLE.length === 0 ? (
+            <div style={{ color: '#64748B', fontSize: 12, padding: '10px 2px' }}>
+              No responded incidents yet for the selected period.
+            </div>
+          ) : (
+            <>
+              <ResponsiveContainer width="100%" height={responseChartHeight}>
+                <BarChart data={RESPONSE_TIME_VISIBLE} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} unit="m" />
+                  <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 90 : 170} />
+                  <Tooltip
+                    formatter={(value, name) => [
+                      `${value} min`,
+                      name === 'avgMin' ? 'Avg. Response' : 'Target',
+                    ]}
+                    contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }}
+                  />
+                  <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
+                  <Bar dataKey="avgMin" key="bar-avgmin" fill="#1E3A8A" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
+                    {RESPONSE_TIME_VISIBLE.map((entry, index) => (
+                      <Cell key={`cell-rt-${index}-${entry.typeKey}`} fill={entry.avgMin <= entry.target ? '#059669' : '#B91C1C'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', gap: 12, fontSize: isMobile ? 12 : 11, marginTop: 8, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#059669', display: 'inline-block' }} /> Within target</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#B91C1C', display: 'inline-block' }} /> Exceeds target</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#F1F5F9', border: '1px solid #E2E8F0', display: 'inline-block' }} /> Target</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Severity Distribution */}
-        <div style={{ flex: '1 1 200px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Severity Distribution</div>
-            <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>{period} incidents by severity</div>
+        <div style={{ flex: '1 1 200px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Severity Distribution</div>
+            <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 10 }}>{period} incidents by severity</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -400,15 +504,15 @@ export default function Analytics() {
         </div>
 
         {/* Hourly pattern */}
-        <div style={{ flex: '2 1 260px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Hourly Incident Pattern</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 12 }}>Average incidents per hour ({period})</div>
-          <ResponsiveContainer width="100%" height={200}>
+        <div style={{ flex: '2 1 260px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Hourly Incident Pattern</div>
+          <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 12 }}>Average incidents per hour ({period})</div>
+          <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="hour" tick={{ fontSize: 8, fill: '#94A3B8' }} axisLine={false} tickLine={false} interval={3} />
-              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(value) => [`${value} incidents`]} />
+              <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 11 : 8, fill: '#64748B' }} axisLine={false} tickLine={false} interval={3} />
+              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} formatter={(value) => [`${value} incidents`]} />
               <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
                 {HOUR_DATA.map((entry, index) => (
                   <Cell
@@ -431,16 +535,16 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row" style={{ display: 'flex', gap: 14, marginBottom: 8, flexWrap: 'wrap' }}>
         {/* Barangay comparison */}
-        <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Barangay Incident Comparison</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Incidents reported vs. resolved by barangay ({period})</div>
-          <ResponsiveContainer width="100%" height={220}>
+        <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Barangay Incident Comparison</div>
+          <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 14 }}>Incidents reported vs. resolved by barangay ({period})</div>
+          <ResponsiveContainer width="100%" height={barangayChartHeight}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94A3B8' }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" interval={0} />
-              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} />
-              <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 11 : 9, fill: '#64748B' }} axisLine={false} tickLine={false} angle={isMobile ? -18 : -30} textAnchor="end" interval={0} />
+              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} />
+              <Legend iconType="square" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11 }} />
               <Bar dataKey="incidents" key="bar-incidents" fill={ANALYTICS_BARANGAY_BAR_COLORS.incidents} name="Reported" radius={[3, 3, 0, 0]} barSize={18} />
               <Bar dataKey="resolved" key="bar-resolved" fill={ANALYTICS_BARANGAY_BAR_COLORS.resolved} name="Resolved" radius={[3, 3, 0, 0]} barSize={18} />
               <Bar dataKey="active" key="bar-active" fill={ANALYTICS_BARANGAY_BAR_COLORS.active} name="Active" radius={[3, 3, 0, 0]} barSize={18} />
@@ -449,9 +553,9 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div style={{ flex: '2 1 240px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Resource Utilization</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 14 }}>Reported responders by incident type</div>
+        <div style={{ flex: '2 1 240px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Resource Utilization</div>
+          <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 14 }}>Reported responders by incident type</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
             const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
@@ -460,9 +564,9 @@ export default function Analytics() {
                 ? ANALYTICS_UTILIZATION_BANDS.mediumColor
                 : ANALYTICS_UTILIZATION_BANDS.baseColor;
             return (
-              <div key={r.name} style={{ marginBottom: 12 }}>
+              <div key={r.type} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#475569', fontWeight: 500 }}>{r.name}</span>
+                  <span style={{ fontSize: isMobile ? 13 : 12, color: '#475569', fontWeight: 500 }}>{isMobile ? r.mobileName : r.name}</span>
                   <div style={{ display: 'flex', gap: 8, fontSize: 11, color: '#64748B' }}>
                     <span style={{ color, fontWeight: 700 }}>{r.deployed}</span>
                     <span>/</span>
