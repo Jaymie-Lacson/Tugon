@@ -4,6 +4,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import type { Incident } from '../../data/incidents';
@@ -27,10 +28,12 @@ function StatCard({ label, value, color }: { label: string; value: string | numb
         padding: '14px 16px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
         border: '1px solid #E5E7EB',
-        borderTop: `3px solid ${color}`,
       }}
     >
-      <div style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{value}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{value}</div>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      </div>
       <div style={{ color: '#6B7280', fontSize: 11, marginTop: 4 }}>{label}</div>
     </div>
   );
@@ -58,6 +61,10 @@ export default function SAAnalytics() {
   useEffect(() => {
     void loadIncidents();
   }, []);
+
+  if (loading && incidents.length === 0) {
+    return <OfficialPageInitialLoader label="Loading super admin analytics" />;
+  }
 
   const kpis = useMemo(() => {
     const active = incidents.filter((item) => item.status === 'active' || item.status === 'responding').length;
@@ -105,7 +112,7 @@ export default function SAAnalytics() {
 
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div className="sa-analytics-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
         <div>
           <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>System-Wide Analytics</h1>
           <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
@@ -132,14 +139,14 @@ export default function SAAnalytics() {
         </div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
+      <div className="sa-analytics-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
         <StatCard label="Total Reports" value={kpis.total} color="#1E3A8A" />
         <StatCard label="Open Reports" value={kpis.active} color="#B91C1C" />
         <StatCard label="Resolved Reports" value={kpis.resolved} color="#059669" />
         <StatCard label="Avg Response" value={`${kpis.avgResponse} min`} color="#B4730A" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 14 }}>
+      <div className="sa-analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 14 }}>
         <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB' }}>
           <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Reports by Barangay</div>
           <ResponsiveContainer width="100%" height={250}>
@@ -179,6 +186,35 @@ export default function SAAnalytics() {
           <CheckCircle2 size={12} style={{ verticalAlign: 'middle' }} /> All metrics in this page are sourced from live API report data.
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 1024px) {
+          .sa-analytics-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .sa-analytics-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .sa-analytics-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+
+          .sa-analytics-header button {
+            width: 100%;
+            justify-content: center;
+            min-height: 40px;
+          }
+
+          .sa-analytics-stats {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

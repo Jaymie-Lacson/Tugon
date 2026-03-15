@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Search, Plus, Filter, Users, Shield, Lock,
-  Edit2, Trash2, CheckCircle2, XCircle, Clock,
+  Edit2, CheckCircle2, XCircle, Clock,
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
 import { SAUser } from '../../data/superAdminData';
+import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
 
@@ -42,7 +43,7 @@ type SAUserRow = Omit<SAUser, 'role' | 'status'> & {
 
 function formatLastActive(ts: string) {
   const d = new Date(ts);
-  const now = new Date('2026-03-06T07:00:00');
+  const now = new Date();
   const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
   if (diffMin < 60) return `${diffMin}m ago`;
   if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`;
@@ -335,7 +336,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
 
 export default function SAUsers() {
   const [usersData, setUsersData] = useState<SAUserRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All Roles');
@@ -392,6 +393,44 @@ export default function SAUsers() {
   useEffect(() => {
     void loadUsers();
   }, []);
+
+  const handleBulkStatusUpdate = async (nextStatus: SupportedUiStatus) => {
+    if (selectedIds.size === 0) {
+      return;
+    }
+
+    setLoading(true);
+    setApiError(null);
+    try {
+      const selectedUsers = usersData.filter((user) => selectedIds.has(user.id));
+
+      await Promise.all(
+        selectedUsers
+          .filter((user) => Boolean(user.backendUserId))
+          .map(async (user) => {
+            const role = user.backendRole ?? mapUiRoleToApiRole(user.role);
+            const fallbackBarangay = extractBarangayCode(user.barangay);
+            await superAdminApi.updateUserRole(user.backendUserId as string, {
+              role,
+              barangayCode: role === 'SUPER_ADMIN' ? undefined : (user.backendBarangayCode ?? fallbackBarangay),
+              isPhoneVerified: nextStatus === 'active',
+            });
+          }),
+      );
+
+      setSelectedIds(new Set());
+      await loadUsers();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update selected users.';
+      setApiError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && usersData.length === 0) {
+    return <OfficialPageInitialLoader label="Loading super admin users" />;
+  }
 
   const handleEditUser = async (payload: UserModalSubmitPayload) => {
     if (!modal || modal.mode !== 'edit' || !modal.user?.backendUserId) {
@@ -482,14 +521,14 @@ export default function SAUsers() {
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+      <div className="sa-users-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 10 }}>
         <div>
           <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>User Management</h1>
           <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
             Manage accounts, roles & permissions across all barangays
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="sa-users-header-actions" style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={() => {
               void loadUsers();
@@ -500,7 +539,7 @@ export default function SAUsers() {
               padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#374151',
             }}
           >
-            <Download size={13} color="#6B7280" /> {loading ? 'Loading...' : 'Refresh'}
+            <Download size={13} color="#6B7280" /> {loading ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             onClick={() => {
@@ -550,7 +589,7 @@ export default function SAUsers() {
       </div>
 
       {/* Filters bar */}
-      <div style={{
+      <div className="sa-users-filter-bar" style={{
         background: 'white', borderRadius: 12, padding: '14px 16px', marginBottom: 14,
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
         display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
@@ -611,14 +650,21 @@ export default function SAUsers() {
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <span style={{ color: '#E2E8F0', fontSize: 13, fontWeight: 600 }}>{selectedIds.size} selected</span>
-          <button style={{ padding: '5px 12px', background: '#0F766E', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <button
+            onClick={() => {
+              void handleBulkStatusUpdate('active');
+            }}
+            style={{ padding: '5px 12px', background: '#0F766E', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+          >
             <UserCheck size={12} /> Activate
           </button>
-          <button style={{ padding: '5px 12px', background: '#B4730A', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <button
+            onClick={() => {
+              void handleBulkStatusUpdate('inactive');
+            }}
+            style={{ padding: '5px 12px', background: '#B4730A', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+          >
             <UserX size={12} /> Deactivate
-          </button>
-          <button style={{ padding: '5px 12px', background: '#B91C1C', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <Trash2 size={12} /> Delete
           </button>
           <button onClick={() => setSelectedIds(new Set())} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>
             <X size={16} color="#64748B" />
@@ -749,12 +795,6 @@ export default function SAUsers() {
                         >
                           <Edit2 size={13} color="#6B7280" />
                         </button>
-                        <button
-                          title="Delete"
-                          style={{ width: 28, height: 28, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FFF5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Trash2 size={13} color="#B91C1C" />
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -878,6 +918,34 @@ export default function SAUsers() {
           }}
         />
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .sa-users-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+
+          .sa-users-header-actions {
+            width: 100%;
+          }
+
+          .sa-users-header-actions button {
+            flex: 1;
+            min-height: 40px;
+            justify-content: center;
+          }
+
+          .sa-users-filter-bar {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+
+          .sa-users-filter-bar > span {
+            margin-left: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
