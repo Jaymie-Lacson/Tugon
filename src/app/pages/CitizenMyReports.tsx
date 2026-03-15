@@ -306,7 +306,6 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         boxShadow: '0 4px 14px rgba(15,23,42,0.06)', marginBottom: 12,
         overflow: 'hidden', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
-        borderLeft: `4px solid ${sc.color}`,
       }}
       onMouseOver={e => {
         (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 10px 28px rgba(15,23,42,0.12)';
@@ -1006,7 +1005,15 @@ export default function CitizenMyReports() {
                     />
                   ) : null}
                 </button>
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNotifOpen(false);
+                    setSortOpen(false);
+                    setMobileMenuOpen(false);
+                    navigate('/citizen?tab=profile');
+                  }}
+                  aria-label="Open profile settings"
                   style={{
                     width: 36,
                     height: 36,
@@ -1018,10 +1025,12 @@ export default function CitizenMyReports() {
                     color: '#fff',
                     fontWeight: 800,
                     fontSize: 14,
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   {initials}
-                </div>
+                </button>
               </div>
 
               {notifOpen && (

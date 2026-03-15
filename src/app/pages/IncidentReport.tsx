@@ -2185,7 +2185,14 @@ export default function IncidentReport() {
                     />
                   ) : null}
                 </button>
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNotifOpen(false);
+                    setMobileMenuOpen(false);
+                    navigate('/citizen?tab=profile');
+                  }}
+                  aria-label="Open profile settings"
                   style={{
                     width: 36,
                     height: 36,
@@ -2197,10 +2204,12 @@ export default function IncidentReport() {
                     color: '#fff',
                     fontWeight: 800,
                     fontSize: 14,
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   {initials}
-                </div>
+                </button>
               </div>
 
               {notifOpen && (
