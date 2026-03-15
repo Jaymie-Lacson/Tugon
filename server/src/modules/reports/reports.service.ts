@@ -974,6 +974,13 @@ export const reportsService = {
       };
     }
 
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return {
+        status: 500,
+        message: "Database query validation failed during report processing. Verify schema and Prisma client compatibility.",
+      };
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2021" || error.code === "P2022" || error.code === "P2010") {
         return {
@@ -981,6 +988,43 @@ export const reportsService = {
           message: "Database schema is not ready for report operations. Run Prisma migrations on production.",
         };
       }
+
+      if (error.code === "P2003") {
+        return {
+          status: 400,
+          message: "Report could not be saved because a related record is missing. Verify barangay/report references and rerun migrations.",
+        };
+      }
+
+      if (error.code === "P2025") {
+        return {
+          status: 404,
+          message: "Report operation failed because a required record was not found.",
+        };
+      }
+
+      if (error.code === "P2002") {
+        return {
+          status: 409,
+          message: "Duplicate report-related record detected. Please retry submission once.",
+        };
+      }
+
+      if (error.code === "P1001") {
+        return {
+          status: 503,
+          message: "Unable to reach the production database during report processing.",
+        };
+      }
+
+      return {
+        status: 500,
+        message: `Database request failed during report processing (${error.code}).`,
+      };
+    }
+
+    if (error instanceof Error && error.message) {
+      return { status: 500, message: `Unexpected reports service error: ${error.message}` };
     }
 
     console.error("[REPORTS] Unexpected error:", error);
