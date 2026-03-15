@@ -144,6 +144,14 @@ function isPointInsidePolygon(point: Position, polygon: PolygonCoordinates): boo
   return true;
 }
 
+function isPointInsideGeometry(point: Position, geometry: SupportedGeoJson): boolean {
+  if (geometry.type === "Polygon") {
+    return isPointInsidePolygon(point, geometry.coordinates);
+  }
+
+  return geometry.coordinates.some((polygon) => isPointInsidePolygon(point, polygon));
+}
+
 function parseBoundary(rawBoundary: string): SupportedGeoJson {
   const parsed = JSON.parse(rawBoundary) as { type?: string; coordinates?: unknown };
   if (parsed.type !== "Polygon" && parsed.type !== "MultiPolygon") {
@@ -277,6 +285,21 @@ async function ensureDefaultBoundaries() {
   );
 }
 
+function resolveOwningBarangayCodeFromDefaults(point: Position): string | null {
+  for (const boundary of defaultBarangayBoundaries) {
+    try {
+      const geometry = parseBoundary(boundary.boundaryGeojson);
+      if (isPointInsideGeometry(point, geometry)) {
+        return boundary.code;
+      }
+    } catch {
+      // Skip malformed fallback geometry and continue evaluating others.
+    }
+  }
+
+  return null;
+}
+
 export const geofencingService = {
   async resolveBarangayFromCoordinates(latitude: number, longitude: number) {
     if (!isFiniteNumber(latitude) || !isFiniteNumber(longitude)) {
@@ -289,18 +312,30 @@ export const geofencingService = {
 
     const point: Position = [longitude, latitude];
 
-    const owningBarangay = barangays.find((barangay) => {
+    let owningBarangay: BarangayWithBoundary | undefined;
+
+    for (const barangay of barangays) {
       if (!barangay.boundaryGeojson) {
-        return false;
+        continue;
       }
 
-      const geometry = parseBoundary(barangay.boundaryGeojson);
-      if (geometry.type === "Polygon") {
-        return isPointInsidePolygon(point, geometry.coordinates);
+      try {
+        const geometry = parseBoundary(barangay.boundaryGeojson);
+        if (isPointInsideGeometry(point, geometry)) {
+          owningBarangay = barangay;
+          break;
+        }
+      } catch {
+        // Ignore malformed boundary records and keep checking others.
       }
+    }
 
-      return geometry.coordinates.some((polygon) => isPointInsidePolygon(point, polygon));
-    });
+    if (!owningBarangay) {
+      const fallbackCode = resolveOwningBarangayCodeFromDefaults(point);
+      if (fallbackCode) {
+        owningBarangay = barangays.find((barangay) => barangay.code === fallbackCode);
+      }
+    }
 
     if (!owningBarangay) {
       throw new GeofencingError("Pinned location is outside supported barangay boundaries.", 400);
