@@ -982,10 +982,21 @@ export const reportsService = {
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2021" || error.code === "P2022" || error.code === "P2010") {
+      if (error.code === "P2021" || error.code === "P2022") {
         return {
           status: 503,
           message: "Database schema is not ready for report operations. Run Prisma migrations on production.",
+        };
+      }
+
+      if (error.code === "P2010") {
+        const meta = (error.meta ?? {}) as { message?: unknown };
+        const details = typeof meta.message === "string" ? ` Details: ${meta.message}` : "";
+        return {
+          status: 400,
+          message:
+            "Database query failed while processing report data. Check report values against DB constraints." +
+            details,
         };
       }
 
