@@ -989,6 +989,16 @@ export const reportsService = {
         };
       }
 
+      if (error.code === "P2011") {
+        const meta = (error.meta ?? {}) as { constraint?: unknown; modelName?: unknown };
+        const constraint = typeof meta.constraint === "string" ? meta.constraint : "unknown constraint";
+        const modelName = typeof meta.modelName === "string" ? meta.modelName : "record";
+        return {
+          status: 500,
+          message: `Database null constraint violation on ${modelName} (${constraint}). Apply pending migrations or add defaults for required legacy columns.`,
+        };
+      }
+
       if (error.code === "P2003") {
         return {
           status: 400,
