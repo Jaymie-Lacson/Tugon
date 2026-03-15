@@ -228,29 +228,6 @@ export default function SuperAdminLayout() {
             );
           })}
 
-          <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 10 }}>
-            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 4 }}>
-              System
-            </div>
-            {[
-              { label: 'Audit Logs', icon: Activity, path: '/superadmin/audit-logs' },
-            ].map((it) => (
-              <NavLink
-                key={it.label}
-                to={it.path}
-                onClick={() => setDrawerOpen(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
-                  borderRadius: 8, textDecoration: 'none', marginBottom: 2, borderLeft: '3px solid transparent',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-              >
-                <it.icon size={15} color="#93C5FD" />
-                <span style={{ color: '#BFDBFE', fontSize: 12 }}>{it.label}</span>
-              </NavLink>
-            ))}
-          </div>
         </nav>
 
         {/* User profile */}
@@ -345,7 +322,7 @@ export default function SuperAdminLayout() {
           </div>
 
           {/* Right */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="sa-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
             <div className="sa-header-datetime" style={{ textAlign: 'right' }}>
               <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}><LiveClock /></div>
               <div style={{ color: '#93C5FD', fontSize: 10 }}>
@@ -354,7 +331,7 @@ export default function SuperAdminLayout() {
             </div>
 
             {/* System status pill */}
-            <div style={{
+            <div className="sa-header-system-pill" style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
               borderRadius: 20, padding: '4px 10px',
@@ -375,7 +352,7 @@ export default function SuperAdminLayout() {
                 lineHeight: 0,
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
                 cursor: 'default', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                width: 34, height: 34, minWidth: 34, minHeight: 34, padding: 0,
+                padding: 0,
                 opacity: 0.8,
               }}>
                 <Bell size={18} color="white" />
@@ -500,13 +477,16 @@ export default function SuperAdminLayout() {
           .sa-sidebar-desktop   { display: none !important; }
           .sa-mobile-menu-btn   { display: flex !important; }
           .sa-mobile-logo       { display: flex !important; }
+          .sa-header-actions    { margin-left: auto !important; }
           .sa-header-breadcrumb { display: none !important; }
           .sa-header-datetime   { display: none !important; }
+          .sa-header-system-pill { display: none !important; }
           .sa-header-avatar     { display: none !important; }
-          .sa-mobile-page-label { display: flex !important; align-items: center !important; }
+          .sa-mobile-page-label { display: none !important; }
           .sa-mobile-overlay    { display: block !important; }
         }
         @media (min-width: 769px) {
+          .sa-mobile-menu-btn { display: none !important; }
           .sa-mobile-page-label { display: none !important; }
         }
       `}</style>

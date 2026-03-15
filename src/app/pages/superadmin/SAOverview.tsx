@@ -50,7 +50,7 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
     <div style={{
       background: '#FFFFFF', borderRadius: 12, padding: '18px 20px',
       boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden',
+      flex: '1 1 220px', minWidth: 180, position: 'relative', overflow: 'hidden',
     }}>
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 3,
@@ -318,7 +318,7 @@ export default function SAOverview() {
       ) : null}
 
       {/* KPI row */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="sa-overview-kpi-row" style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
         <KPICard
           label="Active Incidents (All Barangays)"
           value={total}
@@ -544,11 +544,11 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div style={{
+      <div className="sa-overview-map-preview" style={{
         background: '#FFFFFF', borderRadius: 14, overflow: 'hidden', marginBottom: 20,
         boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
       }}>
-        <div style={{
+        <div className="sa-overview-map-preview-head" style={{
           padding: '12px 16px', borderBottom: '1px solid #F3F4F6',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -630,6 +630,15 @@ export default function SAOverview() {
         }
 
         @media (max-width: 768px) {
+          .sa-overview-kpi-row {
+            gap: 10px;
+          }
+
+          .sa-overview-kpi-row > div {
+            flex: 1 1 calc(50% - 10px) !important;
+            min-width: 0 !important;
+          }
+
           .sa-overview-header {
             flex-direction: column;
             align-items: flex-start !important;
@@ -644,6 +653,23 @@ export default function SAOverview() {
             flex: 1;
             min-height: 40px;
             justify-content: center;
+          }
+
+          .sa-overview-map-preview-head {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 8px;
+          }
+
+          .sa-overview-map-preview-head > div:last-child {
+            width: 100%;
+            justify-content: space-between;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .sa-overview-kpi-row > div {
+            flex: 1 1 100% !important;
           }
         }
       `}</style>

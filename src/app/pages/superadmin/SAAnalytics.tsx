@@ -62,9 +62,7 @@ export default function SAAnalytics() {
     void loadIncidents();
   }, []);
 
-  if (loading && incidents.length === 0) {
-    return <OfficialPageInitialLoader label="Loading super admin analytics" />;
-  }
+  const showInitialLoader = loading && incidents.length === 0;
 
   const kpis = useMemo(() => {
     const active = incidents.filter((item) => item.status === 'active' || item.status === 'responding').length;
@@ -109,6 +107,10 @@ export default function SAAnalytics() {
 
     return Object.entries(counts).map(([name, reports]) => ({ name, reports }));
   }, [incidents]);
+
+  if (showInitialLoader) {
+    return <OfficialPageInitialLoader label="Loading super admin analytics" />;
+  }
 
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
