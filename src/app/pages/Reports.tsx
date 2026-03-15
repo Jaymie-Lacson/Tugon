@@ -6,6 +6,7 @@ import {
   FileBarChart, FilePieChart, FileSearch, FileClock, RefreshCw,
   Lightbulb, Info, ChevronDown,
 } from 'lucide-react';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -321,6 +322,7 @@ export default function Reports() {
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportsError, setReportsError] = useState<string | null>(null);
   const [incidentData, setIncidentData] = useState<Incident[]>([]);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -360,6 +362,16 @@ export default function Reports() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!reportsLoading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, reportsLoading]);
+
   const handleGenerate = (id: string) => {
     setGenerating(id);
     setTimeout(() => setGenerating(null), 2500);
@@ -396,6 +408,10 @@ export default function Reports() {
       hour12: false,
     });
   }, [incidentData]);
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading reports page" />;
+  }
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>

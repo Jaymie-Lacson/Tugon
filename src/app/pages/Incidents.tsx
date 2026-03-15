@@ -9,6 +9,7 @@ import {
   incidentTypeConfig, severityConfig, statusConfig,
 } from '../data/incidents';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -302,6 +303,7 @@ export default function Incidents() {
   const [incidents, setIncidents] = useState<IncidentView[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
@@ -330,6 +332,16 @@ export default function Incidents() {
   useEffect(() => {
     void loadReports();
   }, []);
+
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!loading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, loading]);
 
   const filtered = useMemo(() => {
     return incidents
@@ -396,6 +408,10 @@ export default function Incidents() {
   };
 
   const hasFilter = search || filterCategory || filterSeverity || filterStatus;
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading incidents page" />;
+  }
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>

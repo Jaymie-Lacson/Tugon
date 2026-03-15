@@ -8,6 +8,7 @@ import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfi
 import { useLocation, useNavigate } from 'react-router';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import '../../styles/map-view.css';
@@ -52,6 +53,7 @@ export default function MapView() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const isPublicCommunityMap = location.pathname === '/community-map';
@@ -81,6 +83,16 @@ export default function MapView() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!loading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, loading]);
+
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -104,6 +116,10 @@ export default function MapView() {
     }
     return `Barangay Coverage: ${barangays.join(' • ')} — OpenStreetMap`;
   }, [incidents]);
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading incident map" minHeight="calc(100vh - 120px)" />;
+  }
 
   return (
     <div className={`map-view-root${isPublicCommunityMap ? ' map-view-root-public' : ''}`}>
