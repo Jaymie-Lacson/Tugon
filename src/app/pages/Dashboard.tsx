@@ -12,6 +12,7 @@ import {
 import { type Incident, incidentTypeConfig } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -118,6 +119,7 @@ export default function Dashboard() {
   const [heatmapClusters, setHeatmapClusters] = useState<ApiHeatmapCluster[]>([]);
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
   const todayIso = new Date().toISOString().slice(0, 10);
   const resolvedToday = incidents.filter(i => i.resolvedAt?.startsWith(todayIso));
@@ -248,6 +250,16 @@ export default function Dashboard() {
     void loadHeatmap();
   }, []);
 
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!incidentsLoading && !alertsLoading && !heatmapLoading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, incidentsLoading, alertsLoading, heatmapLoading]);
+
   const handleMarkAlertRead = async (alertId: string) => {
     setMarkingReadAlertId(alertId);
     setAlertsError(null);
@@ -274,6 +286,10 @@ export default function Dashboard() {
     ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
     : 'Latest reporting window';
   const staffedActiveIncidents = activeIncidents.filter((incident) => incident.responders > 0).length;
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading official dashboard" />;
+  }
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>

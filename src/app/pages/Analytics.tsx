@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -54,6 +55,7 @@ export default function Analytics() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -73,6 +75,16 @@ export default function Analytics() {
 
     void load();
   }, []);
+
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!loading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, loading]);
 
   const filteredIncidents = useMemo(() => {
     const days = ANALYTICS_PERIOD_DAYS[period as keyof typeof ANALYTICS_PERIOD_DAYS] ?? 7;
@@ -202,6 +214,10 @@ export default function Analytics() {
   }, [RESPONSE_TIME]);
   const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
   const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading analytics page" />;
+  }
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
