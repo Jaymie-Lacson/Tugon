@@ -267,10 +267,10 @@ export function Layout() {
                 aria-label="No notifications"
                 title="No notifications yet"
                 disabled
+                className="icon-btn-square"
                 style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                padding: '8px', cursor: 'default', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', minHeight: 40, minWidth: 40, position: 'relative',
+                cursor: 'default', position: 'relative',
                 opacity: 0.8,
               }}
               >
@@ -281,11 +281,10 @@ export function Layout() {
             {/* Mobile hamburger — on the right of the bell */}
             <button
               onClick={() => setDrawerOpen(!drawerOpen)}
-              className="mobile-menu-btn"
+              className="mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                padding: '8px', cursor: 'pointer', display: 'none', alignItems: 'center',
-                justifyContent: 'center', minHeight: 40, minWidth: 40,
+                cursor: 'pointer', display: 'none',
               }}
             >
               <Menu size={20} color="white" />
@@ -327,7 +326,7 @@ export function Layout() {
                 style={{ width: 148, maxWidth: '100%', height: 'auto' }}
               />
             </NavLink>
-            <button onClick={() => setDrawerOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px', cursor: 'pointer', minHeight: 40, minWidth: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
               <X size={18} color="white" />
             </button>
           </div>
@@ -343,6 +342,40 @@ export function Layout() {
 
           {/* Extra links */}
           <div style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
+            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>Navigation</div>
+            {NAV_ITEMS.map((item) => {
+              const active = item.exact
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path) && item.path !== '/app';
+              const exactActive = location.pathname === '/app';
+              const isActive = item.exact ? exactActive : active;
+
+              return (
+                <NavLink
+                  key={`mobile-drawer-${item.path}`}
+                  to={item.path}
+                  onClick={() => setDrawerOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '14px 16px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    marginBottom: 6,
+                    background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)',
+                    border: isActive ? '1px solid rgba(191,219,254,0.65)' : '1px solid transparent',
+                  }}
+                >
+                  <item.icon size={20} color={isActive ? '#DBEAFE' : '#93C5FD'} />
+                  <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 14, fontWeight: isActive ? 700 : 500 }}>
+                    {item.label}
+                  </span>
+                </NavLink>
+              );
+            })}
+
+            <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
             <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>More</div>
             <NavLink
               to="/app/settings"
@@ -372,48 +405,10 @@ export function Layout() {
                 <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
               </button>
             </div>
+            </div>
           </div>
         </div>
       )}
-
-      {/* ── Mobile Bottom Navigation ── */}
-      <nav
-        className="mobile-bottom-nav bottom-nav-bar"
-        style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: '#1E3A8A', display: 'none', zIndex: 1200,
-          borderTop: '1px solid rgba(255,255,255,0.15)',
-          boxShadow: '0 -4px 20px rgba(30,58,138,0.45)',
-        }}
-      >
-        {NAV_ITEMS.map((item) => {
-          const active = item.exact
-            ? location.pathname === item.path
-            : location.pathname.startsWith(item.path) && item.path !== '/app';
-          const exactActive = location.pathname === '/app';
-          const isActive = item.exact ? exactActive : active;
-
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                padding: '10px 4px 8px',
-                textDecoration: 'none', gap: 4,
-                borderTop: '3px solid transparent',
-                minHeight: 60,
-              }}
-            >
-              <item.icon size={22} color={isActive ? '#DBEAFE' : '#93C5FD'} />
-              <span style={{ fontSize: 10, color: isActive ? '#DBEAFE' : '#93C5FD', fontWeight: 400, letterSpacing: '0.03em' }}>
-                {item.label.split(' ')[0]}
-              </span>
-            </NavLink>
-          );
-        })}
-      </nav>
 
       <style>{`
         @media (max-width: 768px) {
@@ -424,12 +419,10 @@ export function Layout() {
           .header-datetime    { display: none !important; }
           .header-avatar      { display: none !important; }
           .mobile-page-label  { display: flex !important; align-items: center !important; }
-          .mobile-bottom-nav  { display: flex !important; }
-          .page-content       { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+          .page-content       { padding-bottom: 0 !important; }
           .mobile-overlay     { display: block !important; }
         }
         @media (min-width: 769px) {
-          .mobile-bottom-nav  { display: none !important; }
           .mobile-page-label  { display: none !important; }
         }
       `}</style>

@@ -273,8 +273,8 @@ export default function SuperAdminLayout() {
         }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="sa-mobile-menu-btn"
-            style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 6, padding: '6px', cursor: 'pointer', display: 'none', color: 'white' }}
+            className="sa-mobile-menu-btn icon-btn-square"
+            style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'none', color: 'white' }}
           >
             <Menu size={18} color="white" />
           </button>
@@ -320,8 +320,10 @@ export default function SuperAdminLayout() {
             {/* Alerts */}
             <div style={{ position: 'relative' }}>
               <button style={{
+                lineHeight: 0,
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                padding: '7px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 34, height: 34, minWidth: 34, minHeight: 34, padding: 0,
               }}>
                 <Bell size={18} color="white" />
                 {alertCount > 0 && (
@@ -364,7 +366,7 @@ export default function SuperAdminLayout() {
               </div>
               <span style={{ color: 'white', fontWeight: 700, fontSize: 15 }}>TUGON</span>
             </div>
-            <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => setSidebarOpen(false)} className="icon-btn-square" style={{ background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
               <X size={20} color="white" />
             </button>
           </div>

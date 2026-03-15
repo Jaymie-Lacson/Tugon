@@ -87,9 +87,15 @@
   border-radius: 6px;
   padding: 5px 8px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  line-height: 0;
+}
+
+.map-panel-close-btn > svg {
+  display: block;
 }
 
 .map-panel-close-text {
@@ -509,13 +515,20 @@
   background: rgba(255, 255, 255, 0.15);
   border: none;
   border-radius: 5px;
-  padding: 8px;
+  padding: 0;
   cursor: pointer;
   min-height: 36px;
   min-width: 36px;
-  display: flex;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
+}
+
+.map-selected-close > svg {
+  display: block;
 }
 
 .map-selected-body {
