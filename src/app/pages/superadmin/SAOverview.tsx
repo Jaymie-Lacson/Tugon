@@ -2,21 +2,37 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, Shield, Zap, ArrowRight, MapPin, Flame, Droplets, Car, Heart,
-  RefreshCw, ChevronRight, AlertCircle, Info, Bell, Database, Server,
+  RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
-import { barangays } from '../../data/superAdminData';
 import { IncidentMap } from '../../components/IncidentMap';
+import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import type { Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 
 const PRIMARY = '#1E3A8A';
-const DARK_BG = '#0F172A';
+
+type BarangayOverviewCard = {
+  id: string;
+  code: string;
+  name: string;
+  district: string;
+  captain: string;
+  activeIncidents: number;
+  totalThisMonth: number;
+  resolvedThisMonth: number;
+  responseRate: number;
+  avgResponseMin: number;
+  responders: number;
+  registeredUsers: number;
+  color: string;
+  alertLevel: 'normal' | 'elevated' | 'critical';
+};
 
 const incidentTypeIcons: Record<string, React.ReactNode> = {
   fire: <Flame size={12} />, flood: <Droplets size={12} />, accident: <Car size={12} />,
@@ -34,7 +50,7 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
     <div style={{
       background: '#FFFFFF', borderRadius: 12, padding: '18px 20px',
       boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden',
+      flex: '1 1 220px', minWidth: 180, position: 'relative', overflow: 'hidden',
     }}>
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 3,
@@ -90,11 +106,13 @@ function formatLogTime(ts: string) {
 
 export default function SAOverview() {
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
   const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
+  const [barangayCards, setBarangayCards] = useState<BarangayOverviewCard[]>([]);
   const [systemLogs, setSystemLogs] = useState<Array<{ id: string; timestamp: string; type: string; message: string; barangay?: string; severity: string }>>([]);
-  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -156,15 +174,63 @@ export default function SAOverview() {
   };
 
   const loadReports = async () => {
+    setReportsLoading(true);
     try {
       const payload = await officialReportsApi.getReports();
       setReportIncidents(payload.reports.map((report) => reportToIncident(report)));
     } catch {
       setReportIncidents([]);
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  const loadBarangays = async () => {
+    try {
+      const payload = await superAdminApi.getBarangays();
+      const colorByCode: Record<string, string> = {
+        '251': '#1D4ED8',
+        '252': '#0F766E',
+        '256': '#B4730A',
+      };
+
+      const nextCards = payload.barangays
+        .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
+        .sort((a, b) => Number(a.code) - Number(b.code))
+        .map((barangay) => {
+          const activeIncidents = barangay.activeReports;
+          const totalThisMonth = barangay.totalReports;
+          const resolvedThisMonth = Math.max(totalThisMonth - activeIncidents, 0);
+          const responseRate = totalThisMonth > 0
+            ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / totalThisMonth) * 100)))
+            : 100;
+
+          return {
+            id: barangay.id,
+            code: barangay.code,
+            name: `Barangay ${barangay.code}`,
+            district: 'Tondo, Manila',
+            captain: 'Assigned Barangay Captain',
+            activeIncidents,
+            totalThisMonth,
+            resolvedThisMonth,
+            responseRate,
+            avgResponseMin: 0,
+            responders: barangay.officialCount,
+            registeredUsers: barangay.citizenCount,
+            color: colorByCode[barangay.code] ?? '#1E3A8A',
+            alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
+          } as BarangayOverviewCard;
+        });
+
+      setBarangayCards(nextCards);
+    } catch {
+      setBarangayCards([]);
     }
   };
 
   const loadAuditLogs = async () => {
+    setLogsLoading(true);
     try {
       const payload = await superAdminApi.getAuditLogs({ limit: 8, offset: 0 });
       setSystemLogs(
@@ -178,19 +244,28 @@ export default function SAOverview() {
       );
     } catch {
       setSystemLogs([]);
+    } finally {
+      setLogsLoading(false);
     }
   };
 
   useEffect(() => {
     void loadAnalyticsSummary();
     void loadReports();
+    void loadBarangays();
     void loadAuditLogs();
   }, []);
+
+  const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading super admin overview" />;
+  }
 
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div className="sa-overview-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 10 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <div style={{
@@ -205,11 +280,13 @@ export default function SAOverview() {
             Monitoring Barangays 251, 252 & 256 — Real-time Status
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="sa-overview-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             onClick={() => {
-              setRefreshKey(k => k + 1);
               void loadAnalyticsSummary();
+              void loadReports();
+              void loadBarangays();
+              void loadAuditLogs();
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
@@ -241,7 +318,7 @@ export default function SAOverview() {
       ) : null}
 
       {/* KPI row */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="sa-overview-kpi-row" style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
         <KPICard
           label="Active Incidents (All Barangays)"
           value={total}
@@ -287,16 +364,14 @@ export default function SAOverview() {
 
       {/* Barangay cards row */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-        {barangays.map(b => {
+        {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
           return (
             <div key={b.id} style={{
               flex: 1, minWidth: 260,
               background: '#FFFFFF', borderRadius: 14, overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
             }}>
-              {/* Color bar */}
-              <div style={{ height: 4, background: b.color }} />
               <div style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div>
@@ -308,7 +383,7 @@ export default function SAOverview() {
                       }}>{al.label}</span>
                     </div>
                     <div style={{ color: '#6B7280', fontSize: 11 }}>{b.district}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>Capt. {b.captain}</div>
+                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{b.captain}</div>
                   </div>
                   <div style={{
                     width: 42, height: 42, borderRadius: 10,
@@ -342,19 +417,19 @@ export default function SAOverview() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ color: '#6B7280', fontSize: 11 }}>Avg Response Time</span>
                     <span style={{
-                      color: b.avgResponseMin > 10 ? '#B91C1C' : '#059669',
+                      color: b.responseRate < 90 ? '#B4730A' : '#059669',
                       fontSize: 11, fontWeight: 600,
-                    }}>{b.avgResponseMin} min</span>
+                    }}>{b.responseRate}%</span>
                   </div>
                   <div style={{ height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%',
-                      width: `${Math.min((b.avgResponseMin / 15) * 100, 100)}%`,
-                      background: b.avgResponseMin > 10 ? '#B91C1C' : '#059669',
+                      width: `${b.responseRate}%`,
+                      background: b.responseRate < 90 ? '#B4730A' : '#059669',
                       borderRadius: 3,
                     }} />
                   </div>
-                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>Target: ≤ 10 min</div>
+                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>Resolution rate</div>
                 </div>
 
                 {/* Footer */}
@@ -386,7 +461,7 @@ export default function SAOverview() {
       </div>
 
       {/* Charts + Logs row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20 }}>
+      <div className="sa-overview-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20 }}>
         {/* Incident type distribution */}
         <div style={{
           background: '#FFFFFF', borderRadius: 14, padding: '20px',
@@ -433,7 +508,7 @@ export default function SAOverview() {
             }} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {systemLogs.map(log => {
+            {systemLogs.map((log) => {
               const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: '#6B7280' };
               const sev = logSeverityColors[log.severity] ?? '#6B7280';
               return (
@@ -469,11 +544,11 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div style={{
+      <div className="sa-overview-map-preview" style={{
         background: '#FFFFFF', borderRadius: 14, overflow: 'hidden', marginBottom: 20,
         boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
       }}>
-        <div style={{
+        <div className="sa-overview-map-preview-head" style={{
           padding: '12px 16px', borderBottom: '1px solid #F3F4F6',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -524,11 +599,8 @@ export default function SAOverview() {
               background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 12,
               padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 12,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-              transition: 'all 0.15s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${item.color}22`; (e.currentTarget as HTMLElement).style.borderColor = `${item.color}40`; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; }}
           >
             <div style={{
               width: 40, height: 40, borderRadius: 10,
@@ -549,6 +621,56 @@ export default function SAOverview() {
         @keyframes sa-pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+
+        @media (max-width: 1024px) {
+          .sa-overview-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .sa-overview-kpi-row {
+            gap: 10px;
+          }
+
+          .sa-overview-kpi-row > div {
+            flex: 1 1 calc(50% - 10px) !important;
+            min-width: 0 !important;
+          }
+
+          .sa-overview-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+
+          .sa-overview-header-actions {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          .sa-overview-header-actions button {
+            flex: 1;
+            min-height: 40px;
+            justify-content: center;
+          }
+
+          .sa-overview-map-preview-head {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 8px;
+          }
+
+          .sa-overview-map-preview-head > div:last-child {
+            width: 100%;
+            justify-content: space-between;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .sa-overview-kpi-row > div {
+            flex: 1 1 100% !important;
+          }
         }
       `}</style>
     </div>

@@ -1,17 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router';
+import React, { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
-  LayoutDashboard, Map, BarChart2, Users, Bell, ChevronRight,
-  Shield, LogOut, Menu, X, Clock, Wifi, Settings, Activity,
-  Lock, AlertCircle, Database,
+  Activity,
+  BarChart2,
+  Bell,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Map,
+  Menu,
+  Users,
+  Wifi,
+  X,
 } from 'lucide-react';
 import { superAdminApi } from '../../services/superAdminApi';
+import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 
 const NAV_ITEMS = [
-  { path: '/superadmin',           label: 'SA Overview',    icon: LayoutDashboard, exact: true },
-  { path: '/superadmin/map',       label: 'Barangay Map',   icon: Map },
-  { path: '/superadmin/analytics', label: 'SA Analytics',   icon: BarChart2 },
-  { path: '/superadmin/users',     label: 'User Management', icon: Users },
+  { path: '/superadmin', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { path: '/superadmin/map', label: 'Barangay Map', icon: Map },
+  { path: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
+  { path: '/superadmin/users', label: 'Users', icon: Users },
   { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
 ];
 
@@ -29,7 +38,6 @@ function LiveClock() {
 }
 
 const SIDEBAR_BG = '#1E3A8A';
-const SIDEBAR_ACCENT = '#1E40AF';
 
 type MonitoringItem = {
   code: string;
@@ -49,14 +57,22 @@ function getMonitoringColor(incidents: number): string {
 }
 
 export default function SuperAdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [alertCount] = useState(3);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [monitoringItems, setMonitoringItems] = useState<MonitoringItem[]>([
     { code: '251', name: 'Brgy 251', incidents: 0, color: '#22C55E' },
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
     { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
   ]);
+  const navigate = useNavigate();
   const location = useLocation();
+  const session = getAuthSession();
+  const userFullName = session?.user.fullName?.trim() || 'Super Admin';
+  const userInitials = userFullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'SA';
 
   useEffect(() => {
     let mounted = true;
@@ -93,23 +109,29 @@ export default function SuperAdminLayout() {
     };
   }, []);
 
-  const currentPage = NAV_ITEMS.find(n =>
+  const currentPage = NAV_ITEMS.find((n) =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path)
   ) || NAV_ITEMS[0];
+
+  const handleSignOut = () => {
+    clearAuthSession();
+    setDrawerOpen(false);
+    navigate('/auth/login', { replace: true });
+  };
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
 
-      {/* Overlay */}
-      {sidebarOpen && (
+      {/* Overlay for mobile drawer */}
+      {drawerOpen && (
         <div
-          onClick={() => setSidebarOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 40 }}
+          onClick={() => setDrawerOpen(false)}
           className="sa-mobile-overlay"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1300, display: 'none' }}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
         className="sa-sidebar-desktop"
         style={{
@@ -124,35 +146,30 @@ export default function SuperAdminLayout() {
       >
         {/* Logo */}
         <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{
-              width: 40, height: 40, background: '#B91C1C',
-              borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-            }}>
-              <Shield size={20} color="white" />
-            </div>
-            <div>
-              <div style={{ color: '#FFFFFF', fontSize: 17, fontWeight: 700, letterSpacing: '0.02em', lineHeight: 1.1 }}>TUGON</div>
-              <div style={{ color: '#93C5FD', fontSize: 8, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Super Admin Console</div>
-            </div>
-          </div>
+          <NavLink
+            to="/superadmin"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Go to TUGON super admin overview"
+            style={{ display: 'inline-flex', marginBottom: 10 }}
+          >
+            <img
+              src="/tugon-header-logo.svg"
+              alt="TUGON Tondo Emergency Response"
+              style={{ width: 166, maxWidth: '100%', height: 'auto' }}
+            />
+          </NavLink>
 
-          {/* Super Admin badge */}
           <div style={{
             background: 'rgba(255,255,255,0.08)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 6, padding: '5px 10px',
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <Lock size={10} color="#93C5FD" />
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 6px #22C55E' }} />
             <span style={{ color: '#BFDBFE', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Elevated Access Mode
+              SUPER ADMIN CONSOLE
             </span>
-            <span style={{
-              marginLeft: 'auto', width: 7, height: 7, borderRadius: '50%',
-              background: '#22C55E', boxShadow: '0 0 6px #22C55E', display: 'inline-block',
-            }} />
+            <Wifi size={10} color="#93C5FD" style={{ marginLeft: 'auto' }} />
           </div>
         </div>
 
@@ -191,50 +208,26 @@ export default function SuperAdminLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                onClick={() => setSidebarOpen(false)}
+                onClick={() => setDrawerOpen(false)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '10px 12px', borderRadius: 8, textDecoration: 'none', marginBottom: 2,
-                  background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                  borderLeft: isActive ? '3px solid #B4730A' : '3px solid transparent',
+                  background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                  borderLeft: '3px solid transparent',
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
-                <item.icon size={16} color={isActive ? '#FFFFFF' : '#93C5FD'} />
-                <span style={{ color: isActive ? '#FFFFFF' : '#BFDBFE', fontSize: 13, fontWeight: isActive ? 600 : 400, flex: 1 }}>
+                <item.icon size={16} color={isActive ? '#BFDBFE' : '#93C5FD'} />
+                <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 13, fontWeight: 400, flex: 1 }}>
                   {item.label}
                 </span>
-                {isActive && <ChevronRight size={12} color="rgba(255,255,255,0.5)" />}
+                {isActive && <ChevronRight size={12} color="#93C5FD" />}
               </NavLink>
             );
           })}
 
-          <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 10 }}>
-            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 4 }}>
-              System
-            </div>
-            {[
-              { label: 'System Logs', icon: Activity, path: '/superadmin' },
-              { label: 'Database',    icon: Database, path: '/superadmin' },
-              { label: 'Settings',    icon: Settings,  path: '/app/settings' },
-            ].map(it => (
-              <NavLink
-                key={it.label}
-                to={it.path}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
-                  borderRadius: 8, textDecoration: 'none', marginBottom: 2, borderLeft: '3px solid transparent',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-              >
-                <it.icon size={15} color="#93C5FD" />
-                <span style={{ color: '#BFDBFE', fontSize: 12 }}>{it.label}</span>
-              </NavLink>
-            ))}
-          </div>
         </nav>
 
         {/* User profile */}
@@ -244,18 +237,34 @@ export default function SuperAdminLayout() {
               width: 34, height: 34, borderRadius: '50%',
               background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, fontWeight: 700, color: 'white', fontSize: 12,
-              border: '2px solid rgba(255,255,255,0.2)',
+              flexShrink: 0, fontWeight: 700, color: 'white', fontSize: 13,
             }}>
-              AR
+              {userInitials}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                Admin Rodriguez
+                {userFullName}
               </div>
-              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Super Administrator</div>
+              <div style={{ color: '#93C5FD', fontSize: 10 }}>Super Admin</div>
             </div>
-            <LogOut size={14} color="#93C5FD" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            <button
+              type="button"
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              title="Sign out"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <LogOut size={15} color="#93C5FD" />
+            </button>
           </div>
         </div>
       </aside>
@@ -271,15 +280,22 @@ export default function SuperAdminLayout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
         }}>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="sa-mobile-menu-btn icon-btn-square"
-            style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'none', color: 'white' }}
-          >
-            <Menu size={18} color="white" />
-          </button>
+          <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
+            <NavLink
+              to="/superadmin"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Go to TUGON super admin overview"
+              style={{ display: 'inline-flex' }}
+            >
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                style={{ width: 124, maxWidth: '100%', height: 'auto' }}
+              />
+            </NavLink>
+          </div>
 
-          {/* Page label */}
+          {/* Desktop breadcrumb */}
           <div className="sa-header-breadcrumb" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{
@@ -294,12 +310,19 @@ export default function SuperAdminLayout() {
               <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>{currentPage?.label}</span>
             </div>
             <div style={{ color: '#93C5FD', fontSize: 10 }}>
-              TUGON — Multi-Barangay Management Console
+              Tondo Tri-Barangay Super Admin Console
             </div>
           </div>
 
+          {/* Mobile page label */}
+          <div className="sa-mobile-page-label" style={{ display: 'none', flex: 1, minWidth: 0 }}>
+            <span style={{ color: '#FFFFFF', fontSize: 17, fontWeight: 700, lineHeight: '56px', display: 'block' }}>
+              {currentPage?.label}
+            </span>
+          </div>
+
           {/* Right */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="sa-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
             <div className="sa-header-datetime" style={{ textAlign: 'right' }}>
               <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}><LiveClock /></div>
               <div style={{ color: '#93C5FD', fontSize: 10 }}>
@@ -308,7 +331,7 @@ export default function SuperAdminLayout() {
             </div>
 
             {/* System status pill */}
-            <div style={{
+            <div className="sa-header-system-pill" style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
               borderRadius: 20, padding: '4px 10px',
@@ -319,31 +342,40 @@ export default function SuperAdminLayout() {
 
             {/* Alerts */}
             <div style={{ position: 'relative' }}>
-              <button style={{
+              <button
+                type="button"
+                aria-label="No notifications"
+                title="No notifications yet"
+                disabled
+                className="icon-btn-square"
+                style={{
                 lineHeight: 0,
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                width: 34, height: 34, minWidth: 34, minHeight: 34, padding: 0,
+                cursor: 'default', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                padding: 0,
+                opacity: 0.8,
               }}>
                 <Bell size={18} color="white" />
-                {alertCount > 0 && (
-                  <span style={{
-                    position: 'absolute', top: 4, right: 4,
-                    width: 16, height: 16, background: '#B91C1C',
-                    borderRadius: '50%', fontSize: 9, fontWeight: 700, color: 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `2px solid ${SIDEBAR_BG}`,
-                  }}>{alertCount}</span>
-                )}
               </button>
             </div>
 
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
+            <button
+              onClick={() => setDrawerOpen(!drawerOpen)}
+              className="sa-mobile-menu-btn icon-btn-square"
+              style={{
+                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
+                cursor: 'pointer', display: 'none',
+              }}
+            >
+              <Menu size={20} color="white" />
+            </button>
+
+            <div className="sa-header-avatar" style={{
+              width: 36, height: 36, borderRadius: '50%',
               background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'pointer', flexShrink: 0,
-            }}>AR</div>
+              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'default', flexShrink: 0,
+            }}>{userInitials}</div>
           </div>
         </header>
 
@@ -352,94 +384,110 @@ export default function SuperAdminLayout() {
         </main>
       </div>
 
-      {/* Mobile sidebar slide-in */}
-      {sidebarOpen && (
+      {/* Mobile right drawer */}
+      {drawerOpen && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, bottom: 0, width: 260,
-          background: SIDEBAR_BG, zIndex: 50, display: 'flex', flexDirection: 'column',
-          boxShadow: '4px 0 24px rgba(0,0,0,0.3)',
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
+          background: SIDEBAR_BG, zIndex: 1400, display: 'flex', flexDirection: 'column',
+          boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
         }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 30, height: 30, background: '#B91C1C', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Shield size={16} color="white" />
-              </div>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: 15 }}>TUGON</span>
-            </div>
-            <button onClick={() => setSidebarOpen(false)} className="icon-btn-square" style={{ background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-              <X size={20} color="white" />
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <NavLink
+              to="/superadmin"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Go to TUGON super admin overview"
+              style={{ display: 'inline-flex' }}
+            >
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                style={{ width: 148, maxWidth: '100%', height: 'auto' }}
+              />
+            </NavLink>
+            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+              <X size={18} color="white" />
             </button>
           </div>
-          <nav style={{ flex: 1, padding: '12px' }}>
+
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 14, flexShrink: 0 }}>{userInitials}</div>
+            <div>
+              <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{userFullName}</div>
+              <div style={{ color: '#93C5FD', fontSize: 10 }}>Super Admin</div>
+            </div>
+          </div>
+
+          <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
+            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
+              Navigation
+            </div>
             {NAV_ITEMS.map((item) => {
-              const active = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+              const active = item.exact
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path);
+              const exactActive = location.pathname === '/superadmin';
+              const isActive = item.exact ? exactActive : active;
+
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() => setDrawerOpen(false)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                    borderRadius: 8, textDecoration: 'none', marginBottom: 4,
-                    background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
-                    borderLeft: active ? '3px solid #B4730A' : '3px solid transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '14px 16px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    marginBottom: 6,
+                    background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)',
+                    border: isActive ? '1px solid rgba(191,219,254,0.65)' : '1px solid transparent',
                   }}
                 >
-                  <item.icon size={18} color={active ? '#FFFFFF' : '#93C5FD'} />
-                  <span style={{ color: active ? '#FFFFFF' : '#BFDBFE', fontSize: 14, fontWeight: active ? 600 : 400 }}>{item.label}</span>
+                  <item.icon size={20} color={isActive ? '#DBEAFE' : '#93C5FD'} />
+                  <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 14, fontWeight: isActive ? 700 : 500 }}>
+                    {item.label}
+                  </span>
                 </NavLink>
               );
             })}
+
+            <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
+              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
+                More
+              </div>
+              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}
+                >
+                  <LogOut size={18} color="#FCA5A5" />
+                  <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
+                </button>
+              </div>
+            </div>
           </nav>
         </div>
       )}
 
-      {/* ── Super Admin Mobile Bottom Nav ── */}
-      <nav
-        className="sa-bottom-nav bottom-nav-bar"
-        style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: '#1E3A8A', display: 'none', zIndex: 30,
-          borderTop: '1px solid rgba(255,255,255,0.15)',
-          boxShadow: '0 -4px 20px rgba(30,58,138,0.45)',
-        }}
-      >
-        {NAV_ITEMS.map((item) => {
-          const exactActive = location.pathname === '/superadmin';
-          const active = item.exact ? exactActive : location.pathname.startsWith(item.path);
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setSidebarOpen(false)}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                padding: '10px 4px 8px', textDecoration: 'none', gap: 4,
-                borderTop: active ? '3px solid #B4730A' : '3px solid transparent',
-                minHeight: 60,
-              }}
-            >
-              <item.icon size={22} color={active ? '#FFFFFF' : '#93C5FD'} />
-              <span style={{ fontSize: 9, color: active ? '#FFFFFF' : '#93C5FD', fontWeight: active ? 700 : 400, letterSpacing: '0.03em', textAlign: 'center' }}>
-                {item.label.split(' ')[0]}
-              </span>
-            </NavLink>
-          );
-        })}
-      </nav>
-
       <style>{`
         @media (max-width: 768px) {
-          .sa-sidebar-desktop { display: none !important; }
-          .sa-mobile-menu-btn { display: flex !important; }
+          .sa-sidebar-desktop   { display: none !important; }
+          .sa-mobile-menu-btn   { display: flex !important; }
+          .sa-mobile-logo       { display: flex !important; }
+          .sa-header-actions    { margin-left: auto !important; }
           .sa-header-breadcrumb { display: none !important; }
-          .sa-header-datetime { display: none !important; }
-          .sa-bottom-nav { display: flex !important; }
-          .sa-main-content main { padding-bottom: 68px !important; }
+          .sa-header-datetime   { display: none !important; }
+          .sa-header-system-pill { display: none !important; }
+          .sa-header-avatar     { display: none !important; }
+          .sa-mobile-page-label { display: none !important; }
+          .sa-mobile-overlay    { display: block !important; }
         }
         @media (min-width: 769px) {
-          .sa-bottom-nav { display: none !important; }
+          .sa-mobile-menu-btn { display: none !important; }
+          .sa-mobile-page-label { display: none !important; }
         }
       `}</style>
     </div>

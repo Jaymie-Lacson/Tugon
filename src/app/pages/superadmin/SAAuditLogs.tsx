@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Filter, RefreshCw, X } from 'lucide-react';
+import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi, type ApiAdminAuditLog } from '../../services/superAdminApi';
 
 const ACTIONS = ['All Actions', 'ADMIN_USER_CREATED', 'ADMIN_USER_ROLE_UPDATED', 'ADMIN_BARANGAY_BOUNDARY_UPDATED'] as const;
@@ -169,9 +170,13 @@ export default function SAAuditLogs() {
     setToDate('');
   };
 
+  if (loading && logs.length === 0) {
+    return <OfficialPageInitialLoader label="Loading super admin audit logs" />;
+  }
+
   return (
     <div style={{ padding: 20, background: '#F0F4FF', minHeight: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div className="sa-audit-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
         <div>
           <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Admin Audit Logs</h1>
           <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
@@ -217,7 +222,7 @@ export default function SAAuditLogs() {
         </div>
       </div>
 
-      <div style={{
+      <div className="sa-audit-filter-bar" style={{
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -375,7 +380,7 @@ export default function SAAuditLogs() {
             </tbody>
           </table>
         </div>
-        <div style={{
+        <div className="sa-audit-pagination" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -487,6 +492,39 @@ export default function SAAuditLogs() {
           </div>
         </div>
       ) : null}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .sa-audit-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+
+          .sa-audit-header button {
+            width: 100%;
+            justify-content: center;
+            min-height: 40px;
+          }
+
+          .sa-audit-filter-bar {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+
+          .sa-audit-filter-bar button,
+          .sa-audit-filter-bar select,
+          .sa-audit-filter-bar input {
+            width: 100%;
+            margin-left: 0 !important;
+          }
+
+          .sa-audit-pagination {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 8px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

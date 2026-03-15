@@ -6,6 +6,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { barangays as fallbackBarangays } from '../../data/superAdminData';
+import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import type { BarangayProfile } from '../../data/superAdminData';
@@ -262,7 +263,8 @@ function createInitialBarangays(): BarangayMapView[] {
 
 export default function SABarangayMap() {
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>(createInitialBarangays());
-  const [loadingBarangays, setLoadingBarangays] = useState(false);
+  const [loadingBarangays, setLoadingBarangays] = useState(true);
+  const [loadingIncidents, setLoadingIncidents] = useState(true);
   const [barangaysError, setBarangaysError] = useState<string | null>(null);
   const [reportIncidents, setReportIncidents] = useState<MapIncident[]>([]);
   const [incidentsError, setIncidentsError] = useState<string | null>(null);
@@ -350,6 +352,7 @@ export default function SABarangayMap() {
   };
 
   const loadReportIncidents = async () => {
+    setLoadingIncidents(true);
     setIncidentsError(null);
     try {
       const payload = await officialReportsApi.getReports();
@@ -369,6 +372,8 @@ export default function SABarangayMap() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to load incident markers.';
       setIncidentsError(message);
+    } finally {
+      setLoadingIncidents(false);
     }
   };
 
@@ -489,17 +494,21 @@ export default function SABarangayMap() {
     }
   };
 
+  if ((loadingBarangays || loadingIncidents) && reportIncidents.length === 0) {
+    return <OfficialPageInitialLoader label="Loading super admin map" />;
+  }
+
   return (
     <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div className="sa-map-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
         <div>
           <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Barangay Boundary Map</h1>
           <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
             OpenStreetMap — Barangays 251, 252 & 256 · Municipality of Tugon, Region IV-A
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="sa-map-header-actions" style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => {
               void loadBarangays();
@@ -541,7 +550,7 @@ export default function SABarangayMap() {
         </div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
+      <div className="sa-map-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
         {/* ── OSM Map ── */}
         <div style={{
           background: 'white', borderRadius: 16, overflow: 'hidden',
@@ -1120,6 +1129,30 @@ export default function SABarangayMap() {
           0%   { transform: scale(1);   opacity: .18; }
           70%  { transform: scale(2.5); opacity: 0;   }
           100% { transform: scale(2.5); opacity: 0;   }
+        }
+
+        @media (max-width: 1024px) {
+          .sa-map-main-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .sa-map-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+
+          .sa-map-header-actions {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          .sa-map-header-actions button {
+            flex: 1;
+            min-height: 40px;
+            justify-content: center;
+          }
         }
       `}</style>
     </div>
