@@ -3,6 +3,7 @@ import {
   ReportSeverity as PrismaReportSeverity,
   TicketStatus as PrismaTicketStatus,
 } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { prisma } from "../../config/prisma.js";
 import { geofencingService } from "../map/geofencing.service.js";
 import { evidenceStorageService } from "./evidenceStorage.service.js";
@@ -575,6 +576,7 @@ export const reportsService = {
           prisma.$executeRaw(
             Prisma.sql`
               INSERT INTO "IncidentEvidence" (
+                "id",
                 "reportId",
                 "kind",
                 "storageProvider",
@@ -584,6 +586,7 @@ export const reportsService = {
                 "mimeType",
                 "sizeBytes"
               ) VALUES (
+                ${randomUUID()},
                 ${report.id},
                 ${evidence.kind},
                 ${evidence.storageProvider},
