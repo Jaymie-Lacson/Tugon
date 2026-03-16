@@ -770,8 +770,8 @@ export default function CitizenDashboard() {
           setMobileMenuOpen(false);
         }
       }}
-      mobileMainPaddingBottom={20}
-      desktopMainPaddingBottom={24}
+      mobileMainPaddingBottom={activeTab === 'map' ? 0 : 20}
+      desktopMainPaddingBottom={activeTab === 'map' ? 8 : 24}
       desktopMainMaxWidth={1320}
     >
       {renderContent()}
@@ -1563,17 +1563,67 @@ function MapTab({
   setSelectedIncident: (i: Incident | null) => void;
 }) {
   const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all');
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
+  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsMobileViewport(event.matches);
+    };
+
+    setIsMobileViewport(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const filtered =
     filter === 'all'
       ? incidents
       : filter === 'active'
       ? incidents.filter((i) => i.status !== 'resolved')
       : incidents.filter((i) => i.status === 'resolved');
+  const hasPinsForFilter = filtered.length > 0;
+  const isCompactMobileHeight = isMobileViewport && viewportHeight < 760;
+  // Keep map viewport-filling across header variants while preserving space for filters/detail panel.
+  const mapBaseOffset = isMobileViewport
+    ? (isCompactMobileHeight ? 114 : 126)
+    : 186;
+  const mapDetailOffset = selectedIncident
+    ? (isMobileViewport ? (isCompactMobileHeight ? 138 : 156) : 140)
+    : (isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48);
+  const mapHeight = `max(320px, calc(100dvh - ${mapBaseOffset + mapDetailOffset}px - env(safe-area-inset-bottom)))`;
+  const mapShellMinHeight = isMobileViewport
+    ? (isCompactMobileHeight ? 'calc(100dvh - 108px)' : 'calc(100dvh - 120px)')
+    : 'calc(100dvh - 176px)';
+
+  useEffect(() => {
+    if (!selectedIncident) {
+      return;
+    }
+    const stillVisible = filtered.some((incident) => incident.id === selectedIncident.id);
+    if (!stillVisible) {
+      setSelectedIncident(null);
+    }
+  }, [filtered, selectedIncident, setSelectedIncident]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'clamp(500px, 70vh, 760px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: mapShellMinHeight }}>
       {/* Filters */}
       <div
+        className="citizen-map-filter-bar"
         style={{
           padding: '12px 16px',
           background: '#fff',
@@ -1581,6 +1631,7 @@ function MapTab({
           display: 'flex',
           gap: 8,
           alignItems: 'center',
+          flexWrap: 'wrap',
         }}
       >
         <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
@@ -1588,16 +1639,17 @@ function MapTab({
         </div>
         {(['all', 'active', 'resolved'] as const).map((f) => (
           <button
+            className="citizen-map-filter-chip"
             key={f}
             onClick={() => setFilter(f)}
             style={{
-              padding: '5px 12px',
+              padding: isMobileViewport ? '8px 14px' : '5px 12px',
               borderRadius: 20,
               border: 'none',
               background: filter === f ? '#1E3A8A' : '#F1F5F9',
               color: filter === f ? '#fff' : '#64748B',
               fontWeight: 600,
-              fontSize: 11,
+              fontSize: isMobileViewport ? 12 : 11,
               cursor: 'pointer',
               textTransform: 'capitalize',
             }}
@@ -1605,18 +1657,84 @@ function MapTab({
             {f}
           </button>
         ))}
+        {selectedIncident ? (
+          <button
+            className="citizen-map-clear-btn"
+            type="button"
+            onClick={() => setSelectedIncident(null)}
+            style={{
+              marginLeft: 'auto',
+              padding: isMobileViewport ? '8px 12px' : '6px 10px',
+              borderRadius: 10,
+              border: '1px solid #E2E8F0',
+              background: '#fff',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: 11,
+              cursor: 'pointer',
+            }}
+          >
+            Clear Selection
+          </button>
+        ) : null}
       </div>
 
       {/* Map */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 420 }}>
+      <div style={{ flex: 1, position: 'relative', minHeight: 320 }}>
         <IncidentMap
           incidents={filtered}
-          height={420}
+          height={mapHeight}
           selectedId={selectedIncident?.id ?? null}
           onSelectIncident={setSelectedIncident}
           compact={false}
           zoom={15}
         />
+        {!hasPinsForFilter ? (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.42))',
+            }}
+          >
+            <div
+              className="citizen-map-empty-card"
+              style={{
+                pointerEvents: 'auto',
+                background: 'rgba(255,255,255,0.96)',
+                border: '1px solid #E2E8F0',
+                borderRadius: 12,
+                padding: '10px 12px',
+                textAlign: 'center',
+                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>
+                No map pins for this filter
+              </div>
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                style={{
+                  border: '1px solid #BFDBFE',
+                  background: '#EFF6FF',
+                  color: '#1E3A8A',
+                  borderRadius: 8,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                Show all pins
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Detail panel */}
@@ -1625,8 +1743,10 @@ function MapTab({
           style={{
             background: '#fff',
             borderTop: '1px solid #E2E8F0',
-            padding: '14px 16px',
+            padding: '14px 16px calc(14px + env(safe-area-inset-bottom))',
             boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
+            maxHeight: isMobileViewport ? '34dvh' : 'none',
+            overflowY: isMobileViewport ? 'auto' : 'visible',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>

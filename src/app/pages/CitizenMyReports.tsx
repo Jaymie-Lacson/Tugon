@@ -11,6 +11,7 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import {
   citizenReportsApi,
   type ApiCitizenReport,
@@ -235,8 +236,8 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const currentStep = cfg.step;
   const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
   const isFailed = status === 'unresolvable';
-  const terminalColor = isFailed ? '#B91C1C' : status === 'closed' ? '#475569' : '#059669';
-  const terminalBg   = isFailed ? '#FEF2F2'  : status === 'closed' ? '#F8FAFC'  : '#ECFDF5';
+  const terminalColor = isFailed ? '#B91C1C' : '#059669';
+  const terminalBg   = isFailed ? '#FEF2F2'  : '#ECFDF5';
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0, width: '100%' }}>
@@ -299,6 +300,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
   return (
     <button
+      className="citizen-report-card"
       onClick={onClick}
       style={{
         width: '100%', background: '#fff', border: '1px solid #E2E8F0',
@@ -785,6 +787,7 @@ export default function CitizenMyReports() {
   const [sortOpen, setSortOpen]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -796,6 +799,10 @@ export default function CitizenMyReports() {
         setReports(response.reports.map(mapApiReport));
       } catch {
         // Keep the current list when API is unavailable.
+      } finally {
+        if (isMounted) {
+          setLoadingInitial(false);
+        }
       }
     }
 
@@ -906,6 +913,10 @@ export default function CitizenMyReports() {
     { key: 'active',   label: 'Active',   count: activeCount },
     { key: 'resolved', label: 'Resolved', count: resolvedCount },
   ];
+
+  if (loadingInitial) {
+    return <OfficialPageInitialLoader label="Loading my reports page" minHeight="calc(100vh - 120px)" />;
+  }
 
   return (
     <div style={{ position: 'relative' }}>
@@ -1256,13 +1267,13 @@ export default function CitizenMyReports() {
         </div>
 
         <div onClick={() => sortOpen && setSortOpen(false)}>
-          <div className="citizen-content-shell" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
+          <div className="citizen-content-shell citizen-reports-summary-row" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="citizen-reports-summary-text" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
               Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
               {query && ` for "${query}"`}
             </span>
             {filtered.length > 0 && (
-              <span style={{ fontSize: 11, color: '#94A3B8' }}>
+              <span className="citizen-reports-summary-hint" style={{ fontSize: 11, color: '#94A3B8' }}>
                 Open a card to view details
               </span>
             )}
@@ -1283,9 +1294,9 @@ export default function CitizenMyReports() {
           </div>
 
           {filtered.length > 0 && (
-            <div className="citizen-content-shell" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div className="citizen-content-shell citizen-reports-footnote-wrap" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+              <p className="citizen-reports-footnote" style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
                 Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
               </p>
             </div>
