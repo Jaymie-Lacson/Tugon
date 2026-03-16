@@ -344,6 +344,15 @@ function StepIndicator({ current }: { current: number }) {
    STEP 1 - INCIDENT TYPE
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
+  const severitySectionRef = useRef<HTMLDivElement | null>(null);
+  const subcategorySectionRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToSection = (target: React.RefObject<HTMLDivElement | null>) => {
+    window.setTimeout(() => {
+      target.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+  };
+
   return (
     <div className="incident-step2" style={{ padding: '22px 16px 8px' }}>
       <div style={{ marginBottom: 20 }}>
@@ -379,6 +388,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                   requiresMediation: taxonomy?.requiresMediation ?? false,
                   mediationWarning: taxonomy?.requiresMediation ? MEDIATION_WARNING : null,
                 }));
+                scrollToSection(severitySectionRef);
               }}
               style={{
                 background: sel ? `linear-gradient(145deg, ${color}, ${color}CC)` : '#fff',
@@ -433,7 +443,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {/* Severity Row - appears after selecting a type */}
-      <div style={{
+      <div ref={severitySectionRef} style={{
         overflow: 'hidden', maxHeight: form.category ? 200 : 0,
         transition: 'max-height 0.4s ease', opacity: form.category ? 1 : 0,
         transitionProperty: 'max-height, opacity',
@@ -456,7 +466,10 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
               return (
                 <button
                   key={s.k}
-                  onClick={() => setForm(p => ({ ...p, severity: s.k }))}
+                  onClick={() => {
+                    setForm(p => ({ ...p, severity: s.k }));
+                    scrollToSection(subcategorySectionRef);
+                  }}
                   style={{
                     padding: '10px 4px', borderRadius: 12,
                     border: `2px solid ${sel ? s.color : s.border}`,
@@ -476,7 +489,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {form.category ? (
-        <div style={{ marginTop: 12, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 14, padding: 14 }}>
+        <div ref={subcategorySectionRef} style={{ marginTop: 12, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 14, padding: 14 }}>
           <label style={{ display: 'block', fontWeight: 700, fontSize: 12, color: '#1E293B', marginBottom: 8 }}>
             Select Subcategory
           </label>
@@ -1075,6 +1088,21 @@ function Step4({
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
+  useEffect(() => {
+    if (previewIndex === null) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewIndex(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewIndex]);
+
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).slice(0, 4 - form.photoPreviews.length);
     const previews = files.map(f => URL.createObjectURL(f));
@@ -1256,11 +1284,6 @@ function Step4({
           </div>
         )}
 
-        {form.photoPreviews.length === 0 ? (
-          <div style={{ marginTop: 10, fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>
-            At least one photo is required before continuing.
-          </div>
-        ) : null}
       </div>
 
         {/* â”€ Voice Recording â”€ */}
@@ -1430,6 +1453,7 @@ function Step4({
 
       {previewIndex !== null ? (
         <div
+          className="citizen-photo-preview-overlay"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1442,11 +1466,44 @@ function Step4({
           }}
           onClick={() => setPreviewIndex(null)}
         >
-          <img
-            src={form.photoPreviews[previewIndex]}
-            alt={`preview-${previewIndex + 1}`}
-            style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }}
-          />
+          <button
+            className="citizen-photo-preview-close"
+            type="button"
+            onClick={() => setPreviewIndex(null)}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(15,23,42,0.7)',
+              color: '#fff',
+              borderRadius: 999,
+              width: 36,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+            aria-label="Close photo preview"
+          >
+            <X size={16} />
+          </button>
+          <div
+            className="citizen-photo-preview-stage"
+            onClick={(event) => event.stopPropagation()}
+            style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+          >
+            <img
+              className="citizen-photo-preview-image"
+              src={form.photoPreviews[previewIndex]}
+              alt={`preview-${previewIndex + 1}`}
+              style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 96px)', borderRadius: 12 }}
+            />
+            <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600 }}>
+              Photo {previewIndex + 1} of {form.photoPreviews.length}
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -1527,6 +1584,21 @@ function Step5({
       accent: '#475569',
     },
   ];
+
+  useEffect(() => {
+    if (previewIndex === null) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewIndex(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewIndex]);
 
   return (
     <div style={{ padding: '22px 16px 8px' }}>
@@ -1641,6 +1713,7 @@ function Step5({
                 <div style={{
                   position: 'absolute', inset: 0,
                   background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.4))',
+                  pointerEvents: 'none',
                 }} />
                 <div style={{
                   position: 'absolute', bottom: 3, right: 3,
@@ -1669,6 +1742,7 @@ function Step5({
 
       {previewIndex !== null ? (
         <div
+          className="citizen-photo-preview-overlay"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1681,11 +1755,44 @@ function Step5({
           }}
           onClick={() => setPreviewIndex(null)}
         >
-          <img
-            src={form.photoPreviews[previewIndex]}
-            alt={`review-preview-${previewIndex + 1}`}
-            style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }}
-          />
+          <button
+            className="citizen-photo-preview-close"
+            type="button"
+            onClick={() => setPreviewIndex(null)}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(15,23,42,0.7)',
+              color: '#fff',
+              borderRadius: 999,
+              width: 36,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+            aria-label="Close photo preview"
+          >
+            <X size={16} />
+          </button>
+          <div
+            className="citizen-photo-preview-stage"
+            onClick={(event) => event.stopPropagation()}
+            style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+          >
+            <img
+              className="citizen-photo-preview-image"
+              src={form.photoPreviews[previewIndex]}
+              alt={`review-preview-${previewIndex + 1}`}
+              style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 96px)', borderRadius: 12 }}
+            />
+            <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600 }}>
+              Photo {previewIndex + 1} of {form.photoPreviews.length}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

@@ -36,6 +36,55 @@
   flex-shrink: 0;
 }
 
+/* ── Citizen motion consistency ── */
+.citizen-map-filter-chip,
+.citizen-map-clear-btn,
+.citizen-report-card,
+.citizen-photo-preview-close {
+  transition: transform 160ms ease, box-shadow 180ms ease, background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.citizen-map-filter-chip:active,
+.citizen-map-clear-btn:active {
+  transform: scale(0.98);
+}
+
+.citizen-report-card {
+  transform-origin: center;
+}
+
+.citizen-photo-preview-overlay {
+  animation: citizenFadeIn 180ms ease-out;
+}
+
+.citizen-photo-preview-stage {
+  animation: citizenScaleIn 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes citizenFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes citizenScaleIn {
+  from { transform: translateY(8px) scale(0.985); opacity: 0.85; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .citizen-map-filter-chip,
+  .citizen-map-clear-btn,
+  .citizen-report-card,
+  .citizen-photo-preview-close {
+    transition: none !important;
+  }
+
+  .citizen-photo-preview-overlay,
+  .citizen-photo-preview-stage {
+    animation: none !important;
+  }
+}
+
 /* ── Touch targets ── */
 @media (max-width: 768px) {
   /* Minimum 44×44 touch target for all buttons */
@@ -114,6 +163,86 @@
     line-height: 1.35 !important;
   }
   .incident-step2-pin-chip { padding: 10px 11px !important; margin-bottom: 10px !important; }
+
+  /* ── Citizen map tab controls ── */
+  .citizen-map-filter-bar {
+    padding: 10px 12px !important;
+    gap: 6px !important;
+    border-bottom-color: #e5e7eb !important;
+  }
+  .citizen-map-filter-chip {
+    min-height: 40px !important;
+    border-radius: 999px !important;
+    letter-spacing: 0.01em;
+    font-weight: 700 !important;
+  }
+  .citizen-map-clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .citizen-map-empty-card {
+    max-width: min(280px, calc(100% - 24px));
+  }
+
+  /* ── Citizen report cards ── */
+  .citizen-report-card {
+    border-radius: 16px !important;
+    border-color: #dbe2ea !important;
+  }
+  .citizen-report-card:active {
+    transform: scale(0.995);
+    transition: transform 120ms ease;
+  }
+
+  /* ── Incident report sticky footer ── */
+  .citizen-report-footer {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    backdrop-filter: saturate(120%) blur(6px);
+    -webkit-backdrop-filter: saturate(120%) blur(6px);
+  }
+  .citizen-report-footer button {
+    min-height: 46px !important;
+  }
+
+  /* ── Photo preview modal ── */
+  .citizen-photo-preview-image {
+    box-shadow: 0 14px 34px rgba(2, 6, 23, 0.45);
+  }
+
+  /* ── Citizen reports hierarchy ── */
+  .citizen-reports-summary-row {
+    gap: 8px;
+  }
+  .citizen-reports-summary-text {
+    font-size: 12px !important;
+    line-height: 1.5;
+    color: #64748b !important;
+  }
+  .citizen-reports-summary-hint {
+    font-size: 11px !important;
+    font-weight: 600;
+    color: #94a3b8 !important;
+  }
+  .citizen-reports-footnote-wrap {
+    margin-top: 2px;
+  }
+  .citizen-reports-footnote {
+    font-size: 11px !important;
+    line-height: 1.65 !important;
+    color: #64748b !important;
+  }
+
+  /* Keep secondary helper text from crowding on very small devices. */
+  @media (max-width: 420px) {
+    .citizen-reports-summary-row {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 4px;
+    }
+    .citizen-reports-summary-hint {
+      font-size: 10px !important;
+    }
+  }
 }
 
 @media (min-width: 769px) {
