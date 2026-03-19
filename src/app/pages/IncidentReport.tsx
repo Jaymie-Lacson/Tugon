@@ -784,8 +784,20 @@ function Step2({
             </div>
           </div>
           <button
+            className="icon-btn-square icon-btn-sm incident-step2-pin-clear"
             onClick={() => setForm(p => ({ ...p, pin: null }))}
-            style={{ background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#64748B', padding: 6, display: 'flex', alignItems: 'center' }}
+            aria-label="Remove selected incident pin"
+            style={{
+              background: 'rgba(0,0,0,0.06)',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              color: '#64748B',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
           >
             <X size={14} />
           </button>
