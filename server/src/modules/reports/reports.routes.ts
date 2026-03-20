@@ -12,7 +12,7 @@ citizenReportsRouter.post("/reports", async (req, res) => {
       return res.status(401).json({ message: "Unauthorized." });
     }
 
-    const citizenUser = await (prisma.user as any).findUnique({
+    const citizenUser = await prisma.user.findUnique({
       where: { id: authUser.id },
       select: {
         id: true,
@@ -35,6 +35,10 @@ citizenReportsRouter.post("/reports", async (req, res) => {
       return res.status(401).json({ message: "Authenticated user not found." });
     }
 
+    if (citizenUser.isBanned) {
+      return res.status(403).json({ message: "This account is restricted and cannot submit reports." });
+    }
+
     const citizenBarangayCode = citizenUser.citizenProfile?.barangay?.code;
     if (!citizenBarangayCode) {
       return res.status(403).json({ message: "Citizen barangay profile is required to submit reports." });
@@ -45,9 +49,9 @@ citizenReportsRouter.post("/reports", async (req, res) => {
         id: citizenUser.id,
         fullName: citizenUser.fullName,
         barangayCode: citizenBarangayCode,
-        isVerified: (citizenUser as { isVerified?: boolean }).isVerified,
-        isBanned: (citizenUser as { isBanned?: boolean }).isBanned,
-        verificationStatus: (citizenUser as { verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null }).verificationStatus ?? null,
+        isVerified: citizenUser.isVerified,
+        isBanned: citizenUser.isBanned,
+        verificationStatus: citizenUser.verificationStatus ?? null,
       },
       {
         category: req.body?.category,

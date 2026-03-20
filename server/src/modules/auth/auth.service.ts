@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { Prisma } from "@prisma/client";
+import { Prisma, VerificationStatus } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
@@ -29,7 +29,7 @@ function asPublicUser(user: {
   role: Role;
   isPhoneVerified: boolean;
   isVerified?: boolean;
-  verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  verificationStatus?: VerificationStatus | null;
   verificationRejectionReason?: string | null;
   idImageUrl?: string | null;
   isBanned?: boolean;
@@ -302,13 +302,13 @@ export const authService = {
       throw new AuthError("Invalid credentials.", 401);
     }
 
-    if ((user as { isBanned?: boolean }).isBanned) {
-      throw new AuthError("This account is restricted. Please contact your barangay office.", 403);
-    }
-
     const isValid = await bcrypt.compare(input.password, user.passwordHash);
     if (!isValid) {
       throw new AuthError("Invalid credentials.", 401);
+    }
+
+    if (user.isBanned) {
+      throw new AuthError("This account is restricted. Please contact your barangay office.", 403);
     }
 
     if (user.role === "CITIZEN" && !user.citizenProfile?.barangay?.code) {
@@ -350,7 +350,7 @@ export const authService = {
       throw new AuthError("User not found.", 404);
     }
 
-    if ((user as { isBanned?: boolean }).isBanned) {
+    if (user.isBanned) {
       throw new AuthError("This account is restricted. Please contact your barangay office.", 403);
     }
 

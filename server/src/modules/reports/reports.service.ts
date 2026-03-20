@@ -2,6 +2,7 @@ import {
   Prisma,
   ReportSeverity as PrismaReportSeverity,
   TicketStatus as PrismaTicketStatus,
+  VerificationStatus,
 } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../../config/prisma.js";
@@ -174,7 +175,7 @@ function mapPersistedReport(row: {
   citizen?: {
     isVerified: boolean;
     isBanned: boolean;
-    verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null;
+    verificationStatus: VerificationStatus | null;
   } | null;
   statusHistory: Array<{
     status: PrismaTicketStatus;
@@ -190,7 +191,7 @@ function mapPersistedReport(row: {
     ? "banned"
     : row.citizen?.isVerified
     ? "verified"
-    : row.citizen?.verificationStatus === "REJECTED"
+    : row.citizen?.verificationStatus === VerificationStatus.REJECTED
     ? "rejected"
     : "pending";
 
@@ -405,7 +406,7 @@ export const reportsService = {
       barangayCode: string;
       isVerified?: boolean;
       isBanned?: boolean;
-      verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+      verificationStatus?: VerificationStatus | null;
     },
     input: CreateCitizenReportInput,
   ) {
@@ -492,7 +493,7 @@ export const reportsService = {
         ? "banned"
         : citizenUser.isVerified
         ? "verified"
-        : citizenUser.verificationStatus === "REJECTED"
+        : citizenUser.verificationStatus === VerificationStatus.REJECTED
         ? "rejected"
         : "pending",
       timeline: [
@@ -639,7 +640,7 @@ export const reportsService = {
   },
 
   async listMine(citizenUserId: string): Promise<CitizenReportRecord[]> {
-    const persisted = await (prisma.citizenReport as any).findMany({
+    const persisted = await prisma.citizenReport.findMany({
       where: { citizenUserId },
       include: {
         citizen: {
@@ -660,7 +661,7 @@ export const reportsService = {
       return reportsStore.listByCitizenUserId(citizenUserId);
     }
 
-    return persisted.map((row: Parameters<typeof mapPersistedReport>[0]) => mapPersistedReport(row));
+    return persisted.map((row) => mapPersistedReport(row));
   },
 
   async getMineById(citizenUserId: string, reportId: string): Promise<CitizenReportRecord> {
@@ -678,7 +679,7 @@ export const reportsService = {
     }
 
     const where = user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {};
-    const persisted = await (prisma.citizenReport as any).findMany({
+    const persisted = await prisma.citizenReport.findMany({
       where,
       include: {
         citizen: {
@@ -695,7 +696,7 @@ export const reportsService = {
       orderBy: { submittedAt: "desc" },
     });
 
-    const records = persisted.map((row: Parameters<typeof mapPersistedReport>[0]) => mapPersistedReport(row));
+    const records = persisted.map((row) => mapPersistedReport(row));
     return user.role === "SUPER_ADMIN" ? records.map(anonymizeReportForSuperAdmin) : records;
   },
 
@@ -703,7 +704,7 @@ export const reportsService = {
     user: { role: Role; barangayCode: string | null },
     reportId: string,
   ): Promise<CitizenReportRecord> {
-    const persisted = await (prisma.citizenReport as any).findUnique({
+    const persisted = await prisma.citizenReport.findUnique({
       where: { id: reportId },
       include: {
         citizen: {

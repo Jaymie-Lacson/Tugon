@@ -19,13 +19,13 @@ import {
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { path: '/app/incidents',  label: 'Incidents',  icon: AlertTriangle },
   { path: '/app/map',        label: 'Map',        icon: Map },
   { path: '/app/analytics',  label: 'Analytics',  icon: BarChart2 },
   { path: '/app/reports',    label: 'Reports',    icon: FileText },
-  { path: '/app/verifications', label: 'Verifications', icon: UserCheck },
+  { path: '/app/verifications', label: 'Verifications', icon: UserCheck, officialOnly: true },
 ];
 
 function LiveClock() {
@@ -46,6 +46,8 @@ export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
+  const userRole = session?.user.role;
+  const NAV_ITEMS = BASE_NAV_ITEMS.filter((item) => !item.officialOnly || userRole === 'OFFICIAL');
   const userFullName = session?.user.fullName?.trim() || 'Barangay Official';
   const userInitials = userFullName
     .split(' ')

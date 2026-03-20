@@ -94,7 +94,7 @@ export interface ApiPendingVerification {
   fullName: string;
   phoneNumber: string;
   idImageUrl: string | null;
-  verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED";
   rejectionReason: string | null;
   barangayCode: string | null;
   barangayName: string | null;
@@ -185,7 +185,7 @@ export const officialReportsApi = {
         citizenUserId: string;
         fullName: string;
         isVerified: boolean;
-        verificationStatus: "APPROVED" | "REJECTED" | null;
+        verificationStatus: "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED" | null;
         rejectionReason: string | null;
         verifiedAt: string | null;
         isBanned: boolean;

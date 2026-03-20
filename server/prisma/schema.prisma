@@ -190,4 +190,5 @@ enum VerificationStatus {
   PENDING
   APPROVED
   REJECTED
+  REUPLOAD_REQUESTED
 }

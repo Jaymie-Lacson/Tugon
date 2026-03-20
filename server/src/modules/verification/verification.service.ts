@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { Prisma, Role } from "@prisma/client";
+import { Prisma, Role, VerificationStatus } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
@@ -22,7 +22,7 @@ const ALLOWED_ID_MIME_TYPES = new Set([
 
 export type VerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
 
-type VerificationStatusValue = "PENDING" | "APPROVED" | "REJECTED";
+type VerificationStatusValue = VerificationStatus;
 
 class VerificationError extends Error {
   status: number;
@@ -67,6 +67,8 @@ function normalizeNotes(notes: unknown): string | null {
   return parsed.length > 0 ? parsed : null;
 }
 
+const MAX_ID_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB, matching the frontend file size limit
+
 function parseDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } {
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
   if (!match) {
@@ -77,6 +79,10 @@ function parseDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } {
   const bytes = Buffer.from(base64, "base64");
   if (bytes.length === 0) {
     throw new VerificationError("ID image is empty.", 400);
+  }
+
+  if (bytes.length > MAX_ID_IMAGE_BYTES) {
+    throw new VerificationError("ID image exceeds the 8 MB size limit.", 413);
   }
 
   return { mimeType, bytes };
@@ -138,7 +144,7 @@ async function uploadCitizenIdImage(input: {
 }
 
 async function getOfficialContext(actorUserId: string) {
-  const actor = await (prisma.user as any).findUnique({
+  const actor = await prisma.user.findUnique({
     where: { id: actorUserId },
     select: {
       id: true,
@@ -170,9 +176,9 @@ async function getOfficialContext(actorUserId: string) {
   }
 
   return {
-    id: actor.id as string,
-    fullName: actor.fullName as string,
-    barangayCode: barangayCode as string,
+    id: actor.id,
+    fullName: actor.fullName,
+    barangayCode,
   };
 }
 
@@ -182,14 +188,14 @@ function statusFromUser(user: {
   idImageUrl: string | null;
 }): VerificationStatusValue | null {
   if (user.isVerified) {
-    return "APPROVED";
+    return VerificationStatus.APPROVED;
   }
 
   if (user.verificationStatus) {
     return user.verificationStatus;
   }
 
-  return user.idImageUrl ? "PENDING" : null;
+  return user.idImageUrl ? VerificationStatus.PENDING : null;
 }
 
 function notifyCitizenVerificationUpdate(input: {
@@ -204,7 +210,7 @@ function notifyCitizenVerificationUpdate(input: {
 
 export const verificationService = {
   async getCitizenStatus(citizenUserId: string) {
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -225,17 +231,17 @@ export const verificationService = {
 
     return {
       verification: {
-        isVerified: Boolean(user.isVerified),
-        idImageUrl: (user.idImageUrl as string | null) ?? null,
+        isVerified: user.isVerified,
+        idImageUrl: user.idImageUrl ?? null,
         verificationStatus: statusFromUser({
-          isVerified: Boolean(user.isVerified),
-          verificationStatus: (user.verificationStatus as VerificationStatusValue | null) ?? null,
-          idImageUrl: (user.idImageUrl as string | null) ?? null,
+          isVerified: user.isVerified,
+          verificationStatus: user.verificationStatus ?? null,
+          idImageUrl: user.idImageUrl ?? null,
         }),
-        rejectionReason: (user.verificationRejectionReason as string | null) ?? null,
+        rejectionReason: user.verificationRejectionReason ?? null,
         verifiedAt: user.verifiedAt instanceof Date ? user.verifiedAt.toISOString() : null,
-        isBanned: Boolean(user.isBanned),
-        bannedReason: (user.bannedReason as string | null) ?? null,
+        isBanned: user.isBanned,
+        bannedReason: user.bannedReason ?? null,
       },
     };
   },
@@ -248,7 +254,7 @@ export const verificationService = {
       dataUrl?: unknown;
     },
   ) {
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -276,12 +282,12 @@ export const verificationService = {
       dataUrl: input.dataUrl,
     });
 
-    await (prisma.user as any).update({
+    await prisma.user.update({
       where: { id: citizenUserId },
       data: {
         isVerified: false,
         idImageUrl: publicUrl,
-        verificationStatus: "PENDING",
+        verificationStatus: VerificationStatus.PENDING,
         verificationRejectionReason: null,
         verifiedByUserId: null,
         verifiedAt: null,
@@ -293,7 +299,7 @@ export const verificationService = {
       verification: {
         isVerified: false,
         idImageUrl: publicUrl,
-        verificationStatus: "PENDING" as const,
+        verificationStatus: VerificationStatus.PENDING,
       },
     };
   },
@@ -301,7 +307,7 @@ export const verificationService = {
   async listPending(actorUserId: string) {
     const actor = await getOfficialContext(actorUserId);
 
-    const users = await (prisma.user as any).findMany({
+    const users = await prisma.user.findMany({
       where: {
         role: Role.CITIZEN,
         isBanned: false,
@@ -312,7 +318,7 @@ export const verificationService = {
         },
         OR: [
           {
-            verificationStatus: "PENDING",
+            verificationStatus: VerificationStatus.PENDING,
           },
           {
             verificationStatus: null,
@@ -349,7 +355,7 @@ export const verificationService = {
     });
 
     return {
-      verifications: users.map((user: any) => ({
+      verifications: users.map((user) => ({
         citizenUserId: user.id,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
@@ -386,7 +392,7 @@ export const verificationService = {
       || decision === "BAN_ACCOUNT";
     const reason = requiresReason ? normalizeReason(input.reason) : null;
 
-    const target = await (prisma.user as any).findUnique({
+    const target = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -428,11 +434,11 @@ export const verificationService = {
     const now = new Date();
     let verificationStatus: VerificationStatusValue;
     if (decision === "APPROVE") {
-      verificationStatus = "APPROVED";
+      verificationStatus = VerificationStatus.APPROVED;
     } else if (decision === "REQUEST_REUPLOAD") {
-      verificationStatus = "REUPLOAD_REQUESTED";
+      verificationStatus = VerificationStatus.REUPLOAD_REQUESTED;
     } else {
-      verificationStatus = "REJECTED";
+      verificationStatus = VerificationStatus.REJECTED;
     }
     const clearImage = decision === "REJECT" || decision === "REQUEST_REUPLOAD" || decision === "BAN_ACCOUNT";
     const isBanned = decision === "BAN_ACCOUNT";
@@ -446,7 +452,7 @@ export const verificationService = {
       : "OFFICIAL_VERIFICATION_REJECTED";
 
     const updated = await prisma.$transaction(async (tx) => {
-      const user = await (tx.user as any).update({
+      const user = await tx.user.update({
         where: { id: target.id },
         data: {
           isVerified: decision === "APPROVE",

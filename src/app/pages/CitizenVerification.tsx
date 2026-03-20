@@ -43,6 +43,15 @@ function statusMeta(state: CitizenVerificationState | null) {
     };
   }
 
+  if (state.verificationStatus === 'REUPLOAD_REQUESTED') {
+    return {
+      label: 'Re-upload Required',
+      color: '#92400E',
+      bg: '#FEF3C7',
+      icon: <XCircle size={14} />,
+    };
+  }
+
   if (state.verificationStatus === 'PENDING') {
     return {
       label: 'Pending Review',
