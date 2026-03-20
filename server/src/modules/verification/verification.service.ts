@@ -426,7 +426,14 @@ export const verificationService = {
     }
 
     const now = new Date();
-    const verificationStatus: VerificationStatusValue = decision === "APPROVE" ? "APPROVED" : "REJECTED";
+    let verificationStatus: VerificationStatusValue;
+    if (decision === "APPROVE") {
+      verificationStatus = "APPROVED";
+    } else if (decision === "REQUEST_REUPLOAD") {
+      verificationStatus = "REUPLOAD_REQUESTED";
+    } else {
+      verificationStatus = "REJECTED";
+    }
     const clearImage = decision === "REJECT" || decision === "REQUEST_REUPLOAD" || decision === "BAN_ACCOUNT";
     const isBanned = decision === "BAN_ACCOUNT";
 
