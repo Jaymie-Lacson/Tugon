@@ -1,4 +1,6 @@
 -- Refactor incident classification to category/subcategory taxonomy with mediation metadata.
+DROP VIEW IF EXISTS reports;
+
 ALTER TABLE "CitizenReport"
 ADD COLUMN "category" TEXT,
 ADD COLUMN "subcategory" TEXT,
@@ -133,3 +135,15 @@ ADD CONSTRAINT "CitizenReport_mediation_check" CHECK (
         AND "mediationWarning" IS NULL
     )
 );
+
+-- Recreate compatibility view after dropping legacy "type" column.
+CREATE OR REPLACE VIEW reports AS
+SELECT
+    "id",
+    "citizenUserId" AS sender_profile_id,
+    "category" AS type,
+    "status"::text AS status,
+    "description",
+    "submittedAt" AS created_at,
+    "updatedAt" AS updated_at
+FROM "CitizenReport";
