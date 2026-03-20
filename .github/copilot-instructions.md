@@ -184,3 +184,65 @@ When debugging:
 2. Prioritize the fix with the highest probability.
 3. Suggest exact files/lines to inspect.
 4. Only then propose code changes.
+
+## Development commands
+
+### Install dependencies
+```bash
+npm install
+npm --prefix server install
+```
+
+### Run development servers
+```bash
+# Frontend (Vite, default port 5173)
+npm run dev
+
+# Backend (Express, default port 4000)
+npm --prefix server run dev
+```
+
+### Build
+```bash
+# Frontend only
+npm run build
+
+# Backend only
+npm run build:server
+
+# Full production check (frontend + backend + Prisma validate + generate + status)
+npm run check:prod
+```
+
+### Tests
+Backend integration tests use Node's built-in `node:test` runner (not Jest/Vitest).
+
+```bash
+# Run all backend integration tests
+npm --prefix server run test:integration
+```
+
+Test files live in `server/tests/`.
+
+### Prisma (database)
+```bash
+# Generate Prisma client after schema changes
+npm --prefix server run prisma:generate
+
+# Create a new dev migration
+npm --prefix server run prisma:migrate -- --name <migration_name>
+
+# Apply migrations (production/deploy)
+npm --prefix server run prisma:migrate:deploy
+
+# Check migration status
+npm --prefix server run prisma:status
+
+# Validate schema
+npm --prefix server run prisma:validate
+```
+
+### Environment files
+- Copy `.env.example` → `.env` (root, used by frontend Vite)
+- Copy `server/.env.example` → `server/.env`
+- Set a real Supabase PostgreSQL `DATABASE_URL` in the server env file.

@@ -12,11 +12,14 @@ citizenReportsRouter.post("/reports", async (req, res) => {
       return res.status(401).json({ message: "Unauthorized." });
     }
 
-    const citizenUser = await prisma.user.findUnique({
+    const citizenUser = await (prisma.user as any).findUnique({
       where: { id: authUser.id },
       select: {
         id: true,
         fullName: true,
+        isVerified: true,
+        isBanned: true,
+        verificationStatus: true,
         citizenProfile: {
           select: {
             barangay: {
@@ -38,7 +41,14 @@ citizenReportsRouter.post("/reports", async (req, res) => {
     }
 
     const result = await reportsService.create(
-      { id: citizenUser.id, fullName: citizenUser.fullName, barangayCode: citizenBarangayCode },
+      {
+        id: citizenUser.id,
+        fullName: citizenUser.fullName,
+        barangayCode: citizenBarangayCode,
+        isVerified: (citizenUser as { isVerified?: boolean }).isVerified,
+        isBanned: (citizenUser as { isBanned?: boolean }).isBanned,
+        verificationStatus: (citizenUser as { verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null }).verificationStatus ?? null,
+      },
       {
         category: req.body?.category,
         subcategory: req.body?.subcategory,

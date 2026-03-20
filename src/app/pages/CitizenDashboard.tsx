@@ -1881,6 +1881,41 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
   const resolvedCount = myReports.filter((report) => report.status === 'resolved').length;
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
 
+  const handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
+    if (action === 'personal') {
+      setEditOpen(true);
+      setSettingMessage('');
+      return;
+    }
+
+    if (action === 'notifications') {
+      setSettingMessage('Use the bell icon on the top-right to view recent report updates and alerts.');
+      return;
+    }
+
+    if (action === 'verification') {
+      if (session?.user.isVerified) {
+        setSettingMessage('Your account is already ID-verified. No further action is required.');
+      } else {
+        navigate('/citizen/verification');
+      }
+      return;
+    }
+
+    if (action === 'barangay') {
+      navigate('/citizen?tab=map');
+      return;
+    }
+
+    if (action === 'contact') {
+      if (!phoneDigits) {
+        setSettingMessage('No valid contact number is available for this account.');
+        return;
+      }
+      window.location.href = `tel:${phoneDigits}`;
+    }
+  };
+
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 16 }}>
       {/* Profile card */}
@@ -1937,7 +1972,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
             border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
-            <Shield size={12} /> {session?.user.isPhoneVerified ? 'Verified Citizen' : 'Verification Pending'}
+            <Shield size={12} /> {session?.user.isVerified ? 'Verified Citizen' : 'Verification Pending'}
         </div>
       </div>
 
@@ -1966,15 +2001,11 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         }}
       >
         {[
-          { icon: <User size={16} />, label: 'Full Name', sub: fullName },
-          { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber },
-          {
-            icon: <Shield size={16} />,
-            label: 'Verification Status',
-            sub: session?.user.isPhoneVerified ? 'Phone number verified' : 'Verification pending',
-          },
-          { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel },
-          { icon: <Bell size={16} />, label: 'Notification Channel', sub: 'Use the bell icon in the header for updates' },
+          { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
+          { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
+          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isVerified ? 'Resident ID verified' : 'Submit valid ID for review', action: 'verification' as const },
+          { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
+          { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
           <div
             key={item.label}

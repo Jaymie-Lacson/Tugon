@@ -39,6 +39,11 @@ export interface PublicUser {
   role: Role;
   barangayCode?: string;
   isPhoneVerified: boolean;
+  isVerified: boolean;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED" | null;
+  verificationRejectionReason: string | null;
+  idImageUrl: string | null;
+  isBanned: boolean;
 }
 
 export interface AuthSession {
