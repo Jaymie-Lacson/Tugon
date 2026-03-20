@@ -131,12 +131,10 @@ async function uploadCitizenIdImage(input: {
     throw new VerificationError(`Failed to upload ID image: ${upload.error.message}`, 502);
   }
 
-  const { data } = supabase.storage.from(env.supabaseIdStorageBucket).getPublicUrl(storagePath);
-  if (!data.publicUrl) {
-    throw new VerificationError("ID image uploaded but public URL could not be generated.", 502);
-  }
-
-  return data.publicUrl;
+  // Return only the storage path; an authenticated endpoint should later
+  // resolve this path to a short-lived signed URL or stream the object
+  // with proper role and jurisdiction checks.
+  return storagePath;
 }
 
 async function getOfficialContext(actorUserId: string) {
