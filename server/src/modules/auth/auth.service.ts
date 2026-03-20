@@ -28,6 +28,11 @@ function asPublicUser(user: {
   phoneNumber: string;
   role: Role;
   isPhoneVerified: boolean;
+  isVerified?: boolean;
+  verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  verificationRejectionReason?: string | null;
+  idImageUrl?: string | null;
+  isBanned?: boolean;
   citizenProfile?: { barangay?: { code: string } | null } | null;
 }): PublicUser {
   return {
@@ -37,6 +42,11 @@ function asPublicUser(user: {
     role: user.role,
     barangayCode: user.citizenProfile?.barangay?.code,
     isPhoneVerified: user.isPhoneVerified,
+    isVerified: Boolean(user.isVerified),
+    verificationStatus: user.verificationStatus ?? null,
+    verificationRejectionReason: user.verificationRejectionReason ?? null,
+    idImageUrl: user.idImageUrl ?? null,
+    isBanned: Boolean(user.isBanned),
   };
 }
 
@@ -278,11 +288,22 @@ export const authService = {
             },
           },
         },
+        officialProfile: {
+          include: {
+            barangay: {
+              select: { code: true },
+            },
+          },
+        },
       },
     });
 
     if (!user || !user.passwordHash) {
       throw new AuthError("Invalid credentials.", 401);
+    }
+
+    if ((user as { isBanned?: boolean }).isBanned) {
+      throw new AuthError("This account is restricted. Please contact your barangay office.", 403);
     }
 
     const isValid = await bcrypt.compare(input.password, user.passwordHash);
@@ -292,6 +313,10 @@ export const authService = {
 
     if (user.role === "CITIZEN" && !user.citizenProfile?.barangay?.code) {
       throw new AuthError("Citizen account is missing an assigned barangay profile.", 403);
+    }
+
+    if (user.role === "OFFICIAL" && !user.officialProfile?.barangay?.code) {
+      throw new AuthError("Official account is missing an assigned barangay profile. Please contact a super admin.", 403);
     }
 
     const token = signToken(user);
@@ -312,14 +337,29 @@ export const authService = {
             },
           },
         },
+        officialProfile: {
+          include: {
+            barangay: {
+              select: { code: true },
+            },
+          },
+        },
       },
     });
     if (!user) {
       throw new AuthError("User not found.", 404);
     }
 
+    if ((user as { isBanned?: boolean }).isBanned) {
+      throw new AuthError("This account is restricted. Please contact your barangay office.", 403);
+    }
+
     if (user.role === "CITIZEN" && !user.citizenProfile?.barangay?.code) {
       throw new AuthError("Citizen account is missing an assigned barangay profile.", 403);
+    }
+
+    if (user.role === "OFFICIAL" && !user.officialProfile?.barangay?.code) {
+      throw new AuthError("Official account is missing an assigned barangay profile. Please contact a super admin.", 403);
     }
 
     return asPublicUser(user);

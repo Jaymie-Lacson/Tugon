@@ -41,5 +41,9 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? "incident-evidence",
+  supabaseIdStorageBucket:
+    (process.env.SUPABASE_ID_STORAGE_BUCKET || "").trim() ||
+    process.env.SUPABASE_STORAGE_BUCKET ||
+    "resident-ids",
   requireEvidenceStorageUpload: process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD === "1",
 };

@@ -6,6 +6,7 @@ import {
   Map,
   BarChart2,
   FileText,
+  UserCheck,
   Bell,
   ChevronRight,
   Shield,
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { path: '/app/map',        label: 'Map',        icon: Map },
   { path: '/app/analytics',  label: 'Analytics',  icon: BarChart2 },
   { path: '/app/reports',    label: 'Reports',    icon: FileText },
+  { path: '/app/verifications', label: 'Verifications', icon: UserCheck },
 ];
 
 function LiveClock() {

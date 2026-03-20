@@ -1887,10 +1887,10 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
     }
 
     if (action === 'verification') {
-      if (session?.user.isPhoneVerified) {
-        setSettingMessage('Your account is already phone-verified. No further action is required.');
+      if (session?.user.isVerified) {
+        setSettingMessage('Your account is already ID-verified. No further action is required.');
       } else {
-        navigate('/auth/verify');
+        navigate('/citizen/verification');
       }
       return;
     }
@@ -1965,7 +1965,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
             border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
-            <Shield size={12} /> {session?.user.isPhoneVerified ? 'Verified Citizen' : 'Verification Pending'}
+            <Shield size={12} /> {session?.user.isVerified ? 'Verified Citizen' : 'Verification Pending'}
         </div>
       </div>
 
@@ -1996,7 +1996,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         {[
           { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isPhoneVerified ? 'Phone number verified' : 'Verify your phone number', action: 'verification' as const },
+          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isVerified ? 'Resident ID verified' : 'Submit valid ID for review', action: 'verification' as const },
           { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
           { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
