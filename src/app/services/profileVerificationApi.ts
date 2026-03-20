@@ -56,7 +56,7 @@ function fileToDataUrl(file: File): Promise<string> {
 export interface CitizenVerificationState {
   isVerified: boolean;
   idImageUrl: string | null;
-  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED" | null;
   rejectionReason: string | null;
   verifiedAt: string | null;
   isBanned: boolean;
