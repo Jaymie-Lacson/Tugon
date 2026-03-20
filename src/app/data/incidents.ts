@@ -23,6 +23,10 @@ export interface Incident {
   lng: number;
 }
 
+export function isIncidentVisibleOnMap(incident: Pick<Incident, 'status'>): boolean {
+  return incident.status !== 'resolved';
+}
+
 export const incidentTypeConfig: Record<IncidentType, { label: string; color: string; bgColor: string }> = {
   fire: { label: 'Fire', color: '#B91C1C', bgColor: '#FEE2E2' },
   flood: { label: 'Flood', color: '#1D4ED8', bgColor: '#DBEAFE' },

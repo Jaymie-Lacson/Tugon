@@ -4,7 +4,7 @@ import {
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   Navigation2, ArrowLeft,
 } from 'lucide-react';
-import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, statusConfig } from '../data/incidents';
+import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
@@ -101,7 +101,9 @@ export default function MapView() {
     navigate('/');
   };
 
-  const filtered = incidents.filter(inc => {
+  const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
+
+  const filtered = mapIncidents.filter(inc => {
     if (filterType && inc.type !== filterType) return false;
     if (filterStatus && inc.status !== filterStatus) return false;
     const q = search.toLowerCase();
@@ -109,13 +111,24 @@ export default function MapView() {
     return true;
   });
 
+  useEffect(() => {
+    if (!selectedIncident) {
+      return;
+    }
+
+    const stillVisible = filtered.some((incident) => incident.id === selectedIncident.id);
+    if (!stillVisible) {
+      setSelectedIncident(null);
+    }
+  }, [filtered, selectedIncident]);
+
   const coverageSubtitle = React.useMemo(() => {
-    const barangays = [...new Set(incidents.map((incident) => incident.barangay).filter(Boolean))];
+    const barangays = [...new Set(mapIncidents.map((incident) => incident.barangay).filter(Boolean))];
     if (barangays.length === 0) {
       return 'Barangay Coverage: Awaiting live incident data';
     }
     return `Barangay Coverage: ${barangays.join(' • ')} — OpenStreetMap`;
-  }, [incidents]);
+  }, [mapIncidents]);
 
   if (initialLoadPending) {
     return <OfficialPageInitialLoader label="Loading incident map" minHeight="calc(100vh - 120px)" />;
@@ -133,7 +146,7 @@ export default function MapView() {
       <div className={`map-panel${panelOpen ? ' panel-open' : ''}`}>
         <div className="map-panel-header">
           <div className="map-panel-header-row">
-            <span className="map-panel-title">Active Incidents</span>
+            <span className="map-panel-title">Open Incidents</span>
             <div className="map-panel-actions">
               <button
                 onClick={() => setShowFilters(v => !v)}
@@ -185,7 +198,9 @@ export default function MapView() {
                 aria-label="Filter incidents by status"
               >
                 <option value="">All Status</option>
-                {Object.entries(statusConfig).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                {Object.entries(statusConfig)
+                  .filter(([k]) => k !== 'resolved')
+                  .map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
           )}

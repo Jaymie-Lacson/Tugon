@@ -12,7 +12,7 @@ import { IncidentMap } from '../../components/IncidentMap';
 import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
-import type { Incident } from '../../data/incidents';
+import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 
 const PRIMARY = '#1E3A8A';
@@ -114,6 +114,7 @@ export default function SAOverview() {
   const [reportsLoading, setReportsLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
   const todayIso = new Date().toISOString().slice(0, 10);
   const yesterday = new Date();
@@ -556,7 +557,7 @@ export default function SAOverview() {
             <MapPin size={15} color={PRIMARY} />
             <div>
               <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>Live System Map</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>All incidents · OpenStreetMap · Municipality of Tugon</div>
+              <div style={{ color: '#9CA3AF', fontSize: 11 }}>Open incidents · OpenStreetMap · Municipality of Tugon</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -577,7 +578,7 @@ export default function SAOverview() {
           </div>
         </div>
         <IncidentMap
-          incidents={reportIncidents}
+          incidents={mapIncidents}
           height={300}
           compact={false}
           zoom={14}

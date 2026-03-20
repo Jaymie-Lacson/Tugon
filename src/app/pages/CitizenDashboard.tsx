@@ -10,11 +10,12 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { IncidentMap } from '../components/IncidentMap';
-import { StatusBadge, TypeBadge } from '../components/StatusBadge';
+import { StatusBadge } from '../components/StatusBadge';
 import {
   incidentTypeConfig,
   Incident,
   IncidentType,
+  isIncidentVisibleOnMap,
 } from '../data/incidents';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
@@ -347,6 +348,18 @@ function MyReportRow({
 
 type Tab = 'home' | 'report' | 'map' | 'myreports' | 'profile';
 
+type CitizenNotificationItem = {
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+  title: string;
+  desc: string;
+  time: string;
+  unread: boolean;
+  action: 'open-map-incident' | 'open-my-reports' | 'open-home';
+  incidentId?: string;
+};
+
 /* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function CitizenDashboard() {
   const navigate = useNavigate();
@@ -374,8 +387,9 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
 
-  const notificationItems = React.useMemo(() => {
+  const notificationItems = React.useMemo<CitizenNotificationItem[]>(() => {
     const criticalItems = incidents
       .filter((item) => (item.status === 'active' || item.status === 'responding') && item.severity === 'critical')
       .slice(0, 2)
@@ -387,6 +401,8 @@ export default function CitizenDashboard() {
         desc: `${incidentTypeConfig[item.type].label} in ${item.barangay}`,
         time: timeAgo(item.reportedAt),
         unread: true,
+        action: 'open-map-incident' as const,
+        incidentId: item.id,
       }));
 
     const reportItems = myReports
@@ -400,6 +416,7 @@ export default function CitizenDashboard() {
         desc: `${report.id} status: ${report.status}`,
         time: timeAgo(report.reportedAt),
         unread: true,
+        action: 'open-my-reports' as const,
       }));
 
     const items = [...criticalItems, ...reportItems].slice(0, 3);
@@ -415,8 +432,24 @@ export default function CitizenDashboard() {
       desc: 'You are all caught up for now.',
       time: 'Live',
       unread: false,
+      action: 'open-home',
     }];
   }, [incidents, myReports]);
+
+  const handleNotificationClick = React.useCallback((item: CitizenNotificationItem) => {
+    if (item.action === 'open-map-incident') {
+      const targetIncident = mapIncidents.find((incident) => incident.id === item.incidentId) ?? null;
+      setSelectedIncident(targetIncident);
+      setActiveTab('map');
+    } else if (item.action === 'open-my-reports') {
+      navigate('/citizen/my-reports');
+    } else {
+      setActiveTab('home');
+    }
+
+    setNotifOpen(false);
+    setMobileMenuOpen(false);
+  }, [mapIncidents, navigate]);
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
@@ -488,11 +521,11 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab incidents={incidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} />;
+        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} />;
       case 'report':
         return null;
       case 'map':
-        return <MapTab incidents={incidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
       case 'myreports':
         navigate('/citizen/my-reports');
         return null;
@@ -650,16 +683,23 @@ export default function CitizenDashboard() {
                   </span>
                 </div>
                 {notificationItems.map((n, i) => (
-                  <div
+                  <button
                     key={`${n.title}-${i}`}
+                    type="button"
+                    onClick={() => handleNotificationClick(n)}
                     style={{
                       padding: '12px 16px',
                       display: 'flex',
+                      width: '100%',
                       gap: 10,
                       alignItems: 'flex-start',
                       borderBottom: i < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
                       cursor: 'pointer',
                       background: n.unread ? '#FFFBEB' : '#fff',
+                      borderLeft: 'none',
+                      borderRight: 'none',
+                      borderTop: 'none',
+                      textAlign: 'left',
                     }}
                   >
                     <div
@@ -682,7 +722,7 @@ export default function CitizenDashboard() {
                       <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
                       <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -983,6 +1023,7 @@ function HomeTab({
                 onSelectIncident={setSelectedIncident}
                 compact={false}
                 zoom={14}
+                showSelectedPopup
               />
             </div>
           </div>
@@ -1562,7 +1603,7 @@ function MapTab({
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
 }) {
-  const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all');
+  const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
   const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
 
@@ -1593,17 +1634,15 @@ function MapTab({
     filter === 'all'
       ? incidents
       : filter === 'active'
-      ? incidents.filter((i) => i.status !== 'resolved')
-      : incidents.filter((i) => i.status === 'resolved');
+      ? incidents.filter((i) => i.status === 'active')
+      : incidents.filter((i) => i.status === 'responding');
   const hasPinsForFilter = filtered.length > 0;
   const isCompactMobileHeight = isMobileViewport && viewportHeight < 760;
   // Keep map viewport-filling across header variants while preserving space for filters/detail panel.
   const mapBaseOffset = isMobileViewport
     ? (isCompactMobileHeight ? 114 : 126)
     : 186;
-  const mapDetailOffset = selectedIncident
-    ? (isMobileViewport ? (isCompactMobileHeight ? 138 : 156) : 140)
-    : (isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48);
+  const mapDetailOffset = isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48;
   const mapHeight = `max(320px, calc(100dvh - ${mapBaseOffset + mapDetailOffset}px - env(safe-area-inset-bottom)))`;
   const mapShellMinHeight = isMobileViewport
     ? (isCompactMobileHeight ? 'calc(100dvh - 108px)' : 'calc(100dvh - 120px)')
@@ -1637,7 +1676,7 @@ function MapTab({
         <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
           My Report Map
         </div>
-        {(['all', 'active', 'resolved'] as const).map((f) => (
+        {(['all', 'active', 'responding'] as const).map((f) => (
           <button
             className="citizen-map-filter-chip"
             key={f}
@@ -1688,6 +1727,7 @@ function MapTab({
           onSelectIncident={setSelectedIncident}
           compact={false}
           zoom={15}
+                showSelectedPopup
         />
         {!hasPinsForFilter ? (
           <div
@@ -1737,37 +1777,7 @@ function MapTab({
         ) : null}
       </div>
 
-      {/* Detail panel */}
-      {selectedIncident && (
-        <div
-          style={{
-            background: '#fff',
-            borderTop: '1px solid #E2E8F0',
-            padding: '14px 16px calc(14px + env(safe-area-inset-bottom))',
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
-            maxHeight: isMobileViewport ? '34dvh' : 'none',
-            overflowY: isMobileViewport ? 'auto' : 'visible',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <TypeBadge type={selectedIncident.type} size="sm" />
-            <StatusBadge status={selectedIncident.status} size="sm" pulse />
-          </div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 2 }}>
-            {selectedIncident.id}
-          </div>
-          <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>
-            {selectedIncident.description}
-          </div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#94A3B8' }}>
-            <span><Clock size={10} style={{ verticalAlign: 'middle' }} /> {timeAgo(selectedIncident.reportedAt)}</span>
-            <span><User size={10} style={{ verticalAlign: 'middle' }} /> {selectedIncident.responders} responders</span>
-            {selectedIncident.affectedPersons !== undefined && (
-              <span><AlertTriangle size={10} style={{ verticalAlign: 'middle' }} /> {selectedIncident.affectedPersons} affected</span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Details now appear in popup anchored to selected pin. */}
     </div>
   );
 }
@@ -1859,8 +1869,6 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
 function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
   const navigate = useNavigate();
   const session = getAuthSession();
-  const [settingMessage, setSettingMessage] = useState('');
-  const [editOpen, setEditOpen] = useState(false);
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
   const phoneNumber = session?.user.phoneNumber || 'Not available';
   const initials = fullName
@@ -1869,45 +1877,9 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'CU';
-  const phoneDigits = phoneNumber.replace(/\D/g, '');
   const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Assigned barangay';
   const resolvedCount = myReports.filter((report) => report.status === 'resolved').length;
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
-
-  const handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
-    if (action === 'personal') {
-      setEditOpen(true);
-      setSettingMessage('');
-      return;
-    }
-
-    if (action === 'notifications') {
-      setSettingMessage('Use the bell icon on the top-right to view recent report updates and alerts.');
-      return;
-    }
-
-    if (action === 'verification') {
-      if (session?.user.isPhoneVerified) {
-        setSettingMessage('Your account is already phone-verified. No further action is required.');
-      } else {
-        navigate('/auth/verify');
-      }
-      return;
-    }
-
-    if (action === 'barangay') {
-      navigate('/citizen?tab=map');
-      return;
-    }
-
-    if (action === 'contact') {
-      if (!phoneDigits) {
-        setSettingMessage('No valid contact number is available for this account.');
-        return;
-      }
-      window.location.href = `tel:${phoneDigits}`;
-    }
-  };
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 16 }}>
@@ -1980,9 +1952,9 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         ))}
       </div>
 
-      {/* Settings list */}
+      {/* Read-only profile information */}
       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
-        Account Settings
+        Account Information
       </div>
       <div
         style={{
@@ -1994,23 +1966,25 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         }}
       >
         {[
-          { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
-          { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isPhoneVerified ? 'Phone number verified' : 'Verify your phone number', action: 'verification' as const },
-          { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
-          { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
+          { icon: <User size={16} />, label: 'Full Name', sub: fullName },
+          { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber },
+          {
+            icon: <Shield size={16} />,
+            label: 'Verification Status',
+            sub: session?.user.isPhoneVerified ? 'Phone number verified' : 'Verification pending',
+          },
+          { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel },
+          { icon: <Bell size={16} />, label: 'Notification Channel', sub: 'Use the bell icon in the header for updates' },
         ].map((item, idx, arr) => (
-          <button
+          <div
             key={item.label}
-            onClick={() => handleSettingAction(item.action)}
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               padding: '14px 16px',
-              cursor: 'pointer',
-              border: 'none',
+              cursor: 'default',
               textAlign: 'left',
               background: '#fff',
               borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
@@ -2035,117 +2009,44 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
               <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>{item.label}</div>
               <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{item.sub}</div>
             </div>
-            <ChevronRight size={16} color="#CBD5E1" />
-          </button>
+          </div>
         ))}
       </div>
 
-      {settingMessage && (
-        <div
+      <div
+        style={{
+          background: '#F8FAFC',
+          border: '1px solid #E2E8F0',
+          borderRadius: 12,
+          padding: '10px 12px',
+          marginBottom: 14,
+          color: '#475569',
+          fontSize: 12,
+          lineHeight: 1.5,
+        }}
+      >
+        Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
+      </div>
+
+      {!session?.user.isPhoneVerified ? (
+        <button
+          onClick={() => navigate('/auth/verify')}
           style={{
-            background: '#EFF6FF',
-            border: '1px solid #BFDBFE',
+            width: '100%',
+            padding: '12px',
             borderRadius: 12,
-            padding: '10px 12px',
-            marginBottom: 14,
+            border: '1.5px solid #BFDBFE',
+            background: '#EFF6FF',
             color: '#1E3A8A',
-            fontSize: 12,
-            lineHeight: 1.5,
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            marginBottom: 12,
           }}
         >
-          {settingMessage}
-        </div>
-      )}
-
-      {editOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15,23,42,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 120,
-            padding: 16,
-          }}
-          onClick={() => setEditOpen(false)}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: 460,
-              background: '#fff',
-              borderRadius: 14,
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 18px 48px rgba(15,23,42,0.22)',
-              padding: 16,
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div style={{ fontWeight: 800, fontSize: 16, color: '#1E293B', marginBottom: 4 }}>
-              Personal Information
-            </div>
-            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 14 }}>
-              Profile contact information is managed by your verified account and cannot be edited here.
-            </div>
-
-            <label style={{ fontSize: 12, color: '#475569', fontWeight: 700, display: 'block', marginBottom: 6 }}>
-              Full Name
-            </label>
-            <input
-              value={fullName}
-              readOnly
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontSize: 13,
-                color: '#1E293B',
-                boxSizing: 'border-box',
-                marginBottom: 12,
-              }}
-            />
-
-            <label style={{ fontSize: 12, color: '#475569', fontWeight: 700, display: 'block', marginBottom: 6 }}>
-              Contact Number
-            </label>
-            <input
-              value={phoneNumber}
-              readOnly
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontSize: 13,
-                color: '#1E293B',
-                boxSizing: 'border-box',
-                marginBottom: 14,
-              }}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button
-                onClick={() => setEditOpen(false)}
-                style={{
-                  border: '1px solid #CBD5E1',
-                  background: '#fff',
-                  color: '#334155',
-                  borderRadius: 10,
-                  padding: '9px 12px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          Verify Phone Number
+        </button>
+      ) : null}
 
       {/* Sign out */}
       <button
