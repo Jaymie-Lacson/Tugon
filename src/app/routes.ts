@@ -171,7 +171,15 @@ export const router = createBrowserRouter([
       { path: 'map', Component: MapView },
       { path: 'analytics', Component: Analytics },
       { path: 'reports', Component: Reports },
-      { path: 'verifications', Component: Verifications },
+      {
+        path: 'verifications',
+        Component: () =>
+          React.createElement(
+            RequireRole,
+            { roles: ['OFFICIAL'], fallbackPath: '/superadmin' },
+            React.createElement(Verifications),
+          ),
+      },
       { path: 'settings', Component: Settings },
     ],
   },
