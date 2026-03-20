@@ -19,6 +19,22 @@ citizenVerificationRouter.get("/verification-status", async (req, res) => {
   }
 });
 
+// Backward-compatible alias for older clients expecting /verification.
+citizenVerificationRouter.get("/verification", async (req, res) => {
+  try {
+    const citizenUserId = req.authUser?.id;
+    if (!citizenUserId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const payload = await verificationService.getCitizenStatus(citizenUserId);
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = verificationService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
 citizenVerificationRouter.post("/verification-id", async (req, res) => {
   try {
     const citizenUserId = req.authUser?.id;

@@ -8,7 +8,7 @@ export interface SessionUser {
   barangayCode?: string;
   isPhoneVerified: boolean;
   isVerified: boolean;
-  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED" | null;
   verificationRejectionReason: string | null;
   idImageUrl: string | null;
   isBanned: boolean;

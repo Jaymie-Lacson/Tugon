@@ -22,7 +22,7 @@ const ALLOWED_ID_MIME_TYPES = new Set([
 
 export type VerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
 
-type VerificationStatusValue = "PENDING" | "APPROVED" | "REJECTED";
+type VerificationStatusValue = "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED";
 
 class VerificationError extends Error {
   status: number;
