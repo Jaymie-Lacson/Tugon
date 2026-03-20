@@ -14,8 +14,10 @@ import Verify from './pages/auth/Verify';
 import CreatePassword from './pages/auth/CreatePassword';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import CitizenDashboard from './pages/CitizenDashboard';
+import CitizenVerification from './pages/CitizenVerification';
 import IncidentReport from './pages/IncidentReport';
 import CitizenMyReports from './pages/CitizenMyReports';
+import Verifications from './pages/Verifications';
 import SuperAdminLayout from './pages/superadmin/SuperAdminLayout';
 import SAOverview from './pages/superadmin/SAOverview';
 import SABarangayMap from './pages/superadmin/SABarangayMap';
@@ -122,6 +124,19 @@ export const router = createBrowserRouter([
         React.createElement(CitizenReportsGuard),
       ),
   },
+  {
+    path: '/citizen/verification',
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(
+          RequireRole,
+          { roles: ['CITIZEN'], fallbackPath: '/app' },
+          React.createElement(CitizenVerification),
+        ),
+      ),
+  },
 
   // Super Admin Console
   {
@@ -156,6 +171,7 @@ export const router = createBrowserRouter([
       { path: 'map', Component: MapView },
       { path: 'analytics', Component: Analytics },
       { path: 'reports', Component: Reports },
+      { path: 'verifications', Component: Verifications },
       { path: 'settings', Component: Settings },
     ],
   },

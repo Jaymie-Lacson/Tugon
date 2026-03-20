@@ -171,6 +171,11 @@ function mapPersistedReport(row: {
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
+  citizen?: {
+    isVerified: boolean;
+    isBanned: boolean;
+    verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null;
+  } | null;
   statusHistory: Array<{
     status: PrismaTicketStatus;
     label: string;
@@ -181,6 +186,14 @@ function mapPersistedReport(row: {
     createdAt: Date;
   }>;
 }): CitizenReportRecord {
+  const reporterVerificationStatus = row.citizen?.isBanned
+    ? "banned"
+    : row.citizen?.isVerified
+    ? "verified"
+    : row.citizen?.verificationStatus === "REJECTED"
+    ? "rejected"
+    : "pending";
+
   return {
     id: row.id,
     citizenUserId: row.citizenUserId,
@@ -206,6 +219,7 @@ function mapPersistedReport(row: {
     assignedOfficer: row.assignedOfficer,
     assignedUnit: row.assignedUnit,
     resolutionNote: row.resolutionNote,
+    reporterVerificationStatus,
     timeline: row.statusHistory.map((entry) => ({
       status: entry.label === "Report Created" ? "Created" : ticketStatusMap[entry.status],
       label: entry.label,
@@ -385,7 +399,14 @@ function anonymizeReportForSuperAdmin(report: CitizenReportRecord): CitizenRepor
 
 export const reportsService = {
   async create(
-    citizenUser: { id: string; fullName: string; barangayCode: string },
+    citizenUser: {
+      id: string;
+      fullName: string;
+      barangayCode: string;
+      isVerified?: boolean;
+      isBanned?: boolean;
+      verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+    },
     input: CreateCitizenReportInput,
   ) {
     const validated = validateCreateInput(input);
@@ -467,6 +488,13 @@ export const reportsService = {
       assignedOfficer: null,
       assignedUnit: null,
       resolutionNote: null,
+      reporterVerificationStatus: citizenUser.isBanned
+        ? "banned"
+        : citizenUser.isVerified
+        ? "verified"
+        : citizenUser.verificationStatus === "REJECTED"
+        ? "rejected"
+        : "pending",
       timeline: [
         {
           status: "Created",
@@ -611,9 +639,16 @@ export const reportsService = {
   },
 
   async listMine(citizenUserId: string): Promise<CitizenReportRecord[]> {
-    const persisted = await prisma.citizenReport.findMany({
+    const persisted = await (prisma.citizenReport as any).findMany({
       where: { citizenUserId },
       include: {
+        citizen: {
+          select: {
+            isVerified: true,
+            isBanned: true,
+            verificationStatus: true,
+          },
+        },
         statusHistory: {
           orderBy: { createdAt: "asc" },
         },
@@ -643,9 +678,16 @@ export const reportsService = {
     }
 
     const where = user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {};
-    const persisted = await prisma.citizenReport.findMany({
+    const persisted = await (prisma.citizenReport as any).findMany({
       where,
       include: {
+        citizen: {
+          select: {
+            isVerified: true,
+            isBanned: true,
+            verificationStatus: true,
+          },
+        },
         statusHistory: {
           orderBy: { createdAt: "asc" },
         },
@@ -661,9 +703,16 @@ export const reportsService = {
     user: { role: Role; barangayCode: string | null },
     reportId: string,
   ): Promise<CitizenReportRecord> {
-    const persisted = await prisma.citizenReport.findUnique({
+    const persisted = await (prisma.citizenReport as any).findUnique({
       where: { id: reportId },
       include: {
+        citizen: {
+          select: {
+            isVerified: true,
+            isBanned: true,
+            verificationStatus: true,
+          },
+        },
         statusHistory: {
           orderBy: { createdAt: "asc" },
         },

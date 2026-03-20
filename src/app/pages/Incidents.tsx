@@ -217,6 +217,7 @@ function IncidentDetailModal({
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
               { label: 'District', value: incident.district, icon: <Info size={13} /> },
               { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
+              { label: 'Reporter Verification', value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
               { label: 'Responders', value: `${incident.responders} unit(s) assigned`, icon: <Users size={13} /> },
               { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
               { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },

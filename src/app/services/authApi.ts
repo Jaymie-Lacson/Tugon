@@ -7,6 +7,11 @@ export interface SessionUser {
   role: Role;
   barangayCode?: string;
   isPhoneVerified: boolean;
+  isVerified: boolean;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null;
+  verificationRejectionReason: string | null;
+  idImageUrl: string | null;
+  isBanned: boolean;
 }
 
 export interface AuthSession {

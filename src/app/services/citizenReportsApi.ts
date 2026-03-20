@@ -45,6 +45,7 @@ export interface ApiCitizenReport {
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
+  reporterVerificationStatus: "verified" | "pending" | "rejected" | "banned";
   timeline: ApiTimelineEntry[];
 }
 

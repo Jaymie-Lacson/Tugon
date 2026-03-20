@@ -14,11 +14,22 @@ model User {
   passwordHash   String?
   role           Role
   isPhoneVerified Boolean @default(false)
+  isVerified     Boolean  @default(false) @map("is_verified")
+  idImageUrl     String?  @map("id_image_url")
+  verificationStatus VerificationStatus? @map("verification_status")
+  verificationRejectionReason String? @map("verification_rejection_reason")
+  verifiedByUserId String? @map("verified_by_user_id")
+  verifiedAt     DateTime? @map("verified_at")
+  isBanned       Boolean @default(false) @map("is_banned")
+  bannedAt       DateTime? @map("banned_at")
+  bannedReason   String? @map("banned_reason")
+  bannedByUserId String? @map("banned_by_user_id")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   citizenProfile CitizenProfile?
   officialProfile OfficialProfile?
+  reports        CitizenReport[]
 }
 
 model CitizenProfile {
@@ -83,9 +94,12 @@ model CitizenReport {
   assignedUnit   String?
   resolutionNote String?
 
+  citizen       User                  @relation(fields: [citizenUserId], references: [id], onDelete: Cascade)
   statusHistory TicketStatusHistory[]
   crossBorderAlerts CrossBorderAlert[]
   evidences IncidentEvidence[]
+
+  @@index([citizenUserId])
 }
 
 model IncidentEvidence {
@@ -170,4 +184,10 @@ enum ReportSeverity {
   medium
   high
   critical
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

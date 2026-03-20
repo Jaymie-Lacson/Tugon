@@ -24,6 +24,21 @@ export function clearAuthSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
+export function patchAuthSessionUser(patch: Partial<AuthSession["user"]>) {
+  const session = getAuthSession();
+  if (!session) {
+    return;
+  }
+
+  saveAuthSession({
+    ...session,
+    user: {
+      ...session.user,
+      ...patch,
+    },
+  });
+}
+
 export function hasRequiredRole(roles: Role[]) {
   const session = getAuthSession();
   if (!session) {

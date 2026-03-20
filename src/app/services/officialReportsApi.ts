@@ -86,6 +86,21 @@ export interface ApiHeatmapResponse {
   };
 }
 
+export interface ApiPendingVerification {
+  citizenUserId: string;
+  fullName: string;
+  phoneNumber: string;
+  idImageUrl: string | null;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionReason: string | null;
+  barangayCode: string | null;
+  barangayName: string | null;
+  submittedAt: string;
+  createdAt: string;
+}
+
+export type ApiVerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
+
 export const officialReportsApi = {
   getReports() {
     return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
@@ -144,6 +159,39 @@ export const officialReportsApi = {
     const query = search.toString();
     return authedRequest<ApiHeatmapResponse>(`/official/heatmap${query ? `?${query}` : ""}`, {
       method: "GET",
+    });
+  },
+
+  getPendingVerifications() {
+    return authedRequest<{ verifications: ApiPendingVerification[] }>("/official/verifications", {
+      method: "GET",
+    });
+  },
+
+  reviewVerification(
+    citizenUserId: string,
+    input: {
+      decision: ApiVerificationDecision;
+      reason?: string;
+      notes?: string;
+    },
+  ) {
+    return authedRequest<{
+      message: string;
+      verification: {
+        citizenUserId: string;
+        fullName: string;
+        isVerified: boolean;
+        verificationStatus: "APPROVED" | "REJECTED" | null;
+        rejectionReason: string | null;
+        verifiedAt: string | null;
+        isBanned: boolean;
+        bannedReason: string | null;
+        idImageUrl: string | null;
+      };
+    }>(`/official/verifications/${citizenUserId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
     });
   },
 };
