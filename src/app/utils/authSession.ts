@@ -13,7 +13,16 @@ export function getAuthSession(): AuthSession | null {
   }
 
   try {
-    return JSON.parse(raw) as AuthSession;
+    const parsed = JSON.parse(raw) as Partial<AuthSession>;
+    const token = typeof parsed?.token === "string" ? parsed.token.trim() : "";
+    const role = parsed?.user?.role;
+
+    if (!token || !parsed.user || (role !== "CITIZEN" && role !== "OFFICIAL" && role !== "SUPER_ADMIN")) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+
+    return parsed as AuthSession;
   } catch {
     localStorage.removeItem(SESSION_KEY);
     return null;
@@ -41,7 +50,7 @@ export function patchAuthSessionUser(patch: Partial<AuthSession["user"]>) {
 
 export function hasRequiredRole(roles: Role[]) {
   const session = getAuthSession();
-  if (!session) {
+  if (!session?.token) {
     return false;
   }
   return roles.includes(session.user.role);

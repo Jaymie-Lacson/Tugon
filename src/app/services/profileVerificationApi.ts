@@ -1,6 +1,9 @@
 import { getAuthSession } from "../utils/authSession";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api").replace(
+  /\/+$/,
+  "",
+);
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
@@ -19,6 +22,14 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Your session has expired. Please log in again.");
+    }
+
+    if (response.status === 404) {
+      throw new Error("Verification endpoint is not available on the current backend deployment.");
+    }
+
     const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
     throw new Error(message);
   }
@@ -53,10 +64,22 @@ export interface CitizenVerificationState {
 }
 
 export const profileVerificationApi = {
-  getMyStatus() {
-    return authedRequest<{ verification: CitizenVerificationState }>("/citizen/verification-status", {
-      method: "GET",
-    });
+  async getMyStatus() {
+    try {
+      return await authedRequest<{ verification: CitizenVerificationState }>("/citizen/verification-status", {
+        method: "GET",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Request failed.";
+      if (!/not available on the current backend deployment/i.test(message)) {
+        throw error;
+      }
+
+      // Compatibility fallback for deployments still exposing legacy route naming.
+      return authedRequest<{ verification: CitizenVerificationState }>("/citizen/verification", {
+        method: "GET",
+      });
+    }
   },
 
   async submitMyId(file: File) {

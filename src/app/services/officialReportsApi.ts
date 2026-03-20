@@ -2,7 +2,10 @@ import { getAuthSession } from "../utils/authSession";
 import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api").replace(
+  /\/+$/,
+  "",
+);
 
 function normalizeOfficialApiMessage(message: string): string {
   const session = getAuthSession();
