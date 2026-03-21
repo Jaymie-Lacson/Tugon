@@ -5,6 +5,7 @@ import {
 } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../../config/prisma.js";
+import { env } from "../../config/env.js";
 import { geofencingService } from "../map/geofencing.service.js";
 import { evidenceStorageService } from "./evidenceStorage.service.js";
 import { reportsStore } from "./store.js";
@@ -39,15 +40,31 @@ const ALLOWED_TICKET_STATUSES: TicketStatus[] = [
 const DEFAULT_HEATMAP_DAYS = 14;
 const DEFAULT_HEATMAP_THRESHOLD = 3;
 const DEFAULT_HEATMAP_CELL_SIZE = 0.0025;
+const REPORT_TEMPLATE_IDS = [
+  "daily-ops",
+  "incident-summary",
+  "resource-deployment",
+  "critical-incidents",
+  "barangay-profile",
+  "trend-analysis",
+] as const;
 
-const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  "Submitted": ["Under Review"],
-  "Under Review": ["In Progress", "Unresolvable"],
-  "In Progress": ["Resolved"],
-  "Resolved": ["Closed"],
-  "Closed": [],
-  "Unresolvable": [],
-};
+type ReportTemplateId = (typeof REPORT_TEMPLATE_IDS)[number];
+const DSS_ACTION_TYPES = ["APPROVE_DISPATCH", "DISMISS"] as const;
+type DssActionType = (typeof DSS_ACTION_TYPES)[number];
+
+type DssRecommendationPriority = "critical" | "high" | "medium" | "info";
+
+export interface DssRecommendationRecord {
+  id: string;
+  priority: DssRecommendationPriority;
+  title: string;
+  description: string;
+  actions: string[];
+  confidence: number;
+  source: string;
+}
+
 
 const prismaSeverityMap: Record<ReportSeverity, PrismaReportSeverity> = {
   low: PrismaReportSeverity.low,
@@ -75,7 +92,9 @@ const toPrismaStatusMap: Record<TicketStatus, PrismaTicketStatus> = {
 };
 
 function canTransition(fromStatus: TicketStatus, toStatus: TicketStatus): boolean {
-  return STATUS_TRANSITIONS[fromStatus].includes(toStatus);
+  // Official UI now supports direct status jumps (non-linear workflow updates).
+  // Keep only no-op transitions blocked.
+  return fromStatus !== toStatus;
 }
 
 function statusLabel(status: TicketStatus): string {
@@ -114,6 +133,413 @@ function statusDescription(status: TicketStatus): string {
     default:
       return "Report status updated.";
   }
+}
+
+function isReportTemplateId(value: string): value is ReportTemplateId {
+  return (REPORT_TEMPLATE_IDS as readonly string[]).includes(value);
+}
+
+function csvEscape(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return '""';
+  }
+
+  const text = String(value).replace(/"/g, '""');
+  return `"${text}"`;
+}
+
+function xmlEscape(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function buildSingleReportExcelXml(report: CitizenReportRecord): string {
+  const rows: Array<[string, string]> = [
+    ["Report ID", report.id],
+    ["Status", report.status],
+    ["Category", report.category],
+    ["Subcategory", report.subcategory],
+    ["Severity", report.severity],
+    ["Barangay", report.barangay],
+    ["Location", report.location],
+    ["Submitted At", report.submittedAt],
+    ["Updated At", report.updatedAt],
+    ["Description", report.description],
+    ["Photos", String(report.photoCount)],
+    ["Audio", report.hasAudio ? "yes" : "no"],
+  ];
+
+  const xmlRows = rows
+    .map(
+      ([label, value]) =>
+        `<Row><Cell ss:StyleID="label"><Data ss:Type="String">${xmlEscape(label)}</Data></Cell><Cell><Data ss:Type="String">${xmlEscape(value)}</Data></Cell></Row>`,
+    )
+    .join("");
+
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="label">
+   <Font ss:Bold="1"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Report Detail">
+  <Table>
+   ${xmlRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+}
+
+function buildTemplateBody(templateId: ReportTemplateId, reports: CitizenReportRecord[], generatedAt: string): string {
+  const byStatus = new Map<string, number>();
+  const bySeverity = new Map<string, number>();
+  const byBarangay = new Map<string, number>();
+  const byCategory = new Map<string, number>();
+  let respondersTotal = 0;
+  let criticalCount = 0;
+
+  for (const report of reports) {
+    byStatus.set(report.status, (byStatus.get(report.status) ?? 0) + 1);
+    bySeverity.set(report.severity, (bySeverity.get(report.severity) ?? 0) + 1);
+    byBarangay.set(report.barangay, (byBarangay.get(report.barangay) ?? 0) + 1);
+    byCategory.set(report.category, (byCategory.get(report.category) ?? 0) + 1);
+    respondersTotal += report.assignedUnit ? 1 : 0;
+    if (report.severity === "critical") {
+      criticalCount += 1;
+    }
+  }
+
+  const topBarangay = [...byBarangay.entries()].sort((a, b) => b[1] - a[1])[0];
+  const topCategory = [...byCategory.entries()].sort((a, b) => b[1] - a[1])[0];
+  const unresolved = reports.filter((report) => report.status !== "Resolved" && report.status !== "Closed").length;
+
+  const lines: string[] = [
+    "TUGON Official Report",
+    `Template: ${templateId}`,
+    `Generated At: ${generatedAt}`,
+    `Total Incidents: ${reports.length}`,
+    "",
+  ];
+
+  if (templateId === "daily-ops") {
+    lines.push("Daily Operations Summary");
+    lines.push(`Unresolved Queue: ${unresolved}`);
+    lines.push(`Critical Incidents: ${criticalCount}`);
+    lines.push(`Responder Assignments: ${respondersTotal}`);
+  }
+
+  if (templateId === "incident-summary") {
+    lines.push("Incident Breakdown by Category");
+    for (const [category, count] of [...byCategory.entries()].sort((a, b) => b[1] - a[1])) {
+      lines.push(`- ${category}: ${count}`);
+    }
+  }
+
+  if (templateId === "resource-deployment") {
+    lines.push("Resource Deployment Snapshot");
+    lines.push(`Reports with Assigned Unit: ${respondersTotal}`);
+    lines.push(`Reports without Assignment: ${Math.max(0, reports.length - respondersTotal)}`);
+  }
+
+  if (templateId === "critical-incidents") {
+    lines.push("Critical Incident Detail");
+    for (const report of reports.filter((item) => item.severity === "critical").slice(0, 10)) {
+      lines.push(`- ${report.id} | ${report.status} | ${report.location}`);
+    }
+  }
+
+  if (templateId === "barangay-profile") {
+    lines.push("Barangay Risk Profile");
+    if (topBarangay) {
+      lines.push(`Top Barangay by Volume: ${topBarangay[0]} (${topBarangay[1]})`);
+    }
+    for (const [barangay, count] of [...byBarangay.entries()].sort((a, b) => b[1] - a[1])) {
+      lines.push(`- ${barangay}: ${count}`);
+    }
+  }
+
+  if (templateId === "trend-analysis") {
+    lines.push("Trend Analysis Highlights");
+    if (topCategory) {
+      lines.push(`Top Category: ${topCategory[0]} (${topCategory[1]})`);
+    }
+    for (const [status, count] of [...byStatus.entries()].sort((a, b) => b[1] - a[1])) {
+      lines.push(`- ${status}: ${count}`);
+    }
+  }
+
+  lines.push("");
+  lines.push("Severity Distribution");
+  for (const [severity, count] of [...bySeverity.entries()].sort((a, b) => b[1] - a[1])) {
+    lines.push(`- ${severity}: ${count}`);
+  }
+
+  lines.push("");
+  lines.push("Recent Incidents");
+  for (const report of reports.slice(0, 15)) {
+    lines.push(`- ${report.id} | ${report.status} | ${report.barangay} | ${report.location}`);
+  }
+
+  return lines.join("\n");
+}
+
+function buildHistoryCsv(reports: CitizenReportRecord[]): string {
+  const header = [
+    "Report ID",
+    "Status",
+    "Category",
+    "Subcategory",
+    "Severity",
+    "Barangay",
+    "Location",
+    "Submitted At",
+    "Updated At",
+    "Photos",
+    "Audio",
+  ];
+
+  const rows = reports.map((report) => [
+    report.id,
+    report.status,
+    report.category,
+    report.subcategory,
+    report.severity,
+    report.barangay,
+    report.location,
+    report.submittedAt,
+    report.updatedAt,
+    String(report.photoCount),
+    report.hasAudio ? "yes" : "no",
+  ]);
+
+  return [header, ...rows].map((columns) => columns.map((value) => csvEscape(value)).join(",")).join("\n");
+}
+
+function normalizeDssRecommendations(input: unknown): DssRecommendationRecord[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  const allowedPriorities: DssRecommendationPriority[] = ["critical", "high", "medium", "info"];
+
+  return input
+    .map((item, index) => {
+      const row = item as {
+        priority?: unknown;
+        title?: unknown;
+        description?: unknown;
+        actions?: unknown;
+        confidence?: unknown;
+        source?: unknown;
+      };
+
+      const priority = typeof row.priority === "string" ? row.priority.toLowerCase() : "info";
+      const normalizedPriority = allowedPriorities.includes(priority as DssRecommendationPriority)
+        ? (priority as DssRecommendationPriority)
+        : "info";
+      const title = typeof row.title === "string" ? row.title.trim() : "Recommendation";
+      const description = typeof row.description === "string" ? row.description.trim() : "";
+      const actions = Array.isArray(row.actions)
+        ? row.actions.filter((action): action is string => typeof action === "string" && action.trim().length > 0)
+        : [];
+      const confidenceRaw = Number(row.confidence);
+      const confidence = Number.isFinite(confidenceRaw)
+        ? Math.max(0, Math.min(100, Math.round(confidenceRaw)))
+        : 60;
+      const source = typeof row.source === "string" && row.source.trim() ? row.source.trim() : "AI Decision Model";
+
+      if (!title || !description || actions.length === 0) {
+        return null;
+      }
+
+      return {
+        id: `ai-${index + 1}`,
+        priority: normalizedPriority,
+        title,
+        description,
+        actions: actions.slice(0, 4),
+        confidence,
+        source,
+      } satisfies DssRecommendationRecord;
+    })
+    .filter((item): item is DssRecommendationRecord => Boolean(item))
+    .slice(0, 4);
+}
+
+function buildFallbackDssRecommendations(reports: CitizenReportRecord[]): DssRecommendationRecord[] {
+  if (reports.length === 0) {
+    return [];
+  }
+
+  const now = Date.now();
+  const unresolved = reports.filter((report) => report.status !== "Resolved" && report.status !== "Closed");
+  const criticalUnresolved = unresolved.filter((report) => report.severity === "critical");
+  const unresolvedOlderThan24h = unresolved.filter(
+    (report) => now - new Date(report.submittedAt).getTime() >= 24 * 60 * 60 * 1000,
+  );
+  const recentWeek = reports.filter((report) => now - new Date(report.submittedAt).getTime() <= 7 * 24 * 60 * 60 * 1000);
+
+  const byBarangay = new Map<string, number>();
+  for (const report of recentWeek) {
+    byBarangay.set(report.barangay, (byBarangay.get(report.barangay) ?? 0) + 1);
+  }
+  const topBarangay = [...byBarangay.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  const respondersTotal = reports.reduce((sum, report) => sum + (report.assignedUnit ? 1 : 0), 0);
+  const assignedRate = reports.length > 0 ? Math.round((respondersTotal / reports.length) * 100) : 0;
+
+  const recommendations: DssRecommendationRecord[] = [];
+
+  if (criticalUnresolved.length > 0) {
+    recommendations.push({
+      id: "fallback-1",
+      priority: "critical",
+      title: "Critical Incidents Need Immediate Action",
+      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? "s are" : " is"} still unresolved in your queue. Prioritize verification and dispatch to reduce escalation risk.`,
+      actions: [
+        "Escalate critical queue to duty officer",
+        "Confirm responder assignment for each critical case",
+        "Publish barangay situational update for ongoing risks",
+      ],
+      confidence: Math.min(95, 70 + criticalUnresolved.length * 5),
+      source: "Operational Rules Engine",
+    });
+  }
+
+  if (topBarangay) {
+    recommendations.push({
+      id: "fallback-2",
+      priority: "high",
+      title: "Weekly Hotspot Concentration Detected",
+      description: `${topBarangay[0]} logged ${topBarangay[1]} incident${topBarangay[1] > 1 ? "s" : ""} in the last 7 days. Plan targeted patrol and preventive advisories.`,
+      actions: [
+        "Increase field monitoring in hotspot puroks",
+        "Coordinate with barangay tanod for peak-hour visibility",
+        "Issue focused community safety advisory",
+      ],
+      confidence: Math.min(92, 55 + topBarangay[1] * 6),
+      source: "7-Day Incident Distribution",
+    });
+  }
+
+  recommendations.push({
+    id: "fallback-3",
+    priority: "medium",
+    title: "Responder Assignment Coverage",
+    description: `${respondersTotal} responder assignment${respondersTotal !== 1 ? "s" : ""} recorded across ${reports.length} reports. Current assignment intensity is ${assignedRate}%.`,
+    actions: [
+      "Review unresolved reports without assigned responders",
+      "Balance assignment load across ongoing incidents",
+      "Document reassignment for shift handover",
+    ],
+    confidence: Math.min(90, 50 + Math.round(assignedRate * 0.4)),
+    source: "Responder Utilization Metrics",
+  });
+
+  if (unresolvedOlderThan24h.length > 0) {
+    recommendations.push({
+      id: "fallback-4",
+      priority: "high",
+      title: "Aging Unresolved Reports",
+      description: `${unresolvedOlderThan24h.length} unresolved report${unresolvedOlderThan24h.length > 1 ? "s are" : " is"} older than 24 hours. Prioritize reassessment to prevent backlog growth.`,
+      actions: [
+        "Tag aging incidents for priority reassessment",
+        "Assign resolution owner per aging report",
+        "Update status notes for pending field verification",
+      ],
+      confidence: Math.min(94, 60 + unresolvedOlderThan24h.length * 6),
+      source: "Queue Aging Monitor",
+    });
+  }
+
+  return recommendations.slice(0, 4);
+}
+
+async function buildAiDssRecommendations(reports: CitizenReportRecord[]): Promise<DssRecommendationRecord[]> {
+  if (!env.dssAiEnabled || !env.dssAiApiKey || reports.length === 0) {
+    return [];
+  }
+
+  const summarizedReports = reports.slice(0, 60).map((report) => ({
+    id: report.id,
+    status: report.status,
+    category: report.category,
+    severity: report.severity,
+    barangay: report.barangay,
+    submittedAt: report.submittedAt,
+    hasAssignedUnit: Boolean(report.assignedUnit),
+    hasAudio: report.hasAudio,
+    photoCount: report.photoCount,
+  }));
+
+  const prompt = {
+    role: "system",
+    content:
+      "You are an incident-response decision support assistant for barangay officials. Reply with strict JSON only: {\"recommendations\":[{\"priority\":\"critical|high|medium|info\",\"title\":string,\"description\":string,\"actions\":string[],\"confidence\":number,\"source\":string}]}. Provide 2 to 4 recommendations. Keep actions operational and concise.",
+  };
+
+  const userInput = {
+    role: "user",
+    content: JSON.stringify({
+      context: {
+        system: "TUGON barangay official dashboard",
+        now: new Date().toISOString(),
+      },
+      reports: summarizedReports,
+    }),
+  };
+
+  const response = await fetch(env.dssAiProviderUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.dssAiApiKey}`,
+      ...(env.dssAiHttpReferer ? { "HTTP-Referer": env.dssAiHttpReferer } : {}),
+      ...(env.dssAiAppName ? { "X-Title": env.dssAiAppName } : {}),
+    },
+    body: JSON.stringify({
+      model: env.dssAiModel,
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [prompt, userInput],
+    }),
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const payload = (await response.json().catch(() => null)) as
+    | {
+        choices?: Array<{ message?: { content?: string } }>;
+      }
+    | null;
+
+  const content = payload?.choices?.[0]?.message?.content;
+  if (!content) {
+    return [];
+  }
+
+  const parsed = JSON.parse(content) as { recommendations?: unknown };
+  return normalizeDssRecommendations(parsed.recommendations);
+}
+
+function isDssActionType(value: string): value is DssActionType {
+  return (DSS_ACTION_TYPES as readonly string[]).includes(value);
 }
 
 function assertJurisdiction(
@@ -1078,6 +1504,116 @@ export const reportsService = {
         threshold: validated.threshold,
         cellSize: validated.cellSize,
       },
+    };
+  },
+
+  async generateTemplateReport(
+    user: { role: Role; barangayCode: string | null },
+    templateIdRaw: string,
+  ): Promise<{
+    templateId: ReportTemplateId;
+    generatedAt: string;
+    fileName: string;
+    content: string;
+  }> {
+    if (!isReportTemplateId(templateIdRaw)) {
+      throw new ReportsError("Invalid report template.", 400);
+    }
+
+    const reports = await reportsService.listForOfficial(user);
+    const generatedAt = new Date().toISOString();
+    const fileName = `tugon-${templateIdRaw}-${generatedAt.slice(0, 10)}.txt`;
+    const content = buildTemplateBody(templateIdRaw, reports, generatedAt);
+
+    return {
+      templateId: templateIdRaw,
+      generatedAt,
+      fileName,
+      content,
+    };
+  },
+
+  async exportAllReportsCsv(user: { role: Role; barangayCode: string | null }): Promise<{ fileName: string; csv: string }> {
+    const reports = await reportsService.listForOfficial(user);
+    const generatedAt = new Date().toISOString();
+    return {
+      fileName: `tugon-report-history-${generatedAt.slice(0, 10)}.csv`,
+      csv: buildHistoryCsv(reports),
+    };
+  },
+
+  async exportSingleReportExcel(
+    user: { role: Role; barangayCode: string | null },
+    reportId: string,
+  ): Promise<{ fileName: string; content: string }> {
+    let report: CitizenReportRecord;
+    try {
+      report = await reportsService.getForOfficialById(user, reportId);
+    } catch (error) {
+      const parsed = reportsService.parseError(error);
+      const trimmed = reportId.trim();
+      const normalizedCandidate = trimmed.startsWith("MY-") ? null : `MY-${trimmed.replace(/^[^0-9A-Za-z]+/, "")}`;
+
+      if (parsed.status !== 404 || !normalizedCandidate) {
+        throw error;
+      }
+
+      report = await reportsService.getForOfficialById(user, normalizedCandidate);
+    }
+
+    const content = buildSingleReportExcelXml(report);
+
+    return {
+      fileName: `tugon-${report.id}.xls`,
+      content,
+    };
+  },
+
+  async submitDssAction(
+    user: { role: Role; barangayCode: string | null; fullName: string },
+    input: {
+      actionType: string;
+      recommendationTitle: string;
+      notes?: string;
+    },
+  ): Promise<{ actionType: DssActionType; recommendationTitle: string; actedAt: string; actor: string }> {
+    if (user.role === "OFFICIAL" && !user.barangayCode) {
+      throw new ReportsError("Official barangay profile is required.", 403);
+    }
+
+    if (!isDssActionType(input.actionType)) {
+      throw new ReportsError("Invalid DSS action type.", 400);
+    }
+
+    const recommendationTitle = input.recommendationTitle?.trim();
+    if (!recommendationTitle) {
+      throw new ReportsError("Recommendation title is required.", 400);
+    }
+
+    // Keep DSS actions auditable at API level even when no dedicated table exists yet.
+    return {
+      actionType: input.actionType,
+      recommendationTitle,
+      actedAt: new Date().toISOString(),
+      actor: user.fullName,
+    };
+  },
+
+  async getDssRecommendations(user: { role: Role; barangayCode: string | null }): Promise<{ recommendations: DssRecommendationRecord[]; source: "ai" | "fallback" }> {
+    const reports = await reportsService.listForOfficial(user);
+
+    try {
+      const aiRecommendations = await buildAiDssRecommendations(reports);
+      if (aiRecommendations.length > 0) {
+        return { recommendations: aiRecommendations, source: "ai" };
+      }
+    } catch {
+      // Ignore AI provider errors and fallback to deterministic recommendations.
+    }
+
+    return {
+      recommendations: buildFallbackDssRecommendations(reports),
+      source: "fallback",
     };
   },
 

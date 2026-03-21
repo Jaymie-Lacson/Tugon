@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Layers, Filter, Search, X, Users,
+  Layers, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   Navigation2, ArrowLeft,
 } from 'lucide-react';
@@ -61,7 +61,6 @@ export default function MapView() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<IncidentType | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
-  const [showFilters, setShowFilters] = useState(false);
   const [panelOpen, setPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
 
   useEffect(() => {
@@ -147,24 +146,6 @@ export default function MapView() {
         <div className="map-panel-header">
           <div className="map-panel-header-row">
             <span className="map-panel-title">Open Incidents</span>
-            <div className="map-panel-actions">
-              <button
-                onClick={() => setShowFilters(v => !v)}
-                className={`map-filter-button${showFilters ? ' is-active' : ''}`}
-              >
-                <Filter size={12} color={showFilters ? '#1E3A8A' : '#94A3B8'} />
-                <span className="map-filter-button-text">Filter</span>
-              </button>
-              <button
-                onClick={() => setPanelOpen(false)}
-                className="map-panel-close-btn"
-                title="Hide panel"
-                aria-label="Hide panel"
-              >
-                <X size={12} color="#64748B" />
-                <span className="map-panel-close-text">Hide Panel</span>
-              </button>
-            </div>
           </div>
 
           <div className="map-search-wrap">
@@ -178,32 +159,30 @@ export default function MapView() {
             />
           </div>
 
-          {showFilters && (
-            <div className="map-filter-row">
-              <select
-                className="map-filter-select"
-                value={filterType}
-                onChange={e => setFilterType(e.target.value as IncidentType | '')}
-                title="Filter incidents by type"
-                aria-label="Filter incidents by type"
-              >
-                <option value="">All Types</option>
-                {Object.entries(incidentTypeConfig).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-              <select
-                className="map-filter-select"
-                value={filterStatus}
-                onChange={e => setFilterStatus(e.target.value as IncidentStatus | '')}
-                title="Filter incidents by status"
-                aria-label="Filter incidents by status"
-              >
-                <option value="">All Status</option>
-                {Object.entries(statusConfig)
-                  .filter(([k]) => k !== 'resolved')
-                  .map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-            </div>
-          )}
+          <div className="map-filter-row">
+            <select
+              className="map-filter-select"
+              value={filterType}
+              onChange={e => setFilterType(e.target.value as IncidentType | '')}
+              title="Filter incidents by type"
+              aria-label="Filter incidents by type"
+            >
+              <option value="">All Types</option>
+              {Object.entries(incidentTypeConfig).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+            <select
+              className="map-filter-select"
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value as IncidentStatus | '')}
+              title="Filter incidents by status"
+              aria-label="Filter incidents by status"
+            >
+              <option value="">All Status</option>
+              {Object.entries(statusConfig)
+                .filter(([k]) => k !== 'resolved')
+                .map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+          </div>
         </div>
 
         <div className="map-stats-bar">
@@ -290,7 +269,7 @@ export default function MapView() {
             selectedId={selectedIncident?.id ?? null}
             onSelectIncident={inc => setSelectedIncident(inc)}
             compact={false}
-            zoom={15}
+            zoom={18}
           />
         </div>
 

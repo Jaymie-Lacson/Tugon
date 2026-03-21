@@ -46,4 +46,10 @@ export const env = {
     process.env.SUPABASE_STORAGE_BUCKET ||
     "resident-ids",
   requireEvidenceStorageUpload: process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD === "1",
+  dssAiEnabled: process.env.DSS_AI_ENABLED === "1",
+  dssAiProviderUrl: (process.env.DSS_AI_PROVIDER_URL || "https://openrouter.ai/api/v1/chat/completions").trim(),
+  dssAiApiKey: (process.env.DSS_AI_API_KEY || "").trim(),
+  dssAiModel: (process.env.DSS_AI_MODEL || "meta-llama/llama-3.1-8b-instruct:free").trim(),
+  dssAiHttpReferer: (process.env.DSS_AI_HTTP_REFERER || "").trim(),
+  dssAiAppName: (process.env.DSS_AI_APP_NAME || "TUGON DSS").trim(),
 };

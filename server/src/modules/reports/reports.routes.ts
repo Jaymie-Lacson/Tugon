@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { prisma } from "../../config/prisma.js";
 import { reportsService } from "./reports.service.js";
 
@@ -247,6 +247,275 @@ officialReportsRouter.patch("/reports/:reportId/status", async (req, res) => {
     );
 
     return res.status(200).json({ message: "Report status updated.", report });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.post("/reports/templates/:templateId/generate", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const generated = await reportsService.generateTemplateReport(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      req.params.templateId,
+    );
+
+    return res.status(200).json({
+      message: "Report template generated.",
+      templateId: generated.templateId,
+      generatedAt: generated.generatedAt,
+      fileName: generated.fileName,
+      preview: generated.content.split("\n").slice(0, 6),
+    });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.get("/reports/templates/:templateId/export", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const generated = await reportsService.generateTemplateReport(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      req.params.templateId,
+    );
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${generated.fileName}"`);
+    return res.status(200).send(generated.content);
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+async function handleExportAllReports(req: Request, res: Response) {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const exported = await reportsService.exportAllReportsCsv({
+      role: user.role,
+      barangayCode: user.officialProfile?.barangay?.code ?? null,
+    });
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${exported.fileName}"`);
+    return res.status(200).send(exported.csv);
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+}
+
+officialReportsRouter.get("/reports/history/export", handleExportAllReports);
+
+// Backward-compatible alias.
+officialReportsRouter.get("/reports/export-all", handleExportAllReports);
+
+officialReportsRouter.get("/reports/:reportId/export", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const exported = await reportsService.exportSingleReportExcel(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      req.params.reportId,
+    );
+
+    res.setHeader("Content-Type", "application/vnd.ms-excel; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${exported.fileName}"`);
+    return res.status(200).send(exported.content);
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.post("/reports/dss/actions", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        fullName: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const action = await reportsService.submitDssAction(
+      {
+        role: user.role,
+        fullName: user.fullName,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      {
+        actionType: req.body?.actionType,
+        recommendationTitle: req.body?.recommendationTitle,
+        notes: req.body?.notes,
+      },
+    );
+
+    return res.status(200).json({ message: "DSS action submitted.", action });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.get("/reports/dss/recommendations", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const result = await reportsService.getDssRecommendations({
+      role: user.role,
+      barangayCode: user.officialProfile?.barangay?.code ?? null,
+    });
+
+    return res.status(200).json(result);
   } catch (error) {
     const parsed = reportsService.parseError(error);
     return res.status(parsed.status).json({ message: parsed.message });

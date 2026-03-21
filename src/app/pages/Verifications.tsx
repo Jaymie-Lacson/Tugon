@@ -14,6 +14,14 @@ const REJECTION_REASONS = [
   'Suspected fraudulent upload',
 ] as const;
 
+function isPreviewableImageUrl(value: string | null | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return value.startsWith('data:image/') || /^https?:\/\//i.test(value);
+}
+
 export default function Verifications() {
   const [rows, setRows] = useState<ApiPendingVerification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +29,23 @@ export default function Verifications() {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [reasonByUser, setReasonByUser] = useState<Record<string, string>>({});
   const [notesByUser, setNotesByUser] = useState<Record<string, string>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string>('Resident ID Preview');
+
+  useEffect(() => {
+    if (!previewUrl) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewUrl(null);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [previewUrl]);
 
   const load = async () => {
     setLoading(true);
@@ -130,27 +155,57 @@ export default function Verifications() {
 
                 <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
                   {row.idImageUrl ? (
-                    <a
-                      href={row.idImageUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        width: 'fit-content',
-                        textDecoration: 'none',
-                        color: '#1E3A8A',
-                        background: '#EFF6FF',
-                        border: '1px solid #BFDBFE',
-                        borderRadius: 8,
-                        padding: '6px 10px',
-                        fontSize: 12,
-                        fontWeight: 700,
-                      }}
-                    >
-                      <Upload size={13} /> View uploaded ID
-                    </a>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isPreviewableImageUrl(row.idImageUrl)) {
+                            setError('Uploaded ID preview is not directly viewable yet. Please refresh after storage URL normalization.');
+                            return;
+                          }
+
+                          setPreviewTitle(`Resident ID - ${row.fullName}`);
+                          setPreviewUrl(row.idImageUrl);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          width: 'fit-content',
+                          color: '#1E3A8A',
+                          background: '#EFF6FF',
+                          border: '1px solid #BFDBFE',
+                          borderRadius: 8,
+                          padding: '6px 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Upload size={13} /> Preview uploaded ID
+                      </button>
+                      <a
+                        href={row.idImageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          width: 'fit-content',
+                          textDecoration: 'none',
+                          color: '#334155',
+                          background: '#FFFFFF',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: 8,
+                          padding: '6px 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
                   ) : (
                     <div style={{ fontSize: 12, color: '#B45309', fontWeight: 700 }}>No ID image currently attached.</div>
                   )}
@@ -158,6 +213,7 @@ export default function Verifications() {
                   <div style={{ display: 'grid', gap: 8 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Reason (required for reject/re-upload/ban)</label>
                     <select
+                      aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       style={{
@@ -286,6 +342,139 @@ export default function Verifications() {
           })}
         </div>
       )}
+
+      {previewUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={previewTitle}
+          onClick={() => setPreviewUrl(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.74)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              width: 'min(980px, 100%)',
+              maxHeight: '92vh',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              borderRadius: 12,
+              boxShadow: '0 20px 50px rgba(15,23,42,0.35)',
+              overflow: 'hidden',
+              display: 'grid',
+              gridTemplateRows: 'auto 1fr',
+            }}
+          >
+            <div
+              style={{
+                padding: '10px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid #E2E8F0',
+                background: '#F8FAFC',
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{previewTitle}</div>
+              <button
+                type="button"
+                onClick={() => setPreviewUrl(null)}
+                style={{
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  borderRadius: 8,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#334155',
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ padding: 12, overflow: 'auto', background: '#0B1220' }}>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ color: '#E2E8F0', fontSize: 11, fontWeight: 700 }}>
+                  Separated preview for review: top section is treated as Front ID, bottom section as Back ID.
+                </div>
+
+                <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+                  <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
+                    <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
+                      Front ID
+                    </div>
+                    <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#FFFFFF' }}>
+                      <img
+                        src={previewUrl}
+                        alt={`${previewTitle} - Front`}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '200%',
+                          objectFit: 'cover',
+                          objectPosition: 'top center',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
+                    <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
+                      Back ID
+                    </div>
+                    <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#FFFFFF' }}>
+                      <img
+                        src={previewUrl}
+                        alt={`${previewTitle} - Back`}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '200%',
+                          objectFit: 'cover',
+                          objectPosition: 'bottom center',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
+                  <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
+                    Full uploaded file
+                  </div>
+                  <div style={{ padding: 10 }}>
+                    <img
+                      src={previewUrl}
+                      alt={previewTitle}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        maxHeight: '40vh',
+                        objectFit: 'contain',
+                        borderRadius: 8,
+                        background: '#FFFFFF',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

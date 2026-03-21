@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../services/officialReportsApi';
+import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
 
@@ -75,11 +76,40 @@ const REPORT_TEMPLATES = [
 ];
 
 interface RecentReportItem {
+  reportId: string;
   name: string;
   type: string;
   time: string;
   by: string;
   size: string;
+}
+
+function downloadFile(fileName: string, content: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function printTextContent(title: string, content: string) {
+  const escaped = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const popup = window.open('', '_blank', 'width=860,height=640');
+  if (!popup) {
+    throw new Error('Popup blocked. Allow popups to print this report.');
+  }
+
+  popup.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Roboto,sans-serif;padding:16px;color:#0f172a}pre{white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px}</style></head><body><h2>${title}</h2><pre>${escaped}</pre></body></html>`);
+  popup.document.close();
+  popup.focus();
+  popup.print();
 }
 
 function incidentTypeToReportCategory(type: string): string {
@@ -230,6 +260,24 @@ function buildRecommendations(incidents: Incident[]): DSSRecommendation[] {
   });
 }
 
+function mapApiRecommendationsToUi(recommendations: ApiDssRecommendation[]): DSSRecommendation[] {
+  return recommendations.slice(0, 4).map((recommendation, index) => {
+    const style = getRecommendationStyle(recommendation.priority);
+    return {
+      id: index + 1,
+      priority: recommendation.priority,
+      icon: style.icon,
+      color: style.color,
+      bg: style.bg,
+      title: recommendation.title,
+      description: recommendation.description,
+      actions: recommendation.actions,
+      confidence: recommendation.confidence,
+      source: recommendation.source,
+    };
+  });
+}
+
 const priorityStyle = {
   critical: { color: '#B91C1C', bg: '#FEE2E2', label: 'CRITICAL' },
   high: { color: '#C2410C', bg: '#FFEDD5', label: 'HIGH PRIORITY' },
@@ -237,7 +285,17 @@ const priorityStyle = {
   info: { color: '#065F46', bg: '#D1FAE5', label: 'INSIGHT' },
 };
 
-function DSSCard({ rec }: { rec: DSSRecommendation }) {
+function DSSCard({
+  rec,
+  onApprove,
+  onDismiss,
+  busy,
+}: {
+  rec: DSSRecommendation;
+  onApprove: (rec: DSSRecommendation) => void;
+  onDismiss: (rec: DSSRecommendation) => void;
+  busy: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const pStyle = priorityStyle[rec.priority as keyof typeof priorityStyle];
 
@@ -302,11 +360,19 @@ function DSSCard({ rec }: { rec: DSSRecommendation }) {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <button style={{ flex: 1, background: rec.color, color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-              Approve & Dispatch
+            <button
+              onClick={() => onApprove(rec)}
+              disabled={busy}
+              style={{ flex: 1, background: rec.color, color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
+            >
+              {busy ? 'Submitting...' : 'Approve & Dispatch'}
             </button>
-            <button style={{ background: 'white', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-              Dismiss
+            <button
+              onClick={() => onDismiss(rec)}
+              disabled={busy}
+              style={{ background: 'white', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
+            >
+              {busy ? 'Submitting...' : 'Dismiss'}
             </button>
           </div>
         </div>
@@ -321,7 +387,17 @@ export default function Reports() {
   const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportsError, setReportsError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<number[]>([]);
+  const [approvedRecommendationIds, setApprovedRecommendationIds] = useState<number[]>([]);
+  const [dssActionSubmittingId, setDssActionSubmittingId] = useState<number | null>(null);
+  const [dssRefreshing, setDssRefreshing] = useState(false);
+  const [dssLastRefreshedAt, setDssLastRefreshedAt] = useState<string | null>(null);
+  const [reportsSignature, setReportsSignature] = useState('');
   const [incidentData, setIncidentData] = useState<Incident[]>([]);
+  const [dssRecommendations, setDssRecommendations] = useState<DSSRecommendation[]>([]);
+  const [dssRecommendationSource, setDssRecommendationSource] = useState<'ai' | 'fallback'>('fallback');
   const [initialLoadPending, setInitialLoadPending] = useState(true);
 
   useEffect(() => {
@@ -329,12 +405,29 @@ export default function Reports() {
       setReportsLoading(true);
       setReportsError(null);
       try {
-        const payload = await officialReportsApi.getReports();
+        const [payload, dssPayload] = await Promise.all([
+          officialReportsApi.getReports(),
+          officialReportsApi.getDssRecommendations().catch(() => null),
+        ]);
         const mapped = payload.reports.map((report) => reportToIncident(report));
+        const signature = payload.reports
+          .map((report) => `${report.id}:${report.status}:${report.updatedAt}`)
+          .sort()
+          .join('|');
         setIncidentData(mapped);
+        if (dssPayload?.recommendations?.length) {
+          setDssRecommendations(mapApiRecommendationsToUi(dssPayload.recommendations));
+          setDssRecommendationSource(dssPayload.source);
+        } else {
+          setDssRecommendations(buildRecommendations(mapped));
+          setDssRecommendationSource('fallback');
+        }
+        setReportsSignature(signature);
+        setDssLastRefreshedAt(new Date().toISOString());
         const historyRows = payload.reports.slice(0, 8).map((report) => {
           const incident = reportToIncident(report);
           return {
+            reportId: incident.id,
             name: `${incident.id} — ${incident.location}`,
             type: incidentTypeToReportCategory(incident.type),
             time: new Date(incident.reportedAt).toLocaleString('en-PH', {
@@ -354,6 +447,7 @@ export default function Reports() {
         const message = loadError instanceof Error ? loadError.message : 'Failed to load report history.';
         setReportsError(message);
         setIncidentData([]);
+        setDssRecommendations([]);
       } finally {
         setReportsLoading(false);
       }
@@ -372,13 +466,192 @@ export default function Reports() {
     }
   }, [initialLoadPending, reportsLoading]);
 
-  const handleGenerate = (id: string) => {
-    setGenerating(id);
-    setTimeout(() => setGenerating(null), 2500);
+  const reloadReports = async (source: 'dss' | 'general' = 'general') => {
+    if (source === 'dss') {
+      setDssRefreshing(true);
+      setActionError(null);
+      setActionSuccess(null);
+    }
+
+    setReportsLoading(true);
+    setReportsError(null);
+    try {
+      const [payload, dssPayload] = await Promise.all([
+        officialReportsApi.getReports(),
+        officialReportsApi.getDssRecommendations().catch(() => null),
+      ]);
+      const mapped = payload.reports.map((report) => reportToIncident(report));
+      const nextSignature = payload.reports
+        .map((report) => `${report.id}:${report.status}:${report.updatedAt}`)
+        .sort()
+        .join('|');
+      const changed = nextSignature !== reportsSignature;
+
+      setIncidentData(mapped);
+      if (dssPayload?.recommendations?.length) {
+        setDssRecommendations(mapApiRecommendationsToUi(dssPayload.recommendations));
+        setDssRecommendationSource(dssPayload.source);
+      } else {
+        setDssRecommendations(buildRecommendations(mapped));
+        setDssRecommendationSource('fallback');
+      }
+      setReportsSignature(nextSignature);
+      setDssLastRefreshedAt(new Date().toISOString());
+      setDismissedRecommendationIds([]);
+      setApprovedRecommendationIds([]);
+      const historyRows = payload.reports.slice(0, 8).map((report) => {
+        const incident = reportToIncident(report);
+        return {
+          reportId: incident.id,
+          name: `${incident.id} — ${incident.location}`,
+          type: incidentTypeToReportCategory(incident.type),
+          time: new Date(incident.reportedAt).toLocaleString('en-PH', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          }),
+          by: incident.reportedBy,
+          size: formatEvidenceSummary(report.photoCount, report.hasAudio),
+        };
+      });
+      setRecentReports(historyRows);
+
+      if (source === 'dss') {
+        setActionSuccess(
+          changed
+            ? 'Decision support analysis refreshed with latest incident updates.'
+            : 'Decision support analysis refreshed. No new incident changes since last refresh.',
+        );
+      }
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : 'Failed to reload reports.';
+      setReportsError(message);
+      setIncidentData([]);
+      setDssRecommendations([]);
+
+      if (source === 'dss') {
+        setActionError(message);
+      }
+    } finally {
+      setReportsLoading(false);
+      if (source === 'dss') {
+        setDssRefreshing(false);
+      }
+    }
   };
 
-  const dssRecommendations = React.useMemo(() => buildRecommendations(incidentData), [incidentData]);
-  const dssActionCount = dssRecommendations.reduce((sum, rec) => sum + rec.actions.length, 0);
+  const handleGenerate = async (id: string) => {
+    setGenerating(id);
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const result = await officialReportsApi.generateTemplateReport(id);
+      setActionSuccess(`${result.fileName} generated successfully.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to generate report template.');
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  const handleTemplateDownload = async (id: string) => {
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const { text, fileName } = await officialReportsApi.exportTemplateReport(id);
+      downloadFile(fileName ?? `tugon-${id}.txt`, text, 'text/plain;charset=utf-8');
+      setActionSuccess(`${fileName ?? `tugon-${id}.txt`} downloaded.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to download template report.');
+    }
+  };
+
+  const handleTemplatePrint = async (id: string, title: string) => {
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const { text } = await officialReportsApi.exportTemplateReport(id);
+      printTextContent(title, text);
+      setActionSuccess(`${title} opened for printing.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to print template report.');
+    }
+  };
+
+  const handleHistoryExportAll = async () => {
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const { text, fileName } = await officialReportsApi.exportAllReports();
+      downloadFile(fileName ?? 'tugon-report-history.csv', text, 'text/csv;charset=utf-8');
+      setActionSuccess('Report history exported as CSV.');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to export report history.');
+    }
+  };
+
+  const handleHistoryDownload = async (reportId: string) => {
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const { text, fileName } = await officialReportsApi.exportReportById(reportId);
+      downloadFile(fileName ?? `tugon-${reportId}.xls`, text, 'application/vnd.ms-excel;charset=utf-8');
+      setActionSuccess(`Report ${reportId} downloaded as Excel.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to download report.');
+    }
+  };
+
+  const handleHistoryPrint = async (reportId: string) => {
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const { text } = await officialReportsApi.exportReportById(reportId);
+      printTextContent(`Report ${reportId}`, text);
+      setActionSuccess(`Report ${reportId} opened for printing.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to print report.');
+    }
+  };
+
+  const visibleDssRecommendations = React.useMemo(
+    () => dssRecommendations.filter(
+      (rec) => !dismissedRecommendationIds.includes(rec.id) && !approvedRecommendationIds.includes(rec.id),
+    ),
+    [approvedRecommendationIds, dismissedRecommendationIds, dssRecommendations],
+  );
+  const dssActionCount = visibleDssRecommendations.reduce((sum, rec) => sum + rec.actions.length, 0);
+    const handleDssAction = async (rec: DSSRecommendation, actionType: 'APPROVE_DISPATCH' | 'DISMISS') => {
+      setDssActionSubmittingId(rec.id);
+      setActionError(null);
+      setActionSuccess(null);
+      try {
+        await officialReportsApi.submitDssAction({
+          actionType,
+          recommendationTitle: rec.title,
+        });
+
+        if (actionType === 'DISMISS') {
+          setDismissedRecommendationIds((prev) => [...prev, rec.id]);
+        } else {
+          setApprovedRecommendationIds((prev) => [...prev, rec.id]);
+        }
+
+        setActionSuccess(
+          actionType === 'DISMISS'
+            ? 'Recommendation dismissed and removed from active queue.'
+            : 'Recommendation approved for dispatch and removed from pending actions.',
+        );
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'Failed to submit DSS action.');
+      } finally {
+        setDssActionSubmittingId(null);
+      }
+    };
+
   const resolvedThisWeek = React.useMemo(() => {
     const now = Date.now();
     return incidentData.filter((incident) => incident.resolvedAt && now - new Date(incident.resolvedAt).getTime() <= 7 * 24 * 60 * 60 * 1000).length;
@@ -422,6 +695,17 @@ export default function Reports() {
       </div>
 
       {/* Tabs */}
+      {actionError ? (
+        <div style={{ marginBottom: 12, border: '1px solid #FECACA', background: '#FEF2F2', color: '#B91C1C', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+          {actionError}
+        </div>
+      ) : null}
+      {actionSuccess ? (
+        <div style={{ marginBottom: 12, border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#166534', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+          {actionSuccess}
+        </div>
+      ) : null}
+
       <div className="reports-tabs" style={{ display: 'flex', gap: 0, marginBottom: 16, background: 'white', borderRadius: 10, padding: 4, width: 'fit-content', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #F1F5F9', maxWidth: '100%', overflowX: 'auto' }}>
         {[
           { key: 'dss', label: 'Decision Support', icon: <Brain size={14} /> },
@@ -478,16 +762,52 @@ export default function Reports() {
                   ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data and responder utilization to surface actionable recommendations.`
                   : 'Waiting for incident data to generate recommendations.'}
               </div>
+              <div style={{ color: '#93C5FD', fontSize: 11, marginTop: 4 }}>
+                Recommendation source: {dssRecommendationSource === 'ai' ? 'AI model' : 'Fallback rules engine'}
+              </div>
+              <div style={{ color: '#BFDBFE', fontSize: 11, marginTop: 6 }}>
+                Last refreshed:{' '}
+                {dssLastRefreshedAt
+                  ? new Date(dssLastRefreshedAt).toLocaleString('en-PH', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: false,
+                    })
+                  : 'Not yet'}
+              </div>
             </div>
-            <button style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '8px 16px', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-              <RefreshCw size={13} /> Refresh Analysis
+            <button
+              onClick={() => { void reloadReports('dss'); }}
+              disabled={dssRefreshing}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: 8,
+                padding: '8px 16px',
+                color: 'white',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: dssRefreshing ? 'not-allowed' : 'pointer',
+                opacity: dssRefreshing ? 0.75 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <RefreshCw size={13} style={dssRefreshing ? { animation: 'spin 1s linear infinite' } : undefined} />
+              {dssRefreshing ? 'Refreshing...' : 'Refresh Analysis'}
             </button>
           </div>
 
           {/* Stats row */}
           <div className="dss-stats-row" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
             {[
-              { label: 'Active Recommendations', value: dssRecommendations.length, color: '#1E3A8A', bg: '#EFF6FF' },
+              { label: 'Active Recommendations', value: visibleDssRecommendations.length, color: '#1E3A8A', bg: '#EFF6FF' },
               { label: 'Pending Actions', value: dssActionCount, color: '#B4730A', bg: '#FEF3C7' },
               { label: 'Resolved This Week', value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: 'Avg. Confidence Score', value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
@@ -505,8 +825,16 @@ export default function Reports() {
               <Lightbulb size={15} color="#B4730A" />
               Current Recommendations
             </div>
-            {dssRecommendations.length > 0 ? (
-              dssRecommendations.map((rec) => <DSSCard key={rec.id} rec={rec} />)
+              {visibleDssRecommendations.length > 0 ? (
+              visibleDssRecommendations.map((rec) => (
+                <DSSCard
+                  key={rec.id}
+                  rec={rec}
+                  onApprove={(item) => { void handleDssAction(item, 'APPROVE_DISPATCH'); }}
+                  onDismiss={(item) => { void handleDssAction(item, 'DISMISS'); }}
+                  busy={dssActionSubmittingId === rec.id}
+                />
+              ))
             ) : (
               <div style={{ background: 'white', borderRadius: 12, border: '1px solid #E2E8F0', color: '#64748B', fontSize: 12, padding: '12px 14px' }}>
                 No live recommendation available yet. Submit or process incidents to unlock DSS insights.
@@ -563,10 +891,10 @@ export default function Reports() {
                         <><FileText size={12} /> Generate</>
                       )}
                     </button>
-                    <button style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button onClick={() => { void handleTemplateDownload(t.id); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Download size={14} color="#475569" />
                     </button>
-                    <button style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Printer size={14} color="#475569" />
                     </button>
                   </div>
@@ -582,8 +910,8 @@ export default function Reports() {
         <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Generated Report History</span>
-            <button style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 7, padding: '6px 12px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Download size={12} /> Export All
+            <button onClick={() => { void handleHistoryExportAll(); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 7, padding: '6px 12px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Download size={12} /> Export All CSV
             </button>
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -627,10 +955,10 @@ export default function Reports() {
                   <td style={{ padding: '11px 14px', color: '#64748B' }}>{r.size}</td>
                   <td style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Download size={11} /> Download
                       </button>
-                      <button style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '5px 8px', cursor: 'pointer' }}>
+                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '5px 8px', cursor: 'pointer' }}>
                         <Printer size={12} color="#64748B" />
                       </button>
                     </div>
