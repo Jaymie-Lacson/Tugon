@@ -5,12 +5,6 @@ import '../../styles/auth-layout.css';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
 
-const STATS = [
-  { value: '3', label: 'Barangays' },
-  { value: '1,247+', label: 'Reports Resolved' },
-  { value: '24/7', label: 'Monitoring' },
-];
-
 interface AuthLayoutProps {
   children: React.ReactNode;
   title: string;
@@ -67,15 +61,6 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               Report incidents, track emergency response, and keep Barangays 251, 252, and 256 in Tondo safe — in real time.
             </p>
 
-            {/* Mini stats */}
-            <div className="auth-panel-stats">
-              {STATS.map(s => (
-                <div key={s.label} className="auth-panel-stat-item">
-                  <div className="auth-panel-stat-value">{s.value}</div>
-                  <div className="auth-panel-stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Footer */}

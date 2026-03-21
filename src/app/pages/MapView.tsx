@@ -61,10 +61,30 @@ export default function MapView() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<IncidentType | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
-  const [panelOpen, setPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
+  const [panelOpen, setPanelOpen] = useState(
+    typeof window !== 'undefined' ? (!isPublicCommunityMap && window.innerWidth > 768) : !isPublicCommunityMap,
+  );
+  const [showPublicLoginModal, setShowPublicLoginModal] = useState(isPublicCommunityMap);
+
+  useEffect(() => {
+    if (isPublicCommunityMap) {
+      setPanelOpen(false);
+      setShowPublicLoginModal(true);
+      return;
+    }
+
+    setPanelOpen(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
+  }, [isPublicCommunityMap]);
 
   useEffect(() => {
     const load = async () => {
+      if (isPublicCommunityMap) {
+        setIncidents([]);
+        setLoading(false);
+        setError(null);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -80,7 +100,7 @@ export default function MapView() {
     };
 
     void load();
-  }, []);
+  }, [isPublicCommunityMap]);
 
   useEffect(() => {
     if (!initialLoadPending) {
@@ -135,13 +155,14 @@ export default function MapView() {
 
   return (
     <div className={`map-view-root${isPublicCommunityMap ? ' map-view-root-public' : ''}`}>
-      {panelOpen && (
+      {!isPublicCommunityMap && panelOpen && (
         <div
           className="map-panel-backdrop"
           onClick={() => setPanelOpen(false)}
         />
       )}
 
+      {!isPublicCommunityMap && (
       <div className={`map-panel${panelOpen ? ' panel-open' : ''}`}>
         <div className="map-panel-header">
           <div className="map-panel-header-row">
@@ -222,6 +243,7 @@ export default function MapView() {
           ))}
         </div>
       </div>
+      )}
 
       <div className="map-area">
         <div className="map-header-bar">
@@ -235,13 +257,15 @@ export default function MapView() {
             </button>
           )}
 
-          <button
-            onClick={() => setPanelOpen(v => !v)}
-            className="map-panel-toggle"
-          >
-            <Layers size={14} color="#1E3A8A" />
-            <span className="map-panel-toggle-text">{panelOpen ? 'Hide' : 'Show'} Panel</span>
-          </button>
+          {!isPublicCommunityMap && (
+            <button
+              onClick={() => setPanelOpen(v => !v)}
+              className="map-panel-toggle"
+            >
+              <Layers size={14} color="#1E3A8A" />
+              <span className="map-panel-toggle-text">{panelOpen ? 'Hide' : 'Show'} Panel</span>
+            </button>
+          )}
 
           <div className="map-header-title">
             <span className="map-header-title-main">TUGON Incident Map</span>
@@ -268,12 +292,31 @@ export default function MapView() {
             height="100%"
             selectedId={selectedIncident?.id ?? null}
             onSelectIncident={inc => setSelectedIncident(inc)}
-            compact={false}
+            compact={isPublicCommunityMap}
             zoom={18}
           />
         </div>
 
-        {selectedIncident && (
+        {isPublicCommunityMap && showPublicLoginModal && (
+          <div className="map-public-login-modal-wrap" role="dialog" aria-modal="false" aria-labelledby="public-map-login-title">
+            <div className="map-public-login-modal">
+              <div className="map-public-login-modal-title" id="public-map-login-title">Login Required for Past Incidents</div>
+              <p className="map-public-login-modal-copy">
+                To view past reported incidents and their details, please log in to your TUGON account.
+              </p>
+              <div className="map-public-login-modal-actions">
+                <button className="map-public-login-modal-secondary" onClick={() => setShowPublicLoginModal(false)}>
+                  Close
+                </button>
+                <button className="map-public-login-modal-primary" onClick={() => navigate('/auth/login')}>
+                  Log In
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isPublicCommunityMap && selectedIncident && (
           <div className="map-selected-wrap">
             <div className="map-selected-card">
               <div className="map-selected-header">
