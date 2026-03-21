@@ -190,16 +190,12 @@
     border-radius: 16px !important;
     border-color: #dbe2ea !important;
   }
-  .citizen-report-card:active {
-    transform: scale(0.995);
-    transition: transform 120ms ease;
-  }
 
   /* ── Incident report sticky footer ── */
   .citizen-report-footer {
     padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
-    backdrop-filter: saturate(120%) blur(6px);
     -webkit-backdrop-filter: saturate(120%) blur(6px);
+    backdrop-filter: saturate(120%) blur(6px);
   }
   .citizen-report-footer button {
     min-height: 46px !important;

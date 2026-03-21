@@ -39,6 +39,10 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #1e3a8a;
+  --scrollbar-thumb-hover: #1d4ed8;
+  --scrollbar-thumb-active: #b4730a;
 }
 
 .dark {
@@ -76,6 +80,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #1e40af;
+  --scrollbar-thumb-hover: #2563eb;
+  --scrollbar-thumb-active: #b4730a;
 }
 
 @theme inline {
@@ -120,6 +128,35 @@
 }
 
 @layer base {
+  /* Global TUGON scrollbar theme: consistent across page and nested scroll containers. */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--scrollbar-thumb) 0%, var(--scrollbar-thumb-hover) 100%);
+    border-radius: 999px;
+    border: 2px solid var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-hover) 0%, var(--scrollbar-thumb) 100%);
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-active);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

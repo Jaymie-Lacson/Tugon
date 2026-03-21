@@ -43,6 +43,15 @@ export interface TimelineEvent {
   note?: string;
 }
 
+export interface ReportEvidence {
+  id: string;
+  kind: 'photo' | 'audio';
+  publicUrl: string;
+  fileName: string;
+  mimeType: string;
+  createdAt: string;
+}
+
 export interface CitizenReport {
   id: string;
   type: CitizenReportType;
@@ -61,6 +70,7 @@ export interface CitizenReport {
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
+  evidence: ReportEvidence[];
   timeline: TimelineEvent[];
 }
 
@@ -101,6 +111,7 @@ function mapApiReport(report: ApiCitizenReport): CitizenReport {
     assignedOfficer: report.assignedOfficer,
     assignedUnit: report.assignedUnit,
     resolutionNote: report.resolutionNote,
+    evidence: report.evidence ?? [],
     timeline: report.timeline.map((item) => ({
       status: item.status === 'Created' ? 'created' : mapApiStatus(item.status),
       label: item.label,
@@ -186,13 +197,25 @@ function formatDateTime(iso: string) {
   });
 }
 function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
+  const diff = Date.now() - parseTimestamp(iso);
   const mins = Math.floor(diff / 60000);
   if (mins < 60)  return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24)   return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
+}
+
+function parseTimestamp(value: string) {
+  const ts = Date.parse(value);
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function extractReportSequence(reportId: string) {
+  const parts = reportId.split('-');
+  const raw = parts[parts.length - 1] ?? '';
+  const seq = Number.parseInt(raw, 10);
+  return Number.isFinite(seq) ? seq : 0;
 }
 
 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -300,22 +323,14 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
   return (
     <button
-      className="citizen-report-card"
+      className="citizen-report-card citizen-report-card-modern"
       onClick={onClick}
       style={{
         width: '100%', background: '#fff', border: '1px solid #E2E8F0',
         borderRadius: 18, padding: 0, cursor: 'pointer', textAlign: 'left',
         boxShadow: '0 4px 14px rgba(15,23,42,0.06)', marginBottom: 12,
-        overflow: 'hidden', transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+        overflow: 'hidden', transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         position: 'relative',
-      }}
-      onMouseOver={e => {
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 10px 28px rgba(15,23,42,0.12)';
-        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-      }}
-      onMouseOut={e => {
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(15,23,42,0.06)';
-        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
       }}
     >
       <div style={{ padding: '14px 14px 0 14px' }}>
@@ -414,14 +429,33 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
 function DetailView({ report, onClose }: { report: CitizenReport; onClose: () => void }) {
   const tc = typeConfig[report.type];
-  const sc = citizenStatusConfig[report.status];
   const TypeIcon = tc.icon;
+  const photoEvidence = report.evidence.filter((item) => item.kind === 'photo');
+  const audioEvidence = report.evidence.filter((item) => item.kind === 'audio');
+  const [previewPhotoIndex, setPreviewPhotoIndex] = useState<number | null>(null);
 
-  // Trap scroll
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (previewPhotoIndex !== null) {
+        setPreviewPhotoIndex(null);
+        return;
+      }
+
+      onClose();
+    };
+
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose, previewPhotoIndex]);
 
   const timelineIconMap: Record<string, React.ReactNode> = {
     created:      <FileText size={13} />,
@@ -443,19 +477,20 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
     unresolvable: { color: '#B91C1C', bg: '#FEF2F2' },
   };
 
+  const hasPreviewableEvidence = photoEvidence.length > 0 || audioEvidence.length > 0;
+  const selectedPhoto = previewPhotoIndex !== null ? photoEvidence[previewPhotoIndex] : null;
+
   return (
-    <div style={{
+    <div className="citizen-report-modal" style={{
       position: 'fixed', inset: 0, zIndex: 200,
       display: 'flex', flexDirection: 'column',
     }}>
-      {/* Backdrop */}
       <div
         onClick={onClose}
         style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)' }}
       />
 
-      {/* Sheet */}
-      <div style={{
+      <article style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',
         background: '#F8FAFC', borderRadius: '24px 24px 0 0',
@@ -463,9 +498,7 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
         animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
         maxWidth: 960, margin: '0 auto',
       }}>
-
-        {/* Handle + close */}
-        <div style={{
+        <header style={{
           background: '#fff', paddingTop: 10, paddingBottom: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           borderBottom: '1px solid #F1F5F9', flexShrink: 0,
@@ -488,20 +521,15 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
               <X size={16} />
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Scrollable content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-
-          {/* Hero card */}
-          <div style={{
-            background: '#fff', borderRadius: 20, overflow: 'hidden',
+        <main style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+          <section style={{
             border: '1.5px solid #E2E8F0', marginBottom: 16,
             boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
           }}>
             {/* Colored header */}
             <div style={{
-              background: `linear-gradient(135deg, ${tc.color}14, ${tc.color}06)`,
               borderBottom: `3px solid ${tc.color}`,
               padding: '18px 18px 14px',
               display: 'flex', alignItems: 'flex-start', gap: 14,
@@ -531,30 +559,27 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
               </div>
             </div>
 
-            {/* Details grid */}
-            {[
-              { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
-              { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
-              { icon: <Calendar size={13} />, label: 'Date Submitted', value: formatDateTime(report.submittedAt) },
-              { icon: <Clock size={13} />, label: 'Last Updated', value: formatDateTime(report.updatedAt) },
-              ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
-              ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
-            ].map(({ icon, label, value }, i, arr) => (
-              <div key={label} style={{
-                padding: '12px 18px', display: 'flex', gap: 12, alignItems: 'flex-start',
-                borderBottom: i < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
-              }}>
-                <div style={{ color: tc.color, flexShrink: 0, marginTop: 1 }}>{icon}</div>
-                <div>
-                  <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{label}</div>
-                  <div style={{ fontSize: 13, color: '#1E293B', fontWeight: 500, lineHeight: 1.45 }}>{value}</div>
+            <dl style={{ margin: 0, padding: '4px 18px 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              {[
+                { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
+                { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
+                { icon: <Calendar size={13} />, label: 'Date Submitted', value: formatDateTime(report.submittedAt) },
+                { icon: <Clock size={13} />, label: 'Last Updated', value: formatDateTime(report.updatedAt) },
+                ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
+                ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
+              ].map(({ icon, label, value }) => (
+                <div key={label} style={{ border: '1px solid #E2E8F0', borderRadius: 12, background: '#F8FAFC', padding: '10px 12px' }}>
+                  <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 10, color: '#64748B', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    <span style={{ color: tc.color }}>{icon}</span>
+                    {label}
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: 13, color: '#0F172A', lineHeight: 1.5, fontWeight: 500 }}>{value}</dd>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </dl>
+          </section>
 
-          {/* Description */}
-          <div style={{
+          <section style={{
             background: '#fff', borderRadius: 18, padding: '16px',
             border: '1px solid #E2E8F0', marginBottom: 16,
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
@@ -564,48 +589,78 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
               <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>Description</span>
             </div>
             <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>{report.description}</p>
-          </div>
+          </section>
 
-          {/* Evidence */}
           {(report.hasPhotos || report.hasAudio) && (
-            <div style={{
+            <section style={{
               background: '#fff', borderRadius: 18, padding: '16px',
               border: '1px solid #E2E8F0', marginBottom: 16,
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 10 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 12 }}>
                 Evidence Attached
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {report.hasPhotos && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    background: '#EFF6FF', borderRadius: 10, padding: '8px 12px',
-                    border: '1px solid #BFDBFE',
-                  }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: hasPreviewableEvidence ? 12 : 0, flexWrap: 'wrap' }}>
+                {report.hasPhotos ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EFF6FF', borderRadius: 10, padding: '8px 12px', border: '1px solid #BFDBFE' }}>
                     <Camera size={14} color="#1E3A8A" />
-                    <span style={{ fontSize: 12, color: '#1E3A8A', fontWeight: 700 }}>
-                      {report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}
-                    </span>
+                    <span style={{ fontSize: 12, color: '#1E3A8A', fontWeight: 700 }}>{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
                   </div>
-                )}
-                {report.hasAudio && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    background: '#EDE9FE', borderRadius: 10, padding: '8px 12px',
-                    border: '1px solid #DDD6FE',
-                  }}>
+                ) : null}
+                {report.hasAudio ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EDE9FE', borderRadius: 10, padding: '8px 12px', border: '1px solid #DDD6FE' }}>
                     <Mic size={14} color="#7C3AED" />
                     <span style={{ fontSize: 12, color: '#7C3AED', fontWeight: 700 }}>Voice Recording</span>
                   </div>
-                )}
+                ) : null}
               </div>
-            </div>
+
+              {photoEvidence.length > 0 && (
+                <section style={{ marginBottom: audioEvidence.length > 0 ? 12 : 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Photos</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 8 }}>
+                    {photoEvidence.map((item, index) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setPreviewPhotoIndex(index)}
+                        style={{ border: '1px solid #DBEAFE', borderRadius: 10, padding: 0, overflow: 'hidden', background: '#EFF6FF', cursor: 'pointer' }}
+                      >
+                        <img
+                          src={item.publicUrl}
+                          alt={item.fileName}
+                          style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {audioEvidence.length > 0 && (
+                <section>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Audio</div>
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    {audioEvidence.map((item) => (
+                      <article key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px', background: '#F8FAFC' }}>
+                        <div style={{ fontSize: 11, color: '#475569', marginBottom: 6, fontWeight: 600 }}>{item.fileName}</div>
+                        <audio controls preload="metadata" src={item.publicUrl} style={{ width: '100%' }} />
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {!hasPreviewableEvidence && (
+                <p style={{ margin: 0, fontSize: 12, color: '#94A3B8', lineHeight: 1.6 }}>
+                  Evidence metadata is available, but preview links are not currently accessible for this report.
+                </p>
+              )}
+            </section>
           )}
 
-          {/* Resolution note (for terminal statuses) */}
           {report.resolutionNote && (
-            <div style={{
+            <section style={{
               background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
               borderRadius: 18, padding: '16px',
               border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
@@ -632,11 +687,10 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
                   <Phone size={12} /> Call City Veterinary Office
                 </button>
               )}
-            </div>
+            </section>
           )}
 
-          {/* Timeline */}
-          <div style={{
+          <section style={{
             background: '#fff', borderRadius: 18, padding: '18px',
             border: '1px solid #E2E8F0', marginBottom: 8,
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
@@ -645,12 +699,12 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
               <Clock size={14} color="#1E3A8A" /> Status Timeline
             </div>
 
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {report.timeline.map((event, idx) => {
               const isLast = idx === report.timeline.length - 1;
               const colors = timelineColorMap[event.status] ?? timelineColorMap['submitted'];
               return (
-                <div key={idx} style={{ display: 'flex', gap: 12, position: 'relative' }}>
-                  {/* Vertical line */}
+                <li key={`${event.timestamp}-${idx}`} style={{ display: 'flex', gap: 12, position: 'relative' }}>
                   {!isLast && (
                     <div style={{
                       position: 'absolute', left: 15, top: 30, bottom: -4,
@@ -658,7 +712,6 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
                     }} />
                   )}
 
-                  {/* Icon */}
                   <div style={{
                     width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
                     background: colors.bg, border: `2px solid ${colors.color}30`,
@@ -668,7 +721,6 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
                     {timelineIconMap[event.status] ?? <FileText size={13} />}
                   </div>
 
-                  {/* Content */}
                   <div style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
                       <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', lineHeight: 1.2 }}>
@@ -696,25 +748,25 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
                       </div>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 10, color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>
+                      <time style={{ fontSize: 10, color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>
                         {formatDateTime(event.timestamp)}
-                      </span>
+                      </time>
                       <span style={{ color: '#E2E8F0', fontSize: 10 }}> - </span>
                       <span style={{
                         fontSize: 10, color: colors.color, fontWeight: 600,
                         background: colors.bg, borderRadius: 4, padding: '1px 6px',
                       }}>
-                        {event.actor}  -  {event.actorRole}
+                        {event.actor} - {event.actorRole}
                       </span>
                     </div>
                   </div>
-                </div>
+                </li>
               );
             })}
-          </div>
+            </ul>
+          </section>
 
-          {/* Emergency tip */}
-          <div style={{
+          <section style={{
             background: '#FEF2F2', borderRadius: 14, padding: '12px 14px',
             border: '1px solid #FECACA', display: 'flex', gap: 8, alignItems: 'flex-start',
           }}>
@@ -722,9 +774,54 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
             <p style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.6, margin: 0 }}>
               <strong>Immediate danger?</strong> Don't wait for a response - call <strong>911</strong> right away.
             </p>
+          </section>
+        </main>
+      </article>
+
+      {selectedPhoto && (
+        <div
+          className="citizen-photo-preview-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo preview"
+          onClick={() => setPreviewPhotoIndex(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 220,
+            background: 'rgba(2,6,23,0.82)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            className="citizen-photo-preview-stage"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              width: 'min(980px, 100%)',
+              maxHeight: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#E2E8F0', fontSize: 12 }}>
+              <strong>{selectedPhoto.fileName}</strong>
+              <button
+                type="button"
+                className="citizen-photo-preview-close"
+                onClick={() => setPreviewPhotoIndex(null)}
+                style={{ background: '#0F172A', border: '1px solid #334155', color: '#E2E8F0', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+            <img className="citizen-photo-preview-image" src={selectedPhoto.publicUrl} alt={selectedPhoto.fileName} style={{ maxHeight: '80vh', width: '100%', objectFit: 'contain', borderRadius: 12, background: '#020617' }} />
           </div>
         </div>
-      </div>
+      )}
 
       <style>{`
         @keyframes slideUp {
@@ -768,6 +865,7 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
 }
 
 type FilterKey = 'all' | 'active' | 'resolved';
+type DateSortKey = 'newest' | 'oldest';
 
 export default function CitizenMyReports() {
   const navigate = useNavigate();
@@ -783,7 +881,7 @@ export default function CitizenMyReports() {
   const [filter, setFilter]       = useState<FilterKey>('all');
   const [query, setQuery]         = useState('');
   const [selected, setSelected]   = useState<CitizenReport | null>(null);
-  const [sortBy, setSortBy]       = useState<'newest' | 'oldest'>('newest');
+  const [sortBy, setSortBy]       = useState<DateSortKey>('newest');
   const [sortOpen, setSortOpen]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -813,24 +911,47 @@ export default function CitizenMyReports() {
     };
   }, []);
 
-  // Filter + search logic
-  const filtered = reports.filter(r => {
-    const matchFilter =
-      filter === 'all' ? true :
-      filter === 'active' ? citizenStatusConfig[r.status].filterGroup === 'active' :
-      citizenStatusConfig[r.status].filterGroup === 'resolved';
+  // Filter + search + sort pipeline.
+  const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
-    const matchQuery = q.length === 0 || [
-      r.id, r.type, typeConfig[r.type].label,
-      r.location, r.barangay, r.description,
-      citizenStatusConfig[r.status].label,
-    ].some(v => v.toLowerCase().includes(q));
-    return matchFilter && matchQuery;
-  }).sort((a, b) => {
-    const da = new Date(a.submittedAt).getTime();
-    const db = new Date(b.submittedAt).getTime();
-    return sortBy === 'newest' ? db - da : da - db;
-  });
+    const visible = reports.filter((r) => {
+      const matchFilter =
+        filter === 'all' ? true :
+        filter === 'active' ? citizenStatusConfig[r.status].filterGroup === 'active' :
+        citizenStatusConfig[r.status].filterGroup === 'resolved';
+      const matchQuery = q.length === 0 || [
+        r.id, r.type, typeConfig[r.type].label,
+        r.location, r.barangay, r.description,
+        citizenStatusConfig[r.status].label,
+      ].some((v) => v.toLowerCase().includes(q));
+      return matchFilter && matchQuery;
+    });
+
+    const sorted = [...visible].sort((a, b) => {
+      const direction = sortBy === 'newest' ? -1 : 1;
+      const dateA = parseTimestamp(a.submittedAt);
+      const dateB = parseTimestamp(b.submittedAt);
+      if (dateA !== dateB) {
+        return (dateA - dateB) * direction;
+      }
+
+      const updatedA = parseTimestamp(a.updatedAt);
+      const updatedB = parseTimestamp(b.updatedAt);
+      if (updatedA !== updatedB) {
+        return (updatedA - updatedB) * direction;
+      }
+
+      const seqA = extractReportSequence(a.id);
+      const seqB = extractReportSequence(b.id);
+      if (seqA !== seqB) {
+        return (seqA - seqB) * direction;
+      }
+
+      return a.id.localeCompare(b.id) * direction;
+    });
+
+    return sorted;
+  }, [filter, query, reports, sortBy]);
 
   // Counts
   const allCount      = reports.length;
@@ -885,7 +1006,7 @@ export default function CitizenMyReports() {
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.closest('.citizen-web-header')) {
+      if (target?.closest('.citizen-web-header') || target?.closest('.citizen-sort-panel')) {
         return;
       }
 
@@ -1183,7 +1304,7 @@ export default function CitizenMyReports() {
               )}
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <div className="citizen-sort-panel" style={{ position: 'relative' }}>
               <button
                 onClick={() => setSortOpen(v => !v)}
                 style={{
@@ -1198,7 +1319,7 @@ export default function CitizenMyReports() {
                 <ChevronDown size={12} />
               </button>
               {sortOpen && (
-                <div style={{
+                <div className="citizen-sort-panel" style={{
                   position: 'absolute', top: 'calc(100% + 4px)', right: 0,
                   background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                   border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
@@ -1304,6 +1425,13 @@ export default function CitizenMyReports() {
         </div>
 
         <style>{`
+          .citizen-report-card-modern:hover,
+          .citizen-report-card-modern:focus-visible {
+            border-color: #93c5fd !important;
+            box-shadow: 0 10px 22px rgba(30, 58, 138, 0.14) !important;
+            outline: none;
+          }
+
           @media (max-width: 900px) {
             .citizen-reports-grid {
               grid-template-columns: 1fr !important;

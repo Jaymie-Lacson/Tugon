@@ -20,6 +20,15 @@ export interface TimelineEntry {
   note?: string;
 }
 
+export interface ReportEvidenceRecord {
+  id: string;
+  kind: "photo" | "audio";
+  publicUrl: string;
+  fileName: string;
+  mimeType: string;
+  createdAt: string;
+}
+
 export interface CitizenReportRecord {
   id: string;
   citizenUserId: string;
@@ -45,6 +54,7 @@ export interface CitizenReportRecord {
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
+  evidence: ReportEvidenceRecord[];
   reporterVerificationStatus: "verified" | "pending" | "rejected" | "banned";
   timeline: TimelineEntry[];
 }

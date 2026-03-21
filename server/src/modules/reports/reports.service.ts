@@ -171,6 +171,14 @@ function mapPersistedReport(row: {
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
+  evidences?: Array<{
+    id: string;
+    kind: string;
+    publicUrl: string | null;
+    fileName: string;
+    mimeType: string;
+    createdAt: Date;
+  }>;
   citizen?: {
     isVerified: boolean;
     isBanned: boolean;
@@ -219,6 +227,16 @@ function mapPersistedReport(row: {
     assignedOfficer: row.assignedOfficer,
     assignedUnit: row.assignedUnit,
     resolutionNote: row.resolutionNote,
+    evidence: (row.evidences ?? [])
+      .filter((item) => Boolean(item.publicUrl) && (item.kind === "photo" || item.kind === "audio"))
+      .map((item) => ({
+        id: item.id,
+        kind: item.kind as "photo" | "audio",
+        publicUrl: item.publicUrl as string,
+        fileName: item.fileName,
+        mimeType: item.mimeType,
+        createdAt: item.createdAt.toISOString(),
+      })),
     reporterVerificationStatus,
     timeline: row.statusHistory.map((entry) => ({
       status: entry.label === "Report Created" ? "Created" : ticketStatusMap[entry.status],
@@ -488,6 +506,22 @@ export const reportsService = {
       assignedOfficer: null,
       assignedUnit: null,
       resolutionNote: null,
+      evidence: uploadedEvidence.reduce<CitizenReportRecord["evidence"]>((acc, item, index) => {
+        if (!item.publicUrl || (item.kind !== "photo" && item.kind !== "audio")) {
+          return acc;
+        }
+
+        acc.push({
+          id: `${reportId}-evidence-${index + 1}`,
+          kind: item.kind,
+          publicUrl: item.publicUrl,
+          fileName: item.fileName,
+          mimeType: item.mimeType,
+          createdAt: now,
+        });
+
+        return acc;
+      }, []),
       reporterVerificationStatus: citizenUser.isBanned
         ? "banned"
         : citizenUser.isVerified
@@ -652,6 +686,17 @@ export const reportsService = {
         statusHistory: {
           orderBy: { createdAt: "asc" },
         },
+        evidences: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            kind: true,
+            publicUrl: true,
+            fileName: true,
+            mimeType: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { submittedAt: "desc" },
     });
@@ -691,6 +736,17 @@ export const reportsService = {
         statusHistory: {
           orderBy: { createdAt: "asc" },
         },
+        evidences: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            kind: true,
+            publicUrl: true,
+            fileName: true,
+            mimeType: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { submittedAt: "desc" },
     });
@@ -715,6 +771,17 @@ export const reportsService = {
         },
         statusHistory: {
           orderBy: { createdAt: "asc" },
+        },
+        evidences: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            kind: true,
+            publicUrl: true,
+            fileName: true,
+            mimeType: true,
+            createdAt: true,
+          },
         },
       },
     });
