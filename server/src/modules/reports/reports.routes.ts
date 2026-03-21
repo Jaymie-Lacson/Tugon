@@ -122,6 +122,21 @@ citizenReportsRouter.get("/reports/:reportId", async (req, res) => {
   }
 });
 
+citizenReportsRouter.patch("/reports/:reportId/cancel", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const report = await reportsService.cancelMine(authUser.id, req.params.reportId);
+    return res.status(200).json({ message: "Report cancelled successfully.", report });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
 officialReportsRouter.get("/reports", async (req, res) => {
   try {
     const authUser = req.authUser;

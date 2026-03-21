@@ -123,4 +123,13 @@ export const citizenReportsApi = {
       method: "GET",
     });
   },
+
+  cancelReport(reportId: string) {
+    return authedRequest<{ message: string; report: ApiCitizenReport }>(
+      `/citizen/reports/${encodeURIComponent(reportId)}/cancel`,
+      {
+        method: "PATCH",
+      },
+    );
+  },
 };

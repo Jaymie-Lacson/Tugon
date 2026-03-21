@@ -1143,6 +1143,53 @@ export const reportsService = {
     return report;
   },
 
+  async cancelMine(citizenUserId: string, reportId: string): Promise<CitizenReportRecord> {
+    const existing = await prisma.citizenReport.findUnique({
+      where: { id: reportId },
+      select: {
+        id: true,
+        citizenUserId: true,
+        status: true,
+        citizen: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    if (!existing || existing.citizenUserId !== citizenUserId) {
+      throw new ReportsError("Report not found.", 404);
+    }
+
+    if (existing.status !== PrismaTicketStatus.SUBMITTED) {
+      throw new ReportsError("Only submitted reports can be cancelled.", 409);
+    }
+
+    await prisma.$transaction([
+      prisma.citizenReport.update({
+        where: { id: reportId },
+        data: {
+          status: PrismaTicketStatus.CLOSED,
+          updatedAt: new Date(),
+        },
+      }),
+      prisma.ticketStatusHistory.create({
+        data: {
+          reportId,
+          status: PrismaTicketStatus.CLOSED,
+          label: "Cancelled by Citizen",
+          description: "Citizen cancelled this report while it was still in submitted status.",
+          actor: existing.citizen?.fullName || "Citizen",
+          actorRole: "Citizen",
+          note: "Citizen-initiated cancellation before official review.",
+        },
+      }),
+    ]);
+
+    return reportsService.getMineById(citizenUserId, reportId);
+  },
+
   async listForOfficial(user: { role: Role; barangayCode: string | null }): Promise<CitizenReportRecord[]> {
     if (user.role === "OFFICIAL" && !user.barangayCode) {
       throw new ReportsError("Official barangay profile is required.", 403);
