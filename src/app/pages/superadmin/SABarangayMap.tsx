@@ -3,28 +3,65 @@ import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useM
 import L from 'leaflet';
 import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
-  Filter,
+  Filter, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
 } from 'lucide-react';
-import { barangays as fallbackBarangays } from '../../data/superAdminData';
 import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
-import type { BarangayProfile } from '../../data/superAdminData';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../../utils/mapCategoryLabels';
+import type { IncidentType } from '../../data/incidents';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
   fire: '#B91C1C', flood: '#1D4ED8', accident: '#B4730A',
   medical: '#0F766E', crime: '#374151', infrastructure: '#374151',
 };
-const INCIDENT_EMOJI: Record<string, string> = {
-  fire: '🔥', flood: '💧', accident: '🚗',
-  medical: '❤️', crime: '🔒', infrastructure: '⚡',
+const INCIDENT_ICON_COMPONENTS: Record<IncidentType, React.ReactElement> = {
+  fire: <Flame size={12} />,
+  flood: <Droplets size={12} />,
+  accident: <Car size={12} />,
+  medical: <Heart size={12} />,
+  crime: <ShieldIcon size={12} />,
+  infrastructure: <Zap size={12} />,
+  typhoon: <Wind size={12} />,
 };
 const SEVERITY_COLORS: Record<string, string> = {
   critical: '#B91C1C', high: '#EA580C', medium: '#B4730A', low: '#059669',
 };
+
+function getTypeIconSvg(type: string, stroke: string): string {
+  switch (type) {
+    case 'fire':
+      return `<path d="M12 2.6c1.9 2.3 2.2 4.9.8 7 .9-.2 2.2.1 3.2 1 1.3 1.1 1.9 2.6 1.9 4.1 0 3.1-2.5 5.7-5.9 5.7s-5.9-2.6-5.9-5.7c0-2.4 1.4-4 3.5-5.7.8-.7 1.5-1.5 2-2.4.2.8.3 1.6.4 2.4 1.4-1.5 1.5-3.6 0-6.4z" fill="${stroke}"/>`;
+    case 'flood':
+      return `<path d="M12 3c-2.6 3.5-5.7 6.2-5.7 9.6 0 3.2 2.4 5.6 5.7 5.6s5.7-2.4 5.7-5.6C17.7 9.2 14.6 6.5 12 3z" fill="none" stroke="${stroke}" stroke-width="2.1" stroke-linejoin="round"/><path d="M4.8 19.2c1 .7 2 .9 3 .9s2-.2 3-.9c1-.7 2-.7 3 0 1 .7 2 .9 3 .9" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>`;
+    case 'accident':
+      return `<rect x="4.5" y="10" width="15" height="5.8" rx="1.4" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M7.2 10l2-2.3h5.7l2 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><circle cx="8.3" cy="16.8" r="1.5" fill="${stroke}"/><circle cx="15.7" cy="16.8" r="1.5" fill="${stroke}"/>`;
+    case 'medical':
+      return `<circle cx="12" cy="12" r="7" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M12 8.4v7.2M8.4 12h7.2" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/>`;
+    case 'crime':
+      return `<path d="M12 3.3l6.8 2.8v4.5c0 5-3.1 8.1-6.8 10.3-3.7-2.2-6.8-5.3-6.8-10.3V6.1L12 3.3z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 8.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.8" r="1.2" fill="${stroke}"/>`;
+    case 'infrastructure':
+      return `<path d="M12 4.5l8 14H4l8-14z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.1" fill="${stroke}"/>`;
+    case 'typhoon':
+      return `<path d="M7.1 8.8c1.2-1.8 3.9-2.3 5.9-.9 1.7 1.1 2.2 3.2 1.4 4.9-.9 1.8-2.9 2.7-4.8 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><path d="M16.9 15.2c-1.2 1.8-3.9 2.3-5.9.9-1.7-1.1-2.2-3.2-1.4-4.9.9-1.8 2.9-2.7 4.8-2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.4" fill="${stroke}"/>`;
+    default:
+      return `<circle cx="12" cy="12" r="5" fill="none" stroke="${stroke}" stroke-width="2.1"/><path d="M12 7v2m0 6v2m5-5h-2M9 12H7" stroke="${stroke}" stroke-width="2.1" stroke-linecap="round"/>`;
+  }
+}
+
+function getTypeIconMarkup(type: string, size: number, stroke: string): string {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${getTypeIconSvg(type, stroke)}</svg>`;
+}
+
+function getIncidentTypeIcon(type: string, size: number, color: string) {
+  const icon = INCIDENT_ICON_COMPONENTS[type as IncidentType];
+  if (!icon) {
+    return <AlertTriangle size={size} color={color} />;
+  }
+  return React.cloneElement(icon, { size, color });
+}
 
 // ── Custom DivIcon factory ───────────────────────────────────────────────────
 function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon {
@@ -37,7 +74,7 @@ function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon 
     <div style="position:relative;width:${size}px;height:${size + 8}px;display:flex;flex-direction:column;align-items:center;">
       ${pulse ? `<div style="position:absolute;top:0;left:0;right:0;bottom:8px;border-radius:50%;background:${color};opacity:.18;animation:sa-ping 1.8s ease-out infinite;"></div>` : ''}
       <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${selected ? `3px solid white` : '2px solid rgba(255,255,255,.85)'};box-shadow:${selected ? `0 0 0 3px ${sColor},0 4px 14px rgba(0,0,0,.35)` : '0 2px 8px rgba(0,0,0,.28)'};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.42)}px;cursor:pointer;">
-        ${INCIDENT_EMOJI[type] ?? '📍'}
+        ${getTypeIconMarkup(type, Math.round(size * 0.66), '#FFFFFF')}
       </div>
       <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${color};margin-top:-1px;"></div>
     </div>`;
@@ -132,10 +169,92 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
   critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
 };
 
-type BarangayMapView = BarangayProfile & {
+const BARANGAY_CENTER_BY_CODE: Record<string, [number, number]> = {
+  '251': [14.61495, 120.97795],
+  '252': [14.6162, 120.9788],
+  '256': [14.6138, 120.9768],
+};
+
+// Canonical boundaries aligned with citizen/admin IncidentMap and server geofencing defaults.
+const CANONICAL_BOUNDARY_BY_CODE: Record<string, [number, number][]> = {
+  '251': [
+    [14.6151576, 120.9778668],
+    [14.6151269, 120.9780734],
+    [14.6138576, 120.9777379],
+    [14.6138881, 120.9775742],
+    [14.6139514, 120.9772961],
+    [14.6139695, 120.9771491],
+    [14.6140086, 120.9771571],
+    [14.6152725, 120.977463],
+    [14.6151576, 120.9778668],
+  ],
+  '252': [
+    [14.6152725, 120.977463],
+    [14.6140086, 120.9771571],
+    [14.6139695, 120.9771491],
+    [14.6138726, 120.9771203],
+    [14.6138888, 120.9770354],
+    [14.6137142, 120.9769944],
+    [14.6137978, 120.9766256],
+    [14.6140525, 120.9766893],
+    [14.6146931, 120.9768373],
+    [14.6153845, 120.9770152],
+    [14.6152725, 120.977463],
+  ],
+  '256': [
+    [14.6165934, 120.9785196],
+    [14.6165675, 120.9787716],
+    [14.6164604, 120.9788136],
+    [14.616355, 120.9788522],
+    [14.616179, 120.9789493],
+    [14.6159963, 120.9790463],
+    [14.6157071, 120.9791867],
+    [14.6155382, 120.9792674],
+    [14.6153803, 120.9793486],
+    [14.6152404, 120.9794005],
+    [14.6151315, 120.9794212],
+    [14.6148209, 120.97942],
+    [14.6148861, 120.9791266],
+    [14.6149511, 120.9788318],
+    [14.6149661, 120.9787605],
+    [14.6150187, 120.9785164],
+    [14.6150567, 120.9783709],
+    [14.6150973, 120.9782174],
+    [14.6151269, 120.9780734],
+    [14.6151576, 120.9778668],
+    [14.6157229, 120.9779947],
+    [14.616262, 120.9781291],
+    [14.6166307, 120.9781571],
+    [14.6165934, 120.9785196],
+  ],
+};
+
+const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; captain: string; area: string }> = {
+  '251': { color: '#1D4ED8', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
+  '252': { color: '#0F766E', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
+  '256': { color: '#B4730A', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
+};
+
+type BarangayMapView = {
+  id: string;
   code: string;
+  name: string;
+  district: string;
+  captain: string;
+  population: number;
+  area: string;
+  center: [number, number];
+  boundary: [number, number][];
+  color: string;
+  activeIncidents: number;
+  totalThisMonth: number;
+  resolvedThisMonth: number;
+  responseRate: number;
+  avgResponseMin: number;
+  responders: number;
+  registeredUsers: number;
+  alertLevel: 'normal' | 'elevated' | 'critical';
   boundaryGeojson: string | null;
-  source: 'mock' | 'api';
 };
 
 type MapIncident = {
@@ -147,11 +266,6 @@ type MapIncident = {
   barangay: string;
   label: string;
 };
-
-function deriveCodeFromId(id: string): string {
-  const match = id.match(/\d{3}/);
-  return match ? match[0] : '';
-}
 
 function normalizeLatLngPoint(point: [number, number]): [number, number] {
   const [a, b] = point;
@@ -251,18 +365,31 @@ function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] 
   }
 }
 
-function createInitialBarangays(): BarangayMapView[] {
-  return fallbackBarangays.map((barangay) => ({
-    ...barangay,
-    boundary: sanitizeBoundary(barangay.boundary) ?? normalizeBoundaryPointsOrder(barangay.boundary),
-    code: deriveCodeFromId(barangay.id),
-    boundaryGeojson: JSON.stringify(boundaryToGeoJsonPolygon(barangay.boundary)),
-    source: 'mock',
-  }));
+function fallbackBoundaryForCode(code: string): [number, number][] {
+  const canonical = CANONICAL_BOUNDARY_BY_CODE[code];
+  if (canonical) {
+    return canonical;
+  }
+
+  const center = BARANGAY_CENTER_BY_CODE[code] ?? TONDO_TRI_BRGY_CENTER;
+  const latDelta = 0.0009;
+  const lngDelta = 0.0011;
+  return [
+    [center[0] + latDelta, center[1] - lngDelta],
+    [center[0] + latDelta, center[1] + lngDelta],
+    [center[0] - latDelta, center[1] + lngDelta],
+    [center[0] - latDelta, center[1] - lngDelta],
+  ];
+}
+
+function alertLevelFromActive(activeIncidents: number): 'normal' | 'elevated' | 'critical' {
+  if (activeIncidents >= 10) return 'critical';
+  if (activeIncidents >= 5) return 'elevated';
+  return 'normal';
 }
 
 export default function SABarangayMap() {
-  const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>(createInitialBarangays());
+  const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>([]);
   const [loadingBarangays, setLoadingBarangays] = useState(true);
   const [loadingIncidents, setLoadingIncidents] = useState(true);
   const [barangaysError, setBarangaysError] = useState<string | null>(null);
@@ -297,49 +424,43 @@ export default function SABarangayMap() {
     setBarangaysError(null);
     try {
       const payload = await superAdminApi.getBarangays();
-      const fallbackByCode = new Map(fallbackBarangays.map((barangay) => [deriveCodeFromId(barangay.id), barangay]));
-      const defaultFallback = fallbackBarangays[0];
-      const apiByCode = new Map(payload.barangays.map((barangay) => [barangay.code, barangay]));
-
-      const mapped = fallbackBarangays.map((fallback) => {
-        const code = deriveCodeFromId(fallback.id);
-        const apiBarangay = apiByCode.get(code);
-        const fallbackBoundary = sanitizeBoundary(fallback.boundary)
-          ?? sanitizeBoundary(defaultFallback.boundary)
-          ?? normalizeBoundaryPointsOrder(defaultFallback.boundary);
-
-        if (!apiBarangay) {
-          return {
-            ...fallback,
-            boundary: fallbackBoundary,
-            code,
-            boundaryGeojson: JSON.stringify(boundaryToGeoJsonPolygon(fallbackBoundary)),
-            source: 'mock' as const,
-          };
-        }
-
+      const mapped = payload.barangays.map((apiBarangay) => {
+        const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
+          color: '#1E3A8A',
+          district: 'Tondo, Manila',
+          captain: 'Assigned Barangay Captain',
+          area: 'N/A',
+        };
+        const canonicalBoundary = CANONICAL_BOUNDARY_BY_CODE[apiBarangay.code];
         const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
-  const boundary = sanitizeBoundary(parsedBoundary ?? fallback.boundary ?? defaultFallback.boundary) ?? fallbackBoundary;
+        const boundary = canonicalBoundary ?? parsedBoundary ?? fallbackBoundaryForCode(apiBarangay.code);
         const activeIncidents = apiBarangay.activeReports;
+        const resolvedThisMonth = Math.max(apiBarangay.totalReports - activeIncidents, 0);
         const responseRate = apiBarangay.totalReports > 0
-          ? Math.max(0, Math.min(100, Math.round(((apiBarangay.totalReports - activeIncidents) / apiBarangay.totalReports) * 100)))
-          : fallback.responseRate;
+          ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / apiBarangay.totalReports) * 100)))
+          : 100;
 
         return {
-          ...fallback,
-          code,
-          name: `Barangay ${code}`,
+          id: apiBarangay.id,
+          code: apiBarangay.code,
+          name: apiBarangay.name || `Barangay ${apiBarangay.code}`,
+          district: meta.district,
+          captain: meta.captain,
+          population: 0,
+          area: meta.area,
+          center: boundary[0] ?? BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? TONDO_TRI_BRGY_CENTER,
           boundary,
-          center: fallback.center ?? boundary[0],
+          color: meta.color,
           activeIncidents,
           totalThisMonth: apiBarangay.totalReports,
-          resolvedThisMonth: Math.max(apiBarangay.totalReports - activeIncidents, 0),
+          resolvedThisMonth,
           responseRate,
+          avgResponseMin: 0,
           responders: apiBarangay.officialCount,
           registeredUsers: apiBarangay.citizenCount,
+          alertLevel: alertLevelFromActive(activeIncidents),
           boundaryGeojson: apiBarangay.boundaryGeojson,
-          source: 'api' as const,
-        };
+        } satisfies BarangayMapView;
       });
 
       setBarangaysData(mapped);
@@ -575,7 +696,8 @@ export default function SABarangayMap() {
                   color: filterType === t ? 'white' : '#6B7280',
                 }}
               >
-                {INCIDENT_EMOJI[t] ?? ''} {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as keyof typeof INCIDENT_EMOJI)}
+                {t !== 'all' ? <span style={{ marginRight: 4, display: 'inline-flex', verticalAlign: 'middle' }}>{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
+                {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
               </button>
             ))}
             <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
@@ -699,7 +821,7 @@ export default function SABarangayMap() {
                         color: SEVERITY_COLORS[inc.severity], fontWeight: 600,
                         textTransform: 'capitalize', marginTop: 2,
                       }}>
-                        {getCategoryLabelForIncidentType(inc.type as keyof typeof INCIDENT_EMOJI)} · {inc.severity}
+                        {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
                       </div>
                     </div>
                   </Tooltip>
@@ -727,10 +849,10 @@ export default function SABarangayMap() {
                 </div>
               ))}
               <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
-                {Object.entries(INCIDENT_EMOJI).map(([type, emoji]) => (
+                {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
                   <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
-                    <span style={{ fontSize: 11 }}>{emoji}</span>
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type as keyof typeof INCIDENT_EMOJI)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
+                    <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type)}</span>
                   </div>
                 ))}
               </div>
@@ -1003,7 +1125,7 @@ export default function SABarangayMap() {
                         width: 26, height: 26, borderRadius: 6, background: color, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
                       }}>
-                        {INCIDENT_EMOJI[inc.type] ?? '📍'}
+                        {getIncidentTypeIcon(inc.type, 12, '#FFFFFF')}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ color: '#1E293B', fontSize: 11, fontWeight: 600 }}>{inc.label}</div>
@@ -1033,7 +1155,7 @@ export default function SABarangayMap() {
                     background: isSel ? `${b.color}14` : 'white',
                     border: `1px solid ${isSel ? b.color + '50' : '#E5E7EB'}`,
                     borderRadius: 10, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
-                    boxShadow: isSel ? `0 2px 8px ${b.color}22` : '0 1px 3px rgba(0,0,0,.05)',
+                    boxShadow: 'none',
                   }}
                 >
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: b.color, flexShrink: 0 }} />
@@ -1085,8 +1207,6 @@ export default function SABarangayMap() {
                       cursor: 'pointer',
                     }}
                     onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
-                    onMouseEnter={e => { if (selectedBarangay !== b.id) (e.currentTarget as HTMLElement).style.background = '#F9FAFB'; }}
-                    onMouseLeave={e => { if (selectedBarangay !== b.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

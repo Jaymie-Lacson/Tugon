@@ -57,6 +57,7 @@ export function Layout() {
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'
   ) || NAV_ITEMS[0];
   const settingsActive = location.pathname === '/app/settings' || location.pathname.startsWith('/app/settings/');
+  const isMapRoute = location.pathname === '/app/map' || location.pathname.startsWith('/app/map/');
 
   const handleSignOut = () => {
     clearAuthSession();
@@ -209,7 +210,7 @@ export function Layout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
           position: 'relative',
-          zIndex: 2100,
+          zIndex: isMapRoute ? 2500 : 90,
         }}>
           {/* Mobile logo */}
           <div className="mobile-logo" style={{ display: 'none', alignItems: 'center' }}>

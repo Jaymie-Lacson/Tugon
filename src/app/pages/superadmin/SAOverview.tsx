@@ -50,12 +50,8 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
     <div style={{
       background: '#FFFFFF', borderRadius: 12, padding: '18px 20px',
       boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      flex: '1 1 220px', minWidth: 180, position: 'relative', overflow: 'hidden',
+      flex: '1 1 220px', minWidth: 180,
     }}>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-        background: color,
-      }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{
           width: 38, height: 38, borderRadius: 10,
@@ -505,7 +501,6 @@ export default function SAOverview() {
             </div>
             <div style={{
               width: 8, height: 8, borderRadius: '50%', background: '#22C55E',
-              boxShadow: '0 0 8px #22C55E', animation: 'sa-pulse 2s infinite',
             }} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -516,7 +511,6 @@ export default function SAOverview() {
                 <div key={log.id} style={{
                   display: 'flex', gap: 10, padding: '8px 10px',
                   borderRadius: 8, background: '#F9FAFB', border: '1px solid #F3F4F6',
-                  borderLeft: `3px solid ${sev}`,
                 }}>
                   <div style={{
                     width: 24, height: 24, borderRadius: 6,
@@ -562,7 +556,7 @@ export default function SAOverview() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 5, padding: '3px 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 4px #22C55E' }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
               <span style={{ color: '#059669', fontSize: 9, fontWeight: 700 }}>LIVE · OSM</span>
             </div>
             <button
@@ -619,11 +613,6 @@ export default function SAOverview() {
       </div>
 
       <style>{`
-        @keyframes sa-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-
         @media (max-width: 1024px) {
           .sa-overview-grid {
             grid-template-columns: 1fr !important;

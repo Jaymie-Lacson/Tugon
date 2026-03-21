@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Plus, Filter, Users, Shield, Lock,
-  Edit2, CheckCircle2, XCircle, Clock,
+  Search, Plus, Filter, Users, Shield,
+  Edit2, CheckCircle2, Clock,
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
-import { SAUser } from '../../data/superAdminData';
 import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
@@ -33,7 +32,14 @@ const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as co
 
 const PAGE_SIZE = 8;
 
-type SAUserRow = Omit<SAUser, 'role' | 'status'> & {
+type SAUserRow = {
+  id: number;
+  name: string;
+  initials: string;
+  email: string;
+  barangay: string;
+  lastActive: string;
+  avatarColor: string;
   role: SupportedUiRole;
   status: SupportedUiStatus;
   backendUserId?: string;
@@ -707,10 +713,7 @@ export default function SAUsers() {
                     style={{
                       borderBottom: i < paginated.length - 1 ? '1px solid #F9FAFB' : 'none',
                       background: isSelected ? '#EFF6FF' : 'transparent',
-                      transition: 'background 0.1s',
                     }}
-                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = '#FAFAFA'; }}
-                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     <td style={{ padding: '12px 14px' }}>
                       <input
@@ -848,52 +851,6 @@ export default function SAUsers() {
               <ChevronRight size={14} color="#374151" />
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Role permissions reference */}
-      <div style={{
-        background: 'white', borderRadius: 14, padding: '18px 20px',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <Lock size={15} color={PRIMARY} />
-          <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>Role Permissions Matrix</div>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                <th style={{ padding: '8px 12px', textAlign: 'left', color: '#9CA3AF', fontSize: 11, fontWeight: 600 }}>Permission</th>
-                {Object.keys(ROLE_CONFIG).map(r => (
-                  <th key={r} style={{ padding: '8px 12px', textAlign: 'center', color: '#9CA3AF', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{r}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['View Incidents', true, true, true],
-                ['Create Incidents', false, true, false],
-                ['Manage Incidents', false, true, false],
-                ['View Analytics', true, true, false],
-                ['System Settings', true, false, false],
-                ['Manage Users', true, true, false],
-                ['Export Reports', true, true, false],
-              ].map(([label, ...perms]) => (
-                <tr key={String(label)} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                  <td style={{ padding: '8px 12px', color: '#374151', fontWeight: 500 }}>{label}</td>
-                  {perms.map((p, i) => (
-                    <td key={i} style={{ padding: '8px 12px', textAlign: 'center' }}>
-                      {p
-                        ? <CheckCircle2 size={15} color="#059669" />
-                        : <XCircle size={15} color="#D1D5DB" />
-                      }
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
 

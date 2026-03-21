@@ -10,7 +10,6 @@ import {
   Map,
   Menu,
   Users,
-  Wifi,
   X,
 } from 'lucide-react';
 import { superAdminApi } from '../../services/superAdminApi';
@@ -58,6 +57,7 @@ function getMonitoringColor(incidents: number): string {
 
 export default function SuperAdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [monitoringItems, setMonitoringItems] = useState<MonitoringItem[]>([
     { code: '251', name: 'Brgy 251', incidents: 0, color: '#22C55E' },
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
@@ -116,8 +116,13 @@ export default function SuperAdminLayout() {
   const handleSignOut = () => {
     clearAuthSession();
     setDrawerOpen(false);
+    setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
+
+  useEffect(() => {
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -150,7 +155,7 @@ export default function SuperAdminLayout() {
             to="/superadmin"
             onClick={() => setDrawerOpen(false)}
             aria-label="Go to TUGON super admin overview"
-            style={{ display: 'inline-flex', marginBottom: 10 }}
+            style={{ display: 'inline-flex' }}
           >
             <img
               src="/tugon-header-logo.svg"
@@ -158,26 +163,13 @@ export default function SuperAdminLayout() {
               style={{ width: 166, maxWidth: '100%', height: 'auto' }}
             />
           </NavLink>
-
-          <div style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 6, padding: '5px 10px',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 6px #22C55E' }} />
-            <span style={{ color: '#BFDBFE', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              SUPER ADMIN CONSOLE
-            </span>
-            <Wifi size={10} color="#93C5FD" style={{ marginLeft: 'auto' }} />
-          </div>
         </div>
 
         {/* Barangay quick status */}
         <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Monitoring</div>
-          {monitoringItems.map(b => (
-            <div key={b.name} style={{
+          {monitoringItems.map((b) => (
+            <div key={b.code} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '4px 6px', borderRadius: 5, marginBottom: 2,
               background: 'rgba(255,255,255,0.05)',
@@ -223,7 +215,6 @@ export default function SuperAdminLayout() {
                 <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 13, fontWeight: 400, flex: 1 }}>
                   {item.label}
                 </span>
-                {isActive && <ChevronRight size={12} color="#93C5FD" />}
               </NavLink>
             );
           })}
@@ -279,6 +270,8 @@ export default function SuperAdminLayout() {
           flexShrink: 0,
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
+          position: 'relative',
+          zIndex: 90,
         }}>
           <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
             <NavLink
@@ -330,16 +323,6 @@ export default function SuperAdminLayout() {
               </div>
             </div>
 
-            {/* System status pill */}
-            <div className="sa-header-system-pill" style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
-              borderRadius: 20, padding: '4px 10px',
-            }}>
-              <Wifi size={11} color="#22C55E" />
-              <span style={{ color: '#22C55E', fontSize: 10, fontWeight: 600 }}>ALL SYSTEMS ONLINE</span>
-            </div>
-
             {/* Alerts */}
             <div style={{ position: 'relative' }}>
               <button
@@ -360,7 +343,10 @@ export default function SuperAdminLayout() {
             </div>
 
             <button
-              onClick={() => setDrawerOpen(!drawerOpen)}
+              onClick={() => {
+                setDrawerOpen(!drawerOpen);
+                setProfileMenuOpen(false);
+              }}
               className="sa-mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -370,16 +356,115 @@ export default function SuperAdminLayout() {
               <Menu size={20} color="white" />
             </button>
 
-            <div className="sa-header-avatar" style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'default', flexShrink: 0,
-            }}>{userInitials}</div>
+            <div className="sa-header-avatar-wrap" style={{ position: 'relative', zIndex: 2200 }}>
+              <button
+                type="button"
+                className="sa-header-avatar"
+                onClick={() => {
+                  setProfileMenuOpen((prev) => !prev);
+                  setDrawerOpen(false);
+                }}
+                aria-label="Open profile actions"
+                aria-haspopup="menu"
+                aria-expanded={profileMenuOpen}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  color: 'white',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  border: 'none',
+                }}
+              >
+                {userInitials}
+              </button>
+
+              {profileMenuOpen ? (
+                <div
+                  role="menu"
+                  aria-label="Profile actions"
+                  style={{
+                    position: 'absolute',
+                    top: 44,
+                    right: 0,
+                    width: 200,
+                    background: '#fff',
+                    borderRadius: 12,
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                    border: '1px solid #E2E8F0',
+                    overflow: 'hidden',
+                    zIndex: 2300,
+                  }}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      navigate('/superadmin/users');
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '11px 12px',
+                      background: '#fff',
+                      border: 'none',
+                      borderBottom: '1px solid #F1F5F9',
+                      color: '#1E293B',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Open user management
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '11px 12px',
+                      background: '#fff',
+                      border: 'none',
+                      color: '#B91C1C',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 
-        <main style={{ flex: 1, overflowY: 'auto', paddingBottom: 0 }}>
+        <main
+          style={{ flex: 1, overflowY: 'auto', paddingBottom: 0 }}
+          onClick={() => {
+            if (profileMenuOpen) {
+              setProfileMenuOpen(false);
+            }
+          }}
+          onScroll={() => {
+            if (profileMenuOpen) {
+              setProfileMenuOpen(false);
+            }
+          }}
+        >
           <Outlet />
         </main>
       </div>
@@ -480,8 +565,8 @@ export default function SuperAdminLayout() {
           .sa-header-actions    { margin-left: auto !important; }
           .sa-header-breadcrumb { display: none !important; }
           .sa-header-datetime   { display: none !important; }
-          .sa-header-system-pill { display: none !important; }
           .sa-header-avatar     { display: none !important; }
+          .sa-header-avatar-wrap { display: none !important; }
           .sa-mobile-page-label { display: none !important; }
           .sa-mobile-overlay    { display: block !important; }
         }
