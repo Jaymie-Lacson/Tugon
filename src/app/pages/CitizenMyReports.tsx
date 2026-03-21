@@ -427,12 +427,25 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
   );
 }
 
-function DetailView({ report, onClose }: { report: CitizenReport; onClose: () => void }) {
+function DetailView({
+  report,
+  onClose,
+  onCancelReport,
+  cancelling = false,
+  cancelError = null,
+}: {
+  report: CitizenReport;
+  onClose: () => void;
+  onCancelReport?: (reportId: string) => Promise<void> | void;
+  cancelling?: boolean;
+  cancelError?: string | null;
+}) {
   const tc = typeConfig[report.type];
   const TypeIcon = tc.icon;
   const photoEvidence = report.evidence.filter((item) => item.kind === 'photo');
   const audioEvidence = report.evidence.filter((item) => item.kind === 'audio');
   const [previewPhotoIndex, setPreviewPhotoIndex] = useState<number | null>(null);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -442,6 +455,11 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (confirmCancelOpen) {
+        setConfirmCancelOpen(false);
         return;
       }
 
@@ -455,7 +473,7 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
 
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose, previewPhotoIndex]);
+  }, [confirmCancelOpen, onClose, previewPhotoIndex]);
 
   const timelineIconMap: Record<string, React.ReactNode> = {
     created:      <FileText size={13} />,
@@ -479,6 +497,13 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
 
   const hasPreviewableEvidence = photoEvidence.length > 0 || audioEvidence.length > 0;
   const selectedPhoto = previewPhotoIndex !== null ? photoEvidence[previewPhotoIndex] : null;
+  const canCancel = report.status === 'submitted' && Boolean(onCancelReport);
+
+  useEffect(() => {
+    if (!canCancel) {
+      setConfirmCancelOpen(false);
+    }
+  }, [canCancel]);
 
   return (
     <div className="citizen-report-modal" style={{
@@ -590,6 +615,46 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
             </div>
             <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>{report.description}</p>
           </section>
+
+          {canCancel && (
+            <section style={{
+              background: '#FFFBEB',
+              borderRadius: 14,
+              padding: '12px 14px',
+              border: '1px solid #FDE68A',
+              marginBottom: 16,
+            }}>
+              <p style={{ margin: 0, fontSize: 12, color: '#78350F', lineHeight: 1.6 }}>
+                You may cancel this report only while its status is <strong>Submitted</strong>.
+              </p>
+              <button
+                type="button"
+                disabled={cancelling}
+                onClick={() => {
+                  if (!onCancelReport) {
+                    return;
+                  }
+                  setConfirmCancelOpen(true);
+                }}
+                style={{
+                  marginTop: 10,
+                  background: cancelling ? '#94A3B8' : '#B91C1C',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: '9px 14px',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {cancelling ? 'Cancelling...' : 'Cancel Report'}
+              </button>
+              {cancelError && (
+                <p style={{ margin: '8px 0 0', fontSize: 11, color: '#B91C1C', lineHeight: 1.5 }}>{cancelError}</p>
+              )}
+            </section>
+          )}
 
           {(report.hasPhotos || report.hasAudio) && (
             <section style={{
@@ -778,6 +843,142 @@ function DetailView({ report, onClose }: { report: CitizenReport; onClose: () =>
         </main>
       </article>
 
+      {confirmCancelOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm report cancellation"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 230,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={() => {
+              if (!cancelling) {
+                setConfirmCancelOpen(false);
+              }
+            }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.65)' }}
+          />
+
+          <article
+            style={{
+              position: 'relative',
+              width: 'min(460px, 100%)',
+              background: '#FFFFFF',
+              borderRadius: 16,
+              boxShadow: '0 18px 44px rgba(15,23,42,0.28)',
+              overflow: 'hidden',
+            }}
+          >
+            <header
+              style={{
+                background: '#1E3A8A',
+                color: '#FFFFFF',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <AlertTriangle size={16} color="#FDE68A" />
+                <span style={{ fontSize: 14, fontWeight: 700 }}>Confirm Cancellation</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!cancelling) {
+                    setConfirmCancelOpen(false);
+                  }
+                }}
+                disabled={cancelling}
+                style={{
+                  width: 30,
+                  height: 30,
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.12)',
+                  color: '#FFFFFF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                }}
+                aria-label="Close confirmation dialog"
+              >
+                <X size={14} />
+              </button>
+            </header>
+
+            <div style={{ padding: '14px 16px 10px' }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#334155', lineHeight: 1.65 }}>
+                Cancel this submitted report? This action is only available while the ticket is still in <strong>Submitted</strong> status.
+              </p>
+            </div>
+
+            <footer
+              style={{
+                padding: '0 16px 14px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setConfirmCancelOpen(false)}
+                disabled={cancelling}
+                style={{
+                  height: 38,
+                  border: '1px solid #CBD5E1',
+                  borderRadius: 10,
+                  background: '#F8FAFC',
+                  color: '#475569',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '0 14px',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Keep Ticket
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!onCancelReport) {
+                    return;
+                  }
+                  void onCancelReport(report.id);
+                  setConfirmCancelOpen(false);
+                }}
+                disabled={cancelling}
+                style={{
+                  height: 38,
+                  border: 'none',
+                  borderRadius: 10,
+                  background: cancelling ? '#94A3B8' : '#B91C1C',
+                  color: '#FFFFFF',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '0 14px',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel Ticket'}
+              </button>
+            </footer>
+          </article>
+        </div>
+      )}
+
       {selectedPhoto && (
         <div
           className="citizen-photo-preview-overlay"
@@ -887,6 +1088,8 @@ export default function CitizenMyReports() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
@@ -915,6 +1118,27 @@ export default function CitizenMyReports() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    setCancelError(null);
+    setCancelSubmitting(false);
+  }, [selected?.id]);
+
+  const handleCancelReport = React.useCallback(async (reportId: string) => {
+    setCancelSubmitting(true);
+    setCancelError(null);
+    try {
+      const response = await citizenReportsApi.cancelReport(reportId);
+      const updated = mapApiReport(response.report);
+      setReports((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      setSelected(updated);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to cancel this report right now.';
+      setCancelError(message);
+    } finally {
+      setCancelSubmitting(false);
+    }
   }, []);
 
   // Filter + search + sort pipeline.
@@ -1049,7 +1273,15 @@ export default function CitizenMyReports() {
 
   return (
     <div style={{ position: 'relative' }}>
-      {selected && <DetailView report={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <DetailView
+          report={selected}
+          onClose={() => setSelected(null)}
+          onCancelReport={handleCancelReport}
+          cancelling={cancelSubmitting}
+          cancelError={cancelError}
+        />
+      )}
 
       <CitizenPageLayout
         header={
