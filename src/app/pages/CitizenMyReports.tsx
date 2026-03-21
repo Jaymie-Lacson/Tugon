@@ -19,7 +19,7 @@ import {
   type ApiTicketStatus,
 } from '../services/citizenReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
-import { getAuthSession } from '../utils/authSession';
+import { clearAuthSession, getAuthSession } from '../utils/authSession';
 
 export type CitizenReportStatus =
   | 'submitted'
@@ -884,8 +884,14 @@ export default function CitizenMyReports() {
   const [sortBy, setSortBy]       = useState<DateSortKey>('newest');
   const [sortOpen, setSortOpen]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
+
+  const handleSignOut = React.useCallback(() => {
+    clearAuthSession();
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1011,12 +1017,14 @@ export default function CitizenMyReports() {
       }
 
       setNotifOpen(false);
+      setProfileMenuOpen(false);
       setSortOpen(false);
       setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
+      setProfileMenuOpen(false);
       setSortOpen(false);
       setMobileMenuOpen(false);
     };
@@ -1089,6 +1097,7 @@ export default function CitizenMyReports() {
                   onToggle={() => {
                     setMobileMenuOpen((prev) => !prev);
                     setNotifOpen(false);
+                    setProfileMenuOpen(false);
                     setSortOpen(false);
                   }}
                   onNavigate={(key) => {
@@ -1103,6 +1112,7 @@ export default function CitizenMyReports() {
                 <button
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
+                    setProfileMenuOpen(false);
                     setSortOpen(false);
                     setMobileMenuOpen(false);
                   }}
@@ -1137,32 +1147,99 @@ export default function CitizenMyReports() {
                     />
                   ) : null}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNotifOpen(false);
-                    setSortOpen(false);
-                    setMobileMenuOpen(false);
-                    navigate('/citizen?tab=profile');
-                  }}
-                  aria-label="Open profile settings"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {initials}
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen((prev) => !prev);
+                      setNotifOpen(false);
+                      setSortOpen(false);
+                      setMobileMenuOpen(false);
+                    }}
+                    aria-label="Open profile actions"
+                    aria-haspopup="menu"
+                    aria-expanded={profileMenuOpen}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 14,
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {initials}
+                  </button>
+
+                  {profileMenuOpen && (
+                    <div
+                      role="menu"
+                      aria-label="Profile actions"
+                      style={{
+                        position: 'absolute',
+                        top: 44,
+                        right: 0,
+                        width: 190,
+                        background: '#fff',
+                        borderRadius: 12,
+                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                        border: '1px solid #E2E8F0',
+                        overflow: 'hidden',
+                        zIndex: 110,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setProfileMenuOpen(false);
+                          navigate('/citizen?tab=profile');
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '11px 12px',
+                          background: '#fff',
+                          border: 'none',
+                          borderBottom: '1px solid #F1F5F9',
+                          color: '#1E293B',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Open profile page
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setProfileMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '11px 12px',
+                          background: '#fff',
+                          border: 'none',
+                          color: '#B91C1C',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {notifOpen && (
