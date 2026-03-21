@@ -9,13 +9,10 @@ import {
   UserCheck,
   Bell,
   ChevronRight,
-  Shield,
   Settings,
   LogOut,
   Menu,
   X,
-  Wifi,
-  ExternalLink,
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 
@@ -59,6 +56,7 @@ export function Layout() {
   const currentPage = NAV_ITEMS.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'
   ) || NAV_ITEMS[0];
+  const settingsActive = location.pathname === '/app/settings' || location.pathname.startsWith('/app/settings/');
 
   const handleSignOut = () => {
     clearAuthSession();
@@ -104,14 +102,6 @@ export function Layout() {
               style={{ width: 166, maxWidth: '100%', height: 'auto' }}
             />
           </NavLink>
-          <div style={{
-            background: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: '6px 10px',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 6px #22C55E' }} />
-            <span style={{ color: '#A5F3FC', fontSize: 10, fontWeight: 500 }}>SYSTEM ONLINE</span>
-            <Wifi size={10} color="#93C5FD" style={{ marginLeft: 'auto' }} />
-          </div>
         </div>
 
         {/* Nav items */}
@@ -157,26 +147,19 @@ export function Layout() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
                 borderRadius: 8, textDecoration: 'none', marginBottom: 2, borderLeft: '3px solid transparent',
+                background: settingsActive ? 'rgba(255,255,255,0.06)' : 'transparent',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+              onMouseEnter={e => {
+                if (!settingsActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
+                }
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = settingsActive ? 'rgba(255,255,255,0.06)' : 'transparent';
+              }}
             >
               <Settings size={16} color="#93C5FD" />
-              <span style={{ color: '#BFDBFE', fontSize: 13 }}>Settings</span>
-            </NavLink>
-            <NavLink
-              to="/superadmin"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
-                borderRadius: 8, textDecoration: 'none', marginBottom: 2, borderLeft: '3px solid transparent',
-                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', marginTop: 4,
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-            >
-              <Shield size={15} color="#93C5FD" />
-              <span style={{ color: '#BFDBFE', fontSize: 12, fontWeight: 600 }}>Super Admin</span>
-              <ExternalLink size={11} color="#93C5FD" style={{ marginLeft: 'auto' }} />
+              <span style={{ color: settingsActive ? '#DBEAFE' : '#BFDBFE', fontSize: 13 }}>Settings</span>
             </NavLink>
           </div>
         </nav>
@@ -225,6 +208,8 @@ export function Layout() {
           display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
+          position: 'relative',
+          zIndex: 2100,
         }}>
           {/* Mobile logo */}
           <div className="mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
@@ -302,7 +287,7 @@ export function Layout() {
             </button>
 
             {/* User avatar */}
-            <div className="header-avatar-wrap" style={{ position: 'relative' }}>
+            <div className="header-avatar-wrap" style={{ position: 'relative', zIndex: 2200 }}>
               <button
                 type="button"
                 className="header-avatar"
@@ -346,7 +331,7 @@ export function Layout() {
                     boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
                     border: '1px solid #E2E8F0',
                     overflow: 'hidden',
-                    zIndex: 120,
+                    zIndex: 2300,
                   }}
                 >
                   <button
@@ -417,7 +402,7 @@ export function Layout() {
         </main>
       </div>
 
-      {/* ── Mobile Extra Drawer (Settings + Super Admin) ── */}
+      {/* ── Mobile Extra Drawer (Settings) ── */}
       {drawerOpen && (
         <div style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
@@ -495,15 +480,6 @@ export function Layout() {
             >
               <Settings size={20} color="#93C5FD" />
               <span style={{ color: '#BFDBFE', fontSize: 14 }}>Settings</span>
-            </NavLink>
-            <NavLink
-              to="/superadmin"
-              onClick={() => setDrawerOpen(false)}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, textDecoration: 'none', marginBottom: 6, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-            >
-              <Shield size={20} color="#93C5FD" />
-              <span style={{ color: '#BFDBFE', fontSize: 14, fontWeight: 600, flex: 1 }}>Super Admin</span>
-              <ExternalLink size={14} color="#93C5FD" />
             </NavLink>
 
             <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>

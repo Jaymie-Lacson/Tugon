@@ -60,6 +60,12 @@ This runs:
    - `SUPABASE_SERVICE_ROLE_KEY=<service-role-key-for-storage-upload>`
    - `SUPABASE_STORAGE_BUCKET=incident-evidence`
    - `REQUIRE_EVIDENCE_STORAGE_UPLOAD=1` (recommended for production; rejects report submit when storage upload is unavailable)
+   - `DSS_AI_ENABLED=1` (set to `1` to enable real AI-backed decision support generation)
+   - `DSS_AI_PROVIDER_URL=https://openrouter.ai/api/v1/chat/completions` (OpenRouter OpenAI-compatible endpoint)
+   - `DSS_AI_API_KEY=<your-openrouter-api-key>`
+   - `DSS_AI_MODEL=meta-llama/llama-3.1-8b-instruct:free` (recommended free model)
+   - `DSS_AI_HTTP_REFERER=https://<your-frontend-domain>` (recommended for OpenRouter)
+   - `DSS_AI_APP_NAME=TUGON DSS` (optional app label for OpenRouter logs)
 3. Railway uses [`railway.json`](./railway.json) to:
    - install/build server (`npm --prefix server ...`)
    - optionally run Prisma migrations before deploy (enabled only when `RUN_DB_MIGRATIONS=1`)

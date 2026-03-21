@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Incident, incidentTypeConfig } from '../data/incidents';
@@ -106,13 +106,14 @@ function makeIncidentIcon(incident: Incident, selected: boolean, hovered: boolea
 // ── Map-pan helper when selected changes ──────────────────────────────────
 function MapPanner({ incident }: { incident: Incident | null }) {
   const map = useMap();
-  const prev = useRef<string | null>(null);
+
   useEffect(() => {
-    if (incident && incident.id !== prev.current) {
-      map.panTo([incident.lat, incident.lng], { animate: true });
-      prev.current = incident.id;
+    if (incident) {
+      // Force-center the selected pin so side-panel selections always bring it to map center.
+      map.setView([incident.lat, incident.lng], map.getZoom(), { animate: true });
     }
   }, [incident, map]);
+
   return null;
 }
 
