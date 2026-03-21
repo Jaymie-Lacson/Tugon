@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Incident, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
@@ -17,10 +17,30 @@ const TYPE_COLORS: Record<string, string> = {
   typhoon:        '#0369A1',
 };
 
-const TYPE_EMOJI: Record<string, string> = {
-  fire: '🔥', flood: '💧', accident: '🚗',
-  medical: '❤️', crime: '🔒', infrastructure: '⚡', typhoon: '🌀',
-};
+function getTypeIconSvg(type: string, stroke: string): string {
+  switch (type) {
+    case 'fire':
+      return `<path d="M12 2.6c1.9 2.3 2.2 4.9.8 7 .9-.2 2.2.1 3.2 1 1.3 1.1 1.9 2.6 1.9 4.1 0 3.1-2.5 5.7-5.9 5.7s-5.9-2.6-5.9-5.7c0-2.4 1.4-4 3.5-5.7.8-.7 1.5-1.5 2-2.4.2.8.3 1.6.4 2.4 1.4-1.5 1.5-3.6 0-6.4z" fill="${stroke}"/>`;
+    case 'flood':
+      return `<path d="M12 3c-2.6 3.5-5.7 6.2-5.7 9.6 0 3.2 2.4 5.6 5.7 5.6s5.7-2.4 5.7-5.6C17.7 9.2 14.6 6.5 12 3z" fill="none" stroke="${stroke}" stroke-width="2.1" stroke-linejoin="round"/><path d="M4.8 19.2c1 .7 2 .9 3 .9s2-.2 3-.9c1-.7 2-.7 3 0 1 .7 2 .9 3 .9" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>`;
+    case 'accident':
+      return `<rect x="4.5" y="10" width="15" height="5.8" rx="1.4" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M7.2 10l2-2.3h5.7l2 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><circle cx="8.3" cy="16.8" r="1.5" fill="${stroke}"/><circle cx="15.7" cy="16.8" r="1.5" fill="${stroke}"/>`;
+    case 'medical':
+      return `<circle cx="12" cy="12" r="7" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M12 8.4v7.2M8.4 12h7.2" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/>`;
+    case 'crime':
+      return `<path d="M12 3.3l6.8 2.8v4.5c0 5-3.1 8.1-6.8 10.3-3.7-2.2-6.8-5.3-6.8-10.3V6.1L12 3.3z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 8.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.8" r="1.2" fill="${stroke}"/>`;
+    case 'infrastructure':
+      return `<path d="M12 4.5l8 14H4l8-14z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.1" fill="${stroke}"/>`;
+    case 'typhoon':
+      return `<path d="M7.1 8.8c1.2-1.8 3.9-2.3 5.9-.9 1.7 1.1 2.2 3.2 1.4 4.9-.9 1.8-2.9 2.7-4.8 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><path d="M16.9 15.2c-1.2 1.8-3.9 2.3-5.9.9-1.7-1.1-2.2-3.2-1.4-4.9.9-1.8 2.9-2.7 4.8-2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.4" fill="${stroke}"/>`;
+    default:
+      return `<circle cx="12" cy="12" r="5" fill="none" stroke="${stroke}" stroke-width="2.1"/><path d="M12 7v2m0 6v2m5-5h-2M9 12H7" stroke="${stroke}" stroke-width="2.1" stroke-linecap="round"/>`;
+  }
+}
+
+function getTypeIconMarkup(type: string, size: number, stroke: string): string {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${getTypeIconSvg(type, stroke)}</svg>`;
+}
 
 function makeIncidentIcon(incident: Incident, selected: boolean, hovered: boolean): L.DivIcon {
   const color  = incident.status === 'resolved'
@@ -64,7 +84,7 @@ function makeIncidentIcon(incident: Incident, selected: boolean, hovered: boolea
         transition:all 0.15s;
         position:relative;
       ">
-        ${TYPE_EMOJI[incident.type] ?? '📍'}
+        ${getTypeIconMarkup(incident.type, Math.round(size * 0.66), '#FFFFFF')}
       </div>
       <div style="
         width:0; height:0;
@@ -105,6 +125,7 @@ export interface IncidentMapProps {
   compact?: boolean;
   zoom?: number;
   heatmapClusters?: HeatmapClusterOverlay[];
+  showSelectedPopup?: boolean;
 }
 
 export interface HeatmapClusterOverlay {
@@ -195,6 +216,7 @@ export function IncidentMap({
   compact = false,
   zoom = 17,
   heatmapClusters = [],
+  showSelectedPopup = false,
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
@@ -314,9 +336,42 @@ export function IncidentMap({
               icon={icon}
               eventHandlers={{
                 click: () => onSelectIncident?.(selected ? null : inc),
+                popupclose: () => onSelectIncident?.(null),
               }}
               zIndexOffset={selected ? 1000 : inc.severity === 'critical' ? 500 : 0}
             >
+              {showSelectedPopup ? (
+                <Popup
+                  autoPan
+                  closeButton
+                >
+                  <div style={{ minWidth: 180, maxWidth: 240, fontSize: 12 }}>
+                    <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>{inc.id}</div>
+                    <div style={{ color: '#475569', marginBottom: 6 }}>{inc.location}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <span
+                        style={{
+                          background: incidentTypeConfig[inc.type].bgColor,
+                          color: incidentTypeConfig[inc.type].color,
+                          borderRadius: 999,
+                          padding: '2px 8px',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {getCategoryLabelForIncidentType(inc.type)}
+                      </span>
+                      <span style={{ color: TYPE_COLORS[inc.type], fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
+                        {inc.severity}
+                      </span>
+                    </div>
+                    <div style={{ color: '#64748B', fontSize: 11 }}>
+                      {inc.barangay} · {new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </div>
+                  </div>
+                </Popup>
+              ) : null}
               {!compact && (
                 <Tooltip
                   direction="top"
@@ -356,7 +411,19 @@ export function IncidentMap({
           <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
           {Object.entries(incidentTypeConfig).map(([key, cfg]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-              <span style={{ fontSize: 11 }}>{TYPE_EMOJI[key]}</span>
+              <span
+                style={{
+                  width: 18,
+                  height: 18,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: TYPE_COLORS[key] ?? '#334155',
+                  background: `${TYPE_COLORS[key] ?? '#334155'}1A`,
+                  borderRadius: 6,
+                }}
+                dangerouslySetInnerHTML={{ __html: getTypeIconMarkup(key, 13, 'currentColor') }}
+              />
               <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}
@@ -384,7 +451,19 @@ export function IncidentMap({
           <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
           {Object.entries(incidentTypeConfig).map(([key]) => (
             <div key={`mobile-${key}`} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-              <span style={{ fontSize: 11 }}>{TYPE_EMOJI[key]}</span>
+              <span
+                style={{
+                  width: 18,
+                  height: 18,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: TYPE_COLORS[key] ?? '#334155',
+                  background: `${TYPE_COLORS[key] ?? '#334155'}1A`,
+                  borderRadius: 6,
+                }}
+                dangerouslySetInnerHTML={{ __html: getTypeIconMarkup(key, 13, 'currentColor') }}
+              />
               <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}

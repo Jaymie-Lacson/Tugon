@@ -1,10 +1,12 @@
 import React from 'react';
+import { getAuthSession } from '../utils/authSession';
 
 interface CitizenPageLayoutProps {
   header: React.ReactNode;
   beforeMain?: React.ReactNode;
   children: React.ReactNode;
   afterMain?: React.ReactNode;
+  hideVerificationPrompt?: boolean;
   mainOnClick?: () => void;
   mainOnScroll?: React.UIEventHandler<HTMLElement>;
   mobileShellMaxWidth?: number;
@@ -16,11 +18,58 @@ interface CitizenPageLayoutProps {
   contentGutter?: number;
 }
 
+function getCitizenVerificationPrompt() {
+  const session = getAuthSession();
+  if (!session || session.user.role !== 'CITIZEN') {
+    return null;
+  }
+
+  if (session.user.isVerified || session.user.isBanned) {
+    return null;
+  }
+
+  const status = session.user.verificationStatus;
+  if (status === 'PENDING') {
+    return {
+      title: 'Verification submitted',
+      description: 'Your resident ID is under review. You can track your status anytime in your profile.',
+      bg: '#FFFBEB',
+      border: '#FDE68A',
+      color: '#92400E',
+      ctaLabel: 'View verification status',
+    };
+  }
+
+  if (status === 'REJECTED' || status === 'REUPLOAD_REQUESTED') {
+    const reason = session.user.verificationRejectionReason
+      ? ` Reason: ${session.user.verificationRejectionReason}`
+      : '';
+    return {
+      title: 'Action needed: re-upload your ID',
+      description: `Your verification requires an updated ID image.${reason}`,
+      bg: '#FEF2F2',
+      border: '#FECACA',
+      color: '#B91C1C',
+      ctaLabel: 'Re-upload ID now',
+    };
+  }
+
+  return {
+    title: 'Verify your account',
+    description: 'Submit one valid ID photo so officials can verify your account.',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
+    color: '#1E3A8A',
+    ctaLabel: 'Start ID verification',
+  };
+}
+
 export function CitizenPageLayout({
   header,
   beforeMain,
   children,
   afterMain,
+  hideVerificationPrompt = false,
   mainOnClick,
   mainOnScroll,
   mobileShellMaxWidth = 560,
@@ -31,6 +80,7 @@ export function CitizenPageLayout({
   desktopMainPaddingBottom = 28,
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
+  const verificationPrompt = getCitizenVerificationPrompt();
   const cssVars = {
     '--citizen-mobile-shell-max': `${mobileShellMaxWidth}px`,
     '--citizen-desktop-main-max': `${desktopMainMaxWidth}px`,
@@ -57,6 +107,49 @@ export function CitizenPageLayout({
       }}
     >
       {header}
+      {verificationPrompt && !hideVerificationPrompt ? (
+        <section
+          style={{
+            background: verificationPrompt.bg,
+            borderBottom: `1px solid ${verificationPrompt.border}`,
+            padding: '10px var(--citizen-content-gutter)',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 'var(--citizen-desktop-main-max)',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: verificationPrompt.color }}>
+                {verificationPrompt.title}
+              </div>
+              <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
+                {verificationPrompt.description}
+              </div>
+            </div>
+            <a
+              href="/citizen/verification"
+              style={{
+                textDecoration: 'none',
+                color: verificationPrompt.color,
+                fontWeight: 700,
+                fontSize: 12,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {verificationPrompt.ctaLabel}
+            </a>
+          </div>
+        </section>
+      ) : null}
       {beforeMain}
       <main
         className="citizen-page-layout-main"

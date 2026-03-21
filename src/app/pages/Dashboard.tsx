@@ -9,7 +9,7 @@ import {
   LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { type Incident, incidentTypeConfig } from '../data/incidents';
+import { type Incident, incidentTypeConfig, isIncidentVisibleOnMap } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
@@ -120,6 +120,7 @@ export default function Dashboard() {
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
   const todayIso = new Date().toISOString().slice(0, 10);
   const resolvedToday = incidents.filter(i => i.resolvedAt?.startsWith(todayIso));
@@ -198,12 +199,13 @@ export default function Dashboard() {
     try {
       const payload = await officialReportsApi.getReports();
       const mapped = payload.reports.map((report) => reportToIncident(report));
+      const mappedMapIncidents = mapped.filter((incident) => isIncidentVisibleOnMap(incident));
       setIncidents(mapped);
       setSelectedIncident((current) => {
         if (!current) {
-          return mapped[0] ?? null;
+          return mappedMapIncidents[0] ?? null;
         }
-        return mapped.find((item) => item.id === current.id) ?? null;
+        return mappedMapIncidents.find((item) => item.id === current.id) ?? null;
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load incidents.';
@@ -499,7 +501,7 @@ export default function Dashboard() {
           </div>
           <div style={{ flex: 1 }}>
             <IncidentMap
-              incidents={incidents}
+              incidents={mapIncidents}
               height={280}
               selectedId={selectedIncident?.id}
               onSelectIncident={setSelectedIncident}

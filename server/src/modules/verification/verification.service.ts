@@ -14,6 +14,7 @@ const ALLOWED_REJECTION_REASONS = new Set([
 
 const ALLOWED_ID_MIME_TYPES = new Set([
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
   "image/heic",
@@ -88,13 +89,11 @@ function sanitizeFileName(fileName: string | undefined, fallback: string): strin
   return safe.length > 0 ? safe : fallback;
 }
 
-function assertStorageConfig() {
-  if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
-    throw new VerificationError(
-      "ID upload storage is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
-      503,
-    );
+function normalizeIdMimeType(mimeType: string): string {
+  if (mimeType === "image/jpg") {
+    return "image/jpeg";
   }
+  return mimeType;
 }
 
 async function uploadCitizenIdImage(input: {
@@ -103,12 +102,15 @@ async function uploadCitizenIdImage(input: {
   mimeType?: string;
   dataUrl: string;
 }): Promise<string> {
-  assertStorageConfig();
-
   const { mimeType: parsedMimeType, bytes } = parseDataUrl(input.dataUrl);
-  const mimeType = input.mimeType?.trim() || parsedMimeType;
+  const mimeType = normalizeIdMimeType(input.mimeType?.trim() || parsedMimeType);
   if (!ALLOWED_ID_MIME_TYPES.has(mimeType)) {
     throw new VerificationError(`Unsupported ID image format: ${mimeType}`, 400);
+  }
+
+  // Storage fallback: keep verification usable even if object storage is not ready.
+  if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
+    return input.dataUrl;
   }
 
   const extension = mimeType.split("/")[1] ?? "jpg";
@@ -128,7 +130,8 @@ async function uploadCitizenIdImage(input: {
     });
 
   if (upload.error) {
-    throw new VerificationError(`Failed to upload ID image: ${upload.error.message}`, 502);
+    console.warn(`[verification] Storage upload failed; using inline ID fallback. Reason: ${upload.error.message}`);
+    return input.dataUrl;
   }
 
   // Return only the storage path; an authenticated endpoint should later
@@ -202,6 +205,39 @@ function notifyCitizenVerificationUpdate(input: {
   console.log(`[SMS-MOCK] Verification update to ${input.phoneNumber} (${input.fullName}): ${input.status}.${suffix}`);
 }
 
+async function resolveCitizenIdPreviewUrl(idImageUrl: string | null): Promise<string | null> {
+  if (!idImageUrl) {
+    return null;
+  }
+
+  if (idImageUrl.startsWith("data:image/")) {
+    return idImageUrl;
+  }
+
+  if (/^https?:\/\//i.test(idImageUrl)) {
+    return idImageUrl;
+  }
+
+  if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
+    return null;
+  }
+
+  const supabase = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  const signed = await supabase.storage
+    .from(env.supabaseIdStorageBucket)
+    .createSignedUrl(idImageUrl, 60 * 10);
+
+  if (signed.error) {
+    console.warn(`[verification] Failed to sign ID preview URL: ${signed.error.message}`);
+    return null;
+  }
+
+  return signed.data?.signedUrl ?? null;
+}
+
 export const verificationService = {
   async getCitizenStatus(citizenUserId: string) {
     const user = await (prisma.user as any).findUnique({
@@ -223,14 +259,18 @@ export const verificationService = {
       throw new VerificationError("Citizen account not found.", 404);
     }
 
+    const storedIdImageUrl = (user.idImageUrl as string | null) ?? null;
+    const previewUrl = await resolveCitizenIdPreviewUrl(storedIdImageUrl);
+
     return {
       verification: {
         isVerified: Boolean(user.isVerified),
-        idImageUrl: (user.idImageUrl as string | null) ?? null,
+        idImageUrl: storedIdImageUrl,
+        idImagePreviewUrl: previewUrl,
         verificationStatus: statusFromUser({
           isVerified: Boolean(user.isVerified),
           verificationStatus: (user.verificationStatus as VerificationStatusValue | null) ?? null,
-          idImageUrl: (user.idImageUrl as string | null) ?? null,
+          idImageUrl: storedIdImageUrl,
         }),
         rejectionReason: (user.verificationRejectionReason as string | null) ?? null,
         verifiedAt: user.verifiedAt instanceof Date ? user.verifiedAt.toISOString() : null,
@@ -254,6 +294,9 @@ export const verificationService = {
         id: true,
         role: true,
         isBanned: true,
+        isVerified: true,
+        verificationStatus: true,
+        idImageUrl: true,
       },
     });
 
@@ -263,6 +306,22 @@ export const verificationService = {
 
     if (user.isBanned) {
       throw new VerificationError("This account is restricted and cannot submit verification IDs.", 403);
+    }
+
+    const currentStatus = statusFromUser({
+      isVerified: Boolean(user.isVerified),
+      verificationStatus: (user.verificationStatus as VerificationStatusValue | null) ?? null,
+      idImageUrl: (user.idImageUrl as string | null) ?? null,
+    });
+
+    const canResubmit = currentStatus === "REJECTED" || currentStatus === "REUPLOAD_REQUESTED";
+    const hasPreviousSubmission = currentStatus === "PENDING" || currentStatus === "APPROVED";
+
+    if (hasPreviousSubmission && !canResubmit) {
+      throw new VerificationError(
+        "ID verification was already submitted. You can upload again only if your submission is rejected.",
+        409,
+      );
     }
 
     if (typeof input.dataUrl !== "string" || input.dataUrl.length === 0) {

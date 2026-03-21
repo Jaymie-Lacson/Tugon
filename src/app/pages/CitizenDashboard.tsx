@@ -10,15 +10,17 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { IncidentMap } from '../components/IncidentMap';
-import { StatusBadge, TypeBadge } from '../components/StatusBadge';
+import { StatusBadge } from '../components/StatusBadge';
 import {
   incidentTypeConfig,
   Incident,
   IncidentType,
+  isIncidentVisibleOnMap,
 } from '../data/incidents';
 import { citizenReportsApi } from '../services/citizenReportsApi';
+import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
-import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 
 /* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface CitizenMyReport {
@@ -28,6 +30,66 @@ interface CitizenMyReport {
   status: Incident['status'];
   reportedAt: string;
   location: string;
+}
+
+interface CitizenVerificationPreview {
+  isVerified: boolean;
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REUPLOAD_REQUESTED' | null;
+  rejectionReason: string | null;
+  idImageUrl: string | null;
+  isBanned: boolean;
+}
+
+function getVerificationSummary(verification: CitizenVerificationPreview) {
+  if (verification.isBanned) {
+    return {
+      title: 'Account Restricted',
+      detail: 'Please coordinate with your barangay office for account assistance.',
+      statusLabel: 'Restricted',
+      color: '#991B1B',
+      bg: '#FEE2E2',
+    };
+  }
+
+  if (verification.isVerified || verification.verificationStatus === 'APPROVED') {
+    return {
+      title: 'Verified Citizen',
+      detail: 'Your resident ID has been approved.',
+      statusLabel: 'Verified',
+      color: '#065F46',
+      bg: '#DCFCE7',
+    };
+  }
+
+  if (verification.verificationStatus === 'PENDING') {
+    return {
+      title: 'Verification Under Review',
+      detail: 'Your submitted ID is currently being reviewed by barangay staff.',
+      statusLabel: 'Pending Review',
+      color: '#92400E',
+      bg: '#FEF3C7',
+    };
+  }
+
+  if (verification.verificationStatus === 'REJECTED' || verification.verificationStatus === 'REUPLOAD_REQUESTED') {
+    return {
+      title: 'Action Needed: Re-upload ID',
+      detail: verification.rejectionReason
+        ? `Reason: ${verification.rejectionReason}`
+        : 'Your previous ID upload needs to be replaced with a clearer valid ID.',
+      statusLabel: 'Re-upload Required',
+      color: '#B91C1C',
+      bg: '#FEE2E2',
+    };
+  }
+
+  return {
+    title: 'ID Verification Required',
+    detail: 'Submit one valid ID photo so your account can be verified.',
+    statusLabel: 'Not Submitted',
+    color: '#1E3A8A',
+    bg: '#DBEAFE',
+  };
 }
 
 function timeAgo(dateStr: string) {
@@ -347,6 +409,18 @@ function MyReportRow({
 
 type Tab = 'home' | 'report' | 'map' | 'myreports' | 'profile';
 
+type CitizenNotificationItem = {
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+  title: string;
+  desc: string;
+  time: string;
+  unread: boolean;
+  action: 'open-map-incident' | 'open-my-reports' | 'open-home' | 'open-verification';
+  incidentId?: string;
+};
+
 /* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function CitizenDashboard() {
   const navigate = useNavigate();
@@ -373,9 +447,18 @@ export default function CitizenDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
+    isVerified: Boolean(session?.user.isVerified),
+    verificationStatus: session?.user.verificationStatus ?? null,
+    rejectionReason: session?.user.verificationRejectionReason ?? null,
+    idImageUrl: session?.user.idImageUrl ?? null,
+    isBanned: Boolean(session?.user.isBanned),
+  });
+  const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
 
-  const notificationItems = React.useMemo(() => {
+  const notificationItems = React.useMemo<CitizenNotificationItem[]>(() => {
     const criticalItems = incidents
       .filter((item) => (item.status === 'active' || item.status === 'responding') && item.severity === 'critical')
       .slice(0, 2)
@@ -387,6 +470,8 @@ export default function CitizenDashboard() {
         desc: `${incidentTypeConfig[item.type].label} in ${item.barangay}`,
         time: timeAgo(item.reportedAt),
         unread: true,
+        action: 'open-map-incident' as const,
+        incidentId: item.id,
       }));
 
     const reportItems = myReports
@@ -400,9 +485,24 @@ export default function CitizenDashboard() {
         desc: `${report.id} status: ${report.status}`,
         time: timeAgo(report.reportedAt),
         unread: true,
+        action: 'open-my-reports' as const,
       }));
 
-    const items = [...criticalItems, ...reportItems].slice(0, 3);
+    const verificationSummary = getVerificationSummary(verificationPreview);
+    const verificationItems = !verificationPreview.isVerified && !verificationPreview.isBanned
+      ? [{
+        icon: <Shield size={14} />,
+        color: verificationSummary.color,
+        bg: verificationSummary.bg,
+        title: verificationSummary.title,
+        desc: verificationSummary.statusLabel,
+        time: 'Account',
+        unread: true,
+        action: 'open-verification' as const,
+      }]
+      : [];
+
+    const items = [...verificationItems, ...criticalItems, ...reportItems].slice(0, 3);
     if (items.length > 0) {
       return items;
     }
@@ -415,8 +515,32 @@ export default function CitizenDashboard() {
       desc: 'You are all caught up for now.',
       time: 'Live',
       unread: false,
+      action: 'open-home',
     }];
-  }, [incidents, myReports]);
+  }, [incidents, myReports, verificationPreview]);
+
+  const handleNotificationClick = React.useCallback((item: CitizenNotificationItem) => {
+    if (item.action === 'open-map-incident') {
+      const targetIncident = mapIncidents.find((incident) => incident.id === item.incidentId) ?? null;
+      setSelectedIncident(targetIncident);
+      setActiveTab('map');
+    } else if (item.action === 'open-my-reports') {
+      navigate('/citizen/my-reports');
+    } else if (item.action === 'open-verification') {
+      navigate('/citizen/verification');
+    } else {
+      setActiveTab('home');
+    }
+
+    setNotifOpen(false);
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [mapIncidents, navigate]);
+
+  const handleSignOut = React.useCallback(() => {
+    clearAuthSession();
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
@@ -446,6 +570,33 @@ export default function CitizenDashboard() {
   }, []);
 
   useEffect(() => {
+    const loadVerification = async () => {
+      try {
+        const payload = await profileVerificationApi.getMyStatus();
+        const verificationState: CitizenVerificationPreview = {
+          isVerified: payload.verification.isVerified,
+          verificationStatus: payload.verification.verificationStatus,
+          rejectionReason: payload.verification.rejectionReason,
+          idImageUrl: payload.verification.idImageUrl,
+          isBanned: payload.verification.isBanned,
+        };
+        setVerificationPreview(verificationState);
+        patchAuthSessionUser({
+          isVerified: payload.verification.isVerified,
+          verificationStatus: payload.verification.verificationStatus,
+          verificationRejectionReason: payload.verification.rejectionReason,
+          idImageUrl: payload.verification.idImageUrl,
+          isBanned: payload.verification.isBanned,
+        });
+      } catch {
+        // Keep session-backed preview if endpoint fails.
+      }
+    };
+
+    void loadVerification();
+  }, []);
+
+  useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest('.citizen-web-header')) {
@@ -453,11 +604,13 @@ export default function CitizenDashboard() {
       }
 
       setNotifOpen(false);
+      setProfileMenuOpen(false);
       setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
+      setProfileMenuOpen(false);
       setMobileMenuOpen(false);
     };
 
@@ -488,16 +641,16 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab incidents={incidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} />;
+        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} />;
       case 'report':
         return null;
       case 'map':
-        return <MapTab incidents={incidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
       case 'myreports':
         navigate('/citizen/my-reports');
         return null;
       case 'profile':
-        return <ProfileTab myReports={myReports} />;
+        return <ProfileTab myReports={myReports} verificationPreview={verificationPreview} />;
     }
   };
 
@@ -546,6 +699,7 @@ export default function CitizenDashboard() {
                 onToggle={() => {
                   setMobileMenuOpen((prev) => !prev);
                   setNotifOpen(false);
+                  setProfileMenuOpen(false);
                 }}
                 onNavigate={(key) => {
                   setMobileMenuOpen(false);
@@ -559,6 +713,7 @@ export default function CitizenDashboard() {
               <button
                 onClick={() => {
                   setNotifOpen(!notifOpen);
+                  setProfileMenuOpen(false);
                   setMobileMenuOpen(false);
                 }}
                 style={{
@@ -591,23 +746,97 @@ export default function CitizenDashboard() {
                   />
                 ) : null}
               </button>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'linear-gradient(135deg, #B4730A, #D97706)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                }}
-                onClick={() => setActiveTab('profile')}
-              >
-                {initials}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  aria-label="Open profile actions"
+                  aria-haspopup="menu"
+                  aria-expanded={profileMenuOpen}
+                  onClick={() => {
+                    setProfileMenuOpen((prev) => !prev);
+                    setNotifOpen(false);
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    border: 'none',
+                  }}
+                >
+                  {initials}
+                </button>
+
+                {profileMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-label="Profile actions"
+                    style={{
+                      position: 'absolute',
+                      top: 44,
+                      right: 0,
+                      width: 190,
+                      background: '#fff',
+                      borderRadius: 12,
+                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                      border: '1px solid #E2E8F0',
+                      overflow: 'hidden',
+                      zIndex: 110,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setActiveTab('profile');
+                        setProfileMenuOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '11px 12px',
+                        background: '#fff',
+                        border: 'none',
+                        borderBottom: '1px solid #F1F5F9',
+                        color: '#1E293B',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Open profile page
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '11px 12px',
+                        background: '#fff',
+                        border: 'none',
+                        color: '#B91C1C',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -650,16 +879,23 @@ export default function CitizenDashboard() {
                   </span>
                 </div>
                 {notificationItems.map((n, i) => (
-                  <div
+                  <button
                     key={`${n.title}-${i}`}
+                    type="button"
+                    onClick={() => handleNotificationClick(n)}
                     style={{
                       padding: '12px 16px',
                       display: 'flex',
+                      width: '100%',
                       gap: 10,
                       alignItems: 'flex-start',
                       borderBottom: i < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
                       cursor: 'pointer',
                       background: n.unread ? '#FFFBEB' : '#fff',
+                      borderLeft: 'none',
+                      borderRight: 'none',
+                      borderTop: 'none',
+                      textAlign: 'left',
                     }}
                   >
                     <div
@@ -682,7 +918,7 @@ export default function CitizenDashboard() {
                       <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
                       <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -792,6 +1028,7 @@ function HomeTab({
   greetingLabel,
   barangayLabel,
   todayLabel,
+  verificationPreview,
 }: {
   incidents: Incident[];
   myReports: CitizenMyReport[];
@@ -802,10 +1039,12 @@ function HomeTab({
   greetingLabel: string;
   barangayLabel: string;
   todayLabel: string;
+  verificationPreview: CitizenVerificationPreview;
 }) {
   const navigate = useNavigate();
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
+  const verificationSummary = getVerificationSummary(verificationPreview);
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -869,6 +1108,46 @@ function HomeTab({
           />
         </div>
       </section>
+
+      {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
+        <section
+          style={{
+            background: verificationSummary.bg,
+            borderRadius: 16,
+            border: `1px solid ${verificationSummary.color}33`,
+            boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+            padding: 14,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: verificationSummary.color }}>
+                {verificationSummary.title}
+              </div>
+              <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
+                {verificationSummary.detail}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/citizen/verification')}
+              style={{
+                border: 'none',
+                borderRadius: 10,
+                background: '#1E3A8A',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '10px 12px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Open Verification
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section
         style={{
@@ -983,6 +1262,7 @@ function HomeTab({
                 onSelectIncident={setSelectedIncident}
                 compact={false}
                 zoom={14}
+                showSelectedPopup
               />
             </div>
           </div>
@@ -1562,7 +1842,7 @@ function MapTab({
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
 }) {
-  const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all');
+  const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
   const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
 
@@ -1593,17 +1873,15 @@ function MapTab({
     filter === 'all'
       ? incidents
       : filter === 'active'
-      ? incidents.filter((i) => i.status !== 'resolved')
-      : incidents.filter((i) => i.status === 'resolved');
+      ? incidents.filter((i) => i.status === 'active')
+      : incidents.filter((i) => i.status === 'responding');
   const hasPinsForFilter = filtered.length > 0;
   const isCompactMobileHeight = isMobileViewport && viewportHeight < 760;
   // Keep map viewport-filling across header variants while preserving space for filters/detail panel.
   const mapBaseOffset = isMobileViewport
     ? (isCompactMobileHeight ? 114 : 126)
     : 186;
-  const mapDetailOffset = selectedIncident
-    ? (isMobileViewport ? (isCompactMobileHeight ? 138 : 156) : 140)
-    : (isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48);
+  const mapDetailOffset = isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48;
   const mapHeight = `max(320px, calc(100dvh - ${mapBaseOffset + mapDetailOffset}px - env(safe-area-inset-bottom)))`;
   const mapShellMinHeight = isMobileViewport
     ? (isCompactMobileHeight ? 'calc(100dvh - 108px)' : 'calc(100dvh - 120px)')
@@ -1637,7 +1915,7 @@ function MapTab({
         <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
           My Report Map
         </div>
-        {(['all', 'active', 'resolved'] as const).map((f) => (
+        {(['all', 'active', 'responding'] as const).map((f) => (
           <button
             className="citizen-map-filter-chip"
             key={f}
@@ -1688,6 +1966,7 @@ function MapTab({
           onSelectIncident={setSelectedIncident}
           compact={false}
           zoom={15}
+                showSelectedPopup
         />
         {!hasPinsForFilter ? (
           <div
@@ -1737,37 +2016,7 @@ function MapTab({
         ) : null}
       </div>
 
-      {/* Detail panel */}
-      {selectedIncident && (
-        <div
-          style={{
-            background: '#fff',
-            borderTop: '1px solid #E2E8F0',
-            padding: '14px 16px calc(14px + env(safe-area-inset-bottom))',
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
-            maxHeight: isMobileViewport ? '34dvh' : 'none',
-            overflowY: isMobileViewport ? 'auto' : 'visible',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <TypeBadge type={selectedIncident.type} size="sm" />
-            <StatusBadge status={selectedIncident.status} size="sm" pulse />
-          </div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 2 }}>
-            {selectedIncident.id}
-          </div>
-          <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>
-            {selectedIncident.description}
-          </div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#94A3B8' }}>
-            <span><Clock size={10} style={{ verticalAlign: 'middle' }} /> {timeAgo(selectedIncident.reportedAt)}</span>
-            <span><User size={10} style={{ verticalAlign: 'middle' }} /> {selectedIncident.responders} responders</span>
-            {selectedIncident.affectedPersons !== undefined && (
-              <span><AlertTriangle size={10} style={{ verticalAlign: 'middle' }} /> {selectedIncident.affectedPersons} affected</span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Details now appear in popup anchored to selected pin. */}
     </div>
   );
 }
@@ -1856,11 +2105,15 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PROFILE TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
+function ProfileTab({
+  myReports,
+  verificationPreview,
+}: {
+  myReports: CitizenMyReport[];
+  verificationPreview: CitizenVerificationPreview;
+}) {
   const navigate = useNavigate();
   const session = getAuthSession();
-  const [settingMessage, setSettingMessage] = useState('');
-  const [editOpen, setEditOpen] = useState(false);
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
   const phoneNumber = session?.user.phoneNumber || 'Not available';
   const initials = fullName
@@ -1869,10 +2122,10 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'CU';
-  const phoneDigits = phoneNumber.replace(/\D/g, '');
   const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Assigned barangay';
   const resolvedCount = myReports.filter((report) => report.status === 'resolved').length;
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
+  const verificationSummary = getVerificationSummary(verificationPreview);
 
   const handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
     if (action === 'personal') {
@@ -1887,7 +2140,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
     }
 
     if (action === 'verification') {
-      if (session?.user.isVerified) {
+      if (verificationPreview.isVerified) {
         setSettingMessage('Your account is already ID-verified. No further action is required.');
       } else {
         navigate('/citizen/verification');
@@ -1965,7 +2218,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
             border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
-            <Shield size={12} /> {session?.user.isVerified ? 'Verified Citizen' : 'Verification Pending'}
+          <Shield size={12} /> {verificationSummary.statusLabel}
         </div>
       </div>
 
@@ -1980,9 +2233,46 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         ))}
       </div>
 
-      {/* Settings list */}
+      {/* Read-only profile information */}
       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
-        Account Settings
+        Verification Preview
+      </div>
+      <div
+        style={{
+          background: verificationSummary.bg,
+          borderRadius: 14,
+          border: `1px solid ${verificationSummary.color}33`,
+          padding: '12px 14px',
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 13, color: verificationSummary.color }}>
+          {verificationSummary.title}
+        </div>
+        <div style={{ fontSize: 12, color: '#475569', marginTop: 4, lineHeight: 1.5 }}>
+          {verificationSummary.detail}
+        </div>
+        {verificationPreview.idImageUrl ? (
+          <a
+            href={verificationPreview.idImageUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              marginTop: 8,
+              textDecoration: 'none',
+              color: '#1E3A8A',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            View latest uploaded ID
+          </a>
+        ) : null}
+      </div>
+
+      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
+        Account Information
       </div>
       <div
         style={{
@@ -1996,21 +2286,19 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         {[
           { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isVerified ? 'Resident ID verified' : 'Submit valid ID for review', action: 'verification' as const },
+          { icon: <Shield size={16} />, label: 'Verification Status', sub: verificationSummary.statusLabel, action: 'verification' as const },
           { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
           { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
-          <button
+          <div
             key={item.label}
-            onClick={() => handleSettingAction(item.action)}
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               padding: '14px 16px',
-              cursor: 'pointer',
-              border: 'none',
+              cursor: 'default',
               textAlign: 'left',
               background: '#fff',
               borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
@@ -2035,117 +2323,64 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
               <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>{item.label}</div>
               <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{item.sub}</div>
             </div>
-            <ChevronRight size={16} color="#CBD5E1" />
-          </button>
+          </div>
         ))}
       </div>
 
-      {settingMessage && (
-        <div
+      <div
+        style={{
+          background: '#F8FAFC',
+          border: '1px solid #E2E8F0',
+          borderRadius: 12,
+          padding: '10px 12px',
+          marginBottom: 14,
+          color: '#475569',
+          fontSize: 12,
+          lineHeight: 1.5,
+        }}
+      >
+        Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
+      </div>
+
+      {!session?.user.isPhoneVerified ? (
+        <button
+          onClick={() => navigate('/auth/verify')}
           style={{
-            background: '#EFF6FF',
-            border: '1px solid #BFDBFE',
+            width: '100%',
+            padding: '12px',
             borderRadius: 12,
-            padding: '10px 12px',
-            marginBottom: 14,
+            border: '1.5px solid #BFDBFE',
+            background: '#EFF6FF',
             color: '#1E3A8A',
-            fontSize: 12,
-            lineHeight: 1.5,
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            marginBottom: 12,
           }}
         >
-          {settingMessage}
-        </div>
-      )}
+          Verify Phone Number
+        </button>
+      ) : null}
 
-      {editOpen && (
-        <div
+      {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
+        <button
+          onClick={() => navigate('/citizen/verification')}
           style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15,23,42,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 120,
-            padding: 16,
+            width: '100%',
+            padding: '12px',
+            borderRadius: 12,
+            border: '1.5px solid #BFDBFE',
+            background: '#EFF6FF',
+            color: '#1E3A8A',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            marginBottom: 12,
           }}
-          onClick={() => setEditOpen(false)}
         >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: 460,
-              background: '#fff',
-              borderRadius: 14,
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 18px 48px rgba(15,23,42,0.22)',
-              padding: 16,
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div style={{ fontWeight: 800, fontSize: 16, color: '#1E293B', marginBottom: 4 }}>
-              Personal Information
-            </div>
-            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 14 }}>
-              Profile contact information is managed by your verified account and cannot be edited here.
-            </div>
-
-            <label style={{ fontSize: 12, color: '#475569', fontWeight: 700, display: 'block', marginBottom: 6 }}>
-              Full Name
-            </label>
-            <input
-              value={fullName}
-              readOnly
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontSize: 13,
-                color: '#1E293B',
-                boxSizing: 'border-box',
-                marginBottom: 12,
-              }}
-            />
-
-            <label style={{ fontSize: 12, color: '#475569', fontWeight: 700, display: 'block', marginBottom: 6 }}>
-              Contact Number
-            </label>
-            <input
-              value={phoneNumber}
-              readOnly
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontSize: 13,
-                color: '#1E293B',
-                boxSizing: 'border-box',
-                marginBottom: 14,
-              }}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button
-                onClick={() => setEditOpen(false)}
-                style={{
-                  border: '1px solid #CBD5E1',
-                  background: '#fff',
-                  color: '#334155',
-                  borderRadius: 10,
-                  padding: '9px 12px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          Open Verification Status
+        </button>
+      ) : null}
 
       {/* Sign out */}
       <button
