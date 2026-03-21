@@ -5,6 +5,7 @@ import {
   type ApiPendingVerification,
   type ApiVerificationDecision,
 } from '../services/officialReportsApi';
+import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 
 const REJECTION_REASONS = [
   'Blurry / unreadable image',
@@ -26,6 +27,7 @@ export default function Verifications() {
   const [rows, setRows] = useState<ApiPendingVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [reasonByUser, setReasonByUser] = useState<Record<string, string>>({});
   const [notesByUser, setNotesByUser] = useState<Record<string, string>>({});
@@ -64,6 +66,16 @@ export default function Verifications() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!initialLoadPending) {
+      return;
+    }
+
+    if (!loading) {
+      setInitialLoadPending(false);
+    }
+  }, [initialLoadPending, loading]);
+
   const submitDecision = async (citizenUserId: string, decision: ApiVerificationDecision) => {
     const reason = reasonByUser[citizenUserId] ?? '';
     const notes = notesByUser[citizenUserId] ?? '';
@@ -88,6 +100,10 @@ export default function Verifications() {
       setSubmittingId(null);
     }
   };
+
+  if (initialLoadPending) {
+    return <OfficialPageInitialLoader label="Loading verification page" />;
+  }
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
