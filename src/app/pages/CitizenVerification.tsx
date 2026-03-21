@@ -1,10 +1,42 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Clock3, ShieldAlert, UploadCloud, XCircle } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  Bell,
+  CheckCircle2,
+  Clock3,
+  ShieldAlert,
+  UploadCloud,
+  XCircle,
+  Paperclip,
+  X,
+  ChevronRight,
+} from 'lucide-react';
+import { CitizenPageLayout } from '../components/CitizenPageLayout';
+import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
+import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { profileVerificationApi, type CitizenVerificationState } from '../services/profileVerificationApi';
 import { getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const MAX_FILE_SIZE_MB = 8;
+
+function isAllowedImageFile(file: File): boolean {
+  if (ALLOWED_TYPES.includes(file.type)) {
+    return true;
+  }
+
+  if (!file.type) {
+    const lower = file.name.toLowerCase();
+    return lower.endsWith('.jpg')
+      || lower.endsWith('.jpeg')
+      || lower.endsWith('.png')
+      || lower.endsWith('.webp')
+      || lower.endsWith('.heic')
+      || lower.endsWith('.heif');
+  }
+
+  return false;
+}
 
 function statusMeta(state: CitizenVerificationState | null) {
   if (!state) {
@@ -13,6 +45,7 @@ function statusMeta(state: CitizenVerificationState | null) {
       color: '#475569',
       bg: '#F8FAFC',
       icon: <Clock3 size={14} />,
+      helper: 'Submit one valid ID so officials can review your account.',
     };
   }
 
@@ -22,6 +55,7 @@ function statusMeta(state: CitizenVerificationState | null) {
       color: '#991B1B',
       bg: '#FEE2E2',
       icon: <ShieldAlert size={14} />,
+      helper: 'This account is currently restricted.',
     };
   }
 
@@ -31,15 +65,7 @@ function statusMeta(state: CitizenVerificationState | null) {
       color: '#065F46',
       bg: '#DCFCE7',
       icon: <CheckCircle2 size={14} />,
-    };
-  }
-
-  if (state.verificationStatus === 'REJECTED') {
-    return {
-      label: 'Rejected',
-      color: '#9A3412',
-      bg: '#FFEDD5',
-      icon: <XCircle size={14} />,
+      helper: 'Your resident ID has been approved.',
     };
   }
 
@@ -49,6 +75,17 @@ function statusMeta(state: CitizenVerificationState | null) {
       color: '#92400E',
       bg: '#FEF3C7',
       icon: <Clock3 size={14} />,
+      helper: 'Your uploaded ID is currently under barangay review.',
+    };
+  }
+
+  if (state.verificationStatus === 'REJECTED' || state.verificationStatus === 'REUPLOAD_REQUESTED') {
+    return {
+      label: 'Re-upload Required',
+      color: '#9A3412',
+      bg: '#FFEDD5',
+      icon: <XCircle size={14} />,
+      helper: 'Please upload a clearer or valid ID image.',
     };
   }
 
@@ -57,20 +94,90 @@ function statusMeta(state: CitizenVerificationState | null) {
     color: '#475569',
     bg: '#F8FAFC',
     icon: <Clock3 size={14} />,
+    helper: 'Submit one valid ID so officials can review your account.',
   };
 }
 
+function isPreviewableImageUrl(value: string | null | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return value.startsWith('data:image/') || /^https?:\/\//i.test(value);
+}
+
+function shortFileName(name: string, max = 28): string {
+  if (name.length <= max) {
+    return name;
+  }
+  return `${name.slice(0, max)}....`;
+}
+
 export default function CitizenVerification() {
+  const navigate = useNavigate();
+  const session = getAuthSession();
+
   const [status, setStatus] = useState<CitizenVerificationState | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [frontIdFile, setFrontIdFile] = useState<File | null>(null);
+  const [backIdFile, setBackIdFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const frontFileInputRef = useRef<HTMLInputElement | null>(null);
+  const backFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const session = getAuthSession();
+  const fullName = session?.user.fullName?.trim() || 'Citizen';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CU';
 
   const meta = useMemo(() => statusMeta(status), [status]);
+  const frontIdPreviewUrl = useMemo(() => {
+    if (!frontIdFile) {
+      return null;
+    }
+    return URL.createObjectURL(frontIdFile);
+  }, [frontIdFile]);
+
+  const backIdPreviewUrl = useMemo(() => {
+    if (!backIdFile) {
+      return null;
+    }
+    return URL.createObjectURL(backIdFile);
+  }, [backIdFile]);
+
+  useEffect(() => {
+    return () => {
+      if (frontIdPreviewUrl) {
+        URL.revokeObjectURL(frontIdPreviewUrl);
+      }
+      if (backIdPreviewUrl) {
+        URL.revokeObjectURL(backIdPreviewUrl);
+      }
+    };
+  }, [frontIdPreviewUrl, backIdPreviewUrl]);
+
+  const latestUploadedPreviewUrl = useMemo(() => {
+    if (!status) {
+      return null;
+    }
+
+    if (isPreviewableImageUrl(status.idImagePreviewUrl)) {
+      return status.idImagePreviewUrl as string;
+    }
+
+    if (isPreviewableImageUrl(status.idImageUrl)) {
+      return status.idImageUrl as string;
+    }
+
+    return null;
+  }, [status]);
 
   const load = async () => {
     setLoading(true);
@@ -97,32 +204,76 @@ export default function CitizenVerification() {
     void load();
   }, []);
 
-  const onSelectFile = (file: File | null) => {
+  useEffect(() => {
+    const handleOutsideHeaderTap = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.citizen-web-header')) {
+        return;
+      }
+      setNotifOpen(false);
+      setMobileMenuOpen(false);
+    };
+
+    const handleAnyScroll = () => {
+      setNotifOpen(false);
+      setMobileMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsideHeaderTap);
+    document.addEventListener('scroll', handleAnyScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideHeaderTap);
+      document.removeEventListener('scroll', handleAnyScroll, true);
+    };
+  }, []);
+
+  const onSelectFile = (slot: 'front' | 'back', file: File | null) => {
     setMessage(null);
     if (!file) {
-      setSelectedFile(null);
+      if (slot === 'front') {
+        setFrontIdFile(null);
+      } else {
+        setBackIdFile(null);
+      }
       return;
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!isAllowedImageFile(file)) {
       setError('Please upload a JPG, PNG, WEBP, HEIC, or HEIF image.');
-      setSelectedFile(null);
+      if (slot === 'front') {
+        setFrontIdFile(null);
+      } else {
+        setBackIdFile(null);
+      }
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       setError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
-      setSelectedFile(null);
+      if (slot === 'front') {
+        setFrontIdFile(null);
+      } else {
+        setBackIdFile(null);
+      }
       return;
     }
 
     setError(null);
-    setSelectedFile(file);
+    if (slot === 'front') {
+      setFrontIdFile(file);
+    } else {
+      setBackIdFile(file);
+    }
   };
 
   const submit = async () => {
-    if (!selectedFile) {
-      setError('Please choose an ID image first.');
+    if (!canUploadVerification) {
+      setError('You can upload again only when your previous verification is rejected or marked for re-upload.');
+      return;
+    }
+
+    if (!frontIdFile || !backIdFile) {
+      setError('Please upload both the front and back images of your ID.');
       return;
     }
 
@@ -131,10 +282,17 @@ export default function CitizenVerification() {
     setMessage(null);
 
     try {
-      const payload = await profileVerificationApi.submitMyId(selectedFile);
+      const payload = await profileVerificationApi.submitMyId(frontIdFile, backIdFile);
       setMessage(payload.message);
       await load();
-      setSelectedFile(null);
+      setFrontIdFile(null);
+      setBackIdFile(null);
+      if (frontFileInputRef.current) {
+        frontFileInputRef.current.value = '';
+      }
+      if (backFileInputRef.current) {
+        backFileInputRef.current.value = '';
+      }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Failed to upload ID image.');
     } finally {
@@ -143,113 +301,681 @@ export default function CitizenVerification() {
   };
 
   const isRestricted = Boolean(status?.isBanned || session?.user.isBanned);
+  const currentVerificationStatus = status?.verificationStatus ?? null;
+  const canUploadVerification = !isRestricted && (
+    currentVerificationStatus === null
+    || currentVerificationStatus === 'REJECTED'
+    || currentVerificationStatus === 'REUPLOAD_REQUESTED'
+  );
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F1F5F9', padding: '18px 14px' }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', display: 'grid', gap: 14 }}>
-        <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-          <h1 style={{ margin: 0, fontSize: 22, color: '#1E293B' }}>Resident ID Verification</h1>
-          <p style={{ marginTop: 6, marginBottom: 0, color: '#64748B', fontSize: 13 }}>
-            Submit one valid ID photo for barangay review. You can still report incidents while your account is pending.
-          </p>
-        </section>
+    <CitizenPageLayout
+      hideVerificationPrompt
+      header={
+        <header
+          className="citizen-web-header"
+          style={{
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            height: 60,
+            flexShrink: 0,
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
+          }}
+        >
+          <div
+            className="citizen-web-header-inner"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '0 var(--citizen-content-gutter)',
+              height: '100%',
+              position: 'relative',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Citizen Portal"
+                style={{ height: 38, width: 'auto', display: 'block' }}
+              />
+            </div>
 
-        <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 999, background: meta.bg, color: meta.color, fontWeight: 700, fontSize: 12 }}>
-            {meta.icon} {meta.label}
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <CitizenMobileMenu
+                activeKey="profile"
+                open={mobileMenuOpen}
+                onToggle={() => {
+                  setMobileMenuOpen((prev) => !prev);
+                  setNotifOpen(false);
+                }}
+                onNavigate={(key) => {
+                  setMobileMenuOpen(false);
+                  if (key === 'report') navigate('/citizen/report');
+                  else if (key === 'myreports') navigate('/citizen/my-reports');
+                  else if (key === 'map') navigate('/citizen?tab=map');
+                  else if (key === 'profile') navigate('/citizen?tab=profile');
+                  else navigate('/citizen');
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setNotifOpen(!notifOpen);
+                  setMobileMenuOpen(false);
+                }}
+                aria-label="Notifications"
+                style={{
+                  position: 'relative',
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: 10,
+                  width: 38,
+                  height: 38,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#fff',
+                }}
+              >
+                <Bell size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/citizen?tab=profile')}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                {initials}
+              </button>
+            </div>
 
-          {loading ? (
-            <p style={{ marginTop: 12, color: '#64748B', fontSize: 13 }}>Loading verification status...</p>
-          ) : (
-            <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-              {status?.rejectionReason ? (
-                <div style={{ background: '#FFEDD5', border: '1px solid #FDBA74', borderRadius: 10, padding: '9px 11px', color: '#9A3412', fontSize: 12 }}>
-                  Rejection reason: {status.rejectionReason}
-                </div>
-              ) : null}
-
-              {status?.bannedReason ? (
-                <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 10, padding: '9px 11px', color: '#991B1B', fontSize: 12 }}>
-                  Account restriction reason: {status.bannedReason}
-                </div>
-              ) : null}
-
-              {status?.idImageUrl ? (
-                <a
-                  href={status.idImageUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ width: 'fit-content', textDecoration: 'none', color: '#1E3A8A', fontSize: 12, fontWeight: 700 }}
+            {notifOpen ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 66,
+                  right: 16,
+                  width: 300,
+                  background: '#fff',
+                  borderRadius: 14,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid #F1F5F9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
                 >
-                  View your latest uploaded ID
-                </a>
-              ) : null}
+                  <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNotifOpen(false);
+                    navigate('/citizen?tab=profile');
+                  }}
+                  style={{
+                    width: '100%',
+                    border: 'none',
+                    background: '#FFFBEB',
+                    padding: '12px 16px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#92400E' }}>{meta.label}</div>
+                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{meta.helper}</div>
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </header>
+      }
+      beforeMain={<CitizenDesktopNav activeKey="profile" />}
+      mainOnClick={() => {
+        if (notifOpen) {
+          setNotifOpen(false);
+        }
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+        }
+      }}
+      mainOnScroll={() => {
+        if (notifOpen) {
+          setNotifOpen(false);
+        }
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+        }
+      }}
+      mobileMainPaddingBottom={16}
+      desktopMainPaddingBottom={16}
+      desktopMainMaxWidth={1320}
+    >
+      <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 24 }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gap: 12 }}>
+          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: 22, color: '#1E293B' }}>Resident ID Verification</h1>
+                <p style={{ marginTop: 6, marginBottom: 0, color: '#64748B', fontSize: 13 }}>
+                  Submit one valid ID photo for barangay review. You can still report incidents while your account is pending.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/citizen?tab=profile')}
+                style={{
+                  border: '1px solid #BFDBFE',
+                  borderRadius: 10,
+                  background: '#EFF6FF',
+                  color: '#1E3A8A',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '8px 10px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                Back to Profile <ChevronRight size={12} />
+              </button>
             </div>
-          )}
-        </section>
+          </section>
 
-        <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-          <div style={{ display: 'grid', gap: 10 }}>
-            <label htmlFor="citizen-id-upload" style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
-              Upload Valid ID
-            </label>
-
-            <input
-              id="citizen-id-upload"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-              disabled={isRestricted || submitting}
-              onChange={(event) => onSelectFile(event.target.files?.[0] ?? null)}
-            />
-
-            <div style={{ fontSize: 12, color: '#64748B' }}>
-              Accepted: JPG, PNG, WEBP, HEIC, HEIF. Max size: {MAX_FILE_SIZE_MB}MB.
+          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 999, background: meta.bg, color: meta.color, fontWeight: 700, fontSize: 12 }}>
+              {meta.icon} {meta.label}
             </div>
 
-            {selectedFile ? (
-              <div style={{ fontSize: 12, color: '#334155' }}>
-                Selected file: <strong>{selectedFile.name}</strong>
-              </div>
-            ) : null}
+            {loading ? (
+              <p style={{ marginTop: 12, color: '#64748B', fontSize: 13 }}>Loading verification status...</p>
+            ) : (
+              <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                <div style={{ fontSize: 12, color: '#64748B' }}>{meta.helper}</div>
 
-            {error ? (
-              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '9px 11px', color: '#B91C1C', fontSize: 12 }}>
-                {error}
-              </div>
-            ) : null}
+                {status?.rejectionReason ? (
+                  <div style={{ background: '#FFEDD5', border: '1px solid #FDBA74', borderRadius: 10, padding: '9px 11px', color: '#9A3412', fontSize: 12 }}>
+                    Rejection reason: {status.rejectionReason}
+                  </div>
+                ) : null}
 
-            {message ? (
-              <div style={{ background: '#ECFDF3', border: '1px solid #A7F3D0', borderRadius: 10, padding: '9px 11px', color: '#065F46', fontSize: 12 }}>
-                {message}
-              </div>
-            ) : null}
+                {status?.bannedReason ? (
+                  <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 10, padding: '9px 11px', color: '#991B1B', fontSize: 12 }}>
+                    Account restriction reason: {status.bannedReason}
+                  </div>
+                ) : null}
 
-            <button
-              type="button"
-              onClick={() => void submit()}
-              disabled={!selectedFile || isRestricted || submitting}
+                {latestUploadedPreviewUrl ? (
+                  <div
+                    style={{
+                      border: '1px solid #E2E8F0',
+                      borderRadius: 12,
+                      padding: 10,
+                      background: '#F8FAFC',
+                      display: 'grid',
+                      gap: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Latest Uploaded ID Preview</div>
+                    <img
+                      src={latestUploadedPreviewUrl}
+                      alt="Latest uploaded resident ID"
+                      style={{
+                        width: '100%',
+                        maxWidth: 360,
+                        borderRadius: 10,
+                        border: '1px solid #E2E8F0',
+                        objectFit: 'cover',
+                        background: '#fff',
+                      }}
+                    />
+                    <a
+                      href={latestUploadedPreviewUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ width: 'fit-content', textDecoration: 'none', color: '#1E3A8A', fontSize: 12, fontWeight: 700 }}
+                    >
+                      Open full image in new tab
+                    </a>
+                  </div>
+                ) : status?.idImageUrl ? (
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '9px 11px', color: '#92400E', fontSize: 12, lineHeight: 1.55 }}>
+                    Preview is currently unavailable for this uploaded ID on your environment.
+                    Configure private storage preview signing (see steps below) or use a public ID bucket to enable image preview.
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </section>
+
+          <section
+            style={{
+              background: '#fff',
+              borderRadius: 14,
+              border: '1px solid #E2E8F0',
+              padding: 16,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', marginBottom: 10 }}>
+              Accepted Valid IDs in the Philippines
+            </div>
+            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 10, lineHeight: 1.55 }}>
+              For faster review, upload one clear and readable government-issued ID. Make sure the photo and full name are visible.
+            </div>
+            <div
               style={{
-                border: 'none',
-                borderRadius: 10,
-                background: '#1E3A8A',
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 700,
-                padding: '10px 14px',
-                width: 'fit-content',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                cursor: !selectedFile || isRestricted || submitting ? 'not-allowed' : 'pointer',
-                opacity: !selectedFile || isRestricted || submitting ? 0.65 : 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: 10,
+                marginBottom: 10,
               }}
             >
-              <UploadCloud size={15} /> {submitting ? 'Uploading...' : 'Submit ID for Review'}
-            </button>
-          </div>
-        </section>
+              <div
+                style={{
+                  border: '1px solid #BBF7D0',
+                  borderRadius: 12,
+                  padding: 10,
+                  background: '#F0FDF4',
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#166534', marginBottom: 8 }}>
+                  Accepted IDs
+                </div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {[
+                    'Philippine National ID (PhilSys)',
+                    'Philippine Passport',
+                    "Driver's License (LTO)",
+                    'UMID (SSS/GSIS)',
+                    'PRC ID',
+                    'Postal ID',
+                    "Voter's ID / Voter's Certificate",
+                    'Senior Citizen ID',
+                    'PWD ID',
+                  ].map((idLabel) => (
+                    <div
+                      key={idLabel}
+                      style={{
+                        border: '1px solid #DCFCE7',
+                        borderRadius: 10,
+                        padding: '7px 9px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: '#334155',
+                        background: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      <CheckCircle2 size={14} color="#16A34A" /> {idLabel}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: '1px solid #FECACA',
+                  borderRadius: 12,
+                  padding: 10,
+                  background: '#FEF2F2',
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#991B1B', marginBottom: 8 }}>
+                  Not Accepted IDs
+                </div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {[
+                    'School ID',
+                    'Company / Work ID',
+                    'Barangay Clearance',
+                    'Expired Government ID',
+                    'Photocopy or screenshot of an ID',
+                    'Edited, blurred, or partially cropped ID image',
+                  ].map((idLabel) => (
+                    <div
+                      key={idLabel}
+                      style={{
+                        border: '1px solid #FEE2E2',
+                        borderRadius: 10,
+                        padding: '7px 9px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: '#334155',
+                        background: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      <XCircle size={14} color="#DC2626" /> {idLabel}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.55 }}>
+              Do not upload blurred, cropped, or edited images. Submissions with unreadable details may be rejected and require re-upload.
+            </div>
+          </section>
+
+          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
+                Upload Valid ID (Front and Back)
+              </label>
+
+              <input
+                ref={frontFileInputRef}
+                id="citizen-id-upload-front"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                disabled={!canUploadVerification || submitting}
+                onChange={(event) => onSelectFile('front', event.target.files?.[0] ?? null)}
+                style={{ display: 'none' }}
+              />
+
+              <input
+                ref={backFileInputRef}
+                id="citizen-id-upload-back"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                disabled={!canUploadVerification || submitting}
+                onChange={(event) => onSelectFile('back', event.target.files?.[0] ?? null)}
+                style={{ display: 'none' }}
+              />
+
+              <div
+                style={{
+                  border: '1px solid #E2E8F0',
+                  borderRadius: 12,
+                  padding: 12,
+                  background: '#F8FAFC',
+                  display: 'grid',
+                  gap: 10,
+                }}
+              >
+                <div style={{ display: 'grid', gap: 10 }}>
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    {!frontIdFile ? (
+                      <button
+                        type="button"
+                        disabled={!canUploadVerification || submitting}
+                        onClick={() => frontFileInputRef.current?.click()}
+                        style={{
+                          border: '1px solid #BFDBFE',
+                          borderRadius: 10,
+                          background: '#EFF6FF',
+                          color: '#1E3A8A',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: '9px 12px',
+                          cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          opacity: !canUploadVerification || submitting ? 0.65 : 1,
+                          width: 'fit-content',
+                        }}
+                      >
+                        <Paperclip size={14} /> Select Front ID Image
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 8,
+                          border: '1px solid #E2E8F0',
+                          borderRadius: 10,
+                          background: '#fff',
+                          padding: '8px 10px',
+                        }}
+                      >
+                        <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 600 }}>
+                          Front: {shortFileName(frontIdFile.name)}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFrontIdFile(null);
+                            if (frontFileInputRef.current) {
+                              frontFileInputRef.current.value = '';
+                            }
+                          }}
+                          style={{
+                            border: 'none',
+                            borderRadius: 8,
+                            background: '#E2E8F0',
+                            color: '#334155',
+                            width: 24,
+                            height: 24,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                          aria-label="Clear front ID file"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    )}
+
+                    {!frontIdFile ? (
+                      <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500 }}>
+                        Front image not selected
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    {!backIdFile ? (
+                      <button
+                        type="button"
+                        disabled={!canUploadVerification || submitting}
+                        onClick={() => backFileInputRef.current?.click()}
+                        style={{
+                          border: '1px solid #BFDBFE',
+                          borderRadius: 10,
+                          background: '#EFF6FF',
+                          color: '#1E3A8A',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: '9px 12px',
+                          cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          opacity: !canUploadVerification || submitting ? 0.65 : 1,
+                          width: 'fit-content',
+                        }}
+                      >
+                        <Paperclip size={14} /> Select Back ID Image
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 8,
+                          border: '1px solid #E2E8F0',
+                          borderRadius: 10,
+                          background: '#fff',
+                          padding: '8px 10px',
+                        }}
+                      >
+                        <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 600 }}>
+                          Back: {shortFileName(backIdFile.name)}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBackIdFile(null);
+                            if (backFileInputRef.current) {
+                              backFileInputRef.current.value = '';
+                            }
+                          }}
+                          style={{
+                            border: 'none',
+                            borderRadius: 8,
+                            background: '#E2E8F0',
+                            color: '#334155',
+                            width: 24,
+                            height: 24,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                          aria-label="Clear back ID file"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    )}
+
+                    {!backIdFile ? (
+                      <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500 }}>
+                        Back image not selected
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 12, color: '#64748B' }}>
+                  Accepted: JPG, PNG, WEBP, HEIC, HEIF. Max size: {MAX_FILE_SIZE_MB}MB each. Both front and back images are required.
+                </div>
+
+                {!canUploadVerification && currentVerificationStatus !== 'REJECTED' && currentVerificationStatus !== 'REUPLOAD_REQUESTED' ? (
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '9px 11px', color: '#92400E', fontSize: 12, lineHeight: 1.55 }}>
+                    You already submitted your ID verification. Upload is disabled until officials reject or request a re-upload.
+                  </div>
+                ) : null}
+
+                {frontIdPreviewUrl || backIdPreviewUrl ? (
+                  <div
+                    style={{
+                      border: '1px solid #E2E8F0',
+                      borderRadius: 12,
+                      padding: 10,
+                      background: '#fff',
+                      display: 'grid',
+                      gap: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Selected Image Previews</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                      {frontIdPreviewUrl ? (
+                        <div style={{ display: 'grid', gap: 6 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Front ID</div>
+                          <img
+                            src={frontIdPreviewUrl}
+                            alt="Selected front ID image preview"
+                            style={{
+                              width: '100%',
+                              borderRadius: 10,
+                              border: '1px solid #E2E8F0',
+                              objectFit: 'cover',
+                              background: '#fff',
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                      {backIdPreviewUrl ? (
+                        <div style={{ display: 'grid', gap: 6 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Back ID</div>
+                          <img
+                            src={backIdPreviewUrl}
+                            alt="Selected back ID image preview"
+                            style={{
+                              width: '100%',
+                              borderRadius: 10,
+                              border: '1px solid #E2E8F0',
+                              objectFit: 'cover',
+                              background: '#fff',
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {error ? (
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '9px 11px', color: '#B91C1C', fontSize: 12 }}>
+                  {error}
+                </div>
+              ) : null}
+
+              {message ? (
+                <div style={{ background: '#ECFDF3', border: '1px solid #A7F3D0', borderRadius: 10, padding: '9px 11px', color: '#065F46', fontSize: 12 }}>
+                  {message}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => void submit()}
+                disabled={!frontIdFile || !backIdFile || !canUploadVerification || submitting}
+                style={{
+                  border: 'none',
+                  borderRadius: 10,
+                  background: '#1E3A8A',
+                  color: '#fff',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: '10px 14px',
+                  width: 'fit-content',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
+                  opacity: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 0.65 : 1,
+                }}
+              >
+                <UploadCloud size={15} /> {submitting ? 'Uploading...' : 'Submit ID for Review'}
+              </button>
+            </div>
+          </section>
+
+        </div>
       </div>
-    </div>
+    </CitizenPageLayout>
   );
 }

@@ -53,9 +53,53 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to process selected ID image."));
+    image.src = src;
+  });
+}
+
+async function combineIdImages(frontFile: File, backFile: File): Promise<string> {
+  const [frontDataUrl, backDataUrl] = await Promise.all([
+    fileToDataUrl(frontFile),
+    fileToDataUrl(backFile),
+  ]);
+
+  const [frontImage, backImage] = await Promise.all([
+    loadImage(frontDataUrl),
+    loadImage(backDataUrl),
+  ]);
+
+  const width = Math.max(frontImage.width, backImage.width);
+  const scaleFront = width / frontImage.width;
+  const scaleBack = width / backImage.width;
+  const frontHeight = Math.round(frontImage.height * scaleFront);
+  const backHeight = Math.round(backImage.height * scaleBack);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = frontHeight + backHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Unable to process selected ID image.");
+  }
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(frontImage, 0, 0, width, frontHeight);
+  ctx.drawImage(backImage, 0, frontHeight, width, backHeight);
+
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
 export interface CitizenVerificationState {
   isVerified: boolean;
   idImageUrl: string | null;
+  idImagePreviewUrl?: string | null;
   verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | "REUPLOAD_REQUESTED" | null;
   rejectionReason: string | null;
   verifiedAt: string | null;
@@ -82,8 +126,8 @@ export const profileVerificationApi = {
     }
   },
 
-  async submitMyId(file: File) {
-    const dataUrl = await fileToDataUrl(file);
+  async submitMyId(frontFile: File, backFile: File) {
+    const dataUrl = await combineIdImages(frontFile, backFile);
 
     return authedRequest<{
       message: string;
@@ -95,8 +139,8 @@ export const profileVerificationApi = {
     }>("/citizen/verification-id", {
       method: "POST",
       body: JSON.stringify({
-        fileName: file.name,
-        mimeType: file.type,
+        fileName: `combined-${Date.now()}-${frontFile.name.replace(/\.[^.]+$/, "")}-and-${backFile.name}`,
+        mimeType: "image/jpeg",
         dataUrl,
       }),
     });

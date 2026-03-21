@@ -18,8 +18,9 @@ import {
   isIncidentVisibleOnMap,
 } from '../data/incidents';
 import { citizenReportsApi } from '../services/citizenReportsApi';
+import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
-import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 
 /* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface CitizenMyReport {
@@ -29,6 +30,66 @@ interface CitizenMyReport {
   status: Incident['status'];
   reportedAt: string;
   location: string;
+}
+
+interface CitizenVerificationPreview {
+  isVerified: boolean;
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REUPLOAD_REQUESTED' | null;
+  rejectionReason: string | null;
+  idImageUrl: string | null;
+  isBanned: boolean;
+}
+
+function getVerificationSummary(verification: CitizenVerificationPreview) {
+  if (verification.isBanned) {
+    return {
+      title: 'Account Restricted',
+      detail: 'Please coordinate with your barangay office for account assistance.',
+      statusLabel: 'Restricted',
+      color: '#991B1B',
+      bg: '#FEE2E2',
+    };
+  }
+
+  if (verification.isVerified || verification.verificationStatus === 'APPROVED') {
+    return {
+      title: 'Verified Citizen',
+      detail: 'Your resident ID has been approved.',
+      statusLabel: 'Verified',
+      color: '#065F46',
+      bg: '#DCFCE7',
+    };
+  }
+
+  if (verification.verificationStatus === 'PENDING') {
+    return {
+      title: 'Verification Under Review',
+      detail: 'Your submitted ID is currently being reviewed by barangay staff.',
+      statusLabel: 'Pending Review',
+      color: '#92400E',
+      bg: '#FEF3C7',
+    };
+  }
+
+  if (verification.verificationStatus === 'REJECTED' || verification.verificationStatus === 'REUPLOAD_REQUESTED') {
+    return {
+      title: 'Action Needed: Re-upload ID',
+      detail: verification.rejectionReason
+        ? `Reason: ${verification.rejectionReason}`
+        : 'Your previous ID upload needs to be replaced with a clearer valid ID.',
+      statusLabel: 'Re-upload Required',
+      color: '#B91C1C',
+      bg: '#FEE2E2',
+    };
+  }
+
+  return {
+    title: 'ID Verification Required',
+    detail: 'Submit one valid ID photo so your account can be verified.',
+    statusLabel: 'Not Submitted',
+    color: '#1E3A8A',
+    bg: '#DBEAFE',
+  };
 }
 
 function timeAgo(dateStr: string) {
@@ -356,7 +417,7 @@ type CitizenNotificationItem = {
   desc: string;
   time: string;
   unread: boolean;
-  action: 'open-map-incident' | 'open-my-reports' | 'open-home';
+  action: 'open-map-incident' | 'open-my-reports' | 'open-home' | 'open-verification';
   incidentId?: string;
 };
 
@@ -387,6 +448,13 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
+    isVerified: Boolean(session?.user.isVerified),
+    verificationStatus: session?.user.verificationStatus ?? null,
+    rejectionReason: session?.user.verificationRejectionReason ?? null,
+    idImageUrl: session?.user.idImageUrl ?? null,
+    isBanned: Boolean(session?.user.isBanned),
+  });
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
 
   const notificationItems = React.useMemo<CitizenNotificationItem[]>(() => {
@@ -419,7 +487,21 @@ export default function CitizenDashboard() {
         action: 'open-my-reports' as const,
       }));
 
-    const items = [...criticalItems, ...reportItems].slice(0, 3);
+    const verificationSummary = getVerificationSummary(verificationPreview);
+    const verificationItems = !verificationPreview.isVerified && !verificationPreview.isBanned
+      ? [{
+        icon: <Shield size={14} />,
+        color: verificationSummary.color,
+        bg: verificationSummary.bg,
+        title: verificationSummary.title,
+        desc: verificationSummary.statusLabel,
+        time: 'Account',
+        unread: true,
+        action: 'open-verification' as const,
+      }]
+      : [];
+
+    const items = [...verificationItems, ...criticalItems, ...reportItems].slice(0, 3);
     if (items.length > 0) {
       return items;
     }
@@ -434,7 +516,7 @@ export default function CitizenDashboard() {
       unread: false,
       action: 'open-home',
     }];
-  }, [incidents, myReports]);
+  }, [incidents, myReports, verificationPreview]);
 
   const handleNotificationClick = React.useCallback((item: CitizenNotificationItem) => {
     if (item.action === 'open-map-incident') {
@@ -443,6 +525,8 @@ export default function CitizenDashboard() {
       setActiveTab('map');
     } else if (item.action === 'open-my-reports') {
       navigate('/citizen/my-reports');
+    } else if (item.action === 'open-verification') {
+      navigate('/citizen/verification');
     } else {
       setActiveTab('home');
     }
@@ -476,6 +560,33 @@ export default function CitizenDashboard() {
     };
 
     void load();
+  }, []);
+
+  useEffect(() => {
+    const loadVerification = async () => {
+      try {
+        const payload = await profileVerificationApi.getMyStatus();
+        const verificationState: CitizenVerificationPreview = {
+          isVerified: payload.verification.isVerified,
+          verificationStatus: payload.verification.verificationStatus,
+          rejectionReason: payload.verification.rejectionReason,
+          idImageUrl: payload.verification.idImageUrl,
+          isBanned: payload.verification.isBanned,
+        };
+        setVerificationPreview(verificationState);
+        patchAuthSessionUser({
+          isVerified: payload.verification.isVerified,
+          verificationStatus: payload.verification.verificationStatus,
+          verificationRejectionReason: payload.verification.rejectionReason,
+          idImageUrl: payload.verification.idImageUrl,
+          isBanned: payload.verification.isBanned,
+        });
+      } catch {
+        // Keep session-backed preview if endpoint fails.
+      }
+    };
+
+    void loadVerification();
   }, []);
 
   useEffect(() => {
@@ -521,7 +632,7 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} />;
+        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} />;
       case 'report':
         return null;
       case 'map':
@@ -530,7 +641,7 @@ export default function CitizenDashboard() {
         navigate('/citizen/my-reports');
         return null;
       case 'profile':
-        return <ProfileTab myReports={myReports} />;
+        return <ProfileTab myReports={myReports} verificationPreview={verificationPreview} />;
     }
   };
 
@@ -832,6 +943,7 @@ function HomeTab({
   greetingLabel,
   barangayLabel,
   todayLabel,
+  verificationPreview,
 }: {
   incidents: Incident[];
   myReports: CitizenMyReport[];
@@ -842,10 +954,12 @@ function HomeTab({
   greetingLabel: string;
   barangayLabel: string;
   todayLabel: string;
+  verificationPreview: CitizenVerificationPreview;
 }) {
   const navigate = useNavigate();
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
+  const verificationSummary = getVerificationSummary(verificationPreview);
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -909,6 +1023,46 @@ function HomeTab({
           />
         </div>
       </section>
+
+      {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
+        <section
+          style={{
+            background: verificationSummary.bg,
+            borderRadius: 16,
+            border: `1px solid ${verificationSummary.color}33`,
+            boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+            padding: 14,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: verificationSummary.color }}>
+                {verificationSummary.title}
+              </div>
+              <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
+                {verificationSummary.detail}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/citizen/verification')}
+              style={{
+                border: 'none',
+                borderRadius: 10,
+                background: '#1E3A8A',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '10px 12px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Open Verification
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section
         style={{
@@ -1866,7 +2020,13 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PROFILE TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
+function ProfileTab({
+  myReports,
+  verificationPreview,
+}: {
+  myReports: CitizenMyReport[];
+  verificationPreview: CitizenVerificationPreview;
+}) {
   const navigate = useNavigate();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
@@ -1880,6 +2040,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
   const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Assigned barangay';
   const resolvedCount = myReports.filter((report) => report.status === 'resolved').length;
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
+  const verificationSummary = getVerificationSummary(verificationPreview);
 
   const handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
     if (action === 'personal') {
@@ -1894,7 +2055,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
     }
 
     if (action === 'verification') {
-      if (session?.user.isVerified) {
+      if (verificationPreview.isVerified) {
         setSettingMessage('Your account is already ID-verified. No further action is required.');
       } else {
         navigate('/citizen/verification');
@@ -1972,7 +2133,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
             border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
-            <Shield size={12} /> {session?.user.isVerified ? 'Verified Citizen' : 'Verification Pending'}
+          <Shield size={12} /> {verificationSummary.statusLabel}
         </div>
       </div>
 
@@ -1989,6 +2150,43 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
 
       {/* Read-only profile information */}
       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
+        Verification Preview
+      </div>
+      <div
+        style={{
+          background: verificationSummary.bg,
+          borderRadius: 14,
+          border: `1px solid ${verificationSummary.color}33`,
+          padding: '12px 14px',
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 13, color: verificationSummary.color }}>
+          {verificationSummary.title}
+        </div>
+        <div style={{ fontSize: 12, color: '#475569', marginTop: 4, lineHeight: 1.5 }}>
+          {verificationSummary.detail}
+        </div>
+        {verificationPreview.idImageUrl ? (
+          <a
+            href={verificationPreview.idImageUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              marginTop: 8,
+              textDecoration: 'none',
+              color: '#1E3A8A',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            View latest uploaded ID
+          </a>
+        ) : null}
+      </div>
+
+      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
         Account Information
       </div>
       <div
@@ -2003,7 +2201,7 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
         {[
           { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: 'Verification Status', sub: session?.user.isVerified ? 'Resident ID verified' : 'Submit valid ID for review', action: 'verification' as const },
+          { icon: <Shield size={16} />, label: 'Verification Status', sub: verificationSummary.statusLabel, action: 'verification' as const },
           { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
           { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
@@ -2076,6 +2274,26 @@ function ProfileTab({ myReports }: { myReports: CitizenMyReport[] }) {
           }}
         >
           Verify Phone Number
+        </button>
+      ) : null}
+
+      {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
+        <button
+          onClick={() => navigate('/citizen/verification')}
+          style={{
+            width: '100%',
+            padding: '12px',
+            borderRadius: 12,
+            border: '1.5px solid #BFDBFE',
+            background: '#EFF6FF',
+            color: '#1E3A8A',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            marginBottom: 12,
+          }}
+        >
+          Open Verification Status
         </button>
       ) : null}
 
