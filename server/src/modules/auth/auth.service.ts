@@ -204,7 +204,7 @@ export const authService = {
     };
   },
 
-  async createPassword(input: { phoneNumber: string; password: string }) {
+  async createPassword(input: { phoneNumber: string; password: string }): Promise<AuthSession> {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
     const otpRecord = authStore.getOtp(phoneNumber);
 
@@ -270,8 +270,10 @@ export const authService = {
       return user;
     });
 
+    const token = signToken(saved);
+
     return {
-      message: "Password created successfully.",
+      token,
       user: asPublicUser(saved),
     };
   },

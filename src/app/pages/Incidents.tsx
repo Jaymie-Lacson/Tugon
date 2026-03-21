@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Eye, Edit2, Printer, Download,
+  Search, Edit2, Printer, Download,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
+  ChevronRight,
   Users, Clock, MapPin, Info, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
 } from 'lucide-react';
 import {
@@ -103,20 +104,14 @@ function toIncidentView(report: ApiCitizenReport): IncidentView {
   };
 }
 
-function getNextStatuses(currentStatus: ApiTicketStatus): ApiTicketStatus[] {
-  switch (currentStatus) {
-    case 'Submitted':
-      return ['Under Review'];
-    case 'Under Review':
-      return ['In Progress', 'Unresolvable'];
-    case 'In Progress':
-      return ['Resolved'];
-    case 'Resolved':
-      return ['Closed'];
-    default:
-      return [];
-  }
-}
+const ALL_TICKET_STATUSES: ApiTicketStatus[] = [
+  'Submitted',
+  'Under Review',
+  'In Progress',
+  'Resolved',
+  'Closed',
+  'Unresolvable',
+];
 
 function IncidentDetailModal({
   incident,
@@ -130,11 +125,16 @@ function IncidentDetailModal({
   isUpdating: boolean;
 }) {
   const cfg = incidentTypeConfig[incident.type];
+  const [statusSelectorOpen, setStatusSelectorOpen] = useState(false);
   const [nextStatus, setNextStatus] = useState<ApiTicketStatus | ''>('');
-  const availableStatuses = useMemo(() => getNextStatuses(incident.ticketStatus), [incident.ticketStatus]);
+  const availableStatuses = useMemo(
+    () => ALL_TICKET_STATUSES.filter((status) => status !== incident.ticketStatus),
+    [incident.ticketStatus],
+  );
 
   useEffect(() => {
     setNextStatus(availableStatuses[0] ?? '');
+    setStatusSelectorOpen(false);
   }, [incident.id, availableStatuses]);
 
   const formatTime = (t?: string) =>
@@ -157,12 +157,13 @@ function IncidentDetailModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(15,23,42,0.6)',
+        background: 'rgba(15,23,42,0.68)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 100,
-        padding: 16,
+        padding: 14,
+        backdropFilter: 'blur(3px)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -170,49 +171,52 @@ function IncidentDetailModal({
     >
       <div
         style={{
-          background: 'white',
-          borderRadius: 14,
+          background: '#F8FAFC',
+          borderRadius: 16,
           width: '100%',
-          maxWidth: 620,
-          maxHeight: '90vh',
+          maxWidth: 760,
+          maxHeight: '92vh',
           overflow: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          boxShadow: '0 24px 70px rgba(15,23,42,0.33)',
         }}
       >
-        <div style={{ background: '#1E3A8A', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '14px 14px 0 0' }}>
+        <div style={{ background: '#1E3A8A', padding: '18px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderRadius: '16px 16px 0 0' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 7, background: cfg.bgColor, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: '#FFFFFF', color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {typeIcons[incident.type]}
               </div>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>{incident.id}</span>
+              <div>
+                <div style={{ color: '#BFDBFE', fontSize: 10, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase' }}>Incident Details</div>
+                <div style={{ color: 'white', fontWeight: 800, fontSize: 16 }}>{incident.id}</div>
+              </div>
             </div>
-            <div style={{ color: '#93C5FD', fontSize: 12 }}>{incident.location}</div>
+            <div style={{ color: '#DBEAFE', fontSize: 12 }}>{incident.location}</div>
           </div>
           <button
             onClick={onClose}
             className="icon-btn-square"
-            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 7, cursor: 'pointer', color: 'white' }}
+            style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'white' }}
           >
             <X size={16} color="white" />
           </button>
         </div>
 
-        <div style={{ padding: '12px 20px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ padding: '12px 20px', background: '#F1F5F9', borderBottom: '1px solid #E2E8F0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <TypeBadge type={incident.type} />
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} pulse={incident.status === 'active'} />
         </div>
 
-        <div style={{ padding: '20px' }}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>Description</div>
-            <div style={{ color: '#334155', fontSize: 13, lineHeight: 1.6, background: '#F8FAFC', padding: '12px 14px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+        <div style={{ padding: '18px 20px 20px' }}>
+          <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>Description</div>
+            <div style={{ color: '#334155', fontSize: 13, lineHeight: 1.65 }}>
               {incident.description}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 16 }}>
             {[
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
               { label: 'District', value: incident.district, icon: <Info size={13} /> },
@@ -222,8 +226,8 @@ function IncidentDetailModal({
               { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
               { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div key={item.label} style={{ background: '#FFFFFF', borderRadius: 10, padding: '10px 12px', border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
                   {item.icon} {item.label}
                 </div>
                 <div style={{ fontSize: 12, color: '#334155', fontWeight: 500 }}>{item.value}</div>
@@ -231,14 +235,15 @@ function IncidentDetailModal({
             ))}
           </div>
 
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>Ticket Timeline</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>Ticket Timeline</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {incident.source.timeline.map((entry) => (
-                <div key={`${entry.label}-${entry.timestamp}`} style={{ borderLeft: '2px solid #E2E8F0', paddingLeft: 10 }}>
-                  <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 600 }}>{entry.label}</div>
-                  <div style={{ fontSize: 11, color: '#64748B' }}>{entry.description}</div>
-                  <div style={{ fontSize: 11, color: '#94A3B8' }}>{formatTime(entry.timestamp)} • {entry.actor}</div>
+                <div key={`${entry.label}-${entry.timestamp}`} style={{ borderLeft: '2px solid #DBE4EE', paddingLeft: 10, position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: -6, top: 3, width: 9, height: 9, borderRadius: 999, background: '#1E3A8A', border: '2px solid #FFFFFF' }} />
+                  <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 700 }}>{entry.label}</div>
+                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{entry.description}</div>
+                  <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{formatTime(entry.timestamp)} • {entry.actor}</div>
                 </div>
               ))}
             </div>
@@ -246,55 +251,101 @@ function IncidentDetailModal({
         </div>
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <select
-            value={nextStatus}
-            onChange={(e) => setNextStatus(e.target.value as ApiTicketStatus)}
-            disabled={availableStatuses.length === 0 || isUpdating}
-            style={{
-              flex: 1,
-              minWidth: 170,
-              border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              padding: '9px 12px',
-              fontSize: 12,
-              background: '#F8FAFC',
-              color: '#334155',
-            }}
-          >
-            {availableStatuses.length === 0 ? <option value="">No further transitions</option> : null}
-            {availableStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <button
-            disabled={!nextStatus || isUpdating || availableStatuses.length === 0}
-            onClick={() => {
-              if (nextStatus) {
+          <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
+            {statusSelectorOpen ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 'calc(100% + 8px)',
+                  background: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: 8,
+                  boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  zIndex: 120,
+                }}
+              >
+                {availableStatuses.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => {
+                      setNextStatus(status);
+                      setStatusSelectorOpen(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      border: 'none',
+                      background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
+                      color: nextStatus === status ? '#1E3A8A' : '#334155',
+                      padding: '9px 12px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              disabled={isUpdating || availableStatuses.length === 0}
+              onClick={() => setStatusSelectorOpen((value) => !value)}
+              style={{
+                width: '100%',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#334155',
+                borderRadius: 8,
+                padding: '8px 10px',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span>{nextStatus || 'Select new status'}</span>
+              <ChevronUp size={14} color="#64748B" />
+            </button>
+
+            <button
+              disabled={!nextStatus || isUpdating || availableStatuses.length === 0}
+              onClick={() => {
+                if (!nextStatus) {
+                  return;
+                }
                 void onUpdateStatus(nextStatus);
-              }
-            }}
-            style={{
-              flex: 1,
-              minWidth: 140,
-              background: '#1E3A8A',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: '9px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: !nextStatus || isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: !nextStatus || isUpdating || availableStatuses.length === 0 ? 0.6 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-            }}
-          >
-            <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
-          </button>
+              }}
+              style={{
+                width: '100%',
+                background: '#1E3A8A',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                padding: '9px 16px',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: !nextStatus || isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: !nextStatus || isUpdating || availableStatuses.length === 0 ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
+            </button>
+          </div>
+
           <button style={{ flex: 1, minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Printer size={13} /> Print Report
           </button>
@@ -478,37 +529,51 @@ export default function Incidents() {
             options: Object.entries(statusConfig).map(([k, v]) => ({ value: k, label: v.label })),
           },
         ].map((f) => (
-          <select
+          <div
             key={f.label}
-            value={f.value}
-            onChange={(e) => f.setter(e.target.value)}
             style={{
               flex: '1 1 130px',
               minWidth: 0,
               width: '100%',
-              padding: '10px 34px 10px 10px',
-              border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              fontSize: 13,
-              background: '#F8FAFC',
-              color: f.value ? '#1E293B' : '#94A3B8',
-              outline: 'none',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-              appearance: 'none',
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%2394A3B8\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"%3E%3Cpolyline points=\"6 9 12 15 18 9\"/%3E%3C/svg%3E")',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 10px center',
-              backgroundSize: '14px 14px',
+              position: 'relative',
             }}
           >
-            <option value="">{f.label}</option>
-            {f.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            <select
+              value={f.value}
+              onChange={(e) => f.setter(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 34px 10px 10px',
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                fontSize: 13,
+                background: '#F8FAFC',
+                color: f.value ? '#1E293B' : '#94A3B8',
+                outline: 'none',
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+                appearance: 'none',
+              }}
+            >
+              <option value="">{f.label}</option>
+              {f.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              color="#94A3B8"
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         ))}
 
         {hasFilter ? (
@@ -574,7 +639,11 @@ export default function Incidents() {
                   <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
                 </tr>
               ) : paginated.map((inc) => (
-                <tr key={inc.id} style={{ borderBottom: '1px solid #F8FAFC' }}>
+                <tr
+                  key={inc.id}
+                  onClick={() => setSelectedIncident(inc)}
+                  style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
+                >
                   <td style={{ padding: '11px 14px', fontWeight: 700, color: '#1E3A8A', whiteSpace: 'nowrap', fontSize: 12 }}>{inc.id}</td>
                   <td style={{ padding: '11px 14px' }}><TypeBadge type={inc.type} size="sm" /></td>
                   <td style={{ padding: '11px 14px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -591,8 +660,14 @@ export default function Incidents() {
                     </div>
                   </td>
                   <td style={{ padding: '11px 14px' }}>
-                    <button onClick={() => setSelectedIncident(inc)} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600 }}>
-                      <Eye size={12} /> View
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedIncident(inc);
+                      }}
+                      style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600 }}
+                    >
+                      <Edit2 size={12} /> Edit
                     </button>
                   </td>
                 </tr>
@@ -643,12 +718,14 @@ export default function Incidents() {
           paginated.map((inc) => (
             <article
               key={inc.id}
+              onClick={() => setSelectedIncident(inc)}
               style={{
                 background: 'white',
                 borderRadius: 12,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
                 padding: '12px 12px 10px',
                 border: '1px solid #E2E8F0',
+                cursor: 'pointer',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
@@ -681,7 +758,10 @@ export default function Incidents() {
               </div>
 
               <button
-                onClick={() => setSelectedIncident(inc)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setSelectedIncident(inc);
+                }}
                 style={{
                   width: '100%',
                   background: '#EFF6FF',
@@ -698,7 +778,7 @@ export default function Incidents() {
                   fontWeight: 600,
                 }}
               >
-                <Eye size={13} /> View Details
+                <ChevronRight size={13} /> View Details
               </button>
             </article>
           ))

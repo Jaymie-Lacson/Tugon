@@ -79,7 +79,7 @@ export const authApi = {
     });
   },
   createPassword(input: { phoneNumber: string; password: string }) {
-    return request<{ message: string; user: SessionUser }>("/auth/create-password", {
+    return request<AuthSession>("/auth/create-password", {
       method: "POST",
       body: JSON.stringify(input),
     });

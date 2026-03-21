@@ -40,14 +40,6 @@ const DEFAULT_HEATMAP_DAYS = 14;
 const DEFAULT_HEATMAP_THRESHOLD = 3;
 const DEFAULT_HEATMAP_CELL_SIZE = 0.0025;
 
-const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  "Submitted": ["Under Review"],
-  "Under Review": ["In Progress", "Unresolvable"],
-  "In Progress": ["Resolved"],
-  "Resolved": ["Closed"],
-  "Closed": [],
-  "Unresolvable": [],
-};
 
 const prismaSeverityMap: Record<ReportSeverity, PrismaReportSeverity> = {
   low: PrismaReportSeverity.low,
@@ -75,7 +67,9 @@ const toPrismaStatusMap: Record<TicketStatus, PrismaTicketStatus> = {
 };
 
 function canTransition(fromStatus: TicketStatus, toStatus: TicketStatus): boolean {
-  return STATUS_TRANSITIONS[fromStatus].includes(toStatus);
+  // Official UI now supports direct status jumps (non-linear workflow updates).
+  // Keep only no-op transitions blocked.
+  return fromStatus !== toStatus;
 }
 
 function statusLabel(status: TicketStatus): string {

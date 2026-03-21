@@ -1,4 +1,4 @@
-import { getAuthSession } from "../utils/authSession";
+import { clearAuthSession, getAuthSession } from "../utils/authSession";
 import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
@@ -36,6 +36,12 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401) {
+      // Reset stale/local-invalid auth to avoid repeated unauthorized loops.
+      clearAuthSession();
+      throw new Error("Your session has expired. Please log in again.");
+    }
+
     const rawMessage = typeof payload?.message === "string" ? payload.message : "Request failed.";
     throw new Error(normalizeOfficialApiMessage(rawMessage));
   }

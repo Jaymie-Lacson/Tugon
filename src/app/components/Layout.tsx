@@ -43,6 +43,7 @@ function LiveClock() {
 
 export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -62,8 +63,13 @@ export function Layout() {
   const handleSignOut = () => {
     clearAuthSession();
     setDrawerOpen(false);
+    setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
+
+  useEffect(() => {
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -282,7 +288,10 @@ export function Layout() {
 
             {/* Mobile hamburger — on the right of the bell */}
             <button
-              onClick={() => setDrawerOpen(!drawerOpen)}
+              onClick={() => {
+                setDrawerOpen(!drawerOpen);
+                setProfileMenuOpen(false);
+              }}
               className="mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -293,17 +302,117 @@ export function Layout() {
             </button>
 
             {/* User avatar */}
-            <div className="header-avatar" style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, color: 'white', fontSize: 12, cursor: 'default', flexShrink: 0,
-            }}>{userInitials}</div>
+            <div className="header-avatar-wrap" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className="header-avatar"
+                onClick={() => {
+                  setProfileMenuOpen((prev) => !prev);
+                  setDrawerOpen(false);
+                }}
+                aria-label="Open profile actions"
+                aria-haspopup="menu"
+                aria-expanded={profileMenuOpen}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  color: 'white',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  border: 'none',
+                }}
+              >
+                {userInitials}
+              </button>
+
+              {profileMenuOpen ? (
+                <div
+                  role="menu"
+                  aria-label="Profile actions"
+                  style={{
+                    position: 'absolute',
+                    top: 44,
+                    right: 0,
+                    width: 190,
+                    background: '#fff',
+                    borderRadius: 12,
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                    border: '1px solid #E2E8F0',
+                    overflow: 'hidden',
+                    zIndex: 120,
+                  }}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      navigate('/app/settings');
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '11px 12px',
+                      background: '#fff',
+                      border: 'none',
+                      borderBottom: '1px solid #F1F5F9',
+                      color: '#1E293B',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Open profile page
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '11px 12px',
+                      background: '#fff',
+                      border: 'none',
+                      color: '#B91C1C',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="page-content" style={{ flex: 1, overflowY: 'auto' }}>
+        <main
+          className="page-content"
+          style={{ flex: 1, overflowY: 'auto' }}
+          onClick={() => {
+            if (profileMenuOpen) {
+              setProfileMenuOpen(false);
+            }
+          }}
+          onScroll={() => {
+            if (profileMenuOpen) {
+              setProfileMenuOpen(false);
+            }
+          }}
+        >
           <Outlet />
         </main>
       </div>
@@ -413,19 +522,24 @@ export function Layout() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        .mobile-menu-btn { display: none !important; }
+
+        @media (max-width: 1024px) {
           .sidebar-desktop    { display: none !important; }
           .mobile-menu-btn    { display: flex !important; }
           .mobile-logo        { display: flex !important; }
           .header-breadcrumb  { display: none !important; }
           .header-datetime    { display: none !important; }
           .header-avatar      { display: none !important; }
+          .header-avatar-wrap { display: none !important; }
           .mobile-page-label  { display: flex !important; align-items: center !important; }
           .page-content       { padding-bottom: 0 !important; }
           .mobile-overlay     { display: block !important; }
         }
-        @media (min-width: 769px) {
+
+        @media (min-width: 1025px) {
           .mobile-page-label  { display: none !important; }
+          .mobile-overlay     { display: none !important; }
         }
       `}</style>
     </div>
