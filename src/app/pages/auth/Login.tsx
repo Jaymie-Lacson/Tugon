@@ -103,7 +103,7 @@ export default function Login() {
             icon={<Lock size={17} />}
             error={errors.password}
             autoComplete="current-password"
-            rightElement={
+            rightElement={password.length > 0 ? (
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -111,7 +111,7 @@ export default function Login() {
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
-            }
+            ) : null}
           />
 
           {/* Forgot password */}

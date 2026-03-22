@@ -280,6 +280,19 @@
   color: #94a3b8;
 }
 
+/* Hide native password reveal controls so only the custom toggle appears. */
+.auth-input-control[type='password']::-ms-reveal,
+.auth-input-control[type='password']::-ms-clear {
+  display: none;
+}
+
+.auth-input-control[type='password']::-webkit-credentials-auto-fill-button,
+.auth-input-control[type='password']::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .auth-input-right {
   padding-right: 12px;
   flex-shrink: 0;
