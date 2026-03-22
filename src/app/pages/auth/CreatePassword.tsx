@@ -173,7 +173,7 @@ export default function CreatePassword() {
               error={errors.password}
               autoComplete="new-password"
               autoFocus
-              rightElement={
+              rightElement={password.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -181,7 +181,7 @@ export default function CreatePassword() {
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
-              }
+              ) : null}
             />
 
             {/* Strength meter */}
@@ -237,7 +237,7 @@ export default function CreatePassword() {
               icon={<Lock size={17} />}
               error={errors.confirm}
               autoComplete="new-password"
-              rightElement={
+              rightElement={confirm.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
@@ -245,7 +245,7 @@ export default function CreatePassword() {
                 >
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
-              }
+              ) : null}
             />
 
             {/* Match indicator */}
