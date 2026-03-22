@@ -11,6 +11,7 @@ export type CitizenReportNotificationItem = {
   time: string;
   unread: boolean;
   action: 'open-my-reports' | 'open-home';
+  reportId?: string;
 };
 
 function timeAgo(timestamp: string): string {
@@ -59,6 +60,7 @@ export function useCitizenReportNotifications() {
             time: timeAgo(report.updatedAt),
             unread: true,
             action: 'open-my-reports' as const,
+            reportId: report.id,
           }));
 
         const resolvedItems = payload.reports
@@ -73,6 +75,7 @@ export function useCitizenReportNotifications() {
             time: timeAgo(report.updatedAt),
             unread: false,
             action: 'open-my-reports' as const,
+            reportId: report.id,
           }));
 
         setItems([...activeItems, ...resolvedItems].slice(0, 3));

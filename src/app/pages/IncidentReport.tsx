@@ -2004,6 +2004,22 @@ export default function IncidentReport() {
   const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const contentRef              = useRef<HTMLDivElement>(null);
 
+  const handleNotificationClick = React.useCallback((item: { action?: 'open-my-reports' | 'open-home'; reportId?: string }) => {
+    if (item.action === 'open-my-reports') {
+      if (item.reportId) {
+        navigate(`/citizen/my-reports?reportId=${encodeURIComponent(item.reportId)}`);
+      } else {
+        navigate('/citizen/my-reports');
+      }
+    } else {
+      navigate('/citizen');
+    }
+
+    setNotifOpen(false);
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [navigate]);
+
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
     navigate('/auth/login', { replace: true });
@@ -2032,6 +2048,8 @@ export default function IncidentReport() {
         desc: submittedReportId ? `Ticket ${submittedReportId} has been created.` : 'Your incident report was submitted successfully.',
         time: 'Just now',
         unread: true,
+        action: 'open-my-reports' as const,
+        reportId: submittedReportId || undefined,
       };
 
       return [submittedItem, ...reportNotificationItems].slice(0, 4);
@@ -2364,6 +2382,7 @@ export default function IncidentReport() {
                 open={notifOpen}
                 unreadCount={unreadNotificationCount}
                 items={notificationItems}
+                onItemClick={handleNotificationClick}
               />
             </div>
           </header>

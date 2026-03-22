@@ -421,6 +421,7 @@ type CitizenNotificationItem = {
   unread: boolean;
   action: 'open-map-incident' | 'open-my-reports' | 'open-home' | 'open-verification';
   incidentId?: string;
+  reportId?: string;
 };
 
 /* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -514,7 +515,11 @@ export default function CitizenDashboard() {
       setSelectedIncident(targetIncident);
       setActiveTab('map');
     } else if (item.action === 'open-my-reports') {
-      navigate('/citizen/my-reports');
+      if (item.reportId) {
+        navigate(`/citizen/my-reports?reportId=${encodeURIComponent(item.reportId)}`);
+      } else {
+        navigate('/citizen/my-reports');
+      }
     } else if (item.action === 'open-verification') {
       navigate('/citizen/verification');
     } else {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import {
   Search, Filter, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
@@ -1072,6 +1072,7 @@ type DateSortKey = 'newest' | 'oldest';
 
 export default function CitizenMyReports() {
   const navigate = useNavigate();
+  const location = useLocation();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
   const initials = fullName
@@ -1128,6 +1129,25 @@ export default function CitizenMyReports() {
     setCancelSubmitting(false);
   }, [selected?.id]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reportId = params.get('reportId');
+    if (!reportId) {
+      return;
+    }
+
+    const target = reports.find((report) => report.id === reportId);
+    if (!target) {
+      return;
+    }
+
+    setSelected(target);
+
+    params.delete('reportId');
+    const search = params.toString();
+    navigate(search ? `/citizen/my-reports?${search}` : '/citizen/my-reports', { replace: true });
+  }, [location.search, navigate, reports]);
+
   const handleCancelReport = React.useCallback(async (reportId: string) => {
     setCancelSubmitting(true);
     setCancelError(null);
@@ -1143,6 +1163,20 @@ export default function CitizenMyReports() {
       setCancelSubmitting(false);
     }
   }, []);
+
+  const handleNotificationItemClick = React.useCallback((item: { action?: 'open-my-reports' | 'open-home'; reportId?: string }) => {
+    if (item.action === 'open-my-reports' && item.reportId) {
+      const target = reports.find((report) => report.id === item.reportId);
+      if (target) {
+        setSelected(target);
+      }
+    }
+
+    setNotifOpen(false);
+    setProfileMenuOpen(false);
+    setSortOpen(false);
+    setMobileMenuOpen(false);
+  }, [reports]);
 
   // Filter + search + sort pipeline.
   const filtered = useMemo(() => {
@@ -1407,6 +1441,7 @@ export default function CitizenMyReports() {
                 open={notifOpen}
                 unreadCount={unreadNotificationCount}
                 items={notificationItems}
+                onItemClick={handleNotificationItemClick}
               />
             </div>
           </header>

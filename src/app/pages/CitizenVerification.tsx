@@ -124,6 +124,7 @@ type CitizenNotificationItem = {
   time: string;
   unread: boolean;
   action: 'open-my-reports' | 'open-verification' | 'open-home';
+  reportId?: string;
 };
 
 export default function CitizenVerification() {
@@ -259,7 +260,11 @@ export default function CitizenVerification() {
 
   const handleNotificationClick = (item: CitizenNotificationItem) => {
     if (item.action === 'open-my-reports') {
-      navigate('/citizen/my-reports');
+      if (item.reportId) {
+        navigate(`/citizen/my-reports?reportId=${encodeURIComponent(item.reportId)}`);
+      } else {
+        navigate('/citizen/my-reports');
+      }
     } else if (item.action === 'open-verification') {
       navigate('/citizen/verification');
     } else {
