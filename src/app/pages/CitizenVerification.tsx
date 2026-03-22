@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Bell,
   CheckCircle2,
   Clock3,
+  Info,
   ShieldAlert,
   UploadCloud,
   XCircle,
@@ -14,6 +14,8 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
+import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { profileVerificationApi, type CitizenVerificationState } from '../services/profileVerificationApi';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 
@@ -113,6 +115,17 @@ function shortFileName(name: string, max = 28): string {
   return `${name.slice(0, max)}....`;
 }
 
+type CitizenNotificationItem = {
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+  title: string;
+  desc: string;
+  time: string;
+  unread: boolean;
+  action: 'open-my-reports' | 'open-verification' | 'open-home';
+};
+
 export default function CitizenVerification() {
   const navigate = useNavigate();
   const session = getAuthSession();
@@ -124,6 +137,7 @@ export default function CitizenVerification() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -185,6 +199,39 @@ export default function CitizenVerification() {
     return null;
   }, [status]);
 
+  const notificationItems = useMemo<CitizenNotificationItem[]>(() => {
+    const verificationItem = !status?.isVerified && !status?.isBanned
+      ? [{
+        icon: meta.icon,
+        color: meta.color,
+        bg: meta.bg,
+        title: 'Verification Update',
+        desc: meta.helper,
+        time: 'Account',
+        unread: true,
+        action: 'open-verification' as const,
+      }]
+      : [];
+
+    const items = [...verificationItem, ...reportNotificationItems].slice(0, 4);
+    if (items.length > 0) {
+      return items;
+    }
+
+    return [{
+      icon: <Info size={14} />,
+      color: '#1E3A8A',
+      bg: '#DBEAFE',
+      title: 'No new alerts',
+      desc: 'You are all caught up for now.',
+      time: 'Live',
+      unread: false,
+      action: 'open-home',
+    }];
+  }, [meta.bg, meta.color, meta.helper, meta.icon, reportNotificationItems, status?.isBanned, status?.isVerified]);
+
+  const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -209,6 +256,20 @@ export default function CitizenVerification() {
   useEffect(() => {
     void load();
   }, []);
+
+  const handleNotificationClick = (item: CitizenNotificationItem) => {
+    if (item.action === 'open-my-reports') {
+      navigate('/citizen/my-reports');
+    } else if (item.action === 'open-verification') {
+      navigate('/citizen/verification');
+    } else {
+      navigate('/citizen');
+    }
+
+    setNotifOpen(false);
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+  };
 
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
@@ -373,30 +434,14 @@ export default function CitizenVerification() {
                   else navigate('/citizen');
                 }}
               />
-              <button
-                type="button"
+              <CitizenNotificationBellTrigger
+                unreadCount={unreadNotificationCount}
                 onClick={() => {
                   setNotifOpen(!notifOpen);
                   setProfileMenuOpen(false);
                   setMobileMenuOpen(false);
                 }}
-                aria-label="Notifications"
-                style={{
-                  position: 'relative',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: 10,
-                  width: 38,
-                  height: 38,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#fff',
-                }}
-              >
-                <Bell size={18} />
-              </button>
+              />
               <div style={{ position: 'relative' }}>
                 <button
                   type="button"
@@ -491,52 +536,12 @@ export default function CitizenVerification() {
               </div>
             </div>
 
-            {notifOpen ? (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 66,
-                  right: 16,
-                  width: 300,
-                  background: '#fff',
-                  borderRadius: 14,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                  zIndex: 100,
-                  overflow: 'hidden',
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '12px 16px',
-                    borderBottom: '1px solid #F1F5F9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNotifOpen(false);
-                    navigate('/citizen?tab=profile');
-                  }}
-                  style={{
-                    width: '100%',
-                    border: 'none',
-                    background: '#FFFBEB',
-                    padding: '12px 16px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#92400E' }}>{meta.label}</div>
-                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{meta.helper}</div>
-                </button>
-              </div>
-            ) : null}
+            <CitizenNotificationsPanel
+              open={notifOpen}
+              unreadCount={unreadNotificationCount}
+              items={notificationItems}
+              onItemClick={handleNotificationClick}
+            />
           </div>
         </header>
       }

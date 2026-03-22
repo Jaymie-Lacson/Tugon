@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
-  Bell, ChevronLeft, Check, MapPin, Navigation,
+  ChevronLeft, Check, MapPin, Navigation,
   Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
@@ -10,6 +10,8 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
+import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import {
@@ -1999,6 +2001,7 @@ export default function IncidentReport() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const handleSignOut = React.useCallback(() => {
@@ -2020,32 +2023,8 @@ export default function IncidentReport() {
   }, [step]);
 
   const notificationItems = useMemo(() => {
-    const stepHints = [
-      {
-        icon: <Info size={14} />,
-        color: '#1E3A8A',
-        bg: '#DBEAFE',
-        title: 'Step-by-step reporting',
-        desc: 'Use the guided form to submit complete and accurate report details.',
-        time: 'Guide',
-        unread: false,
-      },
-    ];
-
-    if (step >= 4) {
-      stepHints.unshift({
-        icon: <CheckCircle2 size={14} />,
-        color: '#059669',
-        bg: '#D1FAE5',
-        title: 'Almost ready to submit',
-        desc: 'Review your details before sending the report to your barangay.',
-        time: 'Now',
-        unread: true,
-      });
-    }
-
     if (submitted) {
-      stepHints.unshift({
+      const submittedItem = {
         icon: <FileText size={14} />,
         color: '#1E3A8A',
         bg: '#DBEAFE',
@@ -2053,11 +2032,13 @@ export default function IncidentReport() {
         desc: submittedReportId ? `Ticket ${submittedReportId} has been created.` : 'Your incident report was submitted successfully.',
         time: 'Just now',
         unread: true,
-      });
+      };
+
+      return [submittedItem, ...reportNotificationItems].slice(0, 4);
     }
 
-    return stepHints.slice(0, 3);
-  }, [step, submitted, submittedReportId]);
+    return reportNotificationItems;
+  }, [reportNotificationItems, submitted, submittedReportId]);
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
@@ -2277,43 +2258,14 @@ export default function IncidentReport() {
                     else navigate('/citizen');
                   }}
                 />
-                <button
+                <CitizenNotificationBellTrigger
+                  unreadCount={unreadNotificationCount}
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
                     setMobileMenuOpen(false);
                   }}
-                  style={{
-                    position: 'relative',
-                    background: 'rgba(255,255,255,0.12)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 10,
-                    width: 38,
-                    height: 38,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#fff',
-                  }}
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} />
-                  {unreadNotificationCount > 0 ? (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: '#B91C1C',
-                        border: '1.5px solid #1E3A8A',
-                      }}
-                    />
-                  ) : null}
-                </button>
+                />
                 <div style={{ position: 'relative' }}>
                   <button
                     type="button"
@@ -2408,80 +2360,11 @@ export default function IncidentReport() {
                 </div>
               </div>
 
-              {notifOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 66,
-                    right: 16,
-                    width: 300,
-                    background: '#fff',
-                    borderRadius: 14,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                    zIndex: 100,
-                    overflow: 'hidden',
-                    border: '1px solid #E2E8F0',
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: '1px solid #F1F5F9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-                    <span
-                      style={{
-                        background: '#B91C1C',
-                        color: '#fff',
-                        borderRadius: 20,
-                        padding: '1px 7px',
-                        fontSize: 10,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
-                    </span>
-                  </div>
-                  {notificationItems.map((item, index) => (
-                    <div
-                      key={`${item.title}-${index}`}
-                      style={{
-                        padding: '12px 16px',
-                        display: 'flex',
-                        gap: 10,
-                        alignItems: 'flex-start',
-                        borderBottom: index < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
-                        background: item.unread ? '#FFFBEB' : '#fff',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 8,
-                          background: item.bg,
-                          color: item.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {item.icon}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.desc}</div>
-                        <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{item.time}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CitizenNotificationsPanel
+                open={notifOpen}
+                unreadCount={unreadNotificationCount}
+                items={notificationItems}
+              />
             </div>
           </header>
         }

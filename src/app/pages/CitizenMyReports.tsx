@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Bell, Search, Filter, X, ChevronRight,
+  Search, Filter, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
   Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
@@ -11,7 +11,9 @@ import {
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
+import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
 import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   citizenReportsApi,
   type ApiCitizenReport,
@@ -1090,6 +1092,7 @@ export default function CitizenMyReports() {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const { notificationItems, unreadNotificationCount } = useCitizenReportNotifications();
 
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
@@ -1187,51 +1190,6 @@ export default function CitizenMyReports() {
   const allCount      = reports.length;
   const activeCount   = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'active').length;
   const resolvedCount = reports.filter(r => citizenStatusConfig[r.status].filterGroup === 'resolved').length;
-
-  const notificationItems = useMemo(() => {
-    const activeUpdates = reports
-      .filter((report) => citizenStatusConfig[report.status].filterGroup === 'active')
-      .slice(0, 2)
-      .map((report) => ({
-        icon: <Clock size={14} />,
-        color: '#1E3A8A',
-        bg: '#DBEAFE',
-        title: 'Report In Progress',
-        desc: `${report.id} is currently ${citizenStatusConfig[report.status].label.toLowerCase()}.`,
-        time: timeAgo(report.updatedAt),
-        unread: true,
-      }));
-
-    const resolvedUpdates = reports
-      .filter((report) => citizenStatusConfig[report.status].filterGroup === 'resolved')
-      .slice(0, 1)
-      .map((report) => ({
-        icon: <CheckCircle2 size={14} />,
-        color: '#059669',
-        bg: '#D1FAE5',
-        title: 'Report Resolved',
-        desc: `${report.id} has reached ${citizenStatusConfig[report.status].label}.`,
-        time: timeAgo(report.updatedAt),
-        unread: false,
-      }));
-
-    const items = [...activeUpdates, ...resolvedUpdates].slice(0, 3);
-    if (items.length > 0) {
-      return items;
-    }
-
-    return [{
-      icon: <Info size={14} />,
-      color: '#1E3A8A',
-      bg: '#DBEAFE',
-      title: 'No new updates',
-      desc: 'Your reports are up to date.',
-      time: 'Live',
-      unread: false,
-    }];
-  }, [reports]);
-
-  const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
@@ -1341,44 +1299,15 @@ export default function CitizenMyReports() {
                     else navigate('/citizen');
                   }}
                 />
-                <button
+                <CitizenNotificationBellTrigger
+                  unreadCount={unreadNotificationCount}
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
                     setSortOpen(false);
                     setMobileMenuOpen(false);
                   }}
-                  style={{
-                    position: 'relative',
-                    background: 'rgba(255,255,255,0.12)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 10,
-                    width: 38,
-                    height: 38,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#fff',
-                  }}
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} />
-                  {unreadNotificationCount > 0 ? (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: '#B91C1C',
-                        border: '1.5px solid #1E3A8A',
-                      }}
-                    />
-                  ) : null}
-                </button>
+                />
                 <div style={{ position: 'relative' }}>
                   <button
                     type="button"
@@ -1474,80 +1403,11 @@ export default function CitizenMyReports() {
                 </div>
               </div>
 
-              {notifOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 66,
-                    right: 16,
-                    width: 300,
-                    background: '#fff',
-                    borderRadius: 14,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                    zIndex: 100,
-                    overflow: 'hidden',
-                    border: '1px solid #E2E8F0',
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: '1px solid #F1F5F9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-                    <span
-                      style={{
-                        background: '#B91C1C',
-                        color: '#fff',
-                        borderRadius: 20,
-                        padding: '1px 7px',
-                        fontSize: 10,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
-                    </span>
-                  </div>
-                  {notificationItems.map((item, index) => (
-                    <div
-                      key={`${item.title}-${index}`}
-                      style={{
-                        padding: '12px 16px',
-                        display: 'flex',
-                        gap: 10,
-                        alignItems: 'flex-start',
-                        borderBottom: index < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
-                        background: item.unread ? '#FFFBEB' : '#fff',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 8,
-                          background: item.bg,
-                          color: item.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {item.icon}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.desc}</div>
-                        <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{item.time}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CitizenNotificationsPanel
+                open={notifOpen}
+                unreadCount={unreadNotificationCount}
+                items={notificationItems}
+              />
             </div>
           </header>
         }
