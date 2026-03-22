@@ -9,8 +9,10 @@ import {
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
+import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge } from '../components/StatusBadge';
+import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   incidentTypeConfig,
   Incident,
@@ -419,6 +421,7 @@ type CitizenNotificationItem = {
   unread: boolean;
   action: 'open-map-incident' | 'open-my-reports' | 'open-home' | 'open-verification';
   incidentId?: string;
+  reportId?: string;
 };
 
 /* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -449,6 +452,7 @@ export default function CitizenDashboard() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
     isVerified: Boolean(session?.user.isVerified),
     verificationStatus: session?.user.verificationStatus ?? null,
@@ -474,20 +478,6 @@ export default function CitizenDashboard() {
         incidentId: item.id,
       }));
 
-    const reportItems = myReports
-      .filter((report) => report.status !== 'resolved')
-      .slice(0, 2)
-      .map((report) => ({
-        icon: <CheckCircle2 size={14} />,
-        color: '#059669',
-        bg: '#D1FAE5',
-        title: 'Report Update',
-        desc: `${report.id} status: ${report.status}`,
-        time: timeAgo(report.reportedAt),
-        unread: true,
-        action: 'open-my-reports' as const,
-      }));
-
     const verificationSummary = getVerificationSummary(verificationPreview);
     const verificationItems = !verificationPreview.isVerified && !verificationPreview.isBanned
       ? [{
@@ -502,7 +492,7 @@ export default function CitizenDashboard() {
       }]
       : [];
 
-    const items = [...verificationItems, ...criticalItems, ...reportItems].slice(0, 3);
+    const items = [...verificationItems, ...criticalItems, ...reportNotificationItems].slice(0, 4);
     if (items.length > 0) {
       return items;
     }
@@ -517,7 +507,7 @@ export default function CitizenDashboard() {
       unread: false,
       action: 'open-home',
     }];
-  }, [incidents, myReports, verificationPreview]);
+  }, [incidents, reportNotificationItems, verificationPreview]);
 
   const handleNotificationClick = React.useCallback((item: CitizenNotificationItem) => {
     if (item.action === 'open-map-incident') {
@@ -525,7 +515,11 @@ export default function CitizenDashboard() {
       setSelectedIncident(targetIncident);
       setActiveTab('map');
     } else if (item.action === 'open-my-reports') {
-      navigate('/citizen/my-reports');
+      if (item.reportId) {
+        navigate(`/citizen/my-reports?reportId=${encodeURIComponent(item.reportId)}`);
+      } else {
+        navigate('/citizen/my-reports');
+      }
     } else if (item.action === 'open-verification') {
       navigate('/citizen/verification');
     } else {
@@ -710,42 +704,14 @@ export default function CitizenDashboard() {
                   else setActiveTab('home');
                 }}
               />
-              <button
+              <CitizenNotificationBellTrigger
+                unreadCount={unreadNotificationCount}
                 onClick={() => {
                   setNotifOpen(!notifOpen);
                   setProfileMenuOpen(false);
                   setMobileMenuOpen(false);
                 }}
-                style={{
-                  position: 'relative',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: 10,
-                  width: 38,
-                  height: 38,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#fff',
-                }}
-              >
-                <Bell size={18} />
-                {unreadNotificationCount > 0 ? (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: 6,
-                      right: 6,
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: '#B91C1C',
-                      border: '1.5px solid #1E3A8A',
-                    }}
-                  />
-                ) : null}
-              </button>
+              />
               <div style={{ position: 'relative' }}>
                 <button
                   type="button"
@@ -840,88 +806,12 @@ export default function CitizenDashboard() {
               </div>
             </div>
 
-            {notifOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 66,
-                  right: 16,
-                  width: 300,
-                  background: '#fff',
-                  borderRadius: 14,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                  zIndex: 100,
-                  overflow: 'hidden',
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '12px 16px',
-                    borderBottom: '1px solid #F1F5F9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-                  <span
-                    style={{
-                      background: '#B91C1C',
-                      color: '#fff',
-                      borderRadius: 20,
-                      padding: '1px 7px',
-                      fontSize: 10,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {unreadNotificationCount > 0 ? `${unreadNotificationCount} New` : 'No New'}
-                  </span>
-                </div>
-                {notificationItems.map((n, i) => (
-                  <button
-                    key={`${n.title}-${i}`}
-                    type="button"
-                    onClick={() => handleNotificationClick(n)}
-                    style={{
-                      padding: '12px 16px',
-                      display: 'flex',
-                      width: '100%',
-                      gap: 10,
-                      alignItems: 'flex-start',
-                      borderBottom: i < notificationItems.length - 1 ? '1px solid #F8FAFC' : 'none',
-                      cursor: 'pointer',
-                      background: n.unread ? '#FFFBEB' : '#fff',
-                      borderLeft: 'none',
-                      borderRight: 'none',
-                      borderTop: 'none',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 8,
-                        background: n.bg,
-                        color: n.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {n.icon}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{n.title}</div>
-                      <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{n.desc}</div>
-                      <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{n.time}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            <CitizenNotificationsPanel
+              open={notifOpen}
+              unreadCount={unreadNotificationCount}
+              items={notificationItems}
+              onItemClick={handleNotificationClick}
+            />
           </div>
         </header>
       }
