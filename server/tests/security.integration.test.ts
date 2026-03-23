@@ -4,6 +4,7 @@ import type { Server } from "node:http";
 import jwt from "jsonwebtoken";
 
 type PrismaModule = typeof import("../src/config/prisma.js");
+type AppModule = typeof import("../src/app.js");
 
 const TEST_JWT_SECRET = "tugon-test-jwt-secret-12345";
 const ALLOWED_ORIGIN = "http://localhost:5173";
@@ -12,6 +13,7 @@ const BLOCKED_ORIGIN = "https://malicious.example";
 let baseUrl = "";
 let server: Server;
 let prismaModule: PrismaModule;
+let createApp: AppModule["createApp"];
 let originalUserFindUnique: PrismaModule["prisma"]["user"]["findUnique"];
 
 function createCitizenToken() {
@@ -37,10 +39,12 @@ before(async () => {
   process.env.REPORT_SUBMIT_RATE_LIMIT_WINDOW_MS = "60000";
   process.env.REPORT_SUBMIT_RATE_LIMIT_MAX_REQUESTS = "2";
 
-  const [{ createApp }, prismaConfig] = await Promise.all([
+  const [appModule, prismaConfig] = await Promise.all([
     import("../src/app.js"),
     import("../src/config/prisma.js"),
   ]);
+
+  createApp = appModule.createApp;
 
   prismaModule = prismaConfig;
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
@@ -83,6 +87,18 @@ after(async () => {
 });
 
 describe("Security middleware integration", () => {
+  it("rejects wildcard CORS configuration", () => {
+    const previousOrigins = process.env.CORS_ALLOWED_ORIGINS;
+    process.env.CORS_ALLOWED_ORIGINS = "*";
+
+    assert.throws(
+      () => createApp(),
+      /wildcard '\*' is not allowed/i,
+    );
+
+    process.env.CORS_ALLOWED_ORIGINS = previousOrigins;
+  });
+
   it("allows configured CORS origin", async () => {
     const response = await fetch(`${baseUrl}/api/health`, {
       method: "GET",

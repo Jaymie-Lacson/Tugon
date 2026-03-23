@@ -14,6 +14,23 @@ function parseAllowedOriginsFromEnv(rawValue: string | undefined) {
   );
 }
 
+function resolveCorsAllowedOrigins(rawValue: string | undefined, nodeEnv: string | undefined) {
+  const parsedOrigins = parseAllowedOriginsFromEnv(rawValue);
+
+  if (parsedOrigins.has("*")) {
+    throw new Error(
+      "Invalid CORS_ALLOWED_ORIGINS: wildcard '*' is not allowed when credentials are enabled. Use exact origins.",
+    );
+  }
+
+  if (parsedOrigins.size === 0 && nodeEnv !== "production") {
+    parsedOrigins.add("http://localhost:5173");
+    parsedOrigins.add("http://127.0.0.1:5173");
+  }
+
+  return parsedOrigins;
+}
+
 function parsePositiveInteger(rawValue: string | undefined, fallback: number) {
   const parsed = Number(rawValue);
   if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -24,7 +41,7 @@ function parsePositiveInteger(rawValue: string | undefined, fallback: number) {
 
 export function createApp() {
   const app = express();
-  const corsAllowedOrigins = parseAllowedOriginsFromEnv(process.env.CORS_ALLOWED_ORIGINS);
+  const corsAllowedOrigins = resolveCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS, process.env.NODE_ENV);
   const authRateLimitWindowMs = parsePositiveInteger(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 60_000);
   const authRateLimitMaxRequests = parsePositiveInteger(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS, 30);
   const reportSubmitRateLimitWindowMs = parsePositiveInteger(

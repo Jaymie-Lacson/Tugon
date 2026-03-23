@@ -48,6 +48,7 @@ This runs:
 2. Add these service variables in Railway:
    - `NODE_ENV=production`
    - `PORT=4000` (Railway also injects `PORT`; keep app reading `process.env.PORT`)
+   - `CORS_ALLOWED_ORIGINS=https://<your-frontend-domain>,http://localhost:5173` (comma-separated exact origins; do not use `*` when credentials/cookies are enabled)
    - `JWT_SECRET=<long-random-secret>`
    - `JWT_EXPIRES_IN=8h`
    - `OTP_EXPIRY_MINUTES=5`

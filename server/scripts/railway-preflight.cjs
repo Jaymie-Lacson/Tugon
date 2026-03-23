@@ -30,9 +30,24 @@ function assertEnv(name) {
   }
 }
 
+function assertNoWildcardCors() {
+  const raw = process.env.CORS_ALLOWED_ORIGINS || "";
+  const origins = raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (origins.includes("*")) {
+    console.error("[preflight] CORS_ALLOWED_ORIGINS must not include '*'. Use explicit origins when credentials are enabled.");
+    process.exit(1);
+  }
+}
+
 console.log("[preflight] Validating required environment variables...");
 assertEnv("JWT_SECRET");
 assertEnv("DATABASE_URL");
+assertEnv("CORS_ALLOWED_ORIGINS");
+assertNoWildcardCors();
 
 if (process.env.RUN_DB_MIGRATIONS === "1") {
   assertEnv("DIRECT_URL");
