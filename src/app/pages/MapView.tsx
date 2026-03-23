@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
   Layers, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  Navigation2, ArrowLeft,
+  Navigation2, ArrowLeft, TrendingUp,
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
-import { IncidentMap } from '../components/IncidentMap';
+import { HeatmapClusterOverlay, IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { officialReportsApi } from '../services/officialReportsApi';
@@ -53,11 +53,17 @@ export default function MapView() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [heatmapClusters, setHeatmapClusters] = useState<HeatmapClusterOverlay[]>([]);
+  const [heatmapLoading, setHeatmapLoading] = useState(false);
+  const [heatmapError, setHeatmapError] = useState<string | null>(null);
+  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
+  const [hasHotspotAutoSelected, setHasHotspotAutoSelected] = useState(false);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const isPublicCommunityMap = location.pathname === '/community-map';
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [showSelectedDetail, setShowSelectedDetail] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<IncidentType | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
@@ -80,6 +86,8 @@ export default function MapView() {
     const load = async () => {
       if (isPublicCommunityMap) {
         setIncidents([]);
+        setHeatmapClusters([]);
+        setMapRenderMode('standard');
         setLoading(false);
         setError(null);
         return;
@@ -101,6 +109,50 @@ export default function MapView() {
 
     void load();
   }, [isPublicCommunityMap]);
+
+  useEffect(() => {
+    const loadHeatmap = async () => {
+      if (isPublicCommunityMap) {
+        setHeatmapClusters([]);
+        setHeatmapLoading(false);
+        setHeatmapError(null);
+        return;
+      }
+
+      setHeatmapLoading(true);
+      setHeatmapError(null);
+      try {
+        const payload = await officialReportsApi.getHeatmap({ days: 14, threshold: 3 });
+        const overlays: HeatmapClusterOverlay[] = payload.clusters.map((cluster) => ({
+          id: cluster.clusterId,
+          latitude: cluster.centerLatitude,
+          longitude: cluster.centerLongitude,
+          intensity: cluster.intensity,
+          incidentCount: cluster.incidentCount,
+          incidentType: cluster.category,
+        }));
+        setHeatmapClusters(overlays);
+      } catch (loadError) {
+        const message = loadError instanceof Error ? loadError.message : 'Failed to load hotspot clusters.';
+        setHeatmapError(message);
+        setHeatmapClusters([]);
+      } finally {
+        setHeatmapLoading(false);
+      }
+    };
+
+    void loadHeatmap();
+  }, [isPublicCommunityMap]);
+
+  useEffect(() => {
+    if (isPublicCommunityMap) {
+      return;
+    }
+
+    if (!heatmapLoading && heatmapClusters.length === 0 && mapRenderMode === 'hotspot') {
+      setMapRenderMode('standard');
+    }
+  }, [heatmapClusters.length, heatmapLoading, isPublicCommunityMap, mapRenderMode]);
 
   useEffect(() => {
     if (!initialLoadPending) {
@@ -138,8 +190,31 @@ export default function MapView() {
     const stillVisible = filtered.some((incident) => incident.id === selectedIncident.id);
     if (!stillVisible) {
       setSelectedIncident(null);
+      setShowSelectedDetail(false);
     }
   }, [filtered, selectedIncident]);
+
+  useEffect(() => {
+    if (isPublicCommunityMap || mapRenderMode !== 'hotspot' || selectedIncident) {
+      return;
+    }
+
+    if (hasHotspotAutoSelected) {
+      return;
+    }
+
+    if (filtered.length > 0) {
+      setSelectedIncident(filtered[0]);
+      setShowSelectedDetail(true);
+      setHasHotspotAutoSelected(true);
+    }
+  }, [filtered, hasHotspotAutoSelected, isPublicCommunityMap, mapRenderMode, selectedIncident]);
+
+  useEffect(() => {
+    if (mapRenderMode !== 'hotspot') {
+      setHasHotspotAutoSelected(false);
+    }
+  }, [mapRenderMode]);
 
   const coverageSubtitle = React.useMemo(() => {
     const barangays = [...new Set(mapIncidents.map((incident) => incident.barangay).filter(Boolean))];
@@ -272,6 +347,26 @@ export default function MapView() {
             <span className="map-header-title-sub">{coverageSubtitle}</span>
           </div>
 
+          {!isPublicCommunityMap && (
+            <div className="map-mode-toggle" role="group" aria-label="Map display mode">
+              <button
+                className={`map-mode-button${mapRenderMode === 'hotspot' ? ' is-active' : ''}`}
+                onClick={() => setMapRenderMode('hotspot')}
+                disabled={heatmapLoading || heatmapClusters.length === 0}
+                title={heatmapClusters.length === 0 ? 'No hotspot cluster reached the threshold' : 'Show threshold-based hotspot view'}
+              >
+                <TrendingUp size={12} /> Hotspot
+              </button>
+              <button
+                className={`map-mode-button${mapRenderMode === 'standard' ? ' is-active' : ''}`}
+                onClick={() => setMapRenderMode('standard')}
+                title="Show incident marker view"
+              >
+                <Layers size={12} /> Incidents
+              </button>
+            </div>
+          )}
+
           <div className="map-mobile-title">
             <span className="map-mobile-title-text">Incident Map</span>
           </div>
@@ -287,13 +382,23 @@ export default function MapView() {
         </div>
 
         <div className="map-canvas-wrap">
+          {!isPublicCommunityMap && heatmapError && (
+            <div className="map-heatmap-error-banner" role="status">
+              {heatmapError}
+            </div>
+          )}
           <IncidentMap
             incidents={filtered}
             height="100%"
             selectedId={selectedIncident?.id ?? null}
-            onSelectIncident={inc => setSelectedIncident(inc)}
+            onSelectIncident={inc => {
+              setSelectedIncident(inc);
+              setShowSelectedDetail(Boolean(inc));
+            }}
             compact={isPublicCommunityMap}
             zoom={18}
+            heatmapClusters={heatmapClusters}
+            renderMode={isPublicCommunityMap ? 'standard' : mapRenderMode}
           />
         </div>
 
@@ -316,7 +421,7 @@ export default function MapView() {
           </div>
         )}
 
-        {!isPublicCommunityMap && selectedIncident && (
+        {!isPublicCommunityMap && selectedIncident && showSelectedDetail && (
           <div className="map-selected-wrap">
             <div className="map-selected-card">
               <div className="map-selected-header">
@@ -330,7 +435,7 @@ export default function MapView() {
                 <div className="map-selected-header-actions">
                   <StatusBadge status={selectedIncident.status} size="sm" pulse={selectedIncident.status === 'active'} />
                   <button
-                    onClick={() => setSelectedIncident(null)}
+                    onClick={() => setShowSelectedDetail(false)}
                     className="map-selected-close"
                     title="Close selected incident panel"
                     aria-label="Close selected incident panel"

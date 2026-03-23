@@ -127,6 +127,7 @@ export interface IncidentMapProps {
   zoom?: number;
   heatmapClusters?: HeatmapClusterOverlay[];
   showSelectedPopup?: boolean;
+  renderMode?: 'standard' | 'hotspot';
 }
 
 export interface HeatmapClusterOverlay {
@@ -218,12 +219,18 @@ export function IncidentMap({
   zoom = 17,
   heatmapClusters = [],
   showSelectedPopup = false,
+  renderMode = 'standard',
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
     return (order[b.severity] ?? 3) - (order[a.severity] ?? 3);
   });
+  const isHotspotMode = renderMode === 'hotspot' && heatmapClusters.length > 0;
+  const selectedIncident = incidents.find((incident) => incident.id === selectedId) ?? null;
+  const markerIncidents = isHotspotMode
+    ? (selectedIncident ? [selectedIncident] : [])
+    : sorted;
 
   return (
     <div style={{ position: 'relative', width: '100%', height, borderRadius: 8, overflow: 'hidden' }}>
@@ -254,10 +261,10 @@ export function IncidentMap({
             positions={barangay.points}
             pathOptions={{
               color: '#1E3A8A',
-              weight: 3,
+              weight: isHotspotMode ? 2 : 3,
               dashArray: '8 6',
               fillColor: '#93C5FD',
-              fillOpacity: 0.08,
+              fillOpacity: isHotspotMode ? 0.04 : 0.08,
             }}
           >
             <Tooltip direction="center" permanent>
@@ -267,10 +274,10 @@ export function IncidentMap({
         ))}
 
         {/* Auto-pan when selected changes */}
-        <MapPanner incident={incidents.find(i => i.id === selectedId) ?? null} />
+        <MapPanner incident={selectedIncident} />
 
         {/* Soft glow circles for active incidents */}
-        {sorted
+        {!isHotspotMode && sorted
           .filter(inc => inc.status === 'active' || inc.status === 'responding')
           .map(inc => (
             <Circle
@@ -297,7 +304,9 @@ export function IncidentMap({
                 cluster.incidentType === 'Garbage and Sanitation' ? TYPE_COLORS.flood :
                   cluster.incidentType === 'Neighbor Disputes / Lupon' ? TYPE_COLORS.crime :
                     TYPE_COLORS.infrastructure);
-          const radius = Math.max(55, Math.round(45 + cluster.intensity * 45));
+          const radius = isHotspotMode
+            ? Math.max(85, Math.round(70 + cluster.intensity * 58 + cluster.incidentCount * 2))
+            : Math.max(55, Math.round(45 + cluster.intensity * 45));
 
           return (
             <Circle
@@ -307,9 +316,11 @@ export function IncidentMap({
               pathOptions={{
                 color,
                 fillColor: color,
-                fillOpacity: Math.min(0.34, 0.1 + cluster.intensity * 0.05),
-                weight: 1,
-                opacity: 0.5,
+                fillOpacity: isHotspotMode
+                  ? Math.min(0.46, 0.18 + cluster.intensity * 0.07)
+                  : Math.min(0.34, 0.1 + cluster.intensity * 0.05),
+                weight: isHotspotMode ? 2 : 1,
+                opacity: isHotspotMode ? 0.7 : 0.5,
               }}
             >
               <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent={false}>
@@ -327,7 +338,7 @@ export function IncidentMap({
         })}
 
         {/* Incident markers */}
-        {sorted.map(inc => {
+        {markerIncidents.map(inc => {
           const selected = inc.id === selectedId;
           const icon = makeIncidentIcon(inc, selected, false);
           return (
@@ -409,8 +420,24 @@ export function IncidentMap({
           minWidth: 115,
           border: '1px solid #E2E8F0',
         }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
-          {Object.entries(incidentTypeConfig).map(([key, cfg]) => (
+          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            {isHotspotMode ? 'Hotspot Intensity' : 'Incident Categories'}
+          </div>
+          {isHotspotMode ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#B91C1C', opacity: 0.72, display: 'inline-block' }} />
+                <span style={{ color: '#475569', fontSize: 9 }}>Hotspot cluster zone</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#1E3A8A', opacity: 0.55, display: 'inline-block' }} />
+                <span style={{ color: '#475569', fontSize: 9 }}>Barangay boundary (reference)</span>
+              </div>
+              <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
+                <span style={{ color: '#64748B', fontSize: 9 }}>Only selected incident pin is shown to reduce clutter.</span>
+              </div>
+            </>
+          ) : Object.entries(incidentTypeConfig).map(([key]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
               <span
                 style={{
@@ -428,12 +455,14 @@ export function IncidentMap({
               <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}
-          <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', display: 'inline-block' }} />
-              <span style={{ color: '#94A3B8', fontSize: 9 }}>Resolved</span>
+          {!isHotspotMode && (
+            <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', display: 'inline-block' }} />
+                <span style={{ color: '#94A3B8', fontSize: 9 }}>Resolved</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

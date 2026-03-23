@@ -262,6 +262,17 @@ function detectBarangayByCoordinate(lat: number, lng: number) {
   return null;
 }
 
+function isPointInsideBarangay(code: string, lat: number, lng: number): boolean {
+  const barangay = BARANGAY_BOUNDARIES.find((item) => item.code === code);
+  if (!barangay) {
+    return false;
+  }
+
+  const point: LngLat = [lng, lat];
+  const ring: LngLat[] = barangay.boundary.map(([ringLat, ringLng]) => [ringLng, ringLat]);
+  return isPointInsideRing(point, ring);
+}
+
 function isPinWithinSupportedBarangay(pin: PinData | null): boolean {
   if (!pin) {
     return false;
@@ -614,6 +625,23 @@ function Step2({
     if (!hasBarangayProfile) {
       return;
     }
+
+    const insideAssignedBarangay = userBarangayCode ? isPointInsideBarangay(userBarangayCode, lat, lng) : false;
+    if (insideAssignedBarangay && allowedBarangays[0]) {
+      const assigned = allowedBarangays[0];
+      setForm((p) => ({
+        ...p,
+        pin: {
+          lat,
+          lng,
+          barangay: assigned.name,
+          district: assigned.district,
+        },
+        address: p.address.trim() ? p.address : `${assigned.name}, ${assigned.district}`,
+      }));
+      return;
+    }
+
     const detected = detectBarangayByCoordinate(lat, lng);
     if (!detected || detected.code !== userBarangayCode) {
       setForm((p) => ({

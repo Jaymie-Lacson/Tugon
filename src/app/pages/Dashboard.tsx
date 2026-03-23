@@ -119,6 +119,7 @@ export default function Dashboard() {
   const [heatmapClusters, setHeatmapClusters] = useState<ApiHeatmapCluster[]>([]);
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
+  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
@@ -261,6 +262,17 @@ export default function Dashboard() {
       setInitialLoadPending(false);
     }
   }, [initialLoadPending, incidentsLoading, alertsLoading, heatmapLoading]);
+
+  useEffect(() => {
+    if (heatmapLoading) {
+      return;
+    }
+
+    // Fallback to pin mode when there are no qualifying hotspot clusters.
+    if (heatmapClusters.length === 0 && mapRenderMode === 'hotspot') {
+      setMapRenderMode('standard');
+    }
+  }, [heatmapClusters.length, heatmapLoading, mapRenderMode]);
 
   const handleMarkAlertRead = async (alertId: string) => {
     setMarkingReadAlertId(alertId);
@@ -410,7 +422,7 @@ export default function Dashboard() {
                 ) : null}
               </div>
               <div style={{ color: '#94A3B8', fontSize: 11 }}>
-                Overlay enabled on map panel
+                {heatmapClusters.length > 0 ? 'Hotspot focus available on map panel' : 'Switches to incident pins automatically'}
               </div>
             </div>
           )}
@@ -475,6 +487,41 @@ export default function Dashboard() {
               <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Incident Overview Map</span>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #CBD5E1', borderRadius: 8, overflow: 'hidden', background: '#F8FAFC' }}>
+                <button
+                  onClick={() => setMapRenderMode('hotspot')}
+                  disabled={heatmapLoading || heatmapClusters.length === 0}
+                  style={{
+                    border: 'none',
+                    borderRight: '1px solid #CBD5E1',
+                    background: mapRenderMode === 'hotspot' ? '#1E3A8A' : '#F8FAFC',
+                    color: mapRenderMode === 'hotspot' ? '#FFFFFF' : '#334155',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '5px 9px',
+                    cursor: heatmapLoading || heatmapClusters.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: heatmapLoading || heatmapClusters.length === 0 ? 0.5 : 1,
+                  }}
+                  title={heatmapClusters.length === 0 ? 'No hotspot cluster reached the threshold' : 'Show hotspot-focused analytics view'}
+                >
+                  Hotspot Focus
+                </button>
+                <button
+                  onClick={() => setMapRenderMode('standard')}
+                  style={{
+                    border: 'none',
+                    background: mapRenderMode === 'standard' ? '#1E3A8A' : '#F8FAFC',
+                    color: mapRenderMode === 'standard' ? '#FFFFFF' : '#334155',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '5px 9px',
+                    cursor: 'pointer',
+                  }}
+                  title="Show incident-level marker view"
+                >
+                  Incident Pins
+                </button>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F0FDF4', borderRadius: 5, padding: '3px 7px', border: '1px solid #BBF7D0' }}>
                 <Navigation2 size={9} color="#059669" />
                 <span style={{ fontSize: 9, color: '#059669', fontWeight: 600 }}>OpenStreetMap</span>
@@ -508,6 +555,7 @@ export default function Dashboard() {
               compact={false}
               zoom={14}
               heatmapClusters={heatmapOverlays}
+              renderMode={mapRenderMode}
             />
           </div>
           {selectedIncident && (
