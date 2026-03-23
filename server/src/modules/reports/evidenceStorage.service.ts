@@ -17,6 +17,102 @@ type EvidencePayload = {
   dataUrl: string;
 };
 
+function startsWithBytes(bytes: Buffer, prefix: number[]): boolean {
+  if (bytes.length < prefix.length) {
+    return false;
+  }
+
+  return prefix.every((value, index) => bytes[index] === value);
+}
+
+function hasMp4FamilySignature(bytes: Buffer): boolean {
+  if (bytes.length < 12) {
+    return false;
+  }
+
+  return bytes.toString("ascii", 4, 8) === "ftyp";
+}
+
+function normalizeEvidenceMimeType(kind: "photo" | "audio", mimeType: string): string {
+  const normalized = mimeType.trim().toLowerCase();
+
+  if (kind === "photo" && normalized === "image/jpg") {
+    return "image/jpeg";
+  }
+
+  if (kind === "audio" && normalized === "audio/mp3") {
+    return "audio/mpeg";
+  }
+
+  return normalized;
+}
+
+function ensureAllowedSignature(kind: "photo" | "audio", mimeType: string, bytes: Buffer) {
+  if (kind === "photo") {
+    if (mimeType === "image/jpeg" && !startsWithBytes(bytes, [0xff, 0xd8, 0xff])) {
+      throw new Error("Photo content does not match declared mime type.");
+    }
+
+    if (mimeType === "image/png" && !startsWithBytes(bytes, [0x89, 0x50, 0x4e, 0x47])) {
+      throw new Error("Photo content does not match declared mime type.");
+    }
+
+    if (mimeType === "image/webp") {
+      const isRiff = startsWithBytes(bytes, [0x52, 0x49, 0x46, 0x46]);
+      const isWebp = bytes.length >= 12 && bytes.toString("ascii", 8, 12) === "WEBP";
+      if (!isRiff || !isWebp) {
+        throw new Error("Photo content does not match declared mime type.");
+      }
+    }
+
+    if (mimeType === "image/heic" || mimeType === "image/heif") {
+      const hasFtyp = bytes.length >= 12 && bytes.toString("ascii", 4, 8) === "ftyp";
+      if (!hasFtyp) {
+        throw new Error("Photo content does not match declared mime type.");
+      }
+    }
+
+    return;
+  }
+
+  if (mimeType === "audio/ogg" && !startsWithBytes(bytes, [0x4f, 0x67, 0x67, 0x53])) {
+    throw new Error("Audio content does not match declared mime type.");
+  }
+
+  if (mimeType === "audio/webm" && !startsWithBytes(bytes, [0x1a, 0x45, 0xdf, 0xa3])) {
+    throw new Error("Audio content does not match declared mime type.");
+  }
+
+  if (mimeType === "audio/wav") {
+    const isRiff = startsWithBytes(bytes, [0x52, 0x49, 0x46, 0x46]);
+    const isWave = bytes.length >= 12 && bytes.toString("ascii", 8, 12) === "WAVE";
+    if (!isRiff || !isWave) {
+      throw new Error("Audio content does not match declared mime type.");
+    }
+  }
+
+  if (mimeType === "audio/mpeg") {
+    const hasId3 = startsWithBytes(bytes, [0x49, 0x44, 0x33]);
+    const hasFrameSync = bytes.length >= 2 && bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0;
+    if (!hasId3 && !hasFrameSync) {
+      throw new Error("Audio content does not match declared mime type.");
+    }
+  }
+
+  if (mimeType === "audio/mp4" && !hasMp4FamilySignature(bytes)) {
+    throw new Error("Audio content does not match declared mime type.");
+  }
+}
+
+function ensureAllowedSize(kind: "photo" | "audio", bytes: Buffer) {
+  const maxBytes = kind === "photo" ? env.evidenceMaxPhotoBytes : env.evidenceMaxAudioBytes;
+
+  if (bytes.length > maxBytes) {
+    const label = kind === "photo" ? "Photo" : "Audio";
+    throw new Error(`${label} evidence exceeds maximum allowed size.`);
+  }
+}
+
 function parseDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } {
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
   if (!match) {
@@ -51,6 +147,12 @@ function ensureAllowedMimeType(kind: "photo" | "audio", mimeType: string) {
   }
 }
 
+function validateEvidencePayload(kind: "photo" | "audio", mimeType: string, bytes: Buffer) {
+  ensureAllowedMimeType(kind, mimeType);
+  ensureAllowedSize(kind, bytes);
+  ensureAllowedSignature(kind, mimeType, bytes);
+}
+
 function hasSupabaseStorageConfig(): boolean {
   return Boolean(env.supabaseUrl && env.supabaseServiceRoleKey && env.supabaseStorageBucket);
 }
@@ -63,8 +165,8 @@ async function uploadToSupabase(
   index: number,
 ): Promise<PreparedEvidence> {
   const { mimeType: parsedMimeType, bytes } = parseDataUrl(payload.dataUrl);
-  const mimeType = payload.mimeType?.trim() || parsedMimeType;
-  ensureAllowedMimeType(kind, mimeType);
+  const mimeType = normalizeEvidenceMimeType(kind, payload.mimeType?.trim() || parsedMimeType);
+  validateEvidencePayload(kind, mimeType, bytes);
 
   const extension = mimeType.split("/")[1] ?? "bin";
   const fileName = sanitizeFileName(payload.fileName, `${kind}-${index + 1}.${extension}`);
@@ -105,8 +207,8 @@ function prepareWithoutUpload(
   index: number,
 ): PreparedEvidence {
   const { mimeType: parsedMimeType, bytes } = parseDataUrl(payload.dataUrl);
-  const mimeType = payload.mimeType?.trim() || parsedMimeType;
-  ensureAllowedMimeType(kind, mimeType);
+  const mimeType = normalizeEvidenceMimeType(kind, payload.mimeType?.trim() || parsedMimeType);
+  validateEvidencePayload(kind, mimeType, bytes);
   const extension = mimeType.split("/")[1] ?? "bin";
   const fileName = sanitizeFileName(payload.fileName, `${kind}-${index + 1}.${extension}`);
 

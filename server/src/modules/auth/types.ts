@@ -23,6 +23,9 @@ export interface OtpRecord {
   code: string;
   expiresAtMs: number;
   isVerified: boolean;
+  failedVerifyAttempts: number;
+  lockoutUntilMs: number | null;
+  lastSentAtMs: number;
   registration?: PendingRegistration;
 }
 
@@ -30,6 +33,7 @@ export interface AuthPayload {
   sub: string;
   role: Role;
   phoneNumber: string;
+  sid?: string;
 }
 
 export interface PublicUser {
@@ -47,7 +51,7 @@ export interface PublicUser {
 }
 
 export interface AuthSession {
-  token: string;
+  token?: string;
   user: PublicUser;
 }
 

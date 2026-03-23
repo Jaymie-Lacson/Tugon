@@ -15,6 +15,7 @@ let geoModule: GeoModule;
 
 let originalUserFindUnique: PrismaModule["prisma"]["user"]["findUnique"];
 let originalResolveBarangay: GeoModule["geofencingService"]["resolveBarangayFromCoordinates"];
+let originalFindNearbyBarangays: GeoModule["geofencingService"]["findNearbyBarangaysForAlert"];
 
 function createCitizenToken() {
   return jwt.sign(
@@ -46,6 +47,8 @@ before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
   process.env.NODE_ENV = "test";
+  process.env.EVIDENCE_MAX_PHOTO_BYTES = "32";
+  process.env.EVIDENCE_MAX_AUDIO_BYTES = "64";
 
   const [{ createApp }, prismaConfig, geoConfig] = await Promise.all([
     import("../src/app.js"),
@@ -58,6 +61,7 @@ before(async () => {
 
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
   originalResolveBarangay = geoModule.geofencingService.resolveBarangayFromCoordinates;
+  originalFindNearbyBarangays = geoModule.geofencingService.findNearbyBarangaysForAlert;
 
   const app = createApp();
   await new Promise<void>((resolve) => {
@@ -75,6 +79,7 @@ before(async () => {
 after(async () => {
   prismaModule.prisma.user.findUnique = originalUserFindUnique;
   geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+  geoModule.geofencingService.findNearbyBarangaysForAlert = originalFindNearbyBarangays;
 
   await new Promise<void>((resolve, reject) => {
     server.close((error) => {
@@ -193,5 +198,107 @@ describe("Citizen report POST validation integration", () => {
     });
 
     geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+  });
+
+  it("returns 400 when photo mime type is not allowed", async () => {
+    prismaModule.prisma.user.findUnique = (async () => ({
+      id: "test-citizen-id",
+      fullName: "Test Citizen",
+      citizenProfile: {
+        barangay: {
+          code: "251",
+        },
+      },
+    })) as typeof prismaModule.prisma.user.findUnique;
+
+    geoModule.geofencingService.resolveBarangayFromCoordinates = (async () => ({
+      id: "brgy-251",
+      code: "251",
+      name: "Barangay 251",
+    })) as typeof geoModule.geofencingService.resolveBarangayFromCoordinates;
+    geoModule.geofencingService.findNearbyBarangaysForAlert = (async () => []) as typeof geoModule.geofencingService.findNearbyBarangaysForAlert;
+
+    const token = createCitizenToken();
+
+    const { response, payload } = await postJson("/api/citizen/reports", token, {
+      category: "Public Disturbance",
+      subcategory: "Loud noises or late-night karaoke",
+      requiresMediation: false,
+      mediationWarning: null,
+      latitude: 14.6145,
+      longitude: 120.9778,
+      location: "Barangay 251 Hall",
+      description: "Attempt with invalid evidence mime type.",
+      severity: "medium",
+      affectedCount: "6-20",
+      photoCount: 1,
+      hasAudio: false,
+      photos: [
+        {
+          fileName: "proof.txt",
+          mimeType: "text/plain",
+          dataUrl: "data:text/plain;base64,SGVsbG8=",
+        },
+      ],
+    });
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(payload, { message: "Unsupported photo mime type: text/plain" });
+
+    geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+    geoModule.geofencingService.findNearbyBarangaysForAlert = originalFindNearbyBarangays;
+  });
+
+  it("returns 400 when photo evidence exceeds configured max size", async () => {
+    prismaModule.prisma.user.findUnique = (async () => ({
+      id: "test-citizen-id",
+      fullName: "Test Citizen",
+      citizenProfile: {
+        barangay: {
+          code: "251",
+        },
+      },
+    })) as typeof prismaModule.prisma.user.findUnique;
+
+    geoModule.geofencingService.resolveBarangayFromCoordinates = (async () => ({
+      id: "brgy-251",
+      code: "251",
+      name: "Barangay 251",
+    })) as typeof geoModule.geofencingService.resolveBarangayFromCoordinates;
+    geoModule.geofencingService.findNearbyBarangaysForAlert = (async () => []) as typeof geoModule.geofencingService.findNearbyBarangaysForAlert;
+
+    const token = createCitizenToken();
+    const oversizedPng = Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+      Buffer.alloc(40, 0x01),
+    ]).toString("base64");
+
+    const { response, payload } = await postJson("/api/citizen/reports", token, {
+      category: "Public Disturbance",
+      subcategory: "Loud noises or late-night karaoke",
+      requiresMediation: false,
+      mediationWarning: null,
+      latitude: 14.6145,
+      longitude: 120.9778,
+      location: "Barangay 251 Hall",
+      description: "Attempt with oversized photo evidence.",
+      severity: "medium",
+      affectedCount: "6-20",
+      photoCount: 1,
+      hasAudio: false,
+      photos: [
+        {
+          fileName: "oversized.png",
+          mimeType: "image/png",
+          dataUrl: `data:image/png;base64,${oversizedPng}`,
+        },
+      ],
+    });
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(payload, { message: "Photo evidence exceeds maximum allowed size." });
+
+    geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+    geoModule.geofencingService.findNearbyBarangaysForAlert = originalFindNearbyBarangays;
   });
 });

@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { env } from "../config/env.js";
 import { authService } from "../modules/auth/auth.service.js";
 
 declare global {
@@ -9,33 +10,48 @@ declare global {
         role: "CITIZEN" | "OFFICIAL" | "SUPER_ADMIN";
         phoneNumber: string;
       };
+      authToken?: string;
     }
   }
 }
 
-export const authenticate: RequestHandler = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+function extractBearerToken(authHeader: string | undefined) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Missing bearer token." });
+    return "";
   }
 
-  const token = authHeader.slice(7).trim();
+  return authHeader.slice(7).trim();
+}
+
+function extractCookieToken(req: Express.Request) {
+  const cookieValue = (req as { cookies?: Record<string, unknown> }).cookies?.[env.authCookieName];
+  return typeof cookieValue === "string" ? cookieValue.trim() : "";
+}
+
+export const authenticate: RequestHandler = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const bearerToken = extractBearerToken(authHeader);
+  const cookieToken = extractCookieToken(req);
+  const token = bearerToken || cookieToken;
+
   if (!token) {
     return res.status(401).json({ message: "Missing bearer token." });
   }
 
-  if (authService.isTokenRevoked(token)) {
-    return res.status(401).json({ message: "Token is no longer valid." });
-  }
-
   try {
     const payload = authService.verifyToken(token);
+
+    if (await authService.isTokenRevoked(token, payload)) {
+      return res.status(401).json({ message: "Token is no longer valid." });
+    }
+
     req.authUser = {
       id: payload.sub,
       role: payload.role,
       phoneNumber: payload.phoneNumber,
     };
-    next();
+    req.authToken = token;
+    return next();
   } catch {
     return res.status(401).json({ message: "Invalid or expired token." });
   }

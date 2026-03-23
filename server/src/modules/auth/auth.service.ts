@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
@@ -51,19 +52,163 @@ function asPublicUser(user: {
 }
 
 function signToken(user: { id: string; role: Role; phoneNumber: string }) {
+  const sessionId = randomUUID();
   const payload: AuthPayload = {
     sub: user.id,
     role: user.role,
     phoneNumber: user.phoneNumber,
+    sid: sessionId,
   };
 
-  return jwt.sign(payload, env.jwtSecret, {
+  const token = jwt.sign(payload, env.jwtSecret, {
     expiresIn: env.jwtExpiresIn as jwt.SignOptions["expiresIn"],
   });
+
+  const decoded = jwt.decode(token) as { exp?: number } | null;
+  const expiresAtMs = decoded?.exp ? decoded.exp * 1000 : Date.now() + 8 * 60 * 60 * 1000;
+
+  return {
+    token,
+    sessionId,
+    expiresAtMs,
+  };
+}
+
+function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function hasDatabaseUrlConfigured() {
+  return Boolean((process.env.DATABASE_URL || "").trim());
+}
+
+async function persistAuthSessionRecord(input: {
+  sessionId: string;
+  userId: string;
+  token: string;
+  expiresAtMs: number;
+}) {
+  if (!hasDatabaseUrlConfigured()) {
+    return;
+  }
+
+  try {
+    await prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "AuthSession" (
+          "id",
+          "sessionId",
+          "userId",
+          "tokenHash",
+          "issuedAt",
+          "expiresAt",
+          "createdAt",
+          "updatedAt"
+        ) VALUES (
+          ${randomUUID()},
+          ${input.sessionId},
+          ${input.userId},
+          ${hashToken(input.token)},
+          ${new Date()},
+          ${new Date(input.expiresAtMs)},
+          ${new Date()},
+          ${new Date()}
+        )
+        ON CONFLICT ("sessionId") DO UPDATE SET
+          "tokenHash" = EXCLUDED."tokenHash",
+          "expiresAt" = EXCLUDED."expiresAt",
+          "revokedAt" = NULL,
+          "revokeReason" = NULL,
+          "updatedAt" = EXCLUDED."updatedAt"
+      `,
+    );
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to persist auth session record:", error);
+    }
+  }
+}
+
+async function markSessionRevoked(token: string) {
+  if (!hasDatabaseUrlConfigured()) {
+    return;
+  }
+
+  const decoded = jwt.decode(token) as AuthPayload | null;
+  const tokenSha = hashToken(token);
+
+  try {
+    if (decoded?.sid) {
+      await prisma.$executeRaw(
+        Prisma.sql`
+          UPDATE "AuthSession"
+          SET "revokedAt" = ${new Date()},
+              "revokeReason" = ${"LOGOUT"},
+              "updatedAt" = ${new Date()}
+          WHERE "sessionId" = ${decoded.sid}
+        `,
+      );
+      return;
+    }
+
+    await prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE "AuthSession"
+        SET "revokedAt" = ${new Date()},
+            "revokeReason" = ${"LOGOUT"},
+            "updatedAt" = ${new Date()}
+        WHERE "tokenHash" = ${tokenSha}
+      `,
+    );
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to mark auth session revoked:", error);
+    }
+  }
+}
+
+async function isSessionRevokedInDb(token: string, payload: AuthPayload) {
+  void token;
+
+  if (!hasDatabaseUrlConfigured()) {
+    return false;
+  }
+
+  if (!payload.sid) {
+    return false;
+  }
+
+  try {
+    const rows = await prisma.$queryRaw<Array<{ revokedAt: Date | null; expiresAt: Date }>>(
+      Prisma.sql`
+        SELECT "revokedAt", "expiresAt"
+        FROM "AuthSession"
+        WHERE "sessionId" = ${payload.sid}
+        LIMIT 1
+      `,
+    );
+
+    const row = rows[0];
+    if (!row) {
+      // Compatibility path for sessions issued before DB-backed tracking is active.
+      return false;
+    }
+
+    if (row.revokedAt) {
+      return true;
+    }
+
+    return row.expiresAt.getTime() <= Date.now();
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed DB-backed revocation check:", error);
+    }
+    return false;
+  }
 }
 
 function generateOtpCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return String(randomInt(100000, 1_000_000));
 }
 
 function assertCitizenRole(role: Role) {
@@ -84,15 +229,23 @@ function barangayNameFromCode(code: string) {
   return `Barangay ${code}`;
 }
 
-function buildOtpDispatchResponse(phoneNumber: string, code: string, message: string) {
-  const shouldExposeOtpCode = env.nodeEnv !== "production" || env.otpDeliveryMode === "mock";
-
+function buildOtpDispatchResponse(phoneNumber: string, message: string) {
   return {
     phoneNumber,
     expiresInSeconds: env.otpExpiryMinutes * 60,
     message,
-    ...(shouldExposeOtpCode ? { devOtpCode: code } : {}),
   };
+}
+
+function buildLockoutMessage(lockoutUntilMs: number) {
+  const remainingSeconds = Math.max(1, Math.ceil((lockoutUntilMs - Date.now()) / 1000));
+  return `Too many incorrect OTP attempts. Please try again in ${remainingSeconds} seconds.`;
+}
+
+function buildResendCooldownMessage(lastSentAtMs: number) {
+  const cooldownMs = env.otpResendCooldownSeconds * 1000;
+  const remainingSeconds = Math.max(1, Math.ceil((lastSentAtMs + cooldownMs - Date.now()) / 1000));
+  return `Please wait ${remainingSeconds} seconds before requesting a new OTP.`;
 }
 
 export const authService = {
@@ -124,11 +277,15 @@ export const authService = {
     }
 
     const code = generateOtpCode();
+    const nowMs = Date.now();
     const otpRecord: OtpRecord = {
       phoneNumber,
       code,
-      expiresAtMs: Date.now() + env.otpExpiryMinutes * 60 * 1000,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
       isVerified: false,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
       registration: {
         fullName,
         phoneNumber,
@@ -138,15 +295,10 @@ export const authService = {
 
     authStore.saveOtp(otpRecord);
 
-    // In mock mode, OTP is intentionally returned for testing and local demos.
-    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK]" : "[OTP-SMS]";
-    console.log(`${otpLogLabel} ${phoneNumber} => ${code}`);
-
     return buildOtpDispatchResponse(
       phoneNumber,
-      code,
       env.otpDeliveryMode === "mock"
-        ? "OTP generated in mock mode. Use the provided code to continue."
+        ? "OTP generated in mock mode. Continue to OTP verification."
         : "OTP sent successfully.",
     );
   },
@@ -159,22 +311,28 @@ export const authService = {
       throw new AuthError("No pending registration found for this number.", 404);
     }
 
+    const nowMs = Date.now();
+    const resendCooldownMs = env.otpResendCooldownSeconds * 1000;
+
+    if (resendCooldownMs > 0 && nowMs < existingOtp.lastSentAtMs + resendCooldownMs) {
+      throw new AuthError(buildResendCooldownMessage(existingOtp.lastSentAtMs), 429);
+    }
+
     const newCode = generateOtpCode();
     authStore.saveOtp({
       ...existingOtp,
       code: newCode,
       isVerified: false,
-      expiresAtMs: Date.now() + env.otpExpiryMinutes * 60 * 1000,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
     });
-
-    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK-RESEND]" : "[OTP-SMS-RESEND]";
-    console.log(`${otpLogLabel} ${phoneNumber} => ${newCode}`);
 
     return buildOtpDispatchResponse(
       phoneNumber,
-      newCode,
       env.otpDeliveryMode === "mock"
-        ? "OTP regenerated in mock mode. Use the provided code to continue."
+        ? "OTP regenerated in mock mode. Continue to OTP verification."
         : "OTP resent successfully.",
     );
   },
@@ -187,15 +345,40 @@ export const authService = {
       throw new AuthError("No OTP found for this number.", 404);
     }
 
-    if (Date.now() > otpRecord.expiresAtMs) {
+    const nowMs = Date.now();
+
+    if (otpRecord.lockoutUntilMs && nowMs < otpRecord.lockoutUntilMs) {
+      throw new AuthError(buildLockoutMessage(otpRecord.lockoutUntilMs), 429);
+    }
+
+    if (nowMs > otpRecord.expiresAtMs) {
       throw new AuthError("OTP has expired.", 410);
     }
 
     if (otpRecord.code !== input.otpCode) {
+      const nextAttempts = otpRecord.failedVerifyAttempts + 1;
+
+      if (nextAttempts >= env.otpMaxVerifyAttempts) {
+        const lockoutUntilMs = nowMs + env.otpVerifyLockoutMinutes * 60 * 1000;
+
+        authStore.saveOtp({
+          ...otpRecord,
+          failedVerifyAttempts: 0,
+          lockoutUntilMs,
+        });
+
+        throw new AuthError(buildLockoutMessage(lockoutUntilMs), 429);
+      }
+
+      authStore.saveOtp({
+        ...otpRecord,
+        failedVerifyAttempts: nextAttempts,
+      });
+
       throw new AuthError("Incorrect OTP.", 401);
     }
 
-    authStore.saveOtp({ ...otpRecord, isVerified: true });
+    authStore.saveOtp({ ...otpRecord, isVerified: true, failedVerifyAttempts: 0, lockoutUntilMs: null });
 
     return {
       phoneNumber,
@@ -270,7 +453,13 @@ export const authService = {
       return user;
     });
 
-    const token = signToken(saved);
+    const { token, sessionId, expiresAtMs } = signToken(saved);
+    await persistAuthSessionRecord({
+      sessionId,
+      userId: saved.id,
+      token,
+      expiresAtMs,
+    });
 
     return {
       token,
@@ -321,7 +510,14 @@ export const authService = {
       throw new AuthError("Official account is missing an assigned barangay profile. Please contact a super admin.", 403);
     }
 
-    const token = signToken(user);
+    const { token, sessionId, expiresAtMs } = signToken(user);
+    await persistAuthSessionRecord({
+      sessionId,
+      userId: user.id,
+      token,
+      expiresAtMs,
+    });
+
     return {
       token,
       user: asPublicUser(user),
@@ -367,13 +563,19 @@ export const authService = {
     return asPublicUser(user);
   },
 
-  logout(token: string) {
+  async logout(token: string) {
     authStore.revokedTokens.add(token);
+    await markSessionRevoked(token);
     return { message: "Logged out successfully." };
   },
 
-  isTokenRevoked(token: string) {
-    return authStore.revokedTokens.has(token);
+  async isTokenRevoked(token: string, payload: AuthPayload) {
+    if (authStore.revokedTokens.has(token)) {
+      return true;
+    }
+
+    const dbRevoked = await isSessionRevokedInDb(token, payload);
+    return dbRevoked;
   },
 
   verifyToken(token: string): AuthPayload {

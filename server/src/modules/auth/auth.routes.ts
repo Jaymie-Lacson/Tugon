@@ -1,8 +1,32 @@
 import { Router } from "express";
+import type { CookieOptions } from "express";
+import { env } from "../../config/env.js";
 import { authService } from "./auth.service.js";
 import { authenticate } from "../../middleware/auth.js";
 
 export const authRouter = Router();
+
+function shouldUseSecureCookie() {
+  if (env.authCookieSecureMode === "always") {
+    return true;
+  }
+
+  if (env.authCookieSecureMode === "never") {
+    return false;
+  }
+
+  return env.nodeEnv === "production";
+}
+
+function authCookieOptions(): CookieOptions {
+  return {
+    httpOnly: true,
+    sameSite: env.authCookieSameSite,
+    secure: shouldUseSecureCookie(),
+    path: "/",
+    maxAge: env.authCookieMaxAgeSeconds * 1000,
+  };
+}
 
 authRouter.post("/register", async (req, res) => {
   try {
@@ -50,6 +74,16 @@ authRouter.post("/create-password", async (req, res) => {
       phoneNumber: req.body?.phoneNumber,
       password: req.body?.password,
     });
+
+    if (result.token) {
+      res.cookie(env.authCookieName, result.token, authCookieOptions());
+    }
+
+    if (!env.authReturnTokenInBody) {
+      const { token: _token, ...body } = result;
+      return res.status(200).json(body);
+    }
+
     res.status(200).json(result);
   } catch (error) {
     const parsed = authService.parseAuthError(error);
@@ -63,6 +97,16 @@ authRouter.post("/login", async (req, res) => {
       phoneNumber: req.body?.phoneNumber,
       password: req.body?.password,
     });
+
+    if (session.token) {
+      res.cookie(env.authCookieName, session.token, authCookieOptions());
+    }
+
+    if (!env.authReturnTokenInBody) {
+      const { token: _token, ...body } = session;
+      return res.status(200).json(body);
+    }
+
     res.status(200).json(session);
   } catch (error) {
     const parsed = authService.parseAuthError(error);
@@ -70,11 +114,14 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/logout", authenticate, (req, res) => {
+authRouter.post("/logout", authenticate, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    const result = authService.logout(token);
+    const token = req.authToken ?? "";
+    const result = await authService.logout(token);
+    res.clearCookie(env.authCookieName, {
+      ...authCookieOptions(),
+      maxAge: undefined,
+    });
     res.status(200).json(result);
   } catch (error) {
     const parsed = authService.parseAuthError(error);

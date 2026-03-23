@@ -5,7 +5,7 @@ import { getAuthSession, hasRequiredRole } from "../utils/authSession";
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.user) {
     return <Navigate to="/auth/login" replace />;
   }
   return <>{children}</>;
@@ -21,7 +21,7 @@ export function RequireRole({
   fallbackPath: string;
 }) {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.user) {
     return <Navigate to="/auth/login" replace />;
   }
 
