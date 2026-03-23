@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
@@ -73,9 +74,11 @@ export function createApp() {
       },
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
     }),
   );
   app.use(helmet());
+  app.use(cookieParser());
   app.use(express.json({ limit: "25mb" }));
 
   app.use("/api/auth", authRateLimiter);

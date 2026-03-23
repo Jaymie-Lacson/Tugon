@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { randomInt } from "node:crypto";
+import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
@@ -52,15 +52,159 @@ function asPublicUser(user: {
 }
 
 function signToken(user: { id: string; role: Role; phoneNumber: string }) {
+  const sessionId = randomUUID();
   const payload: AuthPayload = {
     sub: user.id,
     role: user.role,
     phoneNumber: user.phoneNumber,
+    sid: sessionId,
   };
 
-  return jwt.sign(payload, env.jwtSecret, {
+  const token = jwt.sign(payload, env.jwtSecret, {
     expiresIn: env.jwtExpiresIn as jwt.SignOptions["expiresIn"],
   });
+
+  const decoded = jwt.decode(token) as { exp?: number } | null;
+  const expiresAtMs = decoded?.exp ? decoded.exp * 1000 : Date.now() + 8 * 60 * 60 * 1000;
+
+  return {
+    token,
+    sessionId,
+    expiresAtMs,
+  };
+}
+
+function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function hasDatabaseUrlConfigured() {
+  return Boolean((process.env.DATABASE_URL || "").trim());
+}
+
+async function persistAuthSessionRecord(input: {
+  sessionId: string;
+  userId: string;
+  token: string;
+  expiresAtMs: number;
+}) {
+  if (!hasDatabaseUrlConfigured()) {
+    return;
+  }
+
+  try {
+    await prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "AuthSession" (
+          "id",
+          "sessionId",
+          "userId",
+          "tokenHash",
+          "issuedAt",
+          "expiresAt",
+          "createdAt",
+          "updatedAt"
+        ) VALUES (
+          ${randomUUID()},
+          ${input.sessionId},
+          ${input.userId},
+          ${hashToken(input.token)},
+          ${new Date()},
+          ${new Date(input.expiresAtMs)},
+          ${new Date()},
+          ${new Date()}
+        )
+        ON CONFLICT ("sessionId") DO UPDATE SET
+          "tokenHash" = EXCLUDED."tokenHash",
+          "expiresAt" = EXCLUDED."expiresAt",
+          "revokedAt" = NULL,
+          "revokeReason" = NULL,
+          "updatedAt" = EXCLUDED."updatedAt"
+      `,
+    );
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to persist auth session record:", error);
+    }
+  }
+}
+
+async function markSessionRevoked(token: string) {
+  if (!hasDatabaseUrlConfigured()) {
+    return;
+  }
+
+  const decoded = jwt.decode(token) as AuthPayload | null;
+  const tokenSha = hashToken(token);
+
+  try {
+    if (decoded?.sid) {
+      await prisma.$executeRaw(
+        Prisma.sql`
+          UPDATE "AuthSession"
+          SET "revokedAt" = ${new Date()},
+              "revokeReason" = ${"LOGOUT"},
+              "updatedAt" = ${new Date()}
+          WHERE "sessionId" = ${decoded.sid}
+        `,
+      );
+      return;
+    }
+
+    await prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE "AuthSession"
+        SET "revokedAt" = ${new Date()},
+            "revokeReason" = ${"LOGOUT"},
+            "updatedAt" = ${new Date()}
+        WHERE "tokenHash" = ${tokenSha}
+      `,
+    );
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to mark auth session revoked:", error);
+    }
+  }
+}
+
+async function isSessionRevokedInDb(token: string, payload: AuthPayload) {
+  void token;
+
+  if (!hasDatabaseUrlConfigured()) {
+    return false;
+  }
+
+  if (!payload.sid) {
+    return false;
+  }
+
+  try {
+    const rows = await prisma.$queryRaw<Array<{ revokedAt: Date | null; expiresAt: Date }>>(
+      Prisma.sql`
+        SELECT "revokedAt", "expiresAt"
+        FROM "AuthSession"
+        WHERE "sessionId" = ${payload.sid}
+        LIMIT 1
+      `,
+    );
+
+    const row = rows[0];
+    if (!row) {
+      // Compatibility path for sessions issued before DB-backed tracking is active.
+      return false;
+    }
+
+    if (row.revokedAt) {
+      return true;
+    }
+
+    return row.expiresAt.getTime() <= Date.now();
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed DB-backed revocation check:", error);
+    }
+    return false;
+  }
 }
 
 function generateOtpCode() {
@@ -309,7 +453,13 @@ export const authService = {
       return user;
     });
 
-    const token = signToken(saved);
+    const { token, sessionId, expiresAtMs } = signToken(saved);
+    await persistAuthSessionRecord({
+      sessionId,
+      userId: saved.id,
+      token,
+      expiresAtMs,
+    });
 
     return {
       token,
@@ -360,7 +510,14 @@ export const authService = {
       throw new AuthError("Official account is missing an assigned barangay profile. Please contact a super admin.", 403);
     }
 
-    const token = signToken(user);
+    const { token, sessionId, expiresAtMs } = signToken(user);
+    await persistAuthSessionRecord({
+      sessionId,
+      userId: user.id,
+      token,
+      expiresAtMs,
+    });
+
     return {
       token,
       user: asPublicUser(user),
@@ -406,13 +563,19 @@ export const authService = {
     return asPublicUser(user);
   },
 
-  logout(token: string) {
+  async logout(token: string) {
     authStore.revokedTokens.add(token);
+    await markSessionRevoked(token);
     return { message: "Logged out successfully." };
   },
 
-  isTokenRevoked(token: string) {
-    return authStore.revokedTokens.has(token);
+  async isTokenRevoked(token: string, payload: AuthPayload) {
+    if (authStore.revokedTokens.has(token)) {
+      return true;
+    }
+
+    const dbRevoked = await isSessionRevokedInDb(token, payload);
+    return dbRevoked;
   },
 
   verifyToken(token: string): AuthPayload {

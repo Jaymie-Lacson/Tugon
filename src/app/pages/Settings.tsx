@@ -64,7 +64,7 @@ export default function Settings() {
     : 'No assigned barangay';
   const phoneLabel = currentUser?.phoneNumber || 'No contact number on file';
   const emailLabel = 'No email on file';
-  const activeSessionsCount = session?.token ? 1 : 0;
+  const activeSessionsCount = session?.user ? 1 : 0;
   const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'Build Unspecified';
   const retentionDays = (import.meta.env.VITE_DATA_RETENTION_DAYS as string | undefined) ?? '365';
   const regionLabel = currentUser?.barangayCode

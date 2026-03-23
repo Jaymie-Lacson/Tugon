@@ -15,7 +15,7 @@ export interface SessionUser {
 }
 
 export interface AuthSession {
-  token: string;
+  token?: string;
   user: SessionUser;
 }
 
@@ -37,6 +37,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   try {
     response = await fetch(`${API_BASE}${path}`, {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
@@ -88,6 +89,28 @@ export const authApi = {
     return request<AuthSession>("/auth/login", {
       method: "POST",
       body: JSON.stringify(input),
+    });
+  },
+  logout(token?: string) {
+    const headers: HeadersInit = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return request<{ message: string }>("/auth/logout", {
+      method: "POST",
+      headers,
+    });
+  },
+  me(token?: string) {
+    const headers: HeadersInit = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return request<{ user: SessionUser }>("/auth/me", {
+      method: "GET",
+      headers,
     });
   },
 };

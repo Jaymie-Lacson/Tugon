@@ -18,6 +18,11 @@ const otpResendCooldownSecondsFromEnv = Number(process.env.OTP_RESEND_COOLDOWN_S
 const evidenceMaxPhotoBytesFromEnv = Number(process.env.EVIDENCE_MAX_PHOTO_BYTES ?? "5242880");
 const evidenceMaxAudioBytesFromEnv = Number(process.env.EVIDENCE_MAX_AUDIO_BYTES ?? "10485760");
 const verificationIdMaxBytesFromEnv = Number(process.env.VERIFICATION_ID_MAX_BYTES ?? "5242880");
+const authCookieNameFromEnv = (process.env.AUTH_COOKIE_NAME ?? "tugon.sid").trim();
+const authCookieSecureModeFromEnv = (process.env.AUTH_COOKIE_SECURE_MODE ?? "auto").trim().toLowerCase();
+const authCookieSameSiteFromEnv = (process.env.AUTH_COOKIE_SAME_SITE ?? "lax").trim().toLowerCase();
+const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "28800");
+const authReturnTokenInBodyFromEnv = process.env.AUTH_RETURN_TOKEN_IN_BODY !== "0";
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -49,6 +54,26 @@ if (Number.isNaN(evidenceMaxAudioBytesFromEnv) || evidenceMaxAudioBytesFromEnv <
 
 if (Number.isNaN(verificationIdMaxBytesFromEnv) || verificationIdMaxBytesFromEnv <= 0) {
   throw new Error("Invalid VERIFICATION_ID_MAX_BYTES environment variable.");
+}
+
+if (!authCookieNameFromEnv) {
+  throw new Error("Invalid AUTH_COOKIE_NAME environment variable.");
+}
+
+if (
+  authCookieSecureModeFromEnv !== "auto"
+  && authCookieSecureModeFromEnv !== "always"
+  && authCookieSecureModeFromEnv !== "never"
+) {
+  throw new Error("Invalid AUTH_COOKIE_SECURE_MODE environment variable. Use 'auto', 'always', or 'never'.");
+}
+
+if (authCookieSameSiteFromEnv !== "lax" && authCookieSameSiteFromEnv !== "strict" && authCookieSameSiteFromEnv !== "none") {
+  throw new Error("Invalid AUTH_COOKIE_SAME_SITE environment variable. Use 'lax', 'strict', or 'none'.");
+}
+
+if (Number.isNaN(authCookieMaxAgeSecondsFromEnv) || authCookieMaxAgeSecondsFromEnv <= 0) {
+  throw new Error("Invalid AUTH_COOKIE_MAX_AGE_SECONDS environment variable.");
 }
 
 if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
@@ -83,6 +108,11 @@ export const env = {
     "resident-ids",
   requireEvidenceStorageUpload: process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD === "1",
   requireVerificationIdStorageUpload: process.env.REQUIRE_VERIFICATION_ID_STORAGE_UPLOAD === "1",
+  authCookieName: authCookieNameFromEnv,
+  authCookieSecureMode: authCookieSecureModeFromEnv as "auto" | "always" | "never",
+  authCookieSameSite: authCookieSameSiteFromEnv as "lax" | "strict" | "none",
+  authCookieMaxAgeSeconds: authCookieMaxAgeSecondsFromEnv,
+  authReturnTokenInBody: authReturnTokenInBodyFromEnv,
   dssAiEnabled: process.env.DSS_AI_ENABLED === "1",
   dssAiProviderUrl: (process.env.DSS_AI_PROVIDER_URL || "https://openrouter.ai/api/v1/chat/completions").trim(),
   dssAiApiKey: (process.env.DSS_AI_API_KEY || "").trim(),

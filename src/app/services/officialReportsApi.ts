@@ -216,17 +216,23 @@ async function readErrorMessage(response: Response): Promise<string> {
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.user) {
     throw new Error("You must be logged in to continue.");
   }
 
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(init?.headers ?? {}),
+  };
+
+  if (session.token) {
+    headers.Authorization = `Bearer ${session.token}`;
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.token}`,
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -246,16 +252,22 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function authedTextRequest(path: string, init?: RequestInit): Promise<{ text: string; fileName: string | null }> {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.user) {
     throw new Error("You must be logged in to continue.");
   }
 
+  const headers: HeadersInit = {
+    ...(init?.headers ?? {}),
+  };
+
+  if (session.token) {
+    headers.Authorization = `Bearer ${session.token}`;
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
     ...init,
-    headers: {
-      Authorization: `Bearer ${session.token}`,
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   if (!response.ok) {

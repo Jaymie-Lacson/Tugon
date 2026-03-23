@@ -33,6 +33,7 @@ export interface AuthPayload {
   sub: string;
   role: Role;
   phoneNumber: string;
+  sid?: string;
 }
 
 export interface PublicUser {
@@ -50,7 +51,7 @@ export interface PublicUser {
 }
 
 export interface AuthSession {
-  token: string;
+  token?: string;
   user: PublicUser;
 }
 

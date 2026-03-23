@@ -7,17 +7,23 @@ const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
-  if (!session?.token) {
+  if (!session?.user) {
     throw new Error("You must be logged in to continue.");
   }
 
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(init?.headers ?? {}),
+  };
+
+  if (session.token) {
+    headers.Authorization = `Bearer ${session.token}`;
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.token}`,
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   const payload = await response.json().catch(() => ({}));
