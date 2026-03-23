@@ -9,9 +9,13 @@ function parseAllowedOriginsFromEnv(rawValue: string | undefined) {
   return new Set(
     (rawValue ?? "")
       .split(",")
-      .map((origin) => origin.trim())
+      .map((origin) => origin.trim().replace(/\/+$/, ""))
       .filter((origin) => origin.length > 0),
   );
+}
+
+function normalizeRequestOrigin(origin: string) {
+  return origin.trim().replace(/\/+$/, "");
 }
 
 function resolveCorsAllowedOrigins(rawValue: string | undefined, nodeEnv: string | undefined) {
@@ -66,12 +70,14 @@ export function createApp() {
   });
 
   app.use((req, res, next) => {
-    const requestOrigin = req.headers.origin;
+    const requestOriginHeader = req.headers.origin;
 
     // Requests without Origin (CLI tools, server-to-server, tests) should still work.
-    if (!requestOrigin) {
+    if (!requestOriginHeader) {
       return next();
     }
+
+    const requestOrigin = normalizeRequestOrigin(requestOriginHeader);
 
     if (corsAllowedOrigins.has(requestOrigin)) {
       return next();
@@ -87,7 +93,7 @@ export function createApp() {
           callback(null, true);
           return;
         }
-        callback(null, corsAllowedOrigins.has(origin));
+        callback(null, corsAllowedOrigins.has(normalizeRequestOrigin(origin)));
       },
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
