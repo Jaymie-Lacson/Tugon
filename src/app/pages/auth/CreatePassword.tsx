@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
-import { saveAuthSession } from '../../utils/authSession';
+import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 
 interface StrengthRule {
   label: string;
@@ -67,6 +67,16 @@ export default function CreatePassword() {
         password,
       });
       saveAuthSession(session);
+
+      try {
+        await authApi.me(session.token);
+      } catch {
+        clearAuthSession();
+        throw new Error(
+          'Account created, but the authenticated session is not usable yet. Please contact support to check backend auth cookie/CORS configuration.',
+        );
+      }
+
       sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
       setDone(true);
       await new Promise(r => setTimeout(r, 1200));
