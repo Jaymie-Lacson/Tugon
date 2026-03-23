@@ -269,6 +269,23 @@ function isPinWithinSupportedBarangay(pin: PinData | null): boolean {
   return detectBarangayByCoordinate(pin.lat, pin.lng) !== null;
 }
 
+function getBarangayBoundaryCenter(boundary: LatLng[]): LatLng {
+  if (boundary.length === 0) {
+    return TONDO_MAP_CENTER;
+  }
+
+  const totals = boundary.reduce(
+    (acc, [lat, lng]) => {
+      acc.lat += lat;
+      acc.lng += lng;
+      return acc;
+    },
+    { lat: 0, lng: 0 },
+  );
+
+  return [totals.lat / boundary.length, totals.lng / boundary.length];
+}
+
 function Step2MapClickCapture({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click: (event) => {
@@ -578,6 +595,9 @@ function Step2({
   const hasBarangayProfile = allowedBarangays.length > 0;
   const assignedBarangayLabel = allowedBarangays[0]?.name ?? (userBarangayCode ? `Barangay ${userBarangayCode}` : 'your registered barangay');
   const pinInSupportedArea = isPinWithinSupportedBarangay(form.pin);
+  const assignedBarangayCenter = hasBarangayProfile
+    ? getBarangayBoundaryCenter(allowedBarangays[0].boundary)
+    : TONDO_MAP_CENTER;
 
   useEffect(() => {
     if (!mapExpanded) {
@@ -818,7 +838,7 @@ function Step2({
       ) : (
         /* Use registered location button */
         <button
-          onClick={() => placePin(TONDO_MAP_CENTER[0], TONDO_MAP_CENTER[1])}
+          onClick={() => placePin(assignedBarangayCenter[0], assignedBarangayCenter[1])}
           disabled={!hasBarangayProfile}
           style={{
             width: '100%', padding: '13px', borderRadius: 13,
