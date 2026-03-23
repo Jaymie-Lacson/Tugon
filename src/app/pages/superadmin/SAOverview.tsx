@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, Shield, Zap, ArrowRight, MapPin, Flame, Droplets, Car, Heart,
@@ -102,6 +102,7 @@ function formatLogTime(ts: string) {
 
 export default function SAOverview() {
   const navigate = useNavigate();
+  const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
   const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
   const [barangayCards, setBarangayCards] = useState<BarangayOverviewCard[]>([]);
@@ -109,6 +110,7 @@ export default function SAOverview() {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [incidentTypesCardHeight, setIncidentTypesCardHeight] = useState<number | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
@@ -252,6 +254,32 @@ export default function SAOverview() {
     void loadBarangays();
     void loadAuditLogs();
   }, []);
+
+  useEffect(() => {
+    const cardElement = incidentTypesCardRef.current;
+    if (!cardElement) {
+      return;
+    }
+
+    const syncHeight = () => {
+      setIncidentTypesCardHeight(Math.round(cardElement.getBoundingClientRect().height));
+    };
+
+    syncHeight();
+
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      syncHeight();
+    });
+    observer.observe(cardElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [reportIncidents.length]);
 
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
@@ -458,12 +486,15 @@ export default function SAOverview() {
       </div>
 
       {/* Charts + Logs row */}
-      <div className="sa-overview-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20 }}>
+      <div className="sa-overview-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20, alignItems: 'start' }}>
         {/* Incident type distribution */}
-        <div style={{
+        <div
+          ref={incidentTypesCardRef}
+          style={{
           background: '#FFFFFF', borderRadius: 14, padding: '20px',
           boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-        }}>
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>Incident Types — All Barangays</div>
@@ -489,11 +520,16 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div style={{
+        <div
+          className="sa-overview-activity-card"
+          style={{
           background: '#FFFFFF', borderRadius: 14, padding: '20px',
           boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
           display: 'flex', flexDirection: 'column',
-        }}>
+          height: incidentTypesCardHeight ?? undefined,
+          maxHeight: incidentTypesCardHeight ?? undefined,
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>System Activity Log</div>
@@ -616,6 +652,11 @@ export default function SAOverview() {
         @media (max-width: 1024px) {
           .sa-overview-grid {
             grid-template-columns: 1fr !important;
+          }
+
+          .sa-overview-activity-card {
+            height: auto !important;
+            max-height: none !important;
           }
         }
 

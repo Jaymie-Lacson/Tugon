@@ -1,5 +1,12 @@
+import { config as loadEnv } from "dotenv";
 import bcrypt from "bcryptjs";
 import { PrismaClient, ReportSeverity, Role, TicketStatus } from "@prisma/client";
+
+// Support running the seed from either repo root or server/ directory.
+loadEnv();
+loadEnv({ path: "./server/.env", override: false });
+loadEnv({ path: "./.env", override: false });
+loadEnv({ path: "../.env", override: false });
 
 const prisma = new PrismaClient();
 
@@ -368,9 +375,10 @@ function buildStatusHistory(
 
 async function main() {
   const passwordHash = await bcrypt.hash(PASSWORD_PLAIN, 10);
+  const seededBarangaysByCode = new Map<string, BarangaySeed>();
 
   for (const barangay of BARANGAYS) {
-    await prisma.barangay.upsert({
+    const persisted = await prisma.barangay.upsert({
       where: { code: barangay.code },
       update: {
         name: barangay.name,
@@ -381,7 +389,23 @@ async function main() {
         name: barangay.name,
       },
     });
+
+    seededBarangaysByCode.set(barangay.code, {
+      id: persisted.id,
+      code: persisted.code,
+      name: persisted.name,
+      centerLat: barangay.centerLat,
+      centerLng: barangay.centerLng,
+    });
   }
+
+  const resolveSeededBarangay = (code: string) => {
+    const seeded = seededBarangaysByCode.get(code);
+    if (!seeded) {
+      throw new Error(`Missing seeded barangay for code ${code}.`);
+    }
+    return seeded;
+  };
 
   const generatedUsers: Array<{
     id: string;
@@ -437,7 +461,7 @@ async function main() {
     });
 
     if (user.role === Role.CITIZEN && user.barangayCode) {
-      const barangay = getBarangayByCode(user.barangayCode);
+      const barangay = resolveSeededBarangay(user.barangayCode);
       await prisma.citizenProfile.upsert({
         where: { userId: user.id },
         update: {
@@ -454,7 +478,7 @@ async function main() {
     }
 
     if (user.role === Role.OFFICIAL && user.barangayCode) {
-      const barangay = getBarangayByCode(user.barangayCode);
+      const barangay = resolveSeededBarangay(user.barangayCode);
       await prisma.officialProfile.upsert({
         where: { userId: user.id },
         update: {
@@ -477,11 +501,12 @@ async function main() {
 
   const luponTarget = Math.max(1, Math.round(TOTAL_REPORTS * 0.08));
   let luponAssigned = 0;
+  const seededReports: Array<{ reportId: string; sourceBarangayCode: string; submittedAt: Date }> = [];
 
   for (let index = 1; index <= TOTAL_REPORTS; index += 1) {
     const reportId = `RPT-SEED-${String(index).padStart(4, "0")}`;
     const citizen = pickOne(citizenUsers);
-    const barangay = getBarangayByCode(citizen.barangayCode!);
+    const barangay = resolveSeededBarangay(citizen.barangayCode!);
 
     const shouldUseLupon = luponAssigned < luponTarget && rand() < 0.22;
     const categorySeed = shouldUseLupon
@@ -597,6 +622,12 @@ async function main() {
     await prisma.ticketStatusHistory.deleteMany({ where: { reportId } });
     await prisma.ticketStatusHistory.createMany({ data: history });
 
+    seededReports.push({
+      reportId,
+      sourceBarangayCode: barangay.code,
+      submittedAt,
+    });
+
     const shouldCreateAlert = rand() < 0.32;
     await prisma.crossBorderAlert.deleteMany({ where: { reportId } });
     if (shouldCreateAlert) {
@@ -613,6 +644,51 @@ async function main() {
         },
       });
     }
+  }
+
+  // Ensure deterministic cross-border alerts are always available for demos/tests.
+  const firstBySource = new Map<string, { reportId: string; sourceBarangayCode: string; submittedAt: Date }>();
+  for (const item of seededReports) {
+    if (!firstBySource.has(item.sourceBarangayCode)) {
+      firstBySource.set(item.sourceBarangayCode, item);
+    }
+  }
+
+  const deterministicPairs: Array<{ source: string; target: string; readAt: Date | null }> = [
+    { source: "252", target: "251", readAt: null },
+    { source: "252", target: "256", readAt: null },
+    { source: "251", target: "252", readAt: null },
+    { source: "256", target: "252", readAt: randomDateWithinLastDays(10) },
+  ];
+
+  for (const pair of deterministicPairs) {
+    const sourceReport = firstBySource.get(pair.source);
+    if (!sourceReport) {
+      continue;
+    }
+
+    await prisma.crossBorderAlert.upsert({
+      where: {
+        reportId_targetBarangayCode: {
+          reportId: sourceReport.reportId,
+          targetBarangayCode: pair.target,
+        },
+      },
+      update: {
+        sourceBarangayCode: pair.source,
+        alertReason: "Incident reported near shared jurisdiction boundary.",
+        readAt: pair.readAt,
+        createdAt: shiftMinutes(sourceReport.submittedAt, 15, 120),
+      },
+      create: {
+        reportId: sourceReport.reportId,
+        sourceBarangayCode: pair.source,
+        targetBarangayCode: pair.target,
+        alertReason: "Incident reported near shared jurisdiction boundary.",
+        readAt: pair.readAt,
+        createdAt: shiftMinutes(sourceReport.submittedAt, 15, 120),
+      },
+    });
   }
 
   if (superAdminUser) {
@@ -651,6 +727,7 @@ async function main() {
   console.log("Mock seed complete.");
   console.log(`Users upserted: ${allUsers.length}`);
   console.log(`Reports upserted: ${TOTAL_REPORTS}`);
+  console.log("Deterministic cross-border alerts upserted for 251/252/256 demo coverage.");
   console.log("Demo password for all users: Password123!");
   console.log("Demo login phones:");
   console.log("- Super Admin: 09170000001");
