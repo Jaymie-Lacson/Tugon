@@ -12,6 +12,9 @@ dotenv.config({ path: path.resolve(currentDir, "../../../.env") });
 const portFromEnv = Number(process.env.PORT ?? "4000");
 const otpExpiryMinutesFromEnv = Number(process.env.OTP_EXPIRY_MINUTES ?? "5");
 const otpDeliveryModeFromEnv = (process.env.OTP_DELIVERY_MODE ?? "mock").toLowerCase();
+const otpMaxVerifyAttemptsFromEnv = Number(process.env.OTP_MAX_VERIFY_ATTEMPTS ?? "5");
+const otpVerifyLockoutMinutesFromEnv = Number(process.env.OTP_VERIFY_LOCKOUT_MINUTES ?? "15");
+const otpResendCooldownSecondsFromEnv = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS ?? "60");
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -19,6 +22,18 @@ if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
 
 if (Number.isNaN(otpExpiryMinutesFromEnv) || otpExpiryMinutesFromEnv <= 0) {
   throw new Error("Invalid OTP_EXPIRY_MINUTES environment variable.");
+}
+
+if (Number.isNaN(otpMaxVerifyAttemptsFromEnv) || otpMaxVerifyAttemptsFromEnv <= 0) {
+  throw new Error("Invalid OTP_MAX_VERIFY_ATTEMPTS environment variable.");
+}
+
+if (Number.isNaN(otpVerifyLockoutMinutesFromEnv) || otpVerifyLockoutMinutesFromEnv <= 0) {
+  throw new Error("Invalid OTP_VERIFY_LOCKOUT_MINUTES environment variable.");
+}
+
+if (Number.isNaN(otpResendCooldownSecondsFromEnv) || otpResendCooldownSecondsFromEnv < 0) {
+  throw new Error("Invalid OTP_RESEND_COOLDOWN_SECONDS environment variable.");
 }
 
 if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
@@ -38,6 +53,9 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
   otpExpiryMinutes: otpExpiryMinutesFromEnv,
   otpDeliveryMode: otpDeliveryModeFromEnv as "mock" | "sms",
+  otpMaxVerifyAttempts: otpMaxVerifyAttemptsFromEnv,
+  otpVerifyLockoutMinutes: otpVerifyLockoutMinutesFromEnv,
+  otpResendCooldownSeconds: otpResendCooldownSecondsFromEnv,
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? "incident-evidence",

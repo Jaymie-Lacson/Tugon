@@ -804,3 +804,59 @@ When generating database code:
 - Assume the PostgreSQL database is hosted on Supabase.
 - Use environment variables for connection strings.
 - Do not generate local-only database assumptions.
+
+---
+
+## 20. Security Architecture (Current vs Planned)
+
+This section is for the system architecture diagram and defense narrative.
+
+Detailed control-by-control evidence is documented in:
+
+* `guidelines/Security-Controls-Matrix.md`
+
+### 20.1 Current Security Controls (Implemented)
+
+* JWT-based API authentication with server-side token verification
+* Role-based access control for Citizen, Official, and Super Admin routes
+* Server-side geofencing and barangay jurisdiction enforcement
+* Server-side report validation (category, severity, coordinates, evidence rules)
+* File type allowlists and filename sanitization for evidence and verification uploads
+* Cross-border alerts kept informational; no action permission outside jurisdiction
+* Admin audit logging for user/role/boundary changes
+* Privacy masking/anonymization for protected citizen identity contexts
+
+### 20.2 Security Gaps (To Be Implemented)
+
+* Restrictive CORS policy (currently broad/open)
+* Security headers hardening (`helmet`, HSTS, CSP, and related headers)
+* Rate limiting and anti-bruteforce controls for auth/OTP/report endpoints
+* OTP hardening (CSPRNG generation, retry lockout, resend cooldown)
+* Production-safe secret handling (remove OTP/PII logging and exposure paths)
+* Session hardening beyond `localStorage` token storage patterns
+* Persistent revocation/session store (not only in-memory)
+* Stronger upload hardening (file size caps, content signature checks, malware scanning)
+* Production fail-closed behavior for evidence/verification storage failures
+* MFA or step-up authentication for privileged roles
+
+### 20.3 Diagram Layer Suggestion
+
+Represent security as three layers:
+
+1. Preventive Controls
+  * AuthN/AuthZ (JWT + RBAC)
+  * Geofencing jurisdiction guard
+  * Input and upload validation
+2. Detective Controls
+  * Admin audit log service
+  * Security monitoring/events (planned)
+3. Hardening and Resilience Controls
+  * API hardening middleware (planned)
+  * Rate limits/OTP abuse protection (planned)
+  * Secure session and revocation store (planned)
+
+### 20.4 Capstone Positioning
+
+TUGON already enforces core governance controls (role boundaries and jurisdiction constraints) on the server side.
+
+For production-readiness, prioritize abuse prevention and runtime hardening controls in the next iteration.

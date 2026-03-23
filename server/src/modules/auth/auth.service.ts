@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomInt } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
@@ -63,7 +64,7 @@ function signToken(user: { id: string; role: Role; phoneNumber: string }) {
 }
 
 function generateOtpCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return String(randomInt(100000, 1_000_000));
 }
 
 function assertCitizenRole(role: Role) {
@@ -84,15 +85,23 @@ function barangayNameFromCode(code: string) {
   return `Barangay ${code}`;
 }
 
-function buildOtpDispatchResponse(phoneNumber: string, code: string, message: string) {
-  const shouldExposeOtpCode = env.nodeEnv !== "production" || env.otpDeliveryMode === "mock";
-
+function buildOtpDispatchResponse(phoneNumber: string, message: string) {
   return {
     phoneNumber,
     expiresInSeconds: env.otpExpiryMinutes * 60,
     message,
-    ...(shouldExposeOtpCode ? { devOtpCode: code } : {}),
   };
+}
+
+function buildLockoutMessage(lockoutUntilMs: number) {
+  const remainingSeconds = Math.max(1, Math.ceil((lockoutUntilMs - Date.now()) / 1000));
+  return `Too many incorrect OTP attempts. Please try again in ${remainingSeconds} seconds.`;
+}
+
+function buildResendCooldownMessage(lastSentAtMs: number) {
+  const cooldownMs = env.otpResendCooldownSeconds * 1000;
+  const remainingSeconds = Math.max(1, Math.ceil((lastSentAtMs + cooldownMs - Date.now()) / 1000));
+  return `Please wait ${remainingSeconds} seconds before requesting a new OTP.`;
 }
 
 export const authService = {
@@ -124,11 +133,15 @@ export const authService = {
     }
 
     const code = generateOtpCode();
+    const nowMs = Date.now();
     const otpRecord: OtpRecord = {
       phoneNumber,
       code,
-      expiresAtMs: Date.now() + env.otpExpiryMinutes * 60 * 1000,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
       isVerified: false,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
       registration: {
         fullName,
         phoneNumber,
@@ -138,15 +151,10 @@ export const authService = {
 
     authStore.saveOtp(otpRecord);
 
-    // In mock mode, OTP is intentionally returned for testing and local demos.
-    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK]" : "[OTP-SMS]";
-    console.log(`${otpLogLabel} ${phoneNumber} => ${code}`);
-
     return buildOtpDispatchResponse(
       phoneNumber,
-      code,
       env.otpDeliveryMode === "mock"
-        ? "OTP generated in mock mode. Use the provided code to continue."
+        ? "OTP generated in mock mode. Continue to OTP verification."
         : "OTP sent successfully.",
     );
   },
@@ -159,22 +167,28 @@ export const authService = {
       throw new AuthError("No pending registration found for this number.", 404);
     }
 
+    const nowMs = Date.now();
+    const resendCooldownMs = env.otpResendCooldownSeconds * 1000;
+
+    if (resendCooldownMs > 0 && nowMs < existingOtp.lastSentAtMs + resendCooldownMs) {
+      throw new AuthError(buildResendCooldownMessage(existingOtp.lastSentAtMs), 429);
+    }
+
     const newCode = generateOtpCode();
     authStore.saveOtp({
       ...existingOtp,
       code: newCode,
       isVerified: false,
-      expiresAtMs: Date.now() + env.otpExpiryMinutes * 60 * 1000,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
     });
-
-    const otpLogLabel = env.otpDeliveryMode === "mock" ? "[OTP-MOCK-RESEND]" : "[OTP-SMS-RESEND]";
-    console.log(`${otpLogLabel} ${phoneNumber} => ${newCode}`);
 
     return buildOtpDispatchResponse(
       phoneNumber,
-      newCode,
       env.otpDeliveryMode === "mock"
-        ? "OTP regenerated in mock mode. Use the provided code to continue."
+        ? "OTP regenerated in mock mode. Continue to OTP verification."
         : "OTP resent successfully.",
     );
   },
@@ -187,15 +201,40 @@ export const authService = {
       throw new AuthError("No OTP found for this number.", 404);
     }
 
-    if (Date.now() > otpRecord.expiresAtMs) {
+    const nowMs = Date.now();
+
+    if (otpRecord.lockoutUntilMs && nowMs < otpRecord.lockoutUntilMs) {
+      throw new AuthError(buildLockoutMessage(otpRecord.lockoutUntilMs), 429);
+    }
+
+    if (nowMs > otpRecord.expiresAtMs) {
       throw new AuthError("OTP has expired.", 410);
     }
 
     if (otpRecord.code !== input.otpCode) {
+      const nextAttempts = otpRecord.failedVerifyAttempts + 1;
+
+      if (nextAttempts >= env.otpMaxVerifyAttempts) {
+        const lockoutUntilMs = nowMs + env.otpVerifyLockoutMinutes * 60 * 1000;
+
+        authStore.saveOtp({
+          ...otpRecord,
+          failedVerifyAttempts: 0,
+          lockoutUntilMs,
+        });
+
+        throw new AuthError(buildLockoutMessage(lockoutUntilMs), 429);
+      }
+
+      authStore.saveOtp({
+        ...otpRecord,
+        failedVerifyAttempts: nextAttempts,
+      });
+
       throw new AuthError("Incorrect OTP.", 401);
     }
 
-    authStore.saveOtp({ ...otpRecord, isVerified: true });
+    authStore.saveOtp({ ...otpRecord, isVerified: true, failedVerifyAttempts: 0, lockoutUntilMs: null });
 
     return {
       phoneNumber,

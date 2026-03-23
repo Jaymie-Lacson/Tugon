@@ -23,6 +23,9 @@ export interface OtpRecord {
   code: string;
   expiresAtMs: number;
   isVerified: boolean;
+  failedVerifyAttempts: number;
+  lockoutUntilMs: number | null;
+  lastSentAtMs: number;
   registration?: PendingRegistration;
 }
 
