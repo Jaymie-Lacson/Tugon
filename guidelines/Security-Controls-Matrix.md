@@ -83,3 +83,31 @@ Scope: Frontend (`src/`) + Backend (`server/src/`) + Prisma schema + dependency 
 - Current design already enforces server-side authorization and geospatial jurisdiction, which are strong core controls for incident governance.
 - The highest remaining risks are abuse prevention and session hardening rather than missing basic auth.
 - For architecture presentation, classify controls as: Preventive (RBAC/geofencing), Detective (audit logs), Corrective (status workflow + restricted transitions).
+
+## 7. Upload Hardening Env Flags
+
+Use these environment variables to tune upload security without code changes:
+
+- `EVIDENCE_MAX_PHOTO_BYTES`
+	- Maximum photo evidence payload size in bytes.
+	- Default: `5242880` (5 MB)
+
+- `EVIDENCE_MAX_AUDIO_BYTES`
+	- Maximum audio evidence payload size in bytes.
+	- Default: `10485760` (10 MB)
+
+- `VERIFICATION_ID_MAX_BYTES`
+	- Maximum resident ID upload payload size in bytes.
+	- Default: `5242880` (5 MB)
+
+- `REQUIRE_EVIDENCE_STORAGE_UPLOAD`
+	- When `1`, report evidence upload fails if storage is unavailable.
+	- Keep `1` in stricter production deployments.
+
+- `REQUIRE_VERIFICATION_ID_STORAGE_UPLOAD`
+	- When `1`, resident ID upload fails closed if storage is unavailable or upload fails.
+	- Sensitive-file hardening flag; recommended as `1` for production.
+
+Production note:
+- Verification ID uploads are treated as sensitive.
+- In production runtime, ID uploads now fail closed even without this flag.

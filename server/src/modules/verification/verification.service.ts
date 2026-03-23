@@ -83,6 +83,40 @@ function parseDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } {
   return { mimeType, bytes };
 }
 
+function startsWithBytes(bytes: Buffer, prefix: number[]): boolean {
+  if (bytes.length < prefix.length) {
+    return false;
+  }
+
+  return prefix.every((value, index) => bytes[index] === value);
+}
+
+function hasHeifFamilySignature(bytes: Buffer): boolean {
+  return bytes.length >= 12 && bytes.toString("ascii", 4, 8) === "ftyp";
+}
+
+function ensureAllowedIdSignature(mimeType: string, bytes: Buffer) {
+  if (mimeType === "image/jpeg" && !startsWithBytes(bytes, [0xff, 0xd8, 0xff])) {
+    throw new VerificationError("ID image content does not match declared mime type.", 400);
+  }
+
+  if (mimeType === "image/png" && !startsWithBytes(bytes, [0x89, 0x50, 0x4e, 0x47])) {
+    throw new VerificationError("ID image content does not match declared mime type.", 400);
+  }
+
+  if (mimeType === "image/webp") {
+    const isRiff = startsWithBytes(bytes, [0x52, 0x49, 0x46, 0x46]);
+    const isWebp = bytes.length >= 12 && bytes.toString("ascii", 8, 12) === "WEBP";
+    if (!isRiff || !isWebp) {
+      throw new VerificationError("ID image content does not match declared mime type.", 400);
+    }
+  }
+
+  if ((mimeType === "image/heic" || mimeType === "image/heif") && !hasHeifFamilySignature(bytes)) {
+    throw new VerificationError("ID image content does not match declared mime type.", 400);
+  }
+}
+
 function sanitizeFileName(fileName: string | undefined, fallback: string): string {
   const candidate = (fileName ?? fallback).trim();
   const safe = candidate.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
@@ -108,8 +142,19 @@ async function uploadCitizenIdImage(input: {
     throw new VerificationError(`Unsupported ID image format: ${mimeType}`, 400);
   }
 
+  if (bytes.length > env.verificationIdMaxBytes) {
+    throw new VerificationError("ID image exceeds maximum allowed size.", 400);
+  }
+
+  ensureAllowedIdSignature(mimeType, bytes);
+
+  const shouldFailClosed = env.requireVerificationIdStorageUpload || env.nodeEnv === "production";
+
   // Storage fallback: keep verification usable even if object storage is not ready.
   if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
+    if (shouldFailClosed) {
+      throw new VerificationError("ID storage is unavailable. Please try again later.", 503);
+    }
     return input.dataUrl;
   }
 
@@ -130,6 +175,10 @@ async function uploadCitizenIdImage(input: {
     });
 
   if (upload.error) {
+    if (shouldFailClosed) {
+      throw new VerificationError("ID upload failed in secure mode. Please try again later.", 503);
+    }
+
     console.warn(`[verification] Storage upload failed; using inline ID fallback. Reason: ${upload.error.message}`);
     return input.dataUrl;
   }

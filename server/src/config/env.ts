@@ -15,6 +15,9 @@ const otpDeliveryModeFromEnv = (process.env.OTP_DELIVERY_MODE ?? "mock").toLower
 const otpMaxVerifyAttemptsFromEnv = Number(process.env.OTP_MAX_VERIFY_ATTEMPTS ?? "5");
 const otpVerifyLockoutMinutesFromEnv = Number(process.env.OTP_VERIFY_LOCKOUT_MINUTES ?? "15");
 const otpResendCooldownSecondsFromEnv = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS ?? "60");
+const evidenceMaxPhotoBytesFromEnv = Number(process.env.EVIDENCE_MAX_PHOTO_BYTES ?? "5242880");
+const evidenceMaxAudioBytesFromEnv = Number(process.env.EVIDENCE_MAX_AUDIO_BYTES ?? "10485760");
+const verificationIdMaxBytesFromEnv = Number(process.env.VERIFICATION_ID_MAX_BYTES ?? "5242880");
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -34,6 +37,18 @@ if (Number.isNaN(otpVerifyLockoutMinutesFromEnv) || otpVerifyLockoutMinutesFromE
 
 if (Number.isNaN(otpResendCooldownSecondsFromEnv) || otpResendCooldownSecondsFromEnv < 0) {
   throw new Error("Invalid OTP_RESEND_COOLDOWN_SECONDS environment variable.");
+}
+
+if (Number.isNaN(evidenceMaxPhotoBytesFromEnv) || evidenceMaxPhotoBytesFromEnv <= 0) {
+  throw new Error("Invalid EVIDENCE_MAX_PHOTO_BYTES environment variable.");
+}
+
+if (Number.isNaN(evidenceMaxAudioBytesFromEnv) || evidenceMaxAudioBytesFromEnv <= 0) {
+  throw new Error("Invalid EVIDENCE_MAX_AUDIO_BYTES environment variable.");
+}
+
+if (Number.isNaN(verificationIdMaxBytesFromEnv) || verificationIdMaxBytesFromEnv <= 0) {
+  throw new Error("Invalid VERIFICATION_ID_MAX_BYTES environment variable.");
 }
 
 if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
@@ -56,6 +71,9 @@ export const env = {
   otpMaxVerifyAttempts: otpMaxVerifyAttemptsFromEnv,
   otpVerifyLockoutMinutes: otpVerifyLockoutMinutesFromEnv,
   otpResendCooldownSeconds: otpResendCooldownSecondsFromEnv,
+  evidenceMaxPhotoBytes: evidenceMaxPhotoBytesFromEnv,
+  evidenceMaxAudioBytes: evidenceMaxAudioBytesFromEnv,
+  verificationIdMaxBytes: verificationIdMaxBytesFromEnv,
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? "incident-evidence",
@@ -64,6 +82,7 @@ export const env = {
     process.env.SUPABASE_STORAGE_BUCKET ||
     "resident-ids",
   requireEvidenceStorageUpload: process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD === "1",
+  requireVerificationIdStorageUpload: process.env.REQUIRE_VERIFICATION_ID_STORAGE_UPLOAD === "1",
   dssAiEnabled: process.env.DSS_AI_ENABLED === "1",
   dssAiProviderUrl: (process.env.DSS_AI_PROVIDER_URL || "https://openrouter.ai/api/v1/chat/completions").trim(),
   dssAiApiKey: (process.env.DSS_AI_API_KEY || "").trim(),
