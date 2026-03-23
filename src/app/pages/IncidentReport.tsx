@@ -65,6 +65,8 @@ const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
 type LatLng = [number, number];
 type LngLat = [number, number];
 
+const EDGE_EPSILON = 1e-6;
+
 const TONDO_MAP_CENTER: LatLng = [14.61515, 120.97805];
 const TONDO_MAP_BOUNDS: [LatLng, LatLng] = [
   [14.61345, 120.97645],
@@ -229,6 +231,15 @@ function isPointInsideRing(point: LngLat, ring: LngLat[]): boolean {
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
     const [xi, yi] = ring[i];
     const [xj, yj] = ring[j];
+
+    const cross = (y - yi) * (xj - xi) - (x - xi) * (yj - yi);
+    if (Math.abs(cross) <= EDGE_EPSILON) {
+      const dot = (x - xi) * (x - xj) + (y - yi) * (y - yj);
+      if (dot <= EDGE_EPSILON) {
+        return true;
+      }
+    }
+
     const intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
     if (intersects) {
       inside = !inside;
