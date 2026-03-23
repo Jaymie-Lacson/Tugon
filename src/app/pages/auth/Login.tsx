@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
-import { saveAuthSession } from '../../utils/authSession';
+import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,6 +35,15 @@ export default function Login() {
       });
 
       saveAuthSession(session);
+
+      try {
+        await authApi.me(session.token);
+      } catch {
+        clearAuthSession();
+        throw new Error(
+          'Login succeeded but your session cannot access protected APIs. Check backend auth cookie/CORS settings (AUTH_COOKIE_SAME_SITE, AUTH_COOKIE_SECURE_MODE, CORS_ALLOWED_ORIGINS).',
+        );
+      }
 
       if (session.user.role === 'CITIZEN') {
         navigate('/citizen', { replace: true });
