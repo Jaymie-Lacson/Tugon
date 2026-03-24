@@ -43,7 +43,13 @@ export default function Register() {
         barangayCode: barangay,
       });
 
-      const pendingRegistration = { phone, fullName, barangay, devOtpCode: result.devOtpCode };
+      const pendingRegistration = {
+        phone,
+        fullName,
+        barangay,
+        devOtpCode: result.devOtpCode,
+        fallbackReason: result.fallbackReason,
+      };
       sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(pendingRegistration));
       navigate('/auth/verify', { state: pendingRegistration });
     } catch (error) {

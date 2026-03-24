@@ -12,6 +12,7 @@ type PendingRegistrationState = {
   fullName?: string;
   barangay?: string;
   devOtpCode?: string;
+  fallbackReason?: string;
 };
 
 export default function Verify() {
@@ -30,6 +31,7 @@ export default function Verify() {
 
   const pendingState = locationState?.phone ? locationState : storedState;
   const [devOtpCode, setDevOtpCode] = useState(pendingState.devOtpCode ?? '');
+  const [fallbackReason, setFallbackReason] = useState(pendingState.fallbackReason ?? '');
   const displayPhone = pendingState.phone || '0917-xxx-xxxx';
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
@@ -63,9 +65,10 @@ export default function Verify() {
         fullName: pendingState.fullName,
         barangay: pendingState.barangay,
         devOtpCode,
+        fallbackReason,
       }),
     );
-  }, [devOtpCode, pendingState.barangay, pendingState.fullName, pendingState.phone]);
+  }, [devOtpCode, fallbackReason, pendingState.barangay, pendingState.fullName, pendingState.phone]);
 
   const handleDigit = (idx: number, val: string) => {
     const digit = val.replace(/\D/g, '').slice(-1);
@@ -145,6 +148,7 @@ export default function Verify() {
     try {
       const result = await authApi.resendOtp({ phoneNumber: pendingState.phone });
       setDevOtpCode(result.devOtpCode ?? '');
+      setFallbackReason(result.fallbackReason ?? '');
       setResendCountdown(60);
       setDigits(Array(OTP_LENGTH).fill(''));
       setError('');
@@ -208,13 +212,20 @@ export default function Verify() {
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{displayPhone}</div>
-            <div style={{ fontSize: 11, color: '#0369A1' }}>OTP sent via SMS</div>
+            <div style={{ fontSize: 11, color: '#0369A1' }}>
+              {fallbackReason ? 'SMS unavailable, fallback OTP active' : 'OTP sent via SMS'}
+            </div>
           </div>
         </div>
 
         {devOtpCode ? (
           <div style={{ marginBottom: 20, background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 10, padding: '10px 12px', color: '#92400E', fontSize: 12 }}>
-            OTP Code (mock mode): <strong>{devOtpCode}</strong>
+            OTP Code (SMS fallback): <strong>{devOtpCode}</strong>
+            {fallbackReason ? (
+              <div style={{ marginTop: 6, fontSize: 11, color: '#A16207' }}>
+                Reason: {fallbackReason}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
