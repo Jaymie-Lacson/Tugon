@@ -62,6 +62,7 @@ before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
   process.env.NODE_ENV = "test";
+  process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
 
   const [{ createApp }, adminModule] = await Promise.all([
     import("../src/app.js"),
@@ -113,7 +114,7 @@ describe("Admin audit integration", () => {
     const { response, body } = await getJson("/api/admin/audit-logs");
 
     assert.equal(response.status, 401);
-    assert.deepEqual(body, { message: "Missing bearer token." });
+    assert.deepEqual(body, { message: "Missing authentication token." });
   });
 
   it("rejects non-super-admin role for /api/admin/audit-logs", async () => {

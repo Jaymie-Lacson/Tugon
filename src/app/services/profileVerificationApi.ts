@@ -1,4 +1,5 @@
 import { getAuthSession } from "../utils/authSession";
+import { withSecurityHeaders } from "../utils/requestSecurity";
 
 const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api").replace(
   /\/+$/,
@@ -11,14 +12,10 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers: HeadersInit = {
+  const headers = withSecurityHeaders({
     "Content-Type": "application/json",
     ...(init?.headers ?? {}),
-  };
-
-  if (session.token) {
-    headers.Authorization = `Bearer ${session.token}`;
-  }
+  }, { method: init?.method, token: session.token });
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",

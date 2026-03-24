@@ -3,6 +3,7 @@ import type { CookieOptions } from "express";
 import { env } from "../../config/env.js";
 import { authService } from "./auth.service.js";
 import { authenticate } from "../../middleware/auth.js";
+import { ensureCsrfCookie } from "../../middleware/csrf.js";
 
 export const authRouter = Router();
 
@@ -116,6 +117,7 @@ authRouter.post("/create-password", async (req, res) => {
     if (result.token) {
       res.cookie(env.authCookieName, result.token, authCookieOptions());
     }
+    ensureCsrfCookie(req, res);
 
     if (!env.authReturnTokenInBody) {
       const { token: _token, ...body } = result;
@@ -139,6 +141,7 @@ authRouter.post("/login", async (req, res) => {
     if (session.token) {
       res.cookie(env.authCookieName, session.token, authCookieOptions());
     }
+    ensureCsrfCookie(req, res);
 
     if (!env.authReturnTokenInBody) {
       const { token: _token, ...body } = session;
@@ -160,11 +163,21 @@ authRouter.post("/logout", authenticate, async (req, res) => {
       ...authCookieOptions(),
       maxAge: undefined,
     });
+    res.clearCookie(env.csrfCookieName, {
+      ...authCookieOptions(),
+      httpOnly: false,
+      maxAge: undefined,
+    });
     res.status(200).json(result);
   } catch (error) {
     const parsed = authService.parseAuthError(error);
     res.status(parsed.status).json({ message: parsed.message });
   }
+});
+
+authRouter.get("/csrf", (req, res) => {
+  const token = ensureCsrfCookie(req, res);
+  res.status(200).json({ csrfToken: token, headerName: env.csrfHeaderName });
 });
 
 authRouter.get("/me", authenticate, async (req, res) => {
@@ -174,6 +187,7 @@ authRouter.get("/me", authenticate, async (req, res) => {
       return res.status(401).json({ message: "Unauthorized." });
     }
     const user = await authService.me(userId);
+    ensureCsrfCookie(req, res);
     res.status(200).json({ user });
   } catch (error) {
     const parsed = authService.parseAuthError(error);

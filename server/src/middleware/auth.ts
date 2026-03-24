@@ -32,10 +32,15 @@ export const authenticate: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const bearerToken = extractBearerToken(authHeader);
   const cookieToken = extractCookieToken(req);
-  const token = bearerToken || cookieToken;
+
+  if (bearerToken && !env.authAllowBearerTokens) {
+    return res.status(401).json({ message: "Bearer authorization is disabled for this deployment." });
+  }
+
+  const token = cookieToken || bearerToken;
 
   if (!token) {
-    return res.status(401).json({ message: "Missing bearer token." });
+    return res.status(401).json({ message: "Missing authentication token." });
   }
 
   try {

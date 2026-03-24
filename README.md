@@ -12,6 +12,9 @@ Web-based incident management and geospatial decision-support system for Baranga
    - copy `.env.example` to `.env`
    - copy `server/.env.example` to `server/.env` (or keep only root `.env`)
 3. Set a real Supabase PostgreSQL `DATABASE_URL` in the env file used by the server.
+4. Recommended auth security defaults:
+   - Backend: `AUTH_RETURN_TOKEN_IN_BODY=0`, `AUTH_ALLOW_BEARER_TOKENS=0`, `CSRF_COOKIE_NAME=tugon.csrf`, `CSRF_HEADER_NAME=x-csrf-token`
+   - Frontend: `VITE_ENABLE_BEARER_AUTH=0`, `VITE_CSRF_COOKIE_NAME=tugon.csrf`, `VITE_CSRF_HEADER_NAME=x-csrf-token`
 
 ## Run
 
@@ -51,6 +54,10 @@ This runs:
    - `CORS_ALLOWED_ORIGINS=https://<your-frontend-domain>,http://localhost:5173` (comma-separated exact origins; do not use `*` when credentials/cookies are enabled)
    - `JWT_SECRET=<long-random-secret>`
    - `JWT_EXPIRES_IN=8h`
+   - `AUTH_RETURN_TOKEN_IN_BODY=0` (recommended)
+   - `AUTH_ALLOW_BEARER_TOKENS=0` (recommended for browser deployments)
+   - `CSRF_COOKIE_NAME=tugon.csrf`
+   - `CSRF_HEADER_NAME=x-csrf-token`
    - `OTP_EXPIRY_MINUTES=5`
    - `OTP_DELIVERY_MODE=mock` (for capstone/demo OTP flow without SMS provider)
    - `DATABASE_URL=<your-supabase-session-pooler-url>`
@@ -78,6 +85,9 @@ This runs:
      - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
 5. After first successful deploy, copy your Railway public URL and set frontend env:
    - `VITE_API_BASE_URL=https://<your-service>.up.railway.app/api`
+   - `VITE_ENABLE_BEARER_AUTH=0`
+   - `VITE_CSRF_COOKIE_NAME=tugon.csrf`
+   - `VITE_CSRF_HEADER_NAME=x-csrf-token`
 
 ## Railway Deployment Health Checklist
 

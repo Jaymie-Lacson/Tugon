@@ -22,7 +22,10 @@ const authCookieNameFromEnv = (process.env.AUTH_COOKIE_NAME ?? "tugon.sid").trim
 const authCookieSecureModeFromEnv = (process.env.AUTH_COOKIE_SECURE_MODE ?? "auto").trim().toLowerCase();
 const authCookieSameSiteFromEnv = (process.env.AUTH_COOKIE_SAME_SITE ?? "lax").trim().toLowerCase();
 const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "28800");
-const authReturnTokenInBodyFromEnv = process.env.AUTH_RETURN_TOKEN_IN_BODY !== "0";
+const authReturnTokenInBodyFromEnv = process.env.AUTH_RETURN_TOKEN_IN_BODY === "1";
+const authAllowBearerTokensFromEnv = process.env.AUTH_ALLOW_BEARER_TOKENS === "1";
+const csrfCookieNameFromEnv = (process.env.CSRF_COOKIE_NAME ?? "tugon.csrf").trim();
+const csrfHeaderNameFromEnv = (process.env.CSRF_HEADER_NAME ?? "x-csrf-token").trim().toLowerCase();
 const otpSmsFailoverToMockFromEnv = process.env.OTP_SMS_FAILOVER_TO_MOCK === "1";
 const otpSmsProviderFromEnv = (process.env.OTP_SMS_PROVIDER ?? "semaphore").trim().toLowerCase();
 const semaphoreApiKeyFromEnv = (process.env.SEMAPHORE_API_KEY ?? "").trim();
@@ -66,6 +69,14 @@ if (Number.isNaN(verificationIdMaxBytesFromEnv) || verificationIdMaxBytesFromEnv
 
 if (!authCookieNameFromEnv) {
   throw new Error("Invalid AUTH_COOKIE_NAME environment variable.");
+}
+
+if (!csrfCookieNameFromEnv) {
+  throw new Error("Invalid CSRF_COOKIE_NAME environment variable.");
+}
+
+if (!csrfHeaderNameFromEnv) {
+  throw new Error("Invalid CSRF_HEADER_NAME environment variable.");
 }
 
 if (
@@ -145,6 +156,9 @@ export const env = {
   authCookieSameSite: authCookieSameSiteFromEnv as "lax" | "strict" | "none",
   authCookieMaxAgeSeconds: authCookieMaxAgeSecondsFromEnv,
   authReturnTokenInBody: authReturnTokenInBodyFromEnv,
+  authAllowBearerTokens: authAllowBearerTokensFromEnv,
+  csrfCookieName: csrfCookieNameFromEnv,
+  csrfHeaderName: csrfHeaderNameFromEnv,
   otpSmsFailoverToMock: otpSmsFailoverToMockFromEnv,
   otpSmsProvider: otpSmsProviderFromEnv as "semaphore" | "infobip",
   semaphoreApiKey: semaphoreApiKeyFromEnv,

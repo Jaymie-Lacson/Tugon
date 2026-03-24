@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { createIpRateLimiter } from "./middleware/rateLimit.js";
+import { csrfProtectStateChangingRequests } from "./middleware/csrf.js";
 import { apiRouter } from "./routes/index.js";
 
 function parseAllowedOriginsFromEnv(rawValue: string | undefined) {
@@ -96,13 +97,14 @@ export function createApp() {
         callback(null, corsAllowedOrigins.has(normalizeRequestOrigin(origin)));
       },
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
       credentials: true,
     }),
   );
   app.use(helmet());
   app.use(cookieParser());
   app.use(express.json({ limit: "25mb" }));
+  app.use(csrfProtectStateChangingRequests);
 
   app.use("/api/auth", authRateLimiter);
   app.use("/api/citizen/reports", (req, res, next) => {

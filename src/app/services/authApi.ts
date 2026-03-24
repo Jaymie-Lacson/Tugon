@@ -1,3 +1,5 @@
+import { withSecurityHeaders } from "../utils/requestSecurity";
+
 export type Role = "CITIZEN" | "OFFICIAL" | "SUPER_ADMIN";
 
 export interface SessionUser {
@@ -37,11 +39,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(`${API_BASE}${path}`, {
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
       ...init,
+      headers: withSecurityHeaders(
+        {
+          "Content-Type": "application/json",
+          ...(init?.headers ?? {}),
+        },
+        { method: init?.method },
+      ),
     });
   } catch {
     throw new Error(
@@ -109,25 +114,20 @@ export const authApi = {
     });
   },
   logout(token?: string) {
-    const headers: HeadersInit = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     return request<{ message: string }>("/auth/logout", {
       method: "POST",
-      headers,
+      headers: withSecurityHeaders({}, { method: "POST", token }),
     });
   },
   me(token?: string) {
-    const headers: HeadersInit = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     return request<{ user: SessionUser }>("/auth/me", {
       method: "GET",
-      headers,
+      headers: withSecurityHeaders({}, { method: "GET", token }),
+    });
+  },
+  csrf() {
+    return request<{ csrfToken: string; headerName: string }>("/auth/csrf", {
+      method: "GET",
     });
   },
 };
