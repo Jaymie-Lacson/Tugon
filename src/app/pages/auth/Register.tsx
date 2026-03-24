@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft, House } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 
@@ -77,6 +77,17 @@ export default function Register() {
       <AuthLayout
         title="Create Your Account"
         subtitle="Register to start reporting incidents and protecting your community in Tondo."
+        topAction={(
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="auth-home-link-btn"
+          >
+            <ArrowLeft size={14} />
+            <House size={14} />
+            Back to Homepage
+          </button>
+        )}
       >
         {/* Step indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28 }}>

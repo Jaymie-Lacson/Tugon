@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck, House } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
@@ -106,6 +106,17 @@ export default function CreatePassword() {
       <AuthLayout
         title="Create Your Password"
         subtitle="Almost done! Set a strong password to secure your TUGON account."
+        topAction={(
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="auth-home-link-btn"
+          >
+            <ArrowLeft size={14} />
+            <House size={14} />
+            Back to Homepage
+          </button>
+        )}
       >
         {/* Step indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28 }}>
