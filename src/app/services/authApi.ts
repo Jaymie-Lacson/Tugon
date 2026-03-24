@@ -24,6 +24,7 @@ export interface OtpDispatchResponse {
   phoneNumber: string;
   expiresInSeconds: number;
   devOtpCode?: string;
+  fallbackReason?: string;
 }
 
 const API_BASE =
