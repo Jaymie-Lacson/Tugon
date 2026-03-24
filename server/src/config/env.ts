@@ -23,6 +23,9 @@ const authCookieSecureModeFromEnv = (process.env.AUTH_COOKIE_SECURE_MODE ?? "aut
 const authCookieSameSiteFromEnv = (process.env.AUTH_COOKIE_SAME_SITE ?? "lax").trim().toLowerCase();
 const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "28800");
 const authReturnTokenInBodyFromEnv = process.env.AUTH_RETURN_TOKEN_IN_BODY !== "0";
+const semaphoreApiKeyFromEnv = (process.env.SEMAPHORE_API_KEY ?? "").trim();
+const semaphoreSenderNameFromEnv = (process.env.SEMAPHORE_SENDER_NAME ?? "").trim();
+const semaphoreApiUrlFromEnv = (process.env.SEMAPHORE_API_URL ?? "https://semaphore.co/api/v4/messages").trim();
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -80,6 +83,10 @@ if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
   throw new Error("Invalid OTP_DELIVERY_MODE environment variable. Use 'mock' or 'sms'.");
 }
 
+if (otpDeliveryModeFromEnv === "sms" && !semaphoreApiKeyFromEnv) {
+  throw new Error("SEMAPHORE_API_KEY must be set when OTP_DELIVERY_MODE is 'sms'.");
+}
+
 const jwtSecret = process.env.JWT_SECRET;
 
 if (!jwtSecret || jwtSecret.trim().length < 16) {
@@ -113,6 +120,9 @@ export const env = {
   authCookieSameSite: authCookieSameSiteFromEnv as "lax" | "strict" | "none",
   authCookieMaxAgeSeconds: authCookieMaxAgeSecondsFromEnv,
   authReturnTokenInBody: authReturnTokenInBodyFromEnv,
+  semaphoreApiKey: semaphoreApiKeyFromEnv,
+  semaphoreSenderName: semaphoreSenderNameFromEnv,
+  semaphoreApiUrl: semaphoreApiUrlFromEnv,
   dssAiEnabled: process.env.DSS_AI_ENABLED === "1",
   dssAiProviderUrl: (process.env.DSS_AI_PROVIDER_URL || "https://openrouter.ai/api/v1/chat/completions").trim(),
   dssAiApiKey: (process.env.DSS_AI_API_KEY || "").trim(),

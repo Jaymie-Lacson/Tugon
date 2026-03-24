@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
+import { OtpSmsDeliveryError, sendOtpSms } from "./otp-sms.service.js";
 import type {
   AuthPayload,
   AuthSession,
@@ -295,6 +296,11 @@ export const authService = {
 
     authStore.saveOtp(otpRecord);
 
+    await sendOtpSms({
+      phoneNumber,
+      otpCode: code,
+    });
+
     return buildOtpDispatchResponse(
       phoneNumber,
       env.otpDeliveryMode === "mock"
@@ -303,7 +309,7 @@ export const authService = {
     );
   },
 
-  resendOtp(input: { phoneNumber: string }) {
+  async resendOtp(input: { phoneNumber: string }) {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
     const existingOtp = authStore.getOtp(phoneNumber);
 
@@ -327,6 +333,11 @@ export const authService = {
       failedVerifyAttempts: 0,
       lockoutUntilMs: null,
       lastSentAtMs: nowMs,
+    });
+
+    await sendOtpSms({
+      phoneNumber,
+      otpCode: newCode,
     });
 
     return buildOtpDispatchResponse(
@@ -584,6 +595,10 @@ export const authService = {
 
   parseAuthError(error: unknown) {
     if (error instanceof AuthError) {
+      return { status: error.status, message: error.message };
+    }
+
+    if (error instanceof OtpSmsDeliveryError) {
       return { status: error.status, message: error.message };
     }
 
