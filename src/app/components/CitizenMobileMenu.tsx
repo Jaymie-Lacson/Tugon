@@ -25,9 +25,9 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
         <button
           onClick={onToggle}
           style={{
-            background: 'rgba(255,255,255,0.12)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 10,
+            background: 'rgba(255,255,255,0.16)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: 9,
             width: 38,
             height: 38,
             display: 'flex',
@@ -52,8 +52,8 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
             left: 16,
             right: 16,
             background: '#fff',
-            borderRadius: 14,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            borderRadius: 12,
+            boxShadow: '0 10px 22px rgba(15,23,42,0.14)',
             zIndex: 101,
             overflow: 'hidden',
             border: '1px solid #E2E8F0',
@@ -81,7 +81,7 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
                 onClick={() => onNavigate(item.key)}
                 style={{
                   width: '100%',
-                  background: isActive ? '#EFF6FF' : '#fff',
+                  background: isActive ? '#F8FBFF' : '#fff',
                   border: 'none',
                   borderBottom: '1px solid #F8FAFC',
                   padding: '12px 14px',

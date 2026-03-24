@@ -343,13 +343,13 @@ function StepIndicator({ current }: { current: number }) {
             <React.Fragment key={s}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  width: 32, height: 32, borderRadius: 9, flexShrink: 0,
                   background: done ? '#1E3A8A' : active ? '#1E3A8A' : '#F1F5F9',
                   color: done || active ? '#fff' : '#94A3B8',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, fontWeight: 700,
                   border: active ? '2.5px solid #60A5FA' : done ? '2.5px solid #1E3A8A' : '2px solid #E2E8F0',
-                  boxShadow: active ? '0 0 0 5px rgba(30,58,138,0.10)' : 'none',
+                  boxShadow: 'none',
                   transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
                 }}>
                   {done ? <Check size={14} strokeWidth={3} /> : s}
@@ -368,7 +368,7 @@ function StepIndicator({ current }: { current: number }) {
                 }}>
                   <div style={{
                     height: '100%', width: done ? '100%' : '0%',
-                    background: 'linear-gradient(90deg, #1E3A8A, #3B82F6)',
+                    background: '#1E3A8A',
                     transition: 'width 0.4s ease',
                   }} />
                 </div>
@@ -399,7 +399,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       <div style={{ marginBottom: 20 }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: '#EFF6FF', borderRadius: 20, padding: '4px 12px',
+          background: '#EFF6FF', borderRadius: 8, padding: '4px 12px',
           color: '#1E3A8A', fontSize: 10, fontWeight: 700,
           letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
         }}>
@@ -432,13 +432,13 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                 scrollToSection(severitySectionRef);
               }}
               style={{
-                background: sel ? `linear-gradient(145deg, ${color}, ${color}CC)` : '#fff',
+                background: sel ? color : '#fff',
                 border: `2px solid ${sel ? color : '#E8EEF4'}`,
-                borderRadius: 16, padding: '14px 12px 12px',
+                borderRadius: 12, padding: '14px 12px 12px',
                 cursor: 'pointer', display: 'flex', flexDirection: 'column',
                 alignItems: 'flex-start', gap: 10, textAlign: 'left',
                 transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                boxShadow: sel ? `0 8px 24px ${color}38` : '0 1px 3px rgba(0,0,0,0.06)',
+                boxShadow: sel ? '0 8px 16px rgba(15,23,42,0.14)' : '0 1px 3px rgba(0,0,0,0.06)',
                 position: 'relative', overflow: 'hidden', minHeight: 124,
               }}
             >
@@ -446,14 +446,14 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
               {!sel && (
                 <div style={{
                   position: 'absolute', top: -20, right: -20, width: 70, height: 70,
-                  borderRadius: '50%', background: bg, opacity: 0.5,
+                  borderRadius: 12, background: bg, opacity: 0.35,
                 }} />
               )}
               {/* Checkmark badge */}
               {sel && (
                 <div style={{
                   position: 'absolute', top: 10, right: 10, width: 22, height: 22,
-                  borderRadius: '50%', background: 'rgba(255,255,255,0.3)',
+                  borderRadius: 7, background: 'rgba(255,255,255,0.26)',
                   border: '1.5px solid rgba(255,255,255,0.5)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
@@ -722,7 +722,7 @@ function Step2({
       <div style={{ marginBottom: 16 }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EFF6FF',
-          borderRadius: 20, padding: '4px 12px', color: '#1E3A8A',
+          borderRadius: 8, padding: '4px 12px', color: '#1E3A8A',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
         }}>Step 2 of 5</div>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
@@ -734,9 +734,9 @@ function Step2({
       </div>
 
       <div className="incident-step2-map-shell" style={{
-        borderRadius: 18, overflow: 'hidden', marginBottom: 12,
-        border: `2.5px solid ${form.pin ? '#3B82F6' : '#E2E8F0'}`,
-        boxShadow: form.pin ? '0 6px 24px rgba(59,130,246,0.18)' : '0 2px 10px rgba(0,0,0,0.08)',
+        borderRadius: 12, overflow: 'hidden', marginBottom: 12,
+        border: `2px solid ${form.pin ? '#3B82F6' : '#E2E8F0'}`,
+        boxShadow: form.pin ? '0 8px 16px rgba(15,23,42,0.14)' : '0 2px 8px rgba(0,0,0,0.06)',
         position: 'relative',
         transition: 'border-color 0.3s, box-shadow 0.3s',
       }}>
@@ -764,11 +764,11 @@ function Step2({
         {!form.pin && (
           <div className="incident-step2-map-hint" style={{
             position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(30,58,138,0.9)', backdropFilter: 'blur(8px)', color: '#fff',
-            borderRadius: 24, padding: '8px 18px', fontSize: 12, fontWeight: 600,
+            background: 'rgba(15,23,42,0.88)', color: '#fff',
+            borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
             pointerEvents: 'none', zIndex: 10,
             display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           }}>
             <MapPin size={13} /> Tap map to pin location
           </div>
@@ -826,10 +826,10 @@ function Step2({
       {/* Pin confirmation chip */}
       {form.pin ? (
         <div className="incident-step2-pin-chip" style={{
-          background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
-          borderRadius: 14, padding: '12px 14px', border: '1.5px solid #93C5FD',
+          background: '#EFF6FF',
+          borderRadius: 10, padding: '12px 14px', border: '1.5px solid #93C5FD',
           marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10,
-          boxShadow: '0 2px 8px rgba(59,130,246,0.12)',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.08)',
         }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10, background: '#DBEAFE',
@@ -2280,7 +2280,7 @@ export default function IncidentReport() {
           <header
             className="citizen-web-header"
             style={{
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            background: '#1E3A8A',
             display: 'flex',
             alignItems: 'center',
             height: 60,
@@ -2288,7 +2288,7 @@ export default function IncidentReport() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            boxShadow: '0 2px 16px rgba(30,58,138,0.45)',
+            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
           }}
           >
             <div
@@ -2358,7 +2358,7 @@ export default function IncidentReport() {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                      background: '#B4730A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2383,7 +2383,7 @@ export default function IncidentReport() {
                         width: 190,
                         background: '#fff',
                         borderRadius: 12,
-                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                        boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
                         border: '1px solid #E2E8F0',
                         overflow: 'hidden',
                         zIndex: 110,
@@ -2486,15 +2486,13 @@ export default function IncidentReport() {
                   background: (!canProceed && step < 5) || submitting
                     ? '#E2E8F0'
                     : step === 5
-                      ? 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)'
-                      : 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+                      ? '#B91C1C'
+                      : '#1E3A8A',
                   color: (canProceed || step === 5) && !submitting ? '#fff' : '#94A3B8',
                   fontWeight: 700, fontSize: 14,
                   cursor: (canProceed || step === 5) && !submitting ? 'pointer' : 'not-allowed',
                   boxShadow: (canProceed || step === 5) && !submitting
-                    ? step === 5
-                      ? '0 4px 16px rgba(185,28,28,0.4)'
-                      : '0 4px 16px rgba(30,58,138,0.35)'
+                    ? '0 4px 12px rgba(15,23,42,0.16)'
                     : 'none',
                   transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

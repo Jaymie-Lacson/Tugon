@@ -96,8 +96,7 @@ export function CitizenPageLayout({
       className="citizen-page-layout"
       style={{
         minHeight: '100vh',
-        background:
-          'radial-gradient(1200px 380px at 20% -15%, rgba(30,58,138,0.14), transparent 65%), radial-gradient(900px 320px at 100% 0%, rgba(185,28,28,0.1), transparent 60%), #F1F5F9',
+        background: '#F4F7FC',
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
@@ -107,6 +106,7 @@ export function CitizenPageLayout({
       }}
     >
       {header}
+      {beforeMain}
       {verificationPrompt && !hideVerificationPrompt ? (
         <section
           style={{
@@ -143,6 +143,10 @@ export function CitizenPageLayout({
                 fontWeight: 700,
                 fontSize: 12,
                 whiteSpace: 'nowrap',
+                border: `1px solid ${verificationPrompt.border}`,
+                borderRadius: 8,
+                padding: '6px 10px',
+                background: '#FFFFFFA6',
               }}
             >
               {verificationPrompt.ctaLabel}
@@ -150,7 +154,6 @@ export function CitizenPageLayout({
           </div>
         </section>
       ) : null}
-      {beforeMain}
       <main
         className="citizen-page-layout-main"
         style={{
@@ -221,8 +224,8 @@ export function CitizenPageLayout({
         }
 
         .citizen-web-header {
-          backdrop-filter: saturate(135%) blur(10px);
-          -webkit-backdrop-filter: saturate(135%) blur(10px);
+          backdrop-filter: saturate(115%) blur(6px);
+          -webkit-backdrop-filter: saturate(115%) blur(6px);
         }
 
         .citizen-web-strip {
@@ -233,6 +236,14 @@ export function CitizenPageLayout({
           padding-left: var(--citizen-content-gutter);
           padding-right: var(--citizen-content-gutter);
           box-sizing: border-box;
+        }
+
+        .citizen-page-layout,
+        .citizen-page-layout button,
+        .citizen-page-layout input,
+        .citizen-page-layout select,
+        .citizen-page-layout textarea {
+          letter-spacing: -0.004em;
         }
       `}</style>
     </div>

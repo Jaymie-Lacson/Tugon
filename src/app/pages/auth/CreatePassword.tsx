@@ -31,7 +31,8 @@ function getStrength(pw: string): { level: number; label: string; color: string 
 export default function CreatePassword() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = (location.state as { phone?: string; fullName?: string; barangay?: string }) || {};
+  const state = (location.state as { phone?: string; fullName?: string; barangay?: string; flow?: 'registration' | 'password-reset' }) || {};
+  const flow = state.flow === 'password-reset' ? 'password-reset' : 'registration';
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -62,6 +63,18 @@ export default function CreatePassword() {
     setErrors({});
     setLoading(true);
     try {
+      if (flow === 'password-reset') {
+        await authApi.resetPassword({
+          phoneNumber: state.phone,
+          password,
+        });
+        sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+        setDone(true);
+        await new Promise(r => setTimeout(r, 1000));
+        navigate('/auth/login', { replace: true });
+        return;
+      }
+
       const session = await authApi.createPassword({
         phoneNumber: state.phone,
         password,
@@ -104,8 +117,10 @@ export default function CreatePassword() {
         @keyframes fadeSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
       <AuthLayout
-        title="Create Your Password"
-        subtitle="Almost done! Set a strong password to secure your TUGON account."
+        title={flow === 'password-reset' ? 'Set A New Password' : 'Create Your Password'}
+        subtitle={flow === 'password-reset'
+          ? 'Set a new password to regain access to your TUGON account.'
+          : 'Almost done! Set a strong password to secure your TUGON account.'}
         topAction={(
           <button
             type="button"
@@ -151,7 +166,7 @@ export default function CreatePassword() {
         </div>
 
         {/* Account summary pill */}
-        {state.fullName && (
+        {flow !== 'password-reset' && state.fullName && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '10px 14px', marginBottom: 24 }}>
             <div style={{ width: 34, height: 34, background: '#DCFCE7', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <UserCheck size={16} color="#059669" />
@@ -300,7 +315,7 @@ export default function CreatePassword() {
             </div>
 
             <PrimaryButton loading={loading} type="submit" color="#059669">
-              {!loading && <><CheckCircle2 size={16} /> Create Account</>}
+              {!loading && <><CheckCircle2 size={16} /> {flow === 'password-reset' ? 'Reset Password' : 'Create Account'}</>}
             </PrimaryButton>
           </form>
         )}

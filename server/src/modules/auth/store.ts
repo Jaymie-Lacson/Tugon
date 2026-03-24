@@ -11,13 +11,19 @@ export const authStore = {
   normalizePhone,
   otpByPhone,
   revokedTokens,
+  otpKey(phone: string, purpose: OtpRecord["purpose"]) {
+    return `${normalizePhone(phone)}:${purpose}`;
+  },
   saveOtp(otpRecord: OtpRecord) {
-    otpByPhone.set(normalizePhone(otpRecord.phoneNumber), {
+    otpByPhone.set(this.otpKey(otpRecord.phoneNumber, otpRecord.purpose), {
       ...otpRecord,
       phoneNumber: normalizePhone(otpRecord.phoneNumber),
     });
   },
-  getOtp(phone: string) {
-    return otpByPhone.get(normalizePhone(phone));
+  getOtp(phone: string, purpose: OtpRecord["purpose"] = "REGISTRATION") {
+    return otpByPhone.get(this.otpKey(phone, purpose));
+  },
+  deleteOtp(phone: string, purpose: OtpRecord["purpose"]) {
+    otpByPhone.delete(this.otpKey(phone, purpose));
   },
 };

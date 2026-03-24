@@ -55,11 +55,49 @@ authRouter.post("/resend-otp", async (req, res) => {
   }
 });
 
-authRouter.post("/verify-otp", (req, res) => {
+authRouter.post("/verify-otp", async (req, res) => {
   try {
-    const result = authService.verifyOtp({
+    const result = await authService.verifyOtp({
       phoneNumber: req.body?.phoneNumber,
       otpCode: req.body?.otpCode,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    const parsed = authService.parseAuthError(error);
+    res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+authRouter.post("/forgot-password/request-otp", async (req, res) => {
+  try {
+    const result = await authService.requestPasswordResetOtp({
+      phoneNumber: req.body?.phoneNumber,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    const parsed = authService.parseAuthError(error);
+    res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+authRouter.post("/forgot-password/verify-otp", async (req, res) => {
+  try {
+    const result = await authService.verifyPasswordResetOtp({
+      phoneNumber: req.body?.phoneNumber,
+      otpCode: req.body?.otpCode,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    const parsed = authService.parseAuthError(error);
+    res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+authRouter.post("/forgot-password/reset", async (req, res) => {
+  try {
+    const result = await authService.resetPassword({
+      phoneNumber: req.body?.phoneNumber,
+      password: req.body?.password,
     });
     res.status(200).json(result);
   } catch (error) {

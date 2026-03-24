@@ -37,7 +37,7 @@ export default function Register() {
     setErrors({});
     setLoading(true);
     try {
-      const result = await authApi.register({
+      await authApi.register({
         fullName,
         phoneNumber: phone,
         barangayCode: barangay,
@@ -47,8 +47,6 @@ export default function Register() {
         phone,
         fullName,
         barangay,
-        devOtpCode: result.devOtpCode,
-        fallbackReason: result.fallbackReason,
       };
       sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(pendingRegistration));
       navigate('/auth/verify', { state: pendingRegistration });
