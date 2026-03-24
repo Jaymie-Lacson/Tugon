@@ -52,12 +52,12 @@ const CATEGORIES: {
   type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
   color: string; bg: string; desc: string; emoji: string;
 }[] = [
-  { type: 'Garbage and Sanitation', label: 'Garbage and Sanitation', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Waste and sanitation concerns', emoji: 'G' },
-  { type: 'Public Disturbance', label: 'Public Disturbance', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Noise, loitering, and public nuisance', emoji: 'P' },
-  { type: 'Road and Street Issues', label: 'Road and Street Issues', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Streetlights, parking, sidewalks, potholes', emoji: 'R' },
-  { type: 'Hazards and Safety', label: 'Hazards and Safety', icon: Flame, color: '#B91C1C', bg: '#FEE2E2', desc: 'Immediate public safety hazards', emoji: 'H' },
-  { type: 'Neighbor Disputes / Lupon', label: 'Neighbor Disputes / Lupon', icon: AlertCircle, color: '#1E3A8A', bg: '#DBEAFE', desc: 'Barangay mediation-related disputes', emoji: 'N' },
-  { type: 'Others', label: 'Others', icon: MoreHorizontal, color: '#475569', bg: '#F1F5F9', desc: 'Unlisted general issues', emoji: 'O' },
+  { type: 'Fire', label: 'Fire', icon: Flame, color: '#B91C1C', bg: '#FEE2E2', desc: 'Fire incidents and flammable hazards', emoji: 'F' },
+  { type: 'Pollution', label: 'Pollution', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, and waste pollution concerns', emoji: 'P' },
+  { type: 'Noise', label: 'Noise', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Public noise disturbance incidents', emoji: 'N' },
+  { type: 'Crime', label: 'Crime', icon: AlertCircle, color: '#1E3A8A', bg: '#DBEAFE', desc: 'Criminal and suspicious activity reports', emoji: 'C' },
+  { type: 'Road Hazard', label: 'Road Hazard', icon: AlertTriangle, color: '#B4730A', bg: '#FEF3C7', desc: 'Road, sidewalk, and street safety hazards', emoji: 'R' },
+  { type: 'Other', label: 'Other', icon: MoreHorizontal, color: '#475569', bg: '#F1F5F9', desc: 'Unlisted general issues', emoji: 'O' },
 ];
 
 const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
@@ -165,11 +165,11 @@ function getBoundaryBounds(boundaries: Array<{ boundary: LatLng[] }>): [LatLng, 
 const BARANGAY_BOUNDARY_BOUNDS = getBoundaryBounds(BARANGAY_BOUNDARIES);
 
 function toLegacyIncidentType(category: IncidentCategory | null): 'FIRE' | 'POLLUTION' | 'NOISE' | 'CRIME' | 'ROAD_HAZARD' | 'OTHER' {
-  if (category === 'Hazards and Safety') return 'FIRE';
-  if (category === 'Garbage and Sanitation') return 'POLLUTION';
-  if (category === 'Public Disturbance') return 'NOISE';
-  if (category === 'Neighbor Disputes / Lupon') return 'CRIME';
-  if (category === 'Road and Street Issues') return 'ROAD_HAZARD';
+  if (category === 'Fire') return 'FIRE';
+  if (category === 'Pollution') return 'POLLUTION';
+  if (category === 'Noise') return 'NOISE';
+  if (category === 'Crime') return 'CRIME';
+  if (category === 'Road Hazard') return 'ROAD_HAZARD';
   return 'OTHER';
 }
 
@@ -2147,7 +2147,7 @@ export default function IncidentReport() {
 
   const stepValidationMessage = STEP_REQUIREMENTS[step]?.(form) ?? null;
   const canProceed = !stepValidationMessage;
-  const voiceAllowed = (form.category === 'Public Disturbance') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
+  const voiceAllowed = (form.category === 'Noise') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
   const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '1') !== '0';
 
   useEffect(() => {

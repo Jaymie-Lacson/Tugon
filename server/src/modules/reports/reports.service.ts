@@ -91,10 +91,17 @@ const toPrismaStatusMap: Record<TicketStatus, PrismaTicketStatus> = {
   "Unresolvable": PrismaTicketStatus.UNRESOLVABLE,
 };
 
+const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
+  "Submitted": ["Under Review", "Unresolvable"],
+  "Under Review": ["In Progress", "Resolved", "Unresolvable"],
+  "In Progress": ["Resolved", "Unresolvable"],
+  "Resolved": ["Closed", "In Progress"],
+  "Closed": [],
+  "Unresolvable": [],
+};
+
 function canTransition(fromStatus: TicketStatus, toStatus: TicketStatus): boolean {
-  // Official UI now supports direct status jumps (non-linear workflow updates).
-  // Keep only no-op transitions blocked.
-  return fromStatus !== toStatus;
+  return STATUS_TRANSITIONS[fromStatus].includes(toStatus);
 }
 
 function statusLabel(status: TicketStatus): string {
@@ -756,7 +763,7 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
     throw new ReportsError("At least one photo evidence is required.", 400);
   }
 
-  const isNoiseRelated = category === "Public Disturbance" || subcategory.toLowerCase().includes("noise");
+  const isNoiseRelated = category === "Noise" || subcategory.toLowerCase().includes("noise");
   const hasAnyAudio = Boolean(input.hasAudio || audio);
   if (hasAnyAudio && !isNoiseRelated) {
     throw new ReportsError("Voice recording is only allowed for noise-related incidents.", 400);
