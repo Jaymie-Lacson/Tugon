@@ -389,7 +389,7 @@ export default function CitizenVerification() {
         <header
           className="citizen-web-header"
           style={{
-            background: 'var(--tugon-header-bg)',
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
             display: 'flex',
             alignItems: 'center',
             height: 60,
@@ -397,7 +397,7 @@ export default function CitizenVerification() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            boxShadow: '0 2px 12px rgba(15,23,42,0.35)',
+            boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
           }}
         >
           <div

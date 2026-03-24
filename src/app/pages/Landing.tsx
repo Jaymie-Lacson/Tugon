@@ -206,7 +206,7 @@ function Navbar() {
           left: 'var(--landing-nav-left, 0px)',
           width: 'var(--landing-nav-width, 100%)',
           zIndex: 100,
-          background: scrolled ? 'var(--tugon-header-bg)' : 'transparent',
+          background: scrolled ? 'rgba(15,23,42,0.95)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
           transition: 'background 0.3s, backdrop-filter 0.3s',
@@ -324,7 +324,7 @@ function Navbar() {
         {mobileOpen && (
           <div
             style={{
-              background: 'var(--tugon-header-bg)',
+              background: 'rgba(15,23,42,0.98)',
               borderTop: '1px solid rgba(255,255,255,0.08)',
               padding: '12px 20px 20px',
             }}
@@ -401,7 +401,7 @@ function Navbar() {
             width: var(--landing-nav-width, 100%) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            background: var(--tugon-header-bg) !important;
+            background: rgba(15, 23, 42, 0.98) !important;
             transition: none !important;
           }
 

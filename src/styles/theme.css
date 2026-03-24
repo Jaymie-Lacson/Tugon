@@ -2,8 +2,6 @@
 
 :root {
   --font-size: 16px;
-  --tugon-header-bg: #0f172a;
-  --mobile-status-bar-bg: var(--tugon-header-bg);
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -165,39 +163,6 @@
 
   body {
     @apply bg-background text-foreground;
-  }
-
-  /* Keep the top safe-area (mobile status bar region) aligned with TUGON header color. */
-  @media (max-width: 768px) {
-    html,
-    body,
-    #root {
-      background: var(--mobile-status-bar-bg);
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: env(safe-area-inset-top, 0px);
-      background: var(--mobile-status-bar-bg);
-      pointer-events: none;
-      z-index: 2000;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: env(safe-area-inset-bottom, 0px);
-      background: var(--mobile-status-bar-bg);
-      pointer-events: none;
-      z-index: 2000;
-    }
   }
 
   /**
