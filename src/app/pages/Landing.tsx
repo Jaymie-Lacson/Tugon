@@ -45,14 +45,15 @@ function SectionHeading({
       <span
         style={{
           display: 'inline-block',
-          background: light ? 'rgba(255,255,255,0.16)' : '#E2E8F0',
-          color: light ? '#BFDBFE' : '#1E3A8A',
+          background: light ? 'rgba(255,255,255,0.14)' : '#E8EEF9',
+          border: light ? '1px solid rgba(255,255,255,0.22)' : '1px solid #CBD5E1',
+          color: light ? '#DBEAFE' : '#1E3A8A',
           fontSize: 11,
           fontWeight: 700,
-          letterSpacing: '0.08em',
+          letterSpacing: '0.06em',
           textTransform: 'uppercase',
-          padding: '6px 12px',
-          borderRadius: 20,
+          padding: '6px 11px',
+          borderRadius: 9,
           marginBottom: 10,
         }}
       >
@@ -61,8 +62,9 @@ function SectionHeading({
       <h2
         style={{
           color: light ? '#FFFFFF' : '#1E293B',
-          fontSize: 'clamp(22px,4vw,30px)',
-          fontWeight: 700,
+          fontSize: 'clamp(24px,4vw,32px)',
+          letterSpacing: '-0.01em',
+          fontWeight: 800,
           marginBottom: 8,
         }}
       >
@@ -71,7 +73,7 @@ function SectionHeading({
       <p
         style={{
           color: light ? '#BFDBFE' : '#64748B',
-          fontSize: 15,
+          fontSize: 14,
           maxWidth: 620,
           margin: '0 auto',
           lineHeight: 1.6,
@@ -301,8 +303,11 @@ function Navbar() {
           </div>
 
           <button
-            className="nav-mobile-btn"
+            className={mobileOpen ? 'nav-mobile-btn is-open' : 'nav-mobile-btn'}
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileOpen}
+            aria-controls="landing-mobile-nav"
             style={{
               background: 'rgba(255,255,255,0.12)',
               border: 'none',
@@ -315,22 +320,35 @@ function Navbar() {
               alignItems: 'center',
               justifyContent: 'center',
               lineHeight: 0,
+              transition: 'background 180ms ease, transform 180ms ease',
             }}
           >
-            {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
+            <span className={mobileOpen ? 'nav-mobile-icon is-open' : 'nav-mobile-icon'}>
+              {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
+            </span>
           </button>
         </div>
 
-        {mobileOpen && (
-          <div
-            style={{
-              background: 'rgba(15,23,42,0.98)',
-              borderTop: '1px solid rgba(255,255,255,0.08)',
-              padding: '12px 20px 20px',
-            }}
-          >
+        <div
+          id="landing-mobile-nav"
+          className={mobileOpen ? 'nav-mobile-panel is-open' : 'nav-mobile-panel'}
+          aria-hidden={!mobileOpen}
+          style={{
+            background: 'rgba(15,23,42,0.98)',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            padding: mobileOpen ? '12px 20px 20px' : '0 20px',
+            maxHeight: mobileOpen ? 360 : 0,
+            opacity: mobileOpen ? 1 : 0,
+            transform: mobileOpen ? 'translateY(0)' : 'translateY(-10px)',
+            pointerEvents: mobileOpen ? 'auto' : 'none',
+            overflow: 'hidden',
+            transition:
+              'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
+          }}
+        >
             {navLinks.map((link) => (
               <button
+                className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
                 style={{
@@ -344,12 +362,25 @@ function Navbar() {
                   padding: '12px 0',
                   cursor: 'pointer',
                   borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  opacity: mobileOpen ? 1 : 0,
+                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
+                  transition: 'opacity 180ms ease, transform 180ms ease',
                 }}
               >
                 {link.label}
               </button>
             ))}
-            <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
+            <div
+              className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
+              style={{
+                display: 'grid',
+                gap: 8,
+                marginTop: 14,
+                opacity: mobileOpen ? 1 : 0,
+                transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
+                transition: 'opacity 180ms ease, transform 180ms ease',
+              }}
+            >
               <button
                 onClick={() => navigateAuthWithOverlay('/auth/login')}
                 style={{
@@ -383,14 +414,27 @@ function Navbar() {
                 Register
               </button>
             </div>
-          </div>
-        )}
+        </div>
       </nav>
 
       <style>{`
         .landing-navbar {
           isolation: isolate;
           max-width: 100%;
+        }
+
+        .nav-mobile-icon {
+          display: inline-flex;
+          transition: transform 180ms ease;
+        }
+
+        .hero-wordmark-red {
+          transform: translateY(0.16em);
+          max-width: min(35vw, 248px);
+        }
+
+        .nav-mobile-icon.is-open {
+          transform: rotate(90deg);
         }
 
         @media (max-width: 768px) {
@@ -408,6 +452,30 @@ function Navbar() {
           .nav-desktop { display: none !important; }
           .nav-cta { display: none !important; }
           .nav-mobile-btn { display: flex !important; }
+
+          .nav-mobile-btn.is-open {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.2) !important;
+          }
+
+          .nav-mobile-panel .nav-mobile-item:nth-child(1) { transition-delay: 40ms; }
+          .nav-mobile-panel .nav-mobile-item:nth-child(2) { transition-delay: 80ms; }
+          .nav-mobile-panel .nav-mobile-item:nth-child(3) { transition-delay: 120ms; }
+          .nav-mobile-panel .nav-mobile-item:nth-child(4) { transition-delay: 160ms; }
+
+          .hero-wordmark-red {
+            transform: translateY(0.12em);
+            max-width: min(45vw, 188px);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .nav-mobile-icon,
+          .nav-mobile-panel,
+          .nav-mobile-item,
+          .nav-mobile-btn {
+            transition: none !important;
+          }
         }
       `}</style>
     </>
@@ -437,148 +505,149 @@ function Hero() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <section
-      data-reveal
-      style={{
-        position: 'relative',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      <div style={{ position: 'absolute', inset: 0 }}>
-        <img src={HERO_IMAGE} alt="City aerial" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(30,58,138,0.86) 55%, rgba(15,23,42,0.92) 100%)',
-          }}
-        />
-      </div>
-
-      <div
         data-reveal
-        className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
-        style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
+        style={{
+          position: 'relative',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+        }}
       >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: 'rgba(185,28,28,0.2)',
-            border: '1px solid rgba(185,28,28,0.4)',
-            borderRadius: 20,
-            padding: '6px 14px',
-            marginBottom: 24,
-          }}
-        >
-          <Radio size={12} color="#F87171" />
-          <span style={{ color: '#FCA5A5', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Live in Barangays 251, 252, 256
-          </span>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <img src={HERO_IMAGE} alt="City aerial" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(30,58,138,0.86) 55%, rgba(15,23,42,0.92) 100%)',
+            }}
+          />
         </div>
 
-        <h1
-          style={{
-            color: '#FFFFFF',
-            fontSize: 'clamp(30px,6vw,56px)',
-            fontWeight: 900,
-            lineHeight: 1.1,
-            marginBottom: 16,
-            maxWidth: 760,
-          }}
+        <div
+          data-reveal
+          className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
+          style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
         >
-          EMPOWERING <span style={{ color: '#60A5FA' }}>TONDO</span> WITH INSTANT{' '}
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #B91C1C, #EF4444)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            TUGON.
-          </span>
-        </h1>
+          <div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(185,28,28,0.2)',
+                border: '1px solid rgba(185,28,28,0.4)',
+                borderRadius: 9,
+                padding: '6px 14px',
+                marginBottom: 24,
+              }}
+            >
+              <Radio size={12} color="#F87171" />
+              <span style={{ color: '#FCA5A5', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Live in Barangays 251, 252, 256
+              </span>
+            </div>
 
-        <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(14px,2vw,17px)', lineHeight: 1.65, maxWidth: 620, marginBottom: 28 }}>
-          Report local incidents, track updates from barangay responders, and help improve community safety.
-          TUGON is a digital support platform and does not replace the official barangay or police blotter.
-        </p>
+            <h1
+              style={{
+                color: '#FFFFFF',
+                fontSize: 'clamp(30px,6vw,56px)',
+                fontWeight: 900,
+                lineHeight: 1.1,
+                marginBottom: 14,
+                maxWidth: 760,
+              }}
+            >
+              EMPOWERING <span style={{ color: '#60A5FA' }}>TONDO</span> WITH INSTANT{' '}
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <img
+                  src="/tugon-wordmark-red.svg"
+                  alt="TUGON"
+                  className="hero-wordmark-red"
+                  style={{ height: '1.2em', width: 'auto', display: 'inline-block' }}
+                />
+              </span>
+            </h1>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 26 }}>
-          <button
-            onClick={() => navigateWithTransition('report', '/auth/register', true)}
-            className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-            style={{
-              background: '#B91C1C',
-              border: 'none',
-              borderRadius: 10,
-              padding: '13px 24px',
-              color: 'white',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <AlertTriangle size={16} /> Report an Incident
-          </button>
-          <button
-            onClick={() => navigateWithTransition('track', '/auth/login', true)}
-            className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1.5px solid rgba(255,255,255,0.35)',
-              borderRadius: 10,
-              padding: '13px 24px',
-              color: 'white',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <CheckCircle2 size={16} /> Track Status
-          </button>
+            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 'clamp(14px,2vw,18px)', lineHeight: 1.55, maxWidth: 540, marginBottom: 22 }}>
+              Report. Track. Stay aware.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
+              <button
+                onClick={() => navigateWithTransition('report', '/auth/register', true)}
+                className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
+                style={{
+                  background: '#B91C1C',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: '13px 24px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <AlertTriangle size={16} /> Report an Incident
+              </button>
+              <button
+                onClick={() => navigateWithTransition('track', '/auth/login', true)}
+                className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1.5px solid rgba(255,255,255,0.35)',
+                  borderRadius: 10,
+                  padding: '13px 24px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <CheckCircle2 size={16} /> Track Status
+              </button>
+            </div>
+
+            <button
+              onClick={() => navigateWithTransition('community', '/community-map', true)}
+              className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#FCD34D',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                padding: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
 
         <button
-          onClick={() => navigateWithTransition('community', '/community-map', true)}
-          className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#FCD34D',
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: 'pointer',
-            padding: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
+          data-reveal
+          onClick={scrollToQuickActions}
+          aria-label="Scroll to quick actions"
+          className="landing-scroll-cue"
+          style={{ transitionDelay: '220ms' }}
         >
-          <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
+          <span className="landing-scroll-cue-icon" aria-hidden="true">
+            <ChevronDown size={16} />
+          </span>
         </button>
-      </div>
 
-      <button
-        data-reveal
-        onClick={scrollToQuickActions}
-        aria-label="Scroll to quick actions"
-        className="landing-scroll-cue"
-        style={{ transitionDelay: '220ms' }}
-      >
-        <span className="landing-scroll-cue-icon" aria-hidden="true">
-          <ChevronDown size={16} />
-        </span>
-      </button>
       </section>
     </>
   );
@@ -599,7 +668,7 @@ function QuickActions() {
   const actions = [
     {
       title: 'Report Incident',
-      desc: 'Submit a step-by-step report with map pin location and evidence upload.',
+      desc: 'Pin location, add evidence, submit report.',
       icon: AlertTriangle,
       color: '#B91C1C',
       bg: '#FEE2E2',
@@ -607,7 +676,7 @@ function QuickActions() {
     },
     {
       title: 'Track Status',
-      desc: 'Check your report progress from Submitted to Closed in your dashboard.',
+      desc: 'Monitor your report from start to resolution.',
       icon: FileText,
       color: '#1E3A8A',
       bg: '#DBEAFE',
@@ -615,7 +684,7 @@ function QuickActions() {
     },
     {
       title: 'View Community Map',
-      desc: 'See mapped incidents in your area and stay aware of nearby concerns.',
+      desc: 'See incidents near you in real-time.',
       icon: MapIcon,
       color: '#B4730A',
       bg: '#FEF3C7',
@@ -631,7 +700,7 @@ function QuickActions() {
         <SectionHeading
           label="Quick Access"
           title="Start With One Simple Action"
-          subtitle="Three core tasks for citizens: report, track, and view your community map."
+          subtitle="Pick what you need right now."
         />
 
         <div
@@ -654,12 +723,12 @@ function QuickActions() {
                 textAlign: 'left',
                 padding: '18px 18px 16px',
                 minHeight: 176,
-                border: '1px solid rgba(255,255,255,0.32)',
-                borderRadius: 14,
-                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
+                border: '1px solid rgba(255,255,255,0.38)',
+                borderRadius: 12,
+                background: item.color,
                 cursor: 'pointer',
                 transitionDelay: `${index * 90}ms`,
-                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
                 display: 'flex',
                 flexDirection: 'column',
               }}
@@ -692,12 +761,12 @@ function QuickActions() {
               style={{
                 width: '100%',
                 borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.32)',
-                background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}CC 100%)`,
+                border: '1px solid rgba(255,255,255,0.38)',
+                background: item.color,
                 padding: '14px',
                 cursor: 'pointer',
                 transitionDelay: '100ms',
-                boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 162,
@@ -733,14 +802,14 @@ function QuickActions() {
             gap: 5px;
             background: #FFFFFF;
             border: 1px solid rgba(15, 23, 42, 0.12);
-            border-radius: 9999px;
+            border-radius: 8px;
             padding: 5px 12px;
           }
 
           .quick-action-btn:hover,
           .quick-action-btn:focus-visible {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 28px rgba(15,23,42,0.24) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(15,23,42,0.18) !important;
             border-color: rgba(255,255,255,0.58) !important;
             outline: none;
           }
@@ -765,24 +834,27 @@ function HowToUse() {
   const steps = [
     {
       title: 'Submit Report',
-      detail: 'Choose incident type, pin location, and add details or evidence.',
+      detail: 'Pin location and attach photo or voice.',
       icon: FileText,
       color: '#1E3A8A',
       bg: '#DBEAFE',
+      visual: 'Citizen',
     },
     {
       title: 'Barangay Review',
-      detail: 'Officials review and update your ticket status based on urgency.',
+      detail: 'Officials validate and assign response.',
       icon: Users,
       color: '#B4730A',
       bg: '#FEF3C7',
+      visual: 'Official',
     },
     {
       title: 'Resolution',
-      detail: 'You receive updates until the incident is resolved or closed.',
+      detail: 'Track updates until closure.',
       icon: CheckCircle2,
       color: '#059669',
       bg: '#D1FAE5',
+      visual: 'Outcome',
     },
   ];
 
@@ -791,27 +863,55 @@ function HowToUse() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="How It Works"
-          title="A Clear 3-Step Flow"
-          subtitle="TUGON keeps reporting straightforward for citizens and actionable for barangay officials."
+          title="Three Simple Steps"
+          subtitle="Fast, guided, and trackable."
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
           {steps.map((step, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={step.title}
-              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 20, transitionDelay: `${index * 90}ms` }}
+              style={{
+                background: 'white',
+                border: '1px solid #E2E8F0',
+                borderRadius: 16,
+                padding: 22,
+                transitionDelay: `${index * 90}ms`,
+                display: 'grid',
+                gap: 14,
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: step.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <step.icon size={17} color={step.color} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 12,
+                    background: step.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <step.icon size={24} color={step.color} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Step {index + 1}
+                    </div>
+                    <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '2px 0 0' }}>{step.title}</h3>
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, letterSpacing: '0.06em' }}>STEP 0{index + 1}</div>
+                <span style={{ fontSize: 11, color: step.color, background: step.bg, borderRadius: 7, padding: '5px 9px', fontWeight: 800, border: `1px solid ${step.color}33` }}>
+                  {step.visual}
+                </span>
               </div>
-              <h3 style={{ fontSize: 16, color: '#1E293B', fontWeight: 700, marginBottom: 6 }}>{step.title}</h3>
-              <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.55 }}>{step.detail}</p>
+              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.55, margin: 0 }}>{step.detail}</p>
+              <div style={{ marginTop: 2, height: 8, borderRadius: 5, background: '#E2E8F0', overflow: 'hidden' }}>
+                <span style={{ display: 'block', height: '100%', width: `${(index + 1) * 33}%`, borderRadius: 5, background: step.color }} />
+              </div>
             </div>
           ))}
         </div>
@@ -826,33 +926,21 @@ function SupportedBarangays() {
   const barangays = [
   {
     name: 'Barangay 251',
-    zone: 'Zone 24 — Tondo I/II',
-    district: 'District II',
-    landmarks: 'Near Moriones and adjacent residential blocks',
-    description: 'Handles incident reports from residents in Barangay 251 with coordinated barangay and emergency unit response.',
-    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    zone: 'Zone 24',
     responders: ['MDRRMO', 'BFP', 'PNP'],
     color: '#1E3A8A',
     light: '#EFF6FF',
   },
   {
     name: 'Barangay 252',
-    zone: 'Zone 25 — Tondo I/II',
-    district: 'District II',
-    landmarks: 'Near Capulong corridor and surrounding mixed-use residential blocks',
-    description: 'Supports rapid validation, routing, and status updates for incident reports submitted by residents of Barangay 252.',
-    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    zone: 'Zone 25',
     responders: ['MDRRMO', 'PNP', 'EMS'],
     color: '#B91C1C',
     light: '#FEE2E2',
   },
   {
     name: 'Barangay 256',
-    zone: 'Zone 26 — Tondo I/II',
-    district: 'District II',
-    landmarks: 'Near key inner roads and access points connecting to neighboring barangays',
-    description: 'Monitors local hazards and routes citizen incident reports to authorized responders within Barangay 256.',
-    incidentTypes: ['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'],
+    zone: 'Zone 26',
     responders: ['MDRRMO', 'BFP', 'EMS'],
     color: '#B4730A',
     light: '#FEF3C7',
@@ -864,29 +952,62 @@ function SupportedBarangays() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Coverage"
-          title="Supported Barangays"
-          subtitle="Incidents are geofenced and routed to the correct barangay jurisdiction."
+          title="Three Barangays, One Platform"
+          subtitle="Geofenced incident routing for Tondo communities."
           light
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           {barangays.map((item, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 14, padding: 18, transitionDelay: `${index * 90}ms` }}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                borderRadius: 18,
+                padding: 28,
+                transitionDelay: `${index * 90}ms`,
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <MapPin size={16} color="#BFDBFE" />
-                <h3 style={{ margin: 0, color: 'white', fontSize: 17, fontWeight: 700 }}>{item.name}</h3>
+              <div style={{
+                marginBottom: 18,
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <div style={{
+                  width: 74,
+                  height: 74,
+                  borderRadius: 16,
+                  background: 'rgba(255,255,255,0.13)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255,255,255,0.22)'
+                }}>
+                  <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
+                </div>
               </div>
 
-              {/* Responders */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+              <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
+              <p style={{ margin: '0 0 18px 0', fontSize: 13, color: '#BFDBFE', fontWeight: 600 }}>{item.zone}</p>
+
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }}>
                 {item.responders.map(r => (
-                  <span key={r} style={{ background: 'rgba(255,255,255,0.1)', color: '#BFDBFE', fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <span key={r} style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    color: '#FFFFFF',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}>
                     {r}
                   </span>
                 ))}
@@ -895,19 +1016,32 @@ function SupportedBarangays() {
               <button
                 onClick={() => navigate('/auth/register')}
                 style={{
-                  marginTop: 'auto', width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: 8, padding: '10px', color: 'white', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  transition: 'background 0.15s',
+                  width: '100%',
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1.5px solid rgba(255,255,255,0.3)',
+                  borderRadius: 9,
+                  padding: '12px',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)';
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)';
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                }}
               >
-                Register to Report <ChevronRight size={13} />
+                Start Reporting <ChevronRight size={15} />
               </button>
-              <p style={{ margin: '0 0 8px', fontSize: 12, color: '#BFDBFE' }}>{item.district}</p>
-              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 1.55 }}> {item.description}
-              </p>
             </div>
           ))}
         </div>
@@ -923,21 +1057,21 @@ function SafetyTips() {
       icon: Flame,
       color: '#B91C1C',
       bg: '#FEE2E2',
-      bullets: ['Do not leave open flames unattended.', 'Avoid overloading electrical outlets.', 'Keep exits clear and accessible.'],
+      actions: ['Switch off before leaving', 'Keep exits open'],
     },
     {
-      title: 'Noise and Disturbance',
+      title: 'Noise Control',
       icon: Users,
       color: '#1E3A8A',
       bg: '#DBEAFE',
-      bullets: ['Follow barangay quiet hours.', 'Document repeated disturbance safely.', 'Use TUGON for formal reporting.'],
+      actions: ['Respect quiet hours', 'Record details safely'],
     },
     {
       title: 'Road Safety',
       icon: AlertTriangle,
       color: '#B4730A',
       bg: '#FEF3C7',
-      bullets: ['Report blocked roads and potholes.', 'Use pedestrian crossings.', 'Avoid phone use while crossing.'],
+      actions: ['Use marked crossings', 'Report hazards quickly'],
     },
   ];
 
@@ -946,32 +1080,63 @@ function SafetyTips() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Awareness"
-          title="Safety Tips"
-          subtitle="Simple prevention habits help reduce incidents and improve response time."
+          title="Community Safety Tips"
+          subtitle="Quick reminders for daily safety."
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
           {tips.map((tip, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={tip.title}
-              style={{ border: '1px solid #E2E8F0', borderRadius: 14, padding: 18, background: 'white', transitionDelay: `${index * 90}ms` }}
+              style={{
+                border: '2px solid #E2E8F0',
+                borderRadius: 16,
+                padding: 24,
+                background: 'white',
+                transitionDelay: `${index * 90}ms`,
+                textAlign: 'center'
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: tip.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <tip.icon size={17} color={tip.color} />
+              <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}>
+                <div style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 14,
+                  background: tip.bg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
                 </div>
-                <h3 style={{ fontSize: 16, color: '#1E293B', fontWeight: 700, margin: 0 }}>{tip.title}</h3>
               </div>
-              <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-                {tip.bullets.map((bullet) => (
-                  <li key={bullet} style={{ fontSize: 13, color: '#475569', marginBottom: 6, lineHeight: 1.5 }}>
-                    {bullet}
-                  </li>
+              <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '0 0 12px 0' }}>{tip.title}</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+                {tip.actions.map((action) => (
+                  <span
+                    key={action}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: tip.color,
+                      background: tip.bg,
+                      padding: '6px 10px',
+                      borderRadius: 8,
+                      border: `1px solid ${tip.color}33`,
+                    }}
+                  >
+                    {action}
+                  </span>
                 ))}
-              </ul>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, color: '#475569', fontSize: 12, fontWeight: 700 }}>
+                <CheckCircle2 size={14} color={tip.color} />
+                Report incidents right away through TUGON.
+              </div>
             </div>
           ))}
         </div>
@@ -982,9 +1147,9 @@ function SafetyTips() {
 
 function EmergencyHotlines() {
   const hotlines = [
-    { name: 'National Emergency', number: '911', note: 'Police, fire, and medical emergencies', color: '#B91C1C', bg: '#FEE2E2' },
-    { name: 'Philippine National Police', number: '117', note: 'Law enforcement and public safety concerns', color: '#1E3A8A', bg: '#DBEAFE' },
-    { name: 'Bureau of Fire Protection', number: '160', note: 'Fire incidents and rescue support', color: '#B4730A', bg: '#FEF3C7' },
+    { name: 'National Emergency', number: '911', note: 'Police, fire, medical', color: '#B91C1C', bg: '#FEE2E2' },
+    { name: 'PNP Hotline', number: '117', note: 'Law enforcement', color: '#1E3A8A', bg: '#DBEAFE' },
+    { name: 'Fire Protection', number: '160', note: 'Fire and rescue', color: '#B4730A', bg: '#FEF3C7' },
   ];
 
   return (
@@ -992,15 +1157,16 @@ function EmergencyHotlines() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Emergency Contacts"
-          title="Emergency Hotlines in the Philippines"
-          subtitle="For immediate danger, call first. You can still file a detailed report in TUGON after emergency response."
+          title="Emergency Hotlines"
+          subtitle="Call first for urgent situations."
         />
 
         <div
           data-reveal
           style={{
-            background: 'linear-gradient(135deg, #B91C1C, #991B1B)',
-            borderRadius: 14,
+            background: '#B91C1C',
+            border: '1px solid #991B1B',
+            borderRadius: 12,
             padding: '20px 22px',
             marginBottom: 18,
             display: 'flex',
@@ -1012,8 +1178,8 @@ function EmergencyHotlines() {
           }}
         >
           <div>
-            <div style={{ color: 'white', fontSize: 18, fontWeight: 800, marginBottom: 2 }}>Call 911 for urgent emergencies</div>
-            <div style={{ color: 'rgba(255,255,255,0.82)', fontSize: 13 }}>Available nationwide for police, fire, and medical response.</div>
+            <div style={{ color: 'white', fontSize: 20, fontWeight: 800, marginBottom: 4 }}>Emergency? Call 911</div>
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Then file details in TUGON.</div>
           </div>
           <a
             href="tel:911"
@@ -1050,7 +1216,25 @@ function EmergencyHotlines() {
                 <h3 style={{ margin: 0, fontSize: 15, color: '#1E293B', fontWeight: 700 }}>{item.name}</h3>
               </div>
               <div style={{ fontSize: 24, lineHeight: 1.1, color: item.color, fontWeight: 800, marginBottom: 6 }}>{item.number}</div>
-              <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>{item.note}</p>
+              <p style={{ margin: '0 0 10px', fontSize: 13, color: '#64748B' }}>{item.note}</p>
+              <a
+                href={`tel:${item.number}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  textDecoration: 'none',
+                  color: item.color,
+                  border: `1px solid ${item.color}33`,
+                  background: item.bg,
+                  borderRadius: 8,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontWeight: 800,
+                }}
+              >
+                <Phone size={13} /> Call {item.number}
+              </a>
             </div>
           ))}
         </div>
@@ -1371,7 +1555,7 @@ export default function Landing() {
           transform: translateX(-50%);
           width: 40px;
           height: 40px;
-          border-radius: 9999px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.35);
           background: rgba(15, 23, 42, 0.42);
           color: #ffffff;
