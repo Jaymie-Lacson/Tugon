@@ -23,6 +23,28 @@ function compactBodyPreview(body: string) {
 	return body.replace(/\s+/g, " ").trim().slice(0, 220);
 }
 
+function normalizePhoneForInfobip(phoneNumber: string) {
+	const digitsOnly = phoneNumber.replace(/\D/g, "");
+
+	if (digitsOnly.startsWith("63") && digitsOnly.length === 12) {
+		return `+${digitsOnly}`;
+	}
+
+	if (digitsOnly.startsWith("0") && digitsOnly.length === 11) {
+		return `+63${digitsOnly.slice(1)}`;
+	}
+
+	if (digitsOnly.startsWith("9") && digitsOnly.length === 10) {
+		return `+63${digitsOnly}`;
+	}
+
+	if (phoneNumber.trim().startsWith("+")) {
+		return phoneNumber.trim();
+	}
+
+	return `+${digitsOnly}`;
+}
+
 async function sendViaSemaphore(phoneNumber: string, message: string) {
 	if (!env.semaphoreApiKey) {
 		throw new OtpSmsDeliveryError(
@@ -64,10 +86,59 @@ async function sendViaSemaphore(phoneNumber: string, message: string) {
 	}
 }
 
+async function sendViaInfobip(phoneNumber: string, message: string) {
+	const baseUrl = env.infobipBaseUrl.replace(/\/+$/, "");
+	const requestBody = {
+		messages: [
+			{
+				from: env.infobipSenderId,
+				destinations: [
+					{
+						to: normalizePhoneForInfobip(phoneNumber),
+					},
+				],
+				text: message,
+			},
+		],
+	};
+
+	let response: Response;
+	try {
+		response = await fetch(`${baseUrl}/sms/2/text/advanced`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+				Authorization: `App ${env.infobipApiKey}`,
+			},
+			body: JSON.stringify(requestBody),
+		});
+	} catch (error) {
+		console.error("[OTP-SMS] Failed to reach Infobip API:", error);
+		throw new OtpSmsDeliveryError("Failed to reach SMS provider. Please try again.", 502);
+	}
+
+	const responseBody = await response.text();
+	if (!response.ok) {
+		console.error("[OTP-SMS] Infobip error response:", response.status, responseBody);
+		throw new OtpSmsDeliveryError(
+			`SMS provider rejected OTP request (${response.status}): ${compactBodyPreview(responseBody)}`,
+			502,
+		);
+	}
+}
+
 export async function sendOtpSms(input: { phoneNumber: string; otpCode: string }) {
 	if (env.otpDeliveryMode === "mock") {
 		return;
 	}
 
-	await sendViaSemaphore(input.phoneNumber, buildOtpMessage(input.otpCode));
+	const message = buildOtpMessage(input.otpCode);
+
+	if (env.otpSmsProvider === "infobip") {
+		await sendViaInfobip(input.phoneNumber, message);
+		return;
+	}
+
+	await sendViaSemaphore(input.phoneNumber, message);
 }

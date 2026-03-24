@@ -238,6 +238,40 @@ function buildOtpDispatchResponse(phoneNumber: string, message: string) {
   };
 }
 
+function buildOtpFallbackDispatchResponse(phoneNumber: string, otpCode: string, providerErrorMessage: string) {
+  return {
+    phoneNumber,
+    expiresInSeconds: env.otpExpiryMinutes * 60,
+    message:
+      "SMS delivery failed. OTP is returned in fallback mock mode for this request. Use the provided code to continue verification.",
+    devOtpCode: otpCode,
+    fallbackReason: providerErrorMessage,
+  };
+}
+
+async function dispatchOtpOrFallback(input: { phoneNumber: string; otpCode: string }) {
+  try {
+    await sendOtpSms(input);
+    return {
+      fallbackUsed: false,
+      providerErrorMessage: null,
+    } as const;
+  } catch (error) {
+    if (error instanceof OtpSmsDeliveryError && env.otpSmsFailoverToMock) {
+      console.warn(
+        `[OTP-SMS] Provider send failed for ${input.phoneNumber}. Falling back to mock OTP response: ${error.message}`,
+      );
+
+      return {
+        fallbackUsed: true,
+        providerErrorMessage: error.message,
+      } as const;
+    }
+
+    throw error;
+  }
+}
+
 function buildLockoutMessage(lockoutUntilMs: number) {
   const remainingSeconds = Math.max(1, Math.ceil((lockoutUntilMs - Date.now()) / 1000));
   return `Too many incorrect OTP attempts. Please try again in ${remainingSeconds} seconds.`;
@@ -296,10 +330,14 @@ export const authService = {
 
     authStore.saveOtp(otpRecord);
 
-    await sendOtpSms({
+    const dispatchResult = await dispatchOtpOrFallback({
       phoneNumber,
       otpCode: code,
     });
+
+    if (dispatchResult.fallbackUsed) {
+      return buildOtpFallbackDispatchResponse(phoneNumber, code, dispatchResult.providerErrorMessage);
+    }
 
     return buildOtpDispatchResponse(
       phoneNumber,
@@ -335,10 +373,14 @@ export const authService = {
       lastSentAtMs: nowMs,
     });
 
-    await sendOtpSms({
+    const dispatchResult = await dispatchOtpOrFallback({
       phoneNumber,
       otpCode: newCode,
     });
+
+    if (dispatchResult.fallbackUsed) {
+      return buildOtpFallbackDispatchResponse(phoneNumber, newCode, dispatchResult.providerErrorMessage);
+    }
 
     return buildOtpDispatchResponse(
       phoneNumber,
