@@ -42,6 +42,44 @@ adminRouter.get("/users", async (req, res) => {
   }
 });
 
+adminRouter.get("/notifications", async (req, res) => {
+  try {
+    const payload = await adminService.listNotifications({
+      recipientUserId: req.authUser?.id,
+      limit: typeof req.query.limit === "string" ? Number(req.query.limit) : undefined,
+    });
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+adminRouter.patch("/notifications/read-all", async (req, res) => {
+  try {
+    const payload = await adminService.markAllNotificationsRead({
+      recipientUserId: req.authUser?.id,
+    });
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+adminRouter.patch("/notifications/:notificationId/read", async (req, res) => {
+  try {
+    const payload = await adminService.markNotificationRead({
+      recipientUserId: req.authUser?.id,
+      notificationId: req.params.notificationId,
+    });
+    return res.status(200).json(payload);
+  } catch (error) {
+    const parsed = adminService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
 adminRouter.get("/audit-logs", async (req, res) => {
   try {
     const action = typeof req.query.action === "string" ? req.query.action : undefined;

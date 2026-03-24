@@ -201,6 +201,18 @@ function stringifyAuditDetails(details: Record<string, unknown>): string {
   }
 }
 
+function parseNotificationMetadata(metadata: string | null): Record<string, unknown> | null {
+  if (!metadata) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(metadata) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 async function ensureManagedBarangaysWithBoundaries() {
   const defaultsByCode = new Map(
     defaultBarangayBoundaries.map((boundary) => [boundary.code, boundary]),
@@ -310,6 +322,104 @@ function parseAuditLogFilters(input?: {
 }
 
 export const adminService = {
+  async listNotifications(input: { recipientUserId?: unknown; limit?: unknown }) {
+    const recipientUserId =
+      typeof input.recipientUserId === "string" ? input.recipientUserId.trim() : "";
+    if (!recipientUserId) {
+      throw new AdminError("Unauthorized.", 401);
+    }
+
+    const parsedLimit = typeof input.limit === "number" ? input.limit : Number(input.limit);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.max(1, Math.min(50, Math.trunc(parsedLimit)))
+      : 15;
+
+    const [total, unreadCount, rows] = await Promise.all([
+      prisma.adminNotification.count({ where: { recipientUserId } }),
+      prisma.adminNotification.count({ where: { recipientUserId, readAt: null } }),
+      prisma.adminNotification.findMany({
+        where: { recipientUserId },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+    ]);
+
+    return {
+      total,
+      unreadCount,
+      notifications: rows.map((row) => ({
+        id: row.id,
+        kind: row.kind,
+        title: row.title,
+        message: row.message,
+        reportId: row.reportId,
+        metadata: parseNotificationMetadata(row.metadata),
+        createdAt: row.createdAt.toISOString(),
+        readAt: row.readAt ? row.readAt.toISOString() : null,
+      })),
+    };
+  },
+
+  async markNotificationRead(input: { recipientUserId?: unknown; notificationId?: unknown }) {
+    const recipientUserId =
+      typeof input.recipientUserId === "string" ? input.recipientUserId.trim() : "";
+    if (!recipientUserId) {
+      throw new AdminError("Unauthorized.", 401);
+    }
+
+    const notificationId =
+      typeof input.notificationId === "string" ? input.notificationId.trim() : "";
+    if (!notificationId) {
+      throw new AdminError("Notification id is required.", 400);
+    }
+
+    const existing = await prisma.adminNotification.findUnique({
+      where: { id: notificationId },
+      select: {
+        id: true,
+        recipientUserId: true,
+      },
+    });
+
+    if (!existing || existing.recipientUserId !== recipientUserId) {
+      throw new AdminError("Notification not found.", 404);
+    }
+
+    await prisma.adminNotification.update({
+      where: { id: notificationId },
+      data: {
+        readAt: new Date(),
+      },
+    });
+
+    return {
+      message: "Notification marked as read.",
+    };
+  },
+
+  async markAllNotificationsRead(input: { recipientUserId?: unknown }) {
+    const recipientUserId =
+      typeof input.recipientUserId === "string" ? input.recipientUserId.trim() : "";
+    if (!recipientUserId) {
+      throw new AdminError("Unauthorized.", 401);
+    }
+
+    const result = await prisma.adminNotification.updateMany({
+      where: {
+        recipientUserId,
+        readAt: null,
+      },
+      data: {
+        readAt: new Date(),
+      },
+    });
+
+    return {
+      message: "Notifications marked as read.",
+      updatedCount: result.count,
+    };
+  },
+
   async exportAuditLogs(input?: {
     action?: unknown;
     targetType?: unknown;

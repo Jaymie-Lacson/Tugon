@@ -164,6 +164,21 @@ model AdminAuditLog {
   @@index([action, createdAt])
 }
 
+model AdminNotification {
+  id              String   @id @default(cuid())
+  recipientUserId String
+  kind            String
+  title           String
+  message         String
+  reportId        String?
+  metadata        String?
+  createdAt       DateTime @default(now())
+  readAt          DateTime?
+
+  @@index([recipientUserId, readAt, createdAt])
+  @@index([reportId, createdAt])
+}
+
 model AuthSession {
   id         String   @id @default(cuid())
   sessionId  String   @unique

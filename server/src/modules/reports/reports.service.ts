@@ -841,6 +841,14 @@ function anonymizeReportForSuperAdmin(report: CitizenReportRecord): CitizenRepor
   return { ...report, citizenUserId: "[protected]" };
 }
 
+function buildSuperAdminNotificationMetadata(input: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(input);
+  } catch {
+    return "{}";
+  }
+}
+
 export const reportsService = {
   async create(
     citizenUser: {
@@ -1053,6 +1061,35 @@ export const reportsService = {
         })),
       }),
     ];
+
+    const superAdminRecipients = await prisma.user.findMany({
+      where: {
+        role: "SUPER_ADMIN",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (superAdminRecipients.length > 0) {
+      txOperations.push(
+        prisma.adminNotification.createMany({
+          data: superAdminRecipients.map((recipient) => ({
+            recipientUserId: recipient.id,
+            kind: "REPORT_SUBMITTED",
+            title: "New Incident Report Submitted",
+            message: `${report.category} reported in Barangay ${report.routedBarangayCode} (${report.id}).`,
+            reportId: report.id,
+            metadata: buildSuperAdminNotificationMetadata({
+              category: report.category,
+              subcategory: report.subcategory,
+              severity: report.severity,
+              routedBarangayCode: report.routedBarangayCode,
+            }),
+          })),
+        }),
+      );
+    }
 
     if (uploadedEvidence.length > 0) {
       txOperations.push(
@@ -1301,7 +1338,17 @@ export const reportsService = {
     }
 
     const note = input.note?.trim();
-    await prisma.$transaction([
+    const superAdminRecipients = await prisma.user.findMany({
+      where: {
+        role: "SUPER_ADMIN",
+        ...(user.role === "SUPER_ADMIN" ? { id: { not: user.id } } : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const txOperations: Prisma.PrismaPromise<unknown>[] = [
       prisma.citizenReport.update({
         where: { id: reportId },
         data: {
@@ -1321,7 +1368,30 @@ export const reportsService = {
           note: note || null,
         },
       }),
-    ]);
+    ];
+
+    if (superAdminRecipients.length > 0) {
+      txOperations.push(
+        prisma.adminNotification.createMany({
+          data: superAdminRecipients.map((recipient) => ({
+            recipientUserId: recipient.id,
+            kind: "REPORT_STATUS_UPDATED",
+            title: "Incident Status Updated",
+            message: `${user.fullName} changed ${reportId} to ${input.status}.`,
+            reportId,
+            metadata: buildSuperAdminNotificationMetadata({
+              actorUserId: user.id,
+              actorRole: user.role,
+              status: input.status,
+              note: note ?? null,
+              routedBarangayCode: report.routedBarangayCode,
+            }),
+          })),
+        }),
+      );
+    }
+
+    await prisma.$transaction(txOperations);
 
     return reportsService.getForOfficialById(user, reportId);
   },

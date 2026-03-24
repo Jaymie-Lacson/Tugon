@@ -12,7 +12,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { superAdminApi } from '../../services/superAdminApi';
+import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 
 const NAV_ITEMS = [
@@ -55,9 +55,42 @@ function getMonitoringColor(incidents: number): string {
   return '#22C55E';
 }
 
+function formatNotificationTimestamp(value: string): string {
+  const timestamp = new Date(value).getTime();
+  if (Number.isNaN(timestamp)) {
+    return 'Just now';
+  }
+
+  const elapsedMs = Date.now() - timestamp;
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (elapsedMs < minute) {
+    return 'Just now';
+  }
+  if (elapsedMs < hour) {
+    return `${Math.floor(elapsedMs / minute)}m ago`;
+  }
+  if (elapsedMs < day) {
+    return `${Math.floor(elapsedMs / hour)}h ago`;
+  }
+
+  return new Date(value).toLocaleDateString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function SuperAdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ApiAdminNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [monitoringItems, setMonitoringItems] = useState<MonitoringItem[]>([
     { code: '251', name: 'Brgy 251', incidents: 0, color: '#22C55E' },
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
@@ -109,6 +142,44 @@ export default function SuperAdminLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadNotifications = async () => {
+      if (mounted) {
+        setNotificationsLoading(true);
+      }
+
+      try {
+        const payload = await superAdminApi.getNotifications({ limit: 15 });
+        if (!mounted) {
+          return;
+        }
+
+        setNotifications(payload.notifications);
+        setUnreadCount(payload.unreadCount);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+      } finally {
+        if (mounted) {
+          setNotificationsLoading(false);
+        }
+      }
+    };
+
+    void loadNotifications();
+    const interval = window.setInterval(() => {
+      void loadNotifications();
+    }, 30000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
   const currentPage = NAV_ITEMS.find((n) =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path)
   ) || NAV_ITEMS[0];
@@ -122,7 +193,54 @@ export default function SuperAdminLayout() {
 
   useEffect(() => {
     setProfileMenuOpen(false);
+    setNotificationsOpen(false);
   }, [location.pathname]);
+
+  const handleNotificationClick = async (item: ApiAdminNotification) => {
+    if (!item.readAt) {
+      try {
+        await superAdminApi.markNotificationRead(item.id);
+        setNotifications((current) =>
+          current.map((entry) =>
+            entry.id === item.id
+              ? {
+                  ...entry,
+                  readAt: new Date().toISOString(),
+                }
+              : entry,
+          ),
+        );
+        setUnreadCount((current) => Math.max(0, current - 1));
+      } catch {
+        // Keep UI usable even if mark-read fails.
+      }
+    }
+
+    setNotificationsOpen(false);
+    if (item.reportId) {
+      navigate('/superadmin', { state: { focusReportId: item.reportId } });
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (unreadCount <= 0) {
+      return;
+    }
+
+    try {
+      await superAdminApi.markAllNotificationsRead();
+      const nowIso = new Date().toISOString();
+      setNotifications((current) =>
+        current.map((item) => ({
+          ...item,
+          readAt: item.readAt ?? nowIso,
+        })),
+      );
+      setUnreadCount(0);
+    } catch {
+      // Keep menu open; next poll can recover latest state.
+    }
+  };
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -327,19 +445,137 @@ export default function SuperAdminLayout() {
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
-                aria-label="No notifications"
-                title="No notifications yet"
-                disabled
+                aria-label="Open notifications"
+                title="Open notifications"
                 className="icon-btn-square"
+                onClick={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setProfileMenuOpen(false);
+                }}
                 style={{
                 lineHeight: 0,
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'default', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 padding: 0,
-                opacity: 0.8,
               }}>
                 <Bell size={18} color="white" />
+                {unreadCount > 0 ? (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -4,
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      background: '#B91C1C',
+                      color: '#fff',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 4px',
+                      border: '1px solid rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
               </button>
+
+              {notificationsOpen ? (
+                <div
+                  role="menu"
+                  aria-label="Super admin notifications"
+                  style={{
+                    position: 'absolute',
+                    top: 44,
+                    right: 0,
+                    width: 320,
+                    maxHeight: 360,
+                    overflowY: 'auto',
+                    background: '#fff',
+                    borderRadius: 12,
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                    border: '1px solid #E2E8F0',
+                    zIndex: 2300,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      borderBottom: '1px solid #E2E8F0',
+                    }}
+                  >
+                    <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Notifications</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleMarkAllRead();
+                      }}
+                      disabled={unreadCount === 0}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: unreadCount === 0 ? '#94A3B8' : '#1E3A8A',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: unreadCount === 0 ? 'default' : 'pointer',
+                      }}
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+
+                  {notificationsLoading ? (
+                    <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>Loading notifications...</div>
+                  ) : null}
+
+                  {!notificationsLoading && notifications.length === 0 ? (
+                    <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>No notifications yet.</div>
+                  ) : null}
+
+                  {!notificationsLoading
+                    ? notifications.map((item) => {
+                        const isUnread = !item.readAt;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              void handleNotificationClick(item);
+                            }}
+                            style={{
+                              width: '100%',
+                              textAlign: 'left',
+                              padding: '10px 12px',
+                              border: 'none',
+                              borderBottom: '1px solid #F1F5F9',
+                              background: isUnread ? '#EFF6FF' : '#fff',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                              <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700, flex: 1 }}>{item.title}</span>
+                              {isUnread ? (
+                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B91C1C', flexShrink: 0 }} />
+                              ) : null}
+                            </div>
+                            <div style={{ color: '#334155', fontSize: 12, lineHeight: 1.35 }}>{item.message}</div>
+                            <div style={{ color: '#64748B', fontSize: 11, marginTop: 4 }}>
+                              {formatNotificationTimestamp(item.createdAt)}
+                            </div>
+                          </button>
+                        );
+                      })
+                    : null}
+                </div>
+              ) : null}
             </div>
 
             <button
@@ -363,6 +599,7 @@ export default function SuperAdminLayout() {
                 onClick={() => {
                   setProfileMenuOpen((prev) => !prev);
                   setDrawerOpen(false);
+                  setNotificationsOpen(false);
                 }}
                 aria-label="Open profile actions"
                 aria-haspopup="menu"
@@ -458,10 +695,16 @@ export default function SuperAdminLayout() {
             if (profileMenuOpen) {
               setProfileMenuOpen(false);
             }
+            if (notificationsOpen) {
+              setNotificationsOpen(false);
+            }
           }}
           onScroll={() => {
             if (profileMenuOpen) {
               setProfileMenuOpen(false);
+            }
+            if (notificationsOpen) {
+              setNotificationsOpen(false);
             }
           }}
         >
