@@ -86,7 +86,7 @@ export function Layout() {
       <aside
         className="sidebar-desktop"
         style={{
-          width: 240, background: '#1E3A8A', display: 'flex',
+          width: 240, background: 'var(--tugon-header-bg)', display: 'flex',
           flexDirection: 'column', flexShrink: 0, position: 'relative', zIndex: 10,
         }}
       >
@@ -205,10 +205,10 @@ export function Layout() {
 
         {/* Header */}
         <header style={{
-          background: '#1E3A8A', padding: '0 16px', height: 56,
+          background: 'var(--tugon-header-bg)', padding: '0 16px', height: 56,
           display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
           borderBottom: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.32)',
           position: 'relative',
           zIndex: isMapRoute ? 2500 : 90,
         }}>
@@ -407,7 +407,7 @@ export function Layout() {
       {drawerOpen && (
         <div style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
-          background: '#1E3A8A', zIndex: 1400, display: 'flex', flexDirection: 'column',
+          background: 'var(--tugon-header-bg)', zIndex: 1400, display: 'flex', flexDirection: 'column',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
         }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
