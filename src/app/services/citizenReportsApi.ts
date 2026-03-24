@@ -1,4 +1,5 @@
 import { getAuthSession } from "../utils/authSession";
+import { withSecurityHeaders } from "../utils/requestSecurity";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 export type ApiIncidentType = "FIRE" | "POLLUTION" | "NOISE" | "CRIME" | "ROAD_HAZARD" | "OTHER";
@@ -68,14 +69,10 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers: HeadersInit = {
+  const headers = withSecurityHeaders({
     "Content-Type": "application/json",
     ...(init?.headers ?? {}),
-  };
-
-  if (session.token) {
-    headers.Authorization = `Bearer ${session.token}`;
-  }
+  }, { method: init?.method, token: session.token });
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",

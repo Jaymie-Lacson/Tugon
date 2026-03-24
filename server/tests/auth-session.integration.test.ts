@@ -24,6 +24,22 @@ function parseAuthCookie(setCookieHeader: string | null): string {
   return setCookieHeader.split(";")[0];
 }
 
+function parseCookieValueFromSetCookie(setCookieHeaders: string[], name: string): string {
+  for (const header of setCookieHeaders) {
+    const pair = header.split(";")[0] ?? "";
+    if (!pair.startsWith(`${name}=`)) {
+      continue;
+    }
+
+    const value = pair.slice(name.length + 1).trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
 before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
@@ -32,6 +48,7 @@ before(async () => {
   process.env.AUTH_COOKIE_SECURE_MODE = "never";
   process.env.AUTH_COOKIE_SAME_SITE = "lax";
   process.env.AUTH_RETURN_TOKEN_IN_BODY = "1";
+  process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
 
   passwordHash = await bcrypt.hash(testPassword, 10);
 
@@ -125,6 +142,34 @@ after(async () => {
 });
 
 describe("Auth session token hardening integration", () => {
+  it("rejects cookie-authenticated logout when CSRF token is missing", async () => {
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phoneNumber: "09179990000",
+        password: testPassword,
+      }),
+    });
+
+    const setCookies = loginResponse.headers.getSetCookie();
+    const authCookie = parseAuthCookie(setCookies.find((value) => value.startsWith("tugon.sid=")) ?? null);
+    const csrfCookieValue = parseCookieValueFromSetCookie(setCookies, "tugon.csrf");
+
+    const logoutWithoutCsrfHeader = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: "POST",
+      headers: {
+        Cookie: `${authCookie}; tugon.csrf=${csrfCookieValue}`,
+      },
+    });
+
+    const body = (await logoutWithoutCsrfHeader.json()) as { message?: string };
+    assert.equal(logoutWithoutCsrfHeader.status, 403);
+    assert.equal(body.message, "CSRF validation failed.");
+  });
+
   it("supports cookie-based auth and invalidates session on logout", async () => {
     executeRawCallCount = 0;
 
@@ -143,8 +188,11 @@ describe("Auth session token hardening integration", () => {
     assert.equal(loginResponse.status, 200);
     assert.equal(typeof loginBody.token, "string");
 
-    const authCookie = parseAuthCookie(loginResponse.headers.get("set-cookie"));
+    const setCookies = loginResponse.headers.getSetCookie();
+    const authCookie = parseAuthCookie(setCookies.find((value) => value.startsWith("tugon.sid=")) ?? null);
+    const csrfCookieValue = parseCookieValueFromSetCookie(setCookies, "tugon.csrf");
     assert.match(authCookie, /^tugon\.sid=/);
+    assert.ok(csrfCookieValue.length > 0);
 
     const meWithCookie = await fetch(`${baseUrl}/api/auth/me`, {
       method: "GET",
@@ -157,7 +205,8 @@ describe("Auth session token hardening integration", () => {
     const logoutWithCookie = await fetch(`${baseUrl}/api/auth/logout`, {
       method: "POST",
       headers: {
-        Cookie: authCookie,
+        Cookie: `${authCookie}; tugon.csrf=${csrfCookieValue}`,
+        "X-CSRF-Token": csrfCookieValue,
       },
     });
     assert.equal(logoutWithCookie.status, 200);

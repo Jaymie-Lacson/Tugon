@@ -2,6 +2,8 @@ import type { AuthSession, Role } from "../services/authApi";
 
 const SESSION_KEY = "tugon.auth.session";
 const SESSION_TOKEN_KEY = "tugon.auth.session.token";
+const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+const ENABLE_BEARER_AUTH = viteEnv?.VITE_ENABLE_BEARER_AUTH === "1";
 
 export function saveAuthSession(session: AuthSession) {
   const token = typeof session.token === "string" ? session.token.trim() : "";
@@ -13,7 +15,7 @@ export function saveAuthSession(session: AuthSession) {
     }),
   );
 
-  if (token) {
+  if (ENABLE_BEARER_AUTH && token) {
     sessionStorage.setItem(SESSION_TOKEN_KEY, token);
   } else {
     sessionStorage.removeItem(SESSION_TOKEN_KEY);
@@ -36,9 +38,9 @@ export function getAuthSession(): AuthSession | null {
       return null;
     }
 
-    // Keep user metadata in localStorage and token in sessionStorage (tab-scoped).
-    const tokenFromSession = sessionStorage.getItem(SESSION_TOKEN_KEY) ?? "";
-    const tokenFromLegacyStorage = typeof parsed?.token === "string" ? parsed.token.trim() : "";
+    // Keep user metadata in localStorage and only use bearer token when explicitly enabled.
+    const tokenFromSession = ENABLE_BEARER_AUTH ? sessionStorage.getItem(SESSION_TOKEN_KEY) ?? "" : "";
+    const tokenFromLegacyStorage = ENABLE_BEARER_AUTH && typeof parsed?.token === "string" ? parsed.token.trim() : "";
     const token = (tokenFromSession || tokenFromLegacyStorage).trim();
 
     return {

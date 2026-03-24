@@ -32,6 +32,7 @@ before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
   process.env.NODE_ENV = "test";
+  process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
 
   process.env.CORS_ALLOWED_ORIGINS = ALLOWED_ORIGIN;
   process.env.AUTH_RATE_LIMIT_WINDOW_MS = "60000";

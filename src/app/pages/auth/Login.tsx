@@ -37,17 +37,11 @@ export default function Login() {
       saveAuthSession(session);
 
       try {
-        await authApi.me(session.token);
+        await authApi.me();
       } catch {
         clearAuthSession();
-        if (!session.token) {
-          throw new Error(
-            'Login succeeded but no bearer token was returned, so cookie auth must work. Verify Railway env: AUTH_COOKIE_SAME_SITE=none, AUTH_COOKIE_SECURE_MODE=always, NODE_ENV=production, CORS_ALLOWED_ORIGINS=<exact frontend origin>.',
-          );
-        }
-
         throw new Error(
-          'Login succeeded but your session cannot access protected APIs. Check backend auth cookie/CORS settings (AUTH_COOKIE_SAME_SITE, AUTH_COOKIE_SECURE_MODE, CORS_ALLOWED_ORIGINS).',
+          'Login succeeded but your session cannot access protected APIs. Check backend auth cookie/CORS and CSRF settings (AUTH_COOKIE_SAME_SITE, AUTH_COOKIE_SECURE_MODE, CORS_ALLOWED_ORIGINS).',
         );
       }
 

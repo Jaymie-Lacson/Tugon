@@ -82,17 +82,11 @@ export default function CreatePassword() {
       saveAuthSession(session);
 
       try {
-        await authApi.me(session.token);
+        await authApi.me();
       } catch {
         clearAuthSession();
-        if (!session.token) {
-          throw new Error(
-            'Account created but no bearer token was returned, so cookie auth must work. Verify Railway env: AUTH_COOKIE_SAME_SITE=none, AUTH_COOKIE_SECURE_MODE=always, NODE_ENV=production, CORS_ALLOWED_ORIGINS=<exact frontend origin>.',
-          );
-        }
-
         throw new Error(
-          'Account created, but the authenticated session is not usable yet. Please contact support to check backend auth cookie/CORS configuration.',
+          'Account created, but the authenticated session is not usable yet. Please contact support to check backend auth cookie/CORS and CSRF configuration.',
         );
       }
 

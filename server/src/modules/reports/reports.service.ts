@@ -1747,45 +1747,51 @@ export const reportsService = {
     }
 
     if (error instanceof Prisma.PrismaClientInitializationError) {
+      console.error("[reports] Prisma initialization error", {
+        name: error.name,
+        message: error.message,
+      });
       return {
         status: 503,
-        message: "Database connection failed. Verify DATABASE_URL and database availability.",
+        message: "Unable to process report request right now.",
       };
     }
 
     if (error instanceof Prisma.PrismaClientValidationError) {
+      console.error("[reports] Prisma validation error", {
+        name: error.name,
+        message: error.message,
+      });
       return {
         status: 500,
-        message: "Database query validation failed during report processing. Verify schema and Prisma client compatibility.",
+        message: "Unable to process report request right now.",
       };
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error("[reports] Prisma known request error", {
+        code: error.code,
+        meta: error.meta,
+      });
+
       if (error.code === "P2021" || error.code === "P2022") {
         return {
           status: 503,
-          message: "Database schema is not ready for report operations. Run Prisma migrations on production.",
+          message: "Unable to process report request right now.",
         };
       }
 
       if (error.code === "P2010") {
-        const meta = (error.meta ?? {}) as { message?: unknown };
-        const details = typeof meta.message === "string" ? ` Details: ${meta.message}` : "";
         return {
-          status: 400,
-          message:
-            "Database query failed while processing report data. Check report values against DB constraints." +
-            details,
+          status: 500,
+          message: "Unable to process report request right now.",
         };
       }
 
       if (error.code === "P2011") {
-        const meta = (error.meta ?? {}) as { constraint?: unknown; modelName?: unknown };
-        const constraint = typeof meta.constraint === "string" ? meta.constraint : "unknown constraint";
-        const modelName = typeof meta.modelName === "string" ? meta.modelName : "record";
         return {
-          status: 500,
-          message: `Database null constraint violation on ${modelName} (${constraint}). Apply pending migrations or add defaults for required legacy columns.`,
+          status: 400,
+          message: "Invalid report data.",
         };
       }
 
@@ -1813,21 +1819,25 @@ export const reportsService = {
       if (error.code === "P1001") {
         return {
           status: 503,
-          message: "Unable to reach the production database during report processing.",
+          message: "Unable to process report request right now.",
         };
       }
 
       return {
         status: 500,
-        message: `Database request failed during report processing (${error.code}).`,
+        message: "Unable to process report request right now.",
       };
     }
 
-    if (error instanceof Error && error.message) {
-      return { status: 500, message: `Unexpected reports service error: ${error.message}` };
+    if (error instanceof Error) {
+      console.error("[reports] Unexpected service error", {
+        name: error.name,
+        message: error.message,
+      });
+      return { status: 500, message: "Unexpected reports service error." };
     }
 
-    console.error("[REPORTS] Unexpected error:", error);
+    console.error("[reports] Unexpected non-error failure", { error });
     return { status: 500, message: "Unexpected reports service error." };
   },
 };
