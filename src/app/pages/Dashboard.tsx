@@ -19,12 +19,12 @@ import { reportToIncident } from '../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 const CATEGORY_DIST_CONFIG = [
-  { name: 'Garbage and Sanitation', color: '#0F766E' },
-  { name: 'Public Disturbance', color: '#7C3AED' },
-  { name: 'Road and Street Issues', color: '#B4730A' },
-  { name: 'Hazards and Safety', color: '#B91C1C' },
-  { name: 'Neighbor Disputes / Lupon', color: '#1E3A8A' },
-  { name: 'Others', color: '#475569' },
+  { name: 'Fire', color: '#B91C1C' },
+  { name: 'Pollution', color: '#0F766E' },
+  { name: 'Noise', color: '#7C3AED' },
+  { name: 'Crime', color: '#1E3A8A' },
+  { name: 'Road Hazard', color: '#B4730A' },
+  { name: 'Other', color: '#475569' },
 ];
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -180,8 +180,10 @@ export default function Dashboard() {
     const counts: Record<string, number> = {};
     for (const incident of incidents) {
       const category = getCategoryLabelForIncidentType(incident.type);
-      if (category === 'Public Disturbance / Others') {
-        counts.Others = (counts.Others ?? 0) + 1;
+      if (category === 'Noise') {
+        counts.Noise = (counts.Noise ?? 0) + 1;
+      } else if (category === 'Other') {
+        counts.Other = (counts.Other ?? 0) + 1;
       } else {
         counts[category] = (counts[category] ?? 0) + 1;
       }

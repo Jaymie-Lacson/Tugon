@@ -3,38 +3,42 @@ export const MEDIATION_WARNING =
 
 export const REPORT_TAXONOMY = [
   {
-    category: "Garbage and Sanitation",
+    category: "Fire",
     requiresMediation: false,
-    subcategories: ["Uncollected trash", "Illegal dumping", "Clogged canals", "Dead animals"],
+    subcategories: ["Structural fire", "Electrical fire hazard", "Open burning", "Gas leak or flammable risk"],
   },
   {
-    category: "Public Disturbance",
+    category: "Pollution",
     requiresMediation: false,
-    subcategories: ["Loud noises or late-night karaoke", "Drinking in public streets", "Loitering"],
-  },
-  {
-    category: "Road and Street Issues",
-    requiresMediation: false,
-    subcategories: ["Broken streetlights", "Illegal parking", "Blocked sidewalks", "Potholes"],
-  },
-  {
-    category: "Hazards and Safety",
-    requiresMediation: false,
-    subcategories: ["Dangling or sparking electric wires", "Stray or aggressive animals", "Fire hazards"],
-  },
-  {
-    category: "Neighbor Disputes / Lupon",
-    requiresMediation: true,
-    mediationWarning: MEDIATION_WARNING,
     subcategories: [
-      "Petty quarrels and fighting",
-      "Unpaid personal debts",
-      "Gossip and slander",
-      "Property boundary disputes",
+      "Air pollution (smoke or fumes)",
+      "Water contamination",
+      "Illegal dumping or waste",
+      "Blocked drainage or unsanitary area",
     ],
   },
   {
-    category: "Others",
+    category: "Noise",
+    requiresMediation: false,
+    subcategories: [
+      "Loud music or karaoke",
+      "Construction noise",
+      "Street disturbance noise",
+      "Animal-related noise",
+    ],
+  },
+  {
+    category: "Crime",
+    requiresMediation: false,
+    subcategories: ["Theft or robbery", "Assault or physical altercation", "Vandalism", "Suspicious activity"],
+  },
+  {
+    category: "Road Hazard",
+    requiresMediation: false,
+    subcategories: ["Potholes", "Broken streetlights", "Blocked sidewalks", "Road obstruction or illegal parking"],
+  },
+  {
+    category: "Other",
     requiresMediation: false,
     subcategories: ["Unlisted general issues"],
   },

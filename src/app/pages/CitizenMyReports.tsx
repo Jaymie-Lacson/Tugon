@@ -86,11 +86,11 @@ function mapApiStatus(status: ApiTicketStatus): CitizenReportStatus {
 }
 
 function mapApiType(category: ReportCategory): CitizenReportType {
-  if (category === 'Hazards and Safety') return 'fire';
-  if (category === 'Garbage and Sanitation') return 'pollution';
-  if (category === 'Public Disturbance') return 'noise';
-  if (category === 'Neighbor Disputes / Lupon') return 'crime';
-  if (category === 'Road and Street Issues') return 'road_hazard';
+  if (category === 'Fire') return 'fire';
+  if (category === 'Pollution') return 'pollution';
+  if (category === 'Noise') return 'noise';
+  if (category === 'Crime') return 'crime';
+  if (category === 'Road Hazard') return 'road_hazard';
   return 'other';
 }
 

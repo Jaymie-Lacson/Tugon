@@ -107,8 +107,8 @@ describe("Citizen report POST validation integration", () => {
     const token = createCitizenToken();
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Public Disturbance",
-      subcategory: "Loud noises or late-night karaoke",
+      category: "Noise",
+      subcategory: "Loud music or karaoke",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,
@@ -139,8 +139,8 @@ describe("Citizen report POST validation integration", () => {
     const token = createCitizenToken();
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Hazards and Safety",
-      subcategory: "Fire hazards",
+      category: "Fire",
+      subcategory: "Structural fire",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,
@@ -177,8 +177,8 @@ describe("Citizen report POST validation integration", () => {
     const token = createCitizenToken();
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Public Disturbance",
-      subcategory: "Loud noises or late-night karaoke",
+      category: "Noise",
+      subcategory: "Loud music or karaoke",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,
@@ -221,8 +221,8 @@ describe("Citizen report POST validation integration", () => {
     const token = createCitizenToken();
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Public Disturbance",
-      subcategory: "Loud noises or late-night karaoke",
+      category: "Noise",
+      subcategory: "Loud music or karaoke",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,
@@ -274,8 +274,8 @@ describe("Citizen report POST validation integration", () => {
     ]).toString("base64");
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Public Disturbance",
-      subcategory: "Loud noises or late-night karaoke",
+      category: "Noise",
+      subcategory: "Loud music or karaoke",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,

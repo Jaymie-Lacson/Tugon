@@ -24,22 +24,21 @@ import {
 const PERIODS = [...ANALYTICS_PERIODS];
 
 function toSeriesLegendName(seriesKey: string): string {
-  if (seriesKey === 'fire') return 'Hazard (Fire)';
-  if (seriesKey === 'flood') return 'Garbage';
-  if (seriesKey === 'accident') return 'Road Issues';
-  if (seriesKey === 'medical') return 'Hazard (Medical)';
-  if (seriesKey === 'crime') return 'Disputes';
-  if (seriesKey === 'infrastructure') return 'Others';
+  if (seriesKey === 'fire') return 'Fire';
+  if (seriesKey === 'flood') return 'Pollution';
+  if (seriesKey === 'accident') return 'Road Hazard';
+  if (seriesKey === 'medical') return 'Other';
+  if (seriesKey === 'crime') return 'Crime';
+  if (seriesKey === 'infrastructure') return 'Other';
   return seriesKey;
 }
 
 function getResponseAxisLabel(type: Incident['type'], mobile = false): string {
-  if (type === 'fire') return mobile ? 'Fire' : 'Hazards and Safety (Fire)';
-  if (type === 'medical') return mobile ? 'Medical' : 'Hazards and Safety (Medical)';
-  if (type === 'flood') return mobile ? 'Garbage' : 'Garbage and Sanitation';
-  if (type === 'accident') return mobile ? 'Road' : 'Road and Street Issues';
-  if (type === 'crime') return mobile ? 'Disputes' : 'Neighbor Disputes / Lupon';
-  return mobile ? 'Others' : 'Others';
+  if (type === 'fire') return 'Fire';
+  if (type === 'flood') return mobile ? 'Pollution' : 'Pollution';
+  if (type === 'accident') return mobile ? 'Road Hazard' : 'Road Hazard';
+  if (type === 'crime') return 'Crime';
+  return 'Other';
 }
 
 function toLocalDateKey(value: string | Date): string {
@@ -77,10 +76,7 @@ function formatTrendDayLabel(date: Date, period: string): string {
 }
 
 function getCompactCategoryLabel(label: string): string {
-  if (label === 'Hazards and Safety') return 'Haz/Safety';
-  if (label === 'Garbage and Sanitation') return 'Garbage';
-  if (label === 'Road and Street Issues') return 'Road Issues';
-  if (label === 'Neighbor Disputes / Lupon') return 'Disputes';
+  if (label === 'Road Hazard') return 'Road Haz';
   return label;
 }
 

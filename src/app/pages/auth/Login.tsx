@@ -19,7 +19,7 @@ export default function Login() {
     if (!phone) e.phone = 'Phone number is required.';
     else if (digits.length < 10) e.phone = 'Enter a valid Philippine phone number.';
     if (!password) e.password = 'Password is required.';
-    else if (password.length < 6) e.password = 'Password must be at least 6 characters.';
+    else if (password.length < 8) e.password = 'Password must be at least 8 characters.';
     return e;
   };
 

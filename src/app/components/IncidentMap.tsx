@@ -299,10 +299,10 @@ export function IncidentMap({
           const normalizedType = cluster.incidentType.toLowerCase();
           const color =
             TYPE_COLORS[normalizedType] ??
-            (cluster.incidentType === 'Road and Street Issues' ? TYPE_COLORS.accident :
-              cluster.incidentType === 'Hazards and Safety' ? TYPE_COLORS.fire :
-                cluster.incidentType === 'Garbage and Sanitation' ? TYPE_COLORS.flood :
-                  cluster.incidentType === 'Neighbor Disputes / Lupon' ? TYPE_COLORS.crime :
+            (cluster.incidentType === 'Road Hazard' ? TYPE_COLORS.accident :
+              cluster.incidentType === 'Fire' ? TYPE_COLORS.fire :
+                cluster.incidentType === 'Pollution' ? TYPE_COLORS.flood :
+                  cluster.incidentType === 'Crime' ? TYPE_COLORS.crime :
                     TYPE_COLORS.infrastructure);
           const radius = isHotspotMode
             ? Math.max(85, Math.round(70 + cluster.intensity * 58 + cluster.incidentCount * 2))

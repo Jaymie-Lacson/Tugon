@@ -181,8 +181,8 @@ describe("Security middleware integration", () => {
   it("rate limits repeated report submission attempts", async () => {
     const token = createCitizenToken();
     const payload = {
-      category: "Public Disturbance",
-      subcategory: "Loud noises or late-night karaoke",
+      category: "Noise",
+      subcategory: "Loud music or karaoke",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,

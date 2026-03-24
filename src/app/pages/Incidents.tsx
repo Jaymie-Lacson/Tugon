@@ -32,19 +32,19 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
 };
 
 const CATEGORY_FILTER_OPTIONS = [
-  'Garbage and Sanitation',
-  'Public Disturbance',
-  'Road and Street Issues',
-  'Hazards and Safety',
-  'Neighbor Disputes / Lupon',
-  'Others',
+  'Fire',
+  'Pollution',
+  'Noise',
+  'Crime',
+  'Road Hazard',
+  'Other',
 ] as const;
 
 function mapIncidentType(category: ReportCategory): IncidentType {
-  if (category === 'Hazards and Safety') return 'fire';
-  if (category === 'Neighbor Disputes / Lupon') return 'crime';
-  if (category === 'Road and Street Issues') return 'accident';
-  if (category === 'Garbage and Sanitation') return 'flood';
+  if (category === 'Fire') return 'fire';
+  if (category === 'Crime') return 'crime';
+  if (category === 'Road Hazard') return 'accident';
+  if (category === 'Pollution') return 'flood';
   return 'infrastructure';
 }
 
@@ -104,14 +104,14 @@ function toIncidentView(report: ApiCitizenReport): IncidentView {
   };
 }
 
-const ALL_TICKET_STATUSES: ApiTicketStatus[] = [
-  'Submitted',
-  'Under Review',
-  'In Progress',
-  'Resolved',
-  'Closed',
-  'Unresolvable',
-];
+const STATUS_TRANSITIONS: Record<ApiTicketStatus, ApiTicketStatus[]> = {
+  Submitted: ['Under Review', 'Unresolvable'],
+  'Under Review': ['In Progress', 'Resolved', 'Unresolvable'],
+  'In Progress': ['Resolved', 'Unresolvable'],
+  Resolved: ['Closed', 'In Progress'],
+  Closed: [],
+  Unresolvable: [],
+};
 
 function IncidentDetailModal({
   incident,
@@ -128,7 +128,7 @@ function IncidentDetailModal({
   const [statusSelectorOpen, setStatusSelectorOpen] = useState(false);
   const [nextStatus, setNextStatus] = useState<ApiTicketStatus | ''>('');
   const availableStatuses = useMemo(
-    () => ALL_TICKET_STATUSES.filter((status) => status !== incident.ticketStatus),
+    () => STATUS_TRANSITIONS[incident.ticketStatus],
     [incident.ticketStatus],
   );
 
