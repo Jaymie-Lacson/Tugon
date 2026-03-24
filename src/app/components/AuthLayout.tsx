@@ -9,9 +9,10 @@ interface AuthLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle: string;
+  topAction?: React.ReactNode;
 }
 
-export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutProps) {
   const navigate = useNavigate();
 
   return (
@@ -105,6 +106,10 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
 
             {children}
           </div>
+
+          {topAction ? (
+            <div className="auth-form-bottom-action">{topAction}</div>
+          ) : null}
         </div>
       </div>
     </div>

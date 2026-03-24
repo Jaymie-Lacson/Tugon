@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House, ArrowLeft } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
@@ -83,6 +83,17 @@ export default function Login() {
       <AuthLayout
         title="Welcome Back"
         subtitle="Sign in to your TUGON account to access the incident management dashboard."
+        topAction={(
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="auth-home-link-btn"
+          >
+            <ArrowLeft size={14} />
+            <House size={14} />
+            Back to Homepage
+          </button>
+        )}
       >
         {/* General error */}
         {errors.general && (
