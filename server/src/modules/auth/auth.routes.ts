@@ -43,9 +43,9 @@ authRouter.post("/register", async (req, res) => {
   }
 });
 
-authRouter.post("/resend-otp", (req, res) => {
+authRouter.post("/resend-otp", async (req, res) => {
   try {
-    const result = authService.resendOtp({
+    const result = await authService.resendOtp({
       phoneNumber: req.body?.phoneNumber,
     });
     res.status(200).json(result);
