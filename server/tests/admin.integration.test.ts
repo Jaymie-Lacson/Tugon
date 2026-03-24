@@ -13,6 +13,9 @@ let adminService: AdminServiceModule["adminService"];
 
 let originalListAuditLogs: AdminServiceModule["adminService"]["listAuditLogs"];
 let originalExportAuditLogs: AdminServiceModule["adminService"]["exportAuditLogs"];
+let originalListNotifications: AdminServiceModule["adminService"]["listNotifications"];
+let originalMarkNotificationRead: AdminServiceModule["adminService"]["markNotificationRead"];
+let originalMarkAllNotificationsRead: AdminServiceModule["adminService"]["markAllNotificationsRead"];
 let originalParseError: AdminServiceModule["adminService"]["parseError"];
 
 function createToken(role: "CITIZEN" | "OFFICIAL" | "SUPER_ADMIN") {
@@ -41,6 +44,20 @@ async function getJson(path: string, token?: string) {
   return { response, body };
 }
 
+async function patchJson(path: string, token?: string) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "PATCH",
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : undefined,
+  });
+
+  const body = (await response.json()) as unknown;
+  return { response, body };
+}
+
 before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
@@ -54,6 +71,9 @@ before(async () => {
   adminService = adminModule.adminService;
   originalListAuditLogs = adminService.listAuditLogs;
   originalExportAuditLogs = adminService.exportAuditLogs;
+  originalListNotifications = adminService.listNotifications;
+  originalMarkNotificationRead = adminService.markNotificationRead;
+  originalMarkAllNotificationsRead = adminService.markAllNotificationsRead;
   originalParseError = adminService.parseError;
 
   const app = createApp();
@@ -72,6 +92,9 @@ before(async () => {
 after(async () => {
   adminService.listAuditLogs = originalListAuditLogs;
   adminService.exportAuditLogs = originalExportAuditLogs;
+  adminService.listNotifications = originalListNotifications;
+  adminService.markNotificationRead = originalMarkNotificationRead;
+  adminService.markAllNotificationsRead = originalMarkAllNotificationsRead;
   adminService.parseError = originalParseError;
 
   await new Promise<void>((resolve, reject) => {
@@ -212,5 +235,107 @@ describe("Admin audit integration", () => {
 
     adminService.listAuditLogs = originalListAuditLogs;
     adminService.parseError = originalParseError;
+  });
+
+  it("forwards SUPER_ADMIN notification list query to service", async () => {
+    const superAdminToken = createToken("SUPER_ADMIN");
+    let capturedInput: unknown;
+
+    adminService.listNotifications = async (input) => {
+      capturedInput = input;
+      return {
+        total: 1,
+        unreadCount: 1,
+        notifications: [
+          {
+            id: "notif-1",
+            kind: "REPORT_SUBMITTED",
+            title: "New Incident Report Submitted",
+            message: "Public Disturbance reported in Barangay 251 (MY-2026-0001).",
+            reportId: "MY-2026-0001",
+            metadata: { severity: "medium" },
+            createdAt: "2026-03-24T09:00:00.000Z",
+            readAt: null,
+          },
+        ],
+      };
+    };
+
+    const { response, body } = await getJson("/api/admin/notifications?limit=10", superAdminToken);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(capturedInput, {
+      recipientUserId: "test-super_admin-id",
+      limit: 10,
+    });
+    assert.deepEqual(body, {
+      total: 1,
+      unreadCount: 1,
+      notifications: [
+        {
+          id: "notif-1",
+          kind: "REPORT_SUBMITTED",
+          title: "New Incident Report Submitted",
+          message: "Public Disturbance reported in Barangay 251 (MY-2026-0001).",
+          reportId: "MY-2026-0001",
+          metadata: { severity: "medium" },
+          createdAt: "2026-03-24T09:00:00.000Z",
+          readAt: null,
+        },
+      ],
+    });
+
+    adminService.listNotifications = originalListNotifications;
+  });
+
+  it("marks a single notification as read", async () => {
+    const superAdminToken = createToken("SUPER_ADMIN");
+    let capturedInput: unknown;
+
+    adminService.markNotificationRead = async (input) => {
+      capturedInput = input;
+      return {
+        message: "Notification marked as read.",
+      };
+    };
+
+    const { response, body } = await patchJson("/api/admin/notifications/notif-1/read", superAdminToken);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(capturedInput, {
+      recipientUserId: "test-super_admin-id",
+      notificationId: "notif-1",
+    });
+    assert.deepEqual(body, {
+      message: "Notification marked as read.",
+    });
+
+    adminService.markNotificationRead = originalMarkNotificationRead;
+  });
+
+  it("marks all notifications as read", async () => {
+    const superAdminToken = createToken("SUPER_ADMIN");
+    let capturedInput: unknown;
+
+    adminService.markAllNotificationsRead = async (input) => {
+      capturedInput = input;
+      return {
+        message: "Notifications marked as read.",
+        updatedCount: 3,
+      };
+    };
+
+    const { response, body } = await patchJson("/api/admin/notifications/read-all", superAdminToken);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(capturedInput, {
+      recipientUserId: "test-super_admin-id",
+    });
+    assert.deepEqual(body, {
+      message: "Notifications marked as read.",
+      updatedCount: 3,
+    });
+
+    adminService.markAllNotificationsRead = originalMarkAllNotificationsRead;
   });
 });

@@ -94,6 +94,23 @@ export interface ApiAdminAuditLogsExportResponse {
   logs: ApiAdminAuditLog[];
 }
 
+export interface ApiAdminNotification {
+  id: string;
+  kind: string;
+  title: string;
+  message: string;
+  reportId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export interface ApiAdminNotificationsResponse {
+  total: number;
+  unreadCount: number;
+  notifications: ApiAdminNotification[];
+}
+
 export interface CreateAdminUserInput {
   fullName: string;
   phoneNumber: string;
@@ -104,6 +121,33 @@ export interface CreateAdminUserInput {
 }
 
 export const superAdminApi = {
+  getNotifications(params?: { limit?: number }) {
+    const search = new URLSearchParams();
+    if (typeof params?.limit === "number") {
+      search.set("limit", String(params.limit));
+    }
+
+    const query = search.toString();
+    return authedRequest<ApiAdminNotificationsResponse>(
+      `/admin/notifications${query ? `?${query}` : ""}`,
+      {
+        method: "GET",
+      },
+    );
+  },
+
+  markNotificationRead(notificationId: string) {
+    return authedRequest<{ message: string }>(`/admin/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    });
+  },
+
+  markAllNotificationsRead() {
+    return authedRequest<{ message: string; updatedCount: number }>("/admin/notifications/read-all", {
+      method: "PATCH",
+    });
+  },
+
   createUser(input: CreateAdminUserInput) {
     return authedRequest<{ message: string; user: ApiAdminUser }>("/admin/users", {
       method: "POST",
