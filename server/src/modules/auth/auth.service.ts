@@ -10,11 +10,13 @@ import type {
   AuthPayload,
   AuthSession,
   OtpRecord,
+  OtpPurpose,
   PublicUser,
   Role,
 } from "./types.js";
 
 const ALLOWED_BARANGAYS = new Set(["251", "252", "256"]);
+let otpChallengePersistenceDisabled = false;
 
 class AuthError extends Error {
   status: number;
@@ -79,8 +81,22 @@ function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
+function hashOtpCode(phoneNumber: string, purpose: OtpPurpose, otpCode: string) {
+  return createHash("sha256")
+    .update(`${phoneNumber}|${purpose}|${otpCode}|${env.jwtSecret}`)
+    .digest("hex");
+}
+
 function hasDatabaseUrlConfigured() {
   return Boolean((process.env.DATABASE_URL || "").trim());
+}
+
+function isMissingOtpChallengeTableError(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return false;
+  }
+
+  return error.code === "P2010" && String(error.meta?.message ?? "").includes("OtpChallenge");
 }
 
 async function persistAuthSessionRecord(input: {
@@ -238,17 +254,6 @@ function buildOtpDispatchResponse(phoneNumber: string, message: string) {
   };
 }
 
-function buildOtpFallbackDispatchResponse(phoneNumber: string, otpCode: string, providerErrorMessage: string) {
-  return {
-    phoneNumber,
-    expiresInSeconds: env.otpExpiryMinutes * 60,
-    message:
-      "SMS delivery failed. OTP is returned in fallback mock mode for this request. Use the provided code to continue verification.",
-    devOtpCode: otpCode,
-    fallbackReason: providerErrorMessage,
-  };
-}
-
 async function dispatchOtpOrFallback(input: { phoneNumber: string; otpCode: string }) {
   try {
     await sendOtpSms(input);
@@ -283,6 +288,223 @@ function buildResendCooldownMessage(lastSentAtMs: number) {
   return `Please wait ${remainingSeconds} seconds before requesting a new OTP.`;
 }
 
+type PersistedOtpChallenge = {
+  phoneNumber: string;
+  purpose: OtpPurpose;
+  codeHash: string;
+  expiresAtMs: number;
+  isVerified: boolean;
+  failedVerifyAttempts: number;
+  lockoutUntilMs: number | null;
+  lastSentAtMs: number;
+  registration?: {
+    fullName: string;
+    phoneNumber: string;
+    barangayCode: string;
+  };
+};
+
+async function upsertOtpChallenge(otpRecord: OtpRecord) {
+  if (!hasDatabaseUrlConfigured() || otpChallengePersistenceDisabled) {
+    return;
+  }
+
+  try {
+    await prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "OtpChallenge" (
+          "id",
+          "phoneNumber",
+          "purpose",
+          "codeHash",
+          "expiresAt",
+          "isVerified",
+          "failedVerifyAttempts",
+          "lockoutUntil",
+          "lastSentAt",
+          "registrationFullName",
+          "registrationBarangayCode",
+          "createdAt",
+          "updatedAt"
+        ) VALUES (
+          ${randomUUID()},
+          ${otpRecord.phoneNumber},
+          ${otpRecord.purpose}::"OtpPurpose",
+          ${hashOtpCode(otpRecord.phoneNumber, otpRecord.purpose, otpRecord.code)},
+          ${new Date(otpRecord.expiresAtMs)},
+          ${otpRecord.isVerified},
+          ${otpRecord.failedVerifyAttempts},
+          ${otpRecord.lockoutUntilMs ? new Date(otpRecord.lockoutUntilMs) : null},
+          ${new Date(otpRecord.lastSentAtMs)},
+          ${otpRecord.registration?.fullName ?? null},
+          ${otpRecord.registration?.barangayCode ?? null},
+          ${new Date()},
+          ${new Date()}
+        )
+        ON CONFLICT ("phoneNumber", "purpose") DO UPDATE SET
+          "codeHash" = EXCLUDED."codeHash",
+          "expiresAt" = EXCLUDED."expiresAt",
+          "isVerified" = EXCLUDED."isVerified",
+          "failedVerifyAttempts" = EXCLUDED."failedVerifyAttempts",
+          "lockoutUntil" = EXCLUDED."lockoutUntil",
+          "lastSentAt" = EXCLUDED."lastSentAt",
+          "registrationFullName" = EXCLUDED."registrationFullName",
+          "registrationBarangayCode" = EXCLUDED."registrationBarangayCode",
+          "updatedAt" = EXCLUDED."updatedAt"
+      `,
+    );
+  } catch (error) {
+    if (isMissingOtpChallengeTableError(error)) {
+      otpChallengePersistenceDisabled = true;
+      return;
+    }
+
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to persist OTP challenge record:", error);
+    }
+  }
+}
+
+async function getOtpChallenge(phoneNumber: string, purpose: OtpPurpose): Promise<PersistedOtpChallenge | null> {
+  if (!hasDatabaseUrlConfigured() || otpChallengePersistenceDisabled) {
+    return null;
+  }
+
+  try {
+    const rows = await prisma.$queryRaw<
+      Array<{
+        phoneNumber: string;
+        purpose: OtpPurpose;
+        codeHash: string;
+        expiresAt: Date;
+        isVerified: boolean;
+        failedVerifyAttempts: number;
+        lockoutUntil: Date | null;
+        lastSentAt: Date;
+        registrationFullName: string | null;
+        registrationBarangayCode: string | null;
+      }>
+    >(
+      Prisma.sql`
+        SELECT
+          "phoneNumber",
+          "purpose",
+          "codeHash",
+          "expiresAt",
+          "isVerified",
+          "failedVerifyAttempts",
+          "lockoutUntil",
+          "lastSentAt",
+          "registrationFullName",
+          "registrationBarangayCode"
+        FROM "OtpChallenge"
+        WHERE "phoneNumber" = ${phoneNumber}
+          AND "purpose" = ${purpose}::"OtpPurpose"
+        LIMIT 1
+      `,
+    );
+
+    const row = rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      phoneNumber: row.phoneNumber,
+      purpose: row.purpose,
+      codeHash: row.codeHash,
+      expiresAtMs: row.expiresAt.getTime(),
+      isVerified: row.isVerified,
+      failedVerifyAttempts: row.failedVerifyAttempts,
+      lockoutUntilMs: row.lockoutUntil ? row.lockoutUntil.getTime() : null,
+      lastSentAtMs: row.lastSentAt.getTime(),
+      registration:
+        row.registrationFullName && row.registrationBarangayCode
+          ? {
+              fullName: row.registrationFullName,
+              phoneNumber: row.phoneNumber,
+              barangayCode: row.registrationBarangayCode,
+            }
+          : undefined,
+    };
+  } catch (error) {
+    if (isMissingOtpChallengeTableError(error)) {
+      otpChallengePersistenceDisabled = true;
+      return null;
+    }
+
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to load OTP challenge record:", error);
+    }
+    return null;
+  }
+}
+
+async function deleteOtpChallenge(phoneNumber: string, purpose: OtpPurpose) {
+  if (!hasDatabaseUrlConfigured() || otpChallengePersistenceDisabled) {
+    return;
+  }
+
+  try {
+    await prisma.$executeRaw(
+      Prisma.sql`
+        DELETE FROM "OtpChallenge"
+        WHERE "phoneNumber" = ${phoneNumber}
+          AND "purpose" = ${purpose}::"OtpPurpose"
+      `,
+    );
+  } catch (error) {
+    if (isMissingOtpChallengeTableError(error)) {
+      otpChallengePersistenceDisabled = true;
+      return;
+    }
+
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to delete OTP challenge record:", error);
+    }
+  }
+}
+
+async function updateOtpChallengeState(input: {
+  phoneNumber: string;
+  purpose: OtpPurpose;
+  isVerified?: boolean;
+  failedVerifyAttempts?: number;
+  lockoutUntilMs?: number | null;
+}) {
+  if (!hasDatabaseUrlConfigured() || otpChallengePersistenceDisabled) {
+    return;
+  }
+
+  try {
+    await prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE "OtpChallenge"
+        SET
+          "isVerified" = COALESCE(${input.isVerified}, "isVerified"),
+          "failedVerifyAttempts" = COALESCE(${input.failedVerifyAttempts}, "failedVerifyAttempts"),
+          "lockoutUntil" = ${typeof input.lockoutUntilMs === "undefined"
+            ? Prisma.sql`"lockoutUntil"`
+            : input.lockoutUntilMs
+              ? Prisma.sql`${new Date(input.lockoutUntilMs)}`
+              : Prisma.sql`NULL`},
+          "updatedAt" = ${new Date()}
+        WHERE "phoneNumber" = ${input.phoneNumber}
+          AND "purpose" = ${input.purpose}::"OtpPurpose"
+      `,
+    );
+  } catch (error) {
+    if (isMissingOtpChallengeTableError(error)) {
+      otpChallengePersistenceDisabled = true;
+      return;
+    }
+
+    if (!(error instanceof Prisma.PrismaClientInitializationError)) {
+      console.warn("[AUTH] Failed to update OTP challenge state:", error);
+    }
+  }
+}
+
 export const authService = {
   async register(input: {
     fullName: string;
@@ -315,6 +537,7 @@ export const authService = {
     const nowMs = Date.now();
     const otpRecord: OtpRecord = {
       phoneNumber,
+      purpose: "REGISTRATION",
       code,
       expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
       isVerified: false,
@@ -329,6 +552,7 @@ export const authService = {
     };
 
     authStore.saveOtp(otpRecord);
+    await upsertOtpChallenge(otpRecord);
 
     const dispatchResult = await dispatchOtpOrFallback({
       phoneNumber,
@@ -336,7 +560,10 @@ export const authService = {
     });
 
     if (dispatchResult.fallbackUsed) {
-      return buildOtpFallbackDispatchResponse(phoneNumber, code, dispatchResult.providerErrorMessage);
+      throw new AuthError(
+        `SMS delivery failed. Please try requesting OTP again. ${dispatchResult.providerErrorMessage}`,
+        502,
+      );
     }
 
     return buildOtpDispatchResponse(
@@ -349,7 +576,20 @@ export const authService = {
 
   async resendOtp(input: { phoneNumber: string }) {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
-    const existingOtp = authStore.getOtp(phoneNumber);
+    const persistedOtp = await getOtpChallenge(phoneNumber, "REGISTRATION");
+    const existingOtp = persistedOtp
+      ? {
+          phoneNumber: persistedOtp.phoneNumber,
+          purpose: persistedOtp.purpose,
+          code: "",
+          expiresAtMs: persistedOtp.expiresAtMs,
+          isVerified: persistedOtp.isVerified,
+          failedVerifyAttempts: persistedOtp.failedVerifyAttempts,
+          lockoutUntilMs: persistedOtp.lockoutUntilMs,
+          lastSentAtMs: persistedOtp.lastSentAtMs,
+          registration: persistedOtp.registration,
+        }
+      : authStore.getOtp(phoneNumber, "REGISTRATION");
 
     if (!existingOtp || !existingOtp.registration) {
       throw new AuthError("No pending registration found for this number.", 404);
@@ -365,6 +605,18 @@ export const authService = {
     const newCode = generateOtpCode();
     authStore.saveOtp({
       ...existingOtp,
+      purpose: "REGISTRATION",
+      code: newCode,
+      isVerified: false,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
+    });
+    await upsertOtpChallenge({
+      ...existingOtp,
+      purpose: "REGISTRATION",
+      phoneNumber,
       code: newCode,
       isVerified: false,
       expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
@@ -379,7 +631,10 @@ export const authService = {
     });
 
     if (dispatchResult.fallbackUsed) {
-      return buildOtpFallbackDispatchResponse(phoneNumber, newCode, dispatchResult.providerErrorMessage);
+      throw new AuthError(
+        `SMS delivery failed. Please try requesting OTP again. ${dispatchResult.providerErrorMessage}`,
+        502,
+      );
     }
 
     return buildOtpDispatchResponse(
@@ -390,9 +645,23 @@ export const authService = {
     );
   },
 
-  verifyOtp(input: { phoneNumber: string; otpCode: string }) {
+  async verifyOtp(input: { phoneNumber: string; otpCode: string; purpose?: OtpPurpose }) {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
-    const otpRecord = authStore.getOtp(phoneNumber);
+    const purpose = input.purpose ?? "REGISTRATION";
+    const persistedOtp = await getOtpChallenge(phoneNumber, purpose);
+    const otpRecord = persistedOtp
+      ? {
+          phoneNumber: persistedOtp.phoneNumber,
+          purpose: persistedOtp.purpose,
+          code: "",
+          expiresAtMs: persistedOtp.expiresAtMs,
+          isVerified: persistedOtp.isVerified,
+          failedVerifyAttempts: persistedOtp.failedVerifyAttempts,
+          lockoutUntilMs: persistedOtp.lockoutUntilMs,
+          lastSentAtMs: persistedOtp.lastSentAtMs,
+          registration: persistedOtp.registration,
+        }
+      : authStore.getOtp(phoneNumber, purpose);
 
     if (!otpRecord) {
       throw new AuthError("No OTP found for this number.", 404);
@@ -408,14 +677,26 @@ export const authService = {
       throw new AuthError("OTP has expired.", 410);
     }
 
-    if (otpRecord.code !== input.otpCode) {
+    const otpMatches = persistedOtp
+      ? persistedOtp.codeHash === hashOtpCode(phoneNumber, purpose, input.otpCode)
+      : otpRecord.code === input.otpCode;
+
+    if (!otpMatches) {
       const nextAttempts = otpRecord.failedVerifyAttempts + 1;
 
       if (nextAttempts >= env.otpMaxVerifyAttempts) {
         const lockoutUntilMs = nowMs + env.otpVerifyLockoutMinutes * 60 * 1000;
 
-        authStore.saveOtp({
+        const lockedOtp = {
           ...otpRecord,
+          purpose,
+          failedVerifyAttempts: 0,
+          lockoutUntilMs,
+        };
+        authStore.saveOtp(lockedOtp);
+        await updateOtpChallengeState({
+          phoneNumber,
+          purpose,
           failedVerifyAttempts: 0,
           lockoutUntilMs,
         });
@@ -423,15 +704,36 @@ export const authService = {
         throw new AuthError(buildLockoutMessage(lockoutUntilMs), 429);
       }
 
-      authStore.saveOtp({
+      const failedOtp = {
         ...otpRecord,
+        purpose,
+        failedVerifyAttempts: nextAttempts,
+      };
+      authStore.saveOtp(failedOtp);
+      await updateOtpChallengeState({
+        phoneNumber,
+        purpose,
         failedVerifyAttempts: nextAttempts,
       });
 
       throw new AuthError("Incorrect OTP.", 401);
     }
 
-    authStore.saveOtp({ ...otpRecord, isVerified: true, failedVerifyAttempts: 0, lockoutUntilMs: null });
+    const verifiedOtp = {
+      ...otpRecord,
+      purpose,
+      isVerified: true,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+    };
+    authStore.saveOtp(verifiedOtp);
+    await updateOtpChallengeState({
+      phoneNumber,
+      purpose,
+      isVerified: true,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+    });
 
     return {
       phoneNumber,
@@ -442,7 +744,20 @@ export const authService = {
 
   async createPassword(input: { phoneNumber: string; password: string }): Promise<AuthSession> {
     const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
-    const otpRecord = authStore.getOtp(phoneNumber);
+    const persistedOtp = await getOtpChallenge(phoneNumber, "REGISTRATION");
+    const otpRecord = persistedOtp
+      ? {
+          phoneNumber: persistedOtp.phoneNumber,
+          purpose: persistedOtp.purpose,
+          code: "",
+          expiresAtMs: persistedOtp.expiresAtMs,
+          isVerified: persistedOtp.isVerified,
+          failedVerifyAttempts: persistedOtp.failedVerifyAttempts,
+          lockoutUntilMs: persistedOtp.lockoutUntilMs,
+          lastSentAtMs: persistedOtp.lastSentAtMs,
+          registration: persistedOtp.registration,
+        }
+      : authStore.getOtp(phoneNumber, "REGISTRATION");
 
     if (!otpRecord || !otpRecord.registration) {
       throw new AuthError("No pending registration found.", 404);
@@ -514,10 +829,124 @@ export const authService = {
       expiresAtMs,
     });
 
+    authStore.deleteOtp(phoneNumber, "REGISTRATION");
+    await deleteOtpChallenge(phoneNumber, "REGISTRATION");
+
     return {
       token,
       user: asPublicUser(saved),
     };
+  },
+
+  async requestPasswordResetOtp(input: { phoneNumber: string }) {
+    const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
+    const user = await prisma.user.findUnique({
+      where: { phoneNumber },
+      select: { id: true },
+    });
+
+    // Avoid account-enumeration leaks.
+    if (!user) {
+      return buildOtpDispatchResponse(
+        phoneNumber,
+        "If the phone number is registered, a password reset OTP has been sent.",
+      );
+    }
+
+    const existingOtp = (await getOtpChallenge(phoneNumber, "PASSWORD_RESET")) ?? authStore.getOtp(phoneNumber, "PASSWORD_RESET");
+    const nowMs = Date.now();
+    const resendCooldownMs = env.otpResendCooldownSeconds * 1000;
+
+    if (existingOtp && resendCooldownMs > 0 && nowMs < existingOtp.lastSentAtMs + resendCooldownMs) {
+      throw new AuthError(buildResendCooldownMessage(existingOtp.lastSentAtMs), 429);
+    }
+
+    const code = generateOtpCode();
+    const otpRecord: OtpRecord = {
+      phoneNumber,
+      purpose: "PASSWORD_RESET",
+      code,
+      expiresAtMs: nowMs + env.otpExpiryMinutes * 60 * 1000,
+      isVerified: false,
+      failedVerifyAttempts: 0,
+      lockoutUntilMs: null,
+      lastSentAtMs: nowMs,
+    };
+
+    authStore.saveOtp(otpRecord);
+    await upsertOtpChallenge(otpRecord);
+
+    const dispatchResult = await dispatchOtpOrFallback({ phoneNumber, otpCode: code });
+    if (dispatchResult.fallbackUsed) {
+      throw new AuthError(
+        `SMS delivery failed. Please try requesting OTP again. ${dispatchResult.providerErrorMessage}`,
+        502,
+      );
+    }
+
+    return buildOtpDispatchResponse(phoneNumber, "If the phone number is registered, a password reset OTP has been sent.");
+  },
+
+  async verifyPasswordResetOtp(input: { phoneNumber: string; otpCode: string }) {
+    return this.verifyOtp({
+      phoneNumber: input.phoneNumber,
+      otpCode: input.otpCode,
+      purpose: "PASSWORD_RESET",
+    });
+  },
+
+  async resetPassword(input: { phoneNumber: string; password: string }): Promise<{ message: string }> {
+    const phoneNumber = normalizeAndValidatePhone(input.phoneNumber);
+    const persistedOtp = await getOtpChallenge(phoneNumber, "PASSWORD_RESET");
+    const otpRecord = persistedOtp
+      ? {
+          phoneNumber: persistedOtp.phoneNumber,
+          purpose: persistedOtp.purpose,
+          code: "",
+          expiresAtMs: persistedOtp.expiresAtMs,
+          isVerified: persistedOtp.isVerified,
+          failedVerifyAttempts: persistedOtp.failedVerifyAttempts,
+          lockoutUntilMs: persistedOtp.lockoutUntilMs,
+          lastSentAtMs: persistedOtp.lastSentAtMs,
+          registration: persistedOtp.registration,
+        }
+      : authStore.getOtp(phoneNumber, "PASSWORD_RESET");
+
+    if (!otpRecord) {
+      throw new AuthError("No password reset request found for this number.", 404);
+    }
+
+    if (!otpRecord.isVerified) {
+      throw new AuthError("OTP must be verified first.", 403);
+    }
+
+    if (Date.now() > otpRecord.expiresAtMs) {
+      throw new AuthError("OTP has expired.", 410);
+    }
+
+    const password = input.password ?? "";
+    if (password.length < 8) {
+      throw new AuthError("Password must be at least 8 characters.", 400);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { phoneNumber },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new AuthError("No account found for this phone number.", 404);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    authStore.deleteOtp(phoneNumber, "PASSWORD_RESET");
+    await deleteOtpChallenge(phoneNumber, "PASSWORD_RESET");
+
+    return { message: "Password reset successful. You can now sign in." };
   },
 
   async login(input: { phoneNumber: string; password: string }): Promise<AuthSession> {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { authApi } from '../../services/authApi';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -23,9 +24,17 @@ export default function ForgotPassword() {
     if (digits.length < 10) { setError('Enter a valid Philippine phone number.'); return; }
     setError('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    setSent(true);
+    try {
+      await authApi.requestPasswordResetOtp({
+        phoneNumber: phone,
+      });
+      setSent(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to send reset OTP.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,7 +55,7 @@ export default function ForgotPassword() {
             </p>
 
             <button
-              onClick={() => navigate('/auth/verify', { state: { phone } })}
+              onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
               style={{
                 width: '100%', padding: '14px', background: '#1E3A8A', border: 'none',
                 borderRadius: 10, color: 'white', fontSize: 14, fontWeight: 700,

@@ -40,8 +40,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
         paddingTop: 14,
         paddingBottom: 10,
         borderBottom: '1px solid #E2E8F0',
-        background: 'rgba(255,255,255,0.86)',
-        boxShadow: '0 1px 6px rgba(15,23,42,0.04)',
+        background: '#F8FAFC',
       }}
     >
       <div
@@ -54,9 +53,8 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
           flexWrap: 'nowrap',
           background: '#FFFFFF',
           border: '1px solid #E2E8F0',
-          borderRadius: 14,
+          borderRadius: 12,
           padding: 8,
-          boxShadow: '0 4px 14px rgba(15,23,42,0.06)',
         }}
       >
         {navItems.map((item) => {
@@ -72,13 +70,14 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
                 alignItems: 'center',
                 gap: 6,
                 padding: '9px 14px',
-                borderRadius: 10,
-                border: `1px solid ${isActive ? '#1E3A8A' : '#E2E8F0'}`,
-                background: isActive ? '#EFF6FF' : 'white',
+                borderRadius: 9,
+                border: `1px solid ${isActive ? '#93C5FD' : '#E2E8F0'}`,
+                background: isActive ? '#F8FBFF' : 'white',
                 color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 12,
                 cursor: 'pointer',
+                transition: 'border-color 170ms ease, background 170ms ease, transform 170ms ease',
               }}
             >
               {item.icon}

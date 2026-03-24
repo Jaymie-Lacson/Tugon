@@ -389,7 +389,7 @@ export default function CitizenVerification() {
         <header
           className="citizen-web-header"
           style={{
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            background: '#1E3A8A',
             display: 'flex',
             alignItems: 'center',
             height: 60,
@@ -397,7 +397,7 @@ export default function CitizenVerification() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
+            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
           }}
         >
           <div
@@ -463,7 +463,7 @@ export default function CitizenVerification() {
                     height: 36,
                     borderRadius: 10,
                     border: 'none',
-                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                    background: '#B4730A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -487,7 +487,7 @@ export default function CitizenVerification() {
                       width: 190,
                       background: '#fff',
                       borderRadius: 12,
-                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                      boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
                       border: '1px solid #E2E8F0',
                       overflow: 'hidden',
                       zIndex: 110,
@@ -604,7 +604,7 @@ export default function CitizenVerification() {
           </section>
 
           <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 999, background: meta.bg, color: meta.color, fontWeight: 700, fontSize: 12 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, border: `1px solid ${meta.color}33`, background: meta.bg, color: meta.color, fontWeight: 700, fontSize: 12 }}>
               {meta.icon} {meta.label}
             </div>
 

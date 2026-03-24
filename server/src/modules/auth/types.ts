@@ -1,4 +1,5 @@
 export type Role = "CITIZEN" | "OFFICIAL" | "SUPER_ADMIN";
+export type OtpPurpose = "REGISTRATION" | "PASSWORD_RESET";
 
 export interface UserRecord {
   id: string;
@@ -20,6 +21,7 @@ export interface PendingRegistration {
 
 export interface OtpRecord {
   phoneNumber: string;
+  purpose: OtpPurpose;
   code: string;
   expiresAtMs: number;
   isVerified: boolean;

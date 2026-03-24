@@ -23,8 +23,6 @@ export interface OtpDispatchResponse {
   message: string;
   phoneNumber: string;
   expiresInSeconds: number;
-  devOtpCode?: string;
-  fallbackReason?: string;
 }
 
 const API_BASE =
@@ -76,6 +74,24 @@ export const authApi = {
   },
   verifyOtp(input: { phoneNumber: string; otpCode: string }) {
     return request<{ verified: boolean; phoneNumber: string; message: string }>("/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  requestPasswordResetOtp(input: { phoneNumber: string }) {
+    return request<OtpDispatchResponse>("/auth/forgot-password/request-otp", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  verifyPasswordResetOtp(input: { phoneNumber: string; otpCode: string }) {
+    return request<{ verified: boolean; phoneNumber: string; message: string }>("/auth/forgot-password/verify-otp", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  resetPassword(input: { phoneNumber: string; password: string }) {
+    return request<{ message: string }>("/auth/forgot-password/reset", {
       method: "POST",
       body: JSON.stringify(input),
     });

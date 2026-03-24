@@ -281,7 +281,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
           <div key={s.key} style={{ display: 'contents' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1 }}>
               <div style={{
-                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                 background: stepBg, border: `2px solid ${stepBorder}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.3s',
@@ -291,7 +291,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                     {isTerminal && stepNum === 4 ? (isFailed ? 'X' : 'OK') : 'OK'}
                   </span>
                 ) : active ? (
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#1E3A8A' }} />
+                  <div style={{ width: 7, height: 7, borderRadius: 2, background: '#1E3A8A' }} />
                 ) : (
                   <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 700 }}>{stepNum}</span>
                 )}
@@ -329,8 +329,8 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       onClick={onClick}
       style={{
         width: '100%', background: '#fff', border: '1px solid #E2E8F0',
-        borderRadius: 18, padding: 0, cursor: 'pointer', textAlign: 'left',
-        boxShadow: '0 4px 14px rgba(15,23,42,0.06)', marginBottom: 12,
+        borderRadius: 12, padding: 0, cursor: 'pointer', textAlign: 'left',
+        boxShadow: '0 4px 12px rgba(15,23,42,0.08)', marginBottom: 12,
         overflow: 'hidden', transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         position: 'relative',
       }}
@@ -406,7 +406,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       </div>
 
       {/* Workflow progress strip */}
-      <div style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
+      <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
         <WorkflowProgress status={report.status} />
       </div>
 
@@ -520,7 +520,7 @@ function DetailView({
       <article style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',
-        background: '#F8FAFC', borderRadius: '24px 24px 0 0',
+        background: '#F8FAFC', borderRadius: '14px 14px 0 0',
         overflow: 'hidden',
         animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
         maxWidth: 960, margin: '0 auto',
@@ -607,9 +607,9 @@ function DetailView({
           </section>
 
           <section style={{
-            background: '#fff', borderRadius: 18, padding: '16px',
+            background: '#fff', borderRadius: 12, padding: '16px',
             border: '1px solid #E2E8F0', marginBottom: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <MessageSquare size={14} color={tc.color} />
@@ -660,9 +660,9 @@ function DetailView({
 
           {(report.hasPhotos || report.hasAudio) && (
             <section style={{
-              background: '#fff', borderRadius: 18, padding: '16px',
+              background: '#fff', borderRadius: 12, padding: '16px',
               border: '1px solid #E2E8F0', marginBottom: 16,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
             }}>
               <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 12 }}>
                 Evidence Attached
@@ -729,7 +729,7 @@ function DetailView({
           {report.resolutionNote && (
             <section style={{
               background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
-              borderRadius: 18, padding: '16px',
+              borderRadius: 12, padding: '16px',
               border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
               marginBottom: 16,
             }}>
@@ -748,7 +748,7 @@ function DetailView({
               {report.status === 'unresolvable' && (
                 <button style={{
                   marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
-                  background: '#B91C1C', border: 'none', borderRadius: 10,
+                  background: '#B91C1C', border: 'none', borderRadius: 8,
                   padding: '8px 14px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>
                   <Phone size={12} /> Call City Veterinary Office
@@ -758,9 +758,9 @@ function DetailView({
           )}
 
           <section style={{
-            background: '#fff', borderRadius: 18, padding: '18px',
+            background: '#fff', borderRadius: 12, padding: '18px',
             border: '1px solid #E2E8F0', marginBottom: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
           }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
               <Clock size={14} color="#1E3A8A" /> Status Timeline
@@ -780,7 +780,7 @@ function DetailView({
                   )}
 
                   <div style={{
-                    width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
                     background: colors.bg, border: `2px solid ${colors.color}30`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: colors.color, zIndex: 1, position: 'relative',
@@ -796,7 +796,7 @@ function DetailView({
                       {isLast && (
                         <span style={{
                           background: colors.bg, color: colors.color,
-                          borderRadius: 20, padding: '2px 8px', fontSize: 9,
+                          borderRadius: 7, padding: '2px 8px', fontSize: 9,
                           fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
                           flexShrink: 0,
                         }}>Latest</span>
@@ -1259,10 +1259,6 @@ export default function CitizenMyReports() {
     { key: 'resolved', label: 'Resolved', count: resolvedCount },
   ];
 
-  if (loadingInitial) {
-    return <OfficialPageInitialLoader label="Loading my reports page" minHeight="calc(100vh - 120px)" />;
-  }
-
   return (
     <div style={{ position: 'relative' }}>
       {selected && (
@@ -1280,13 +1276,13 @@ export default function CitizenMyReports() {
           <header
             className="citizen-web-header"
             style={{
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            background: '#1E3A8A',
             display: 'flex',
             alignItems: 'center',
             height: 60,
             flexShrink: 0,
             position: 'sticky', top: 0, zIndex: 50,
-            boxShadow: '0 2px 16px rgba(30,58,138,0.45)',
+            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
           }}
           >
             <div
@@ -1358,7 +1354,7 @@ export default function CitizenMyReports() {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                      background: '#B4730A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1383,7 +1379,7 @@ export default function CitizenMyReports() {
                         width: 190,
                         background: '#fff',
                         borderRadius: 12,
-                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                        boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
                         border: '1px solid #E2E8F0',
                         overflow: 'hidden',
                         zIndex: 110,
@@ -1473,160 +1469,168 @@ export default function CitizenMyReports() {
           }
         }}
       >
-        <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
-          <section
-            style={{
-              background: '#fff',
-              border: '1px solid #E2E8F0',
-              borderRadius: 16,
-              boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-              padding: 12,
-            }}
-          >
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <div style={{
-              flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-              background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
-              border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
-              minWidth: 240,
-            }}>
-              <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search by ID, type, location..."
+        {loadingInitial ? (
+          <div className="citizen-content-shell" style={{ paddingTop: 24, paddingBottom: 16 }}>
+            <OfficialPageInitialLoader label="Loading my reports page" minHeight="320px" />
+          </div>
+        ) : (
+          <>
+            <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
+              <section
                 style={{
-                  flex: 1, border: 'none', background: 'transparent',
-                  fontSize: 13, color: '#1E293B', outline: 'none',
-                  fontFamily: "'Roboto', sans-serif",
-                }}
-              />
-              {query && (
-                <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', padding: 0 }}>
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            <div className="citizen-sort-panel" style={{ position: 'relative' }}>
-              <button
-                onClick={() => setSortOpen(v => !v)}
-                style={{
-                  height: 42, background: '#F8FAFC', border: '1.5px solid #E2E8F0',
-                  borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
-                  gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
-                  whiteSpace: 'nowrap',
+                  background: '#fff',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: 16,
+                  boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+                  padding: 12,
                 }}
               >
-                <SlidersHorizontal size={13} />
-                {sortBy === 'newest' ? 'Newest' : 'Oldest'}
-                <ChevronDown size={12} />
-              </button>
-              {sortOpen && (
-                <div className="citizen-sort-panel" style={{
-                  position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-                  background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                  border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{
+                  flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                  background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
+                  border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
+                  minWidth: 240,
                 }}>
-                  {(['newest', 'oldest'] as const).map(opt => (
+                  <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
+                  <input
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder="Search by ID, type, location..."
+                    style={{
+                      flex: 1, border: 'none', background: 'transparent',
+                      fontSize: 13, color: '#1E293B', outline: 'none',
+                      fontFamily: "'Roboto', sans-serif",
+                    }}
+                  />
+                  {query && (
+                    <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', padding: 0 }}>
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="citizen-sort-panel" style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setSortOpen(v => !v)}
+                    style={{
+                      height: 42, background: '#F8FAFC', border: '1.5px solid #E2E8F0',
+                      borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
+                      gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <SlidersHorizontal size={13} />
+                    {sortBy === 'newest' ? 'Newest' : 'Oldest'}
+                    <ChevronDown size={12} />
+                  </button>
+                  {sortOpen && (
+                    <div className="citizen-sort-panel" style={{
+                      position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+                      background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                      border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
+                    }}>
+                      {(['newest', 'oldest'] as const).map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => { setSortBy(opt); setSortOpen(false); }}
+                          style={{
+                            display: 'block', width: '100%', textAlign: 'left',
+                            padding: '10px 14px', border: 'none', cursor: 'pointer',
+                            background: sortBy === opt ? '#EFF6FF' : '#fff',
+                            color: sortBy === opt ? '#1E3A8A' : '#475569',
+                            fontSize: 13, fontWeight: sortBy === opt ? 700 : 400,
+                            fontFamily: "'Roboto', sans-serif",
+                          }}
+                        >
+                          {opt === 'newest' ? 'Newest First' : 'Oldest First'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', padding: '10px 2px 0', gap: 0, borderBottom: 'none' }}>
+                {FILTER_TABS.map(tab => {
+                  const isActive = filter === tab.key;
+                  return (
                     <button
-                      key={opt}
-                      onClick={() => { setSortBy(opt); setSortOpen(false); }}
+                      key={tab.key}
+                      onClick={() => setFilter(tab.key)}
                       style={{
-                        display: 'block', width: '100%', textAlign: 'left',
-                        padding: '10px 14px', border: 'none', cursor: 'pointer',
-                        background: sortBy === opt ? '#EFF6FF' : '#fff',
-                        color: sortBy === opt ? '#1E3A8A' : '#475569',
-                        fontSize: 13, fontWeight: sortBy === opt ? 700 : 400,
-                        fontFamily: "'Roboto', sans-serif",
+                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '8px 4px 10px', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', gap: 2, position: 'relative',
+                        transition: 'all 0.2s',
                       }}
                     >
-                      {opt === 'newest' ? 'Newest First' : 'Oldest First'}
+                      <span style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        fontWeight: isActive ? 800 : 500,
+                        fontSize: 13,
+                        color: isActive ? '#1E3A8A' : '#94A3B8',
+                      }}>
+                        {tab.label}
+                        <span style={{
+                          background: isActive ? '#1E3A8A' : '#F1F5F9',
+                          color: isActive ? '#fff' : '#94A3B8',
+                          borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
+                        }}>
+                          {tab.count}
+                        </span>
+                      </span>
+                      {isActive && (
+                        <div style={{
+                          position: 'absolute', bottom: 0, left: '15%', right: '15%',
+                          height: 3, background: '#1E3A8A', borderRadius: '3px 3px 0 0',
+                        }} />
+                      )}
                     </button>
-                  ))}
+                  );
+                })}
+              </div>
+              </section>
+            </div>
+
+            <div onClick={() => sortOpen && setSortOpen(false)}>
+              <div className="citizen-content-shell citizen-reports-summary-row" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="citizen-reports-summary-text" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
+                  Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
+                  {query && ` for "${query}"`}
+                </span>
+                {filtered.length > 0 && (
+                  <span className="citizen-reports-summary-hint" style={{ fontSize: 11, color: '#94A3B8' }}>
+                    Open a card to view details
+                  </span>
+                )}
+              </div>
+
+              <div className="citizen-content-shell citizen-reports-grid" style={{ paddingTop: 0, paddingBottom: 24, display: 'grid', gap: 12 }}>
+                {filtered.length === 0 ? (
+                  <EmptyState filter={filter} query={query} />
+                ) : (
+                  filtered.map(report => (
+                    <ReportCard
+                      key={report.id}
+                      report={report}
+                      onClick={() => setSelected(report)}
+                    />
+                  ))
+                )}
+              </div>
+
+              {filtered.length > 0 && (
+                <div className="citizen-content-shell citizen-reports-footnote-wrap" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <p className="citizen-reports-footnote" style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+                    Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
+                  </p>
                 </div>
               )}
             </div>
-          </div>
-
-          <div style={{ display: 'flex', padding: '10px 2px 0', gap: 0, borderBottom: 'none' }}>
-            {FILTER_TABS.map(tab => {
-              const isActive = filter === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setFilter(tab.key)}
-                  style={{
-                    flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                    padding: '8px 4px 10px', display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: 2, position: 'relative',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <span style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
-                    fontWeight: isActive ? 800 : 500,
-                    fontSize: 13,
-                    color: isActive ? '#1E3A8A' : '#94A3B8',
-                  }}>
-                    {tab.label}
-                    <span style={{
-                      background: isActive ? '#1E3A8A' : '#F1F5F9',
-                      color: isActive ? '#fff' : '#94A3B8',
-                      borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
-                    }}>
-                      {tab.count}
-                    </span>
-                  </span>
-                  {isActive && (
-                    <div style={{
-                      position: 'absolute', bottom: 0, left: '15%', right: '15%',
-                      height: 3, background: '#1E3A8A', borderRadius: '3px 3px 0 0',
-                    }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          </section>
-        </div>
-
-        <div onClick={() => sortOpen && setSortOpen(false)}>
-          <div className="citizen-content-shell citizen-reports-summary-row" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="citizen-reports-summary-text" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
-              Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
-              {query && ` for "${query}"`}
-            </span>
-            {filtered.length > 0 && (
-              <span className="citizen-reports-summary-hint" style={{ fontSize: 11, color: '#94A3B8' }}>
-                Open a card to view details
-              </span>
-            )}
-          </div>
-
-          <div className="citizen-content-shell citizen-reports-grid" style={{ paddingTop: 0, paddingBottom: 24, display: 'grid', gap: 12 }}>
-            {filtered.length === 0 ? (
-              <EmptyState filter={filter} query={query} />
-            ) : (
-              filtered.map(report => (
-                <ReportCard
-                  key={report.id}
-                  report={report}
-                  onClick={() => setSelected(report)}
-                />
-              ))
-            )}
-          </div>
-
-          {filtered.length > 0 && (
-            <div className="citizen-content-shell citizen-reports-footnote-wrap" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-              <p className="citizen-reports-footnote" style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
-                Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
-              </p>
-            </div>
-          )}
-        </div>
+          </>
+        )}
 
         <style>{`
           .citizen-report-card-modern:hover,

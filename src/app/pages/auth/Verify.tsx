@@ -11,8 +11,7 @@ type PendingRegistrationState = {
   phone?: string;
   fullName?: string;
   barangay?: string;
-  devOtpCode?: string;
-  fallbackReason?: string;
+  flow?: 'registration' | 'password-reset';
 };
 
 export default function Verify() {
@@ -30,8 +29,7 @@ export default function Verify() {
   }, []);
 
   const pendingState = locationState?.phone ? locationState : storedState;
-  const [devOtpCode, setDevOtpCode] = useState(pendingState.devOtpCode ?? '');
-  const [fallbackReason, setFallbackReason] = useState(pendingState.fallbackReason ?? '');
+  const flow = pendingState.flow === 'password-reset' ? 'password-reset' : 'registration';
   const displayPhone = pendingState.phone || '0917-xxx-xxxx';
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
@@ -64,11 +62,10 @@ export default function Verify() {
         phone: pendingState.phone,
         fullName: pendingState.fullName,
         barangay: pendingState.barangay,
-        devOtpCode,
-        fallbackReason,
+        flow,
       }),
     );
-  }, [devOtpCode, fallbackReason, pendingState.barangay, pendingState.fullName, pendingState.phone]);
+  }, [flow, pendingState.barangay, pendingState.fullName, pendingState.phone]);
 
   const handleDigit = (idx: number, val: string) => {
     const digit = val.replace(/\D/g, '').slice(-1);
@@ -115,10 +112,17 @@ export default function Verify() {
     setError('');
     setLoading(true);
     try {
-      await authApi.verifyOtp({
-        phoneNumber: pendingState.phone,
-        otpCode: digits.join(''),
-      });
+      if (flow === 'password-reset') {
+        await authApi.verifyPasswordResetOtp({
+          phoneNumber: pendingState.phone,
+          otpCode: digits.join(''),
+        });
+      } else {
+        await authApi.verifyOtp({
+          phoneNumber: pendingState.phone,
+          otpCode: digits.join(''),
+        });
+      }
       setVerified(true);
       await new Promise(r => setTimeout(r, 700));
       navigate('/auth/create-password', {
@@ -126,6 +130,7 @@ export default function Verify() {
           phone: pendingState.phone,
           fullName: pendingState.fullName,
           barangay: pendingState.barangay,
+          flow,
         },
       });
     } catch (err) {
@@ -146,9 +151,11 @@ export default function Verify() {
 
     setResending(true);
     try {
-      const result = await authApi.resendOtp({ phoneNumber: pendingState.phone });
-      setDevOtpCode(result.devOtpCode ?? '');
-      setFallbackReason(result.fallbackReason ?? '');
+      if (flow === 'password-reset') {
+        await authApi.requestPasswordResetOtp({ phoneNumber: pendingState.phone });
+      } else {
+        await authApi.resendOtp({ phoneNumber: pendingState.phone });
+      }
       setResendCountdown(60);
       setDigits(Array(OTP_LENGTH).fill(''));
       setError('');
@@ -223,22 +230,9 @@ export default function Verify() {
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{displayPhone}</div>
-            <div style={{ fontSize: 11, color: '#0369A1' }}>
-              {fallbackReason ? 'SMS unavailable, fallback OTP active' : 'OTP sent via SMS'}
-            </div>
+            <div style={{ fontSize: 11, color: '#0369A1' }}>OTP sent via SMS</div>
           </div>
         </div>
-
-        {devOtpCode ? (
-          <div style={{ marginBottom: 20, background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 10, padding: '10px 12px', color: '#92400E', fontSize: 12 }}>
-            OTP Code (SMS fallback): <strong>{devOtpCode}</strong>
-            {fallbackReason ? (
-              <div style={{ marginTop: 6, fontSize: 11, color: '#A16207' }}>
-                Reason: {fallbackReason}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
 
         {/* OTP boxes */}
         <div>
@@ -331,10 +325,10 @@ export default function Verify() {
         {/* Back */}
         <div style={{ textAlign: 'center', marginTop: 12 }}>
           <button
-            onClick={() => navigate('/auth/register')}
+            onClick={() => navigate(flow === 'password-reset' ? '/auth/forgot-password' : '/auth/register')}
             style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: 12, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}
           >
-            <ArrowLeft size={13} /> Back to Registration
+            <ArrowLeft size={13} /> {flow === 'password-reset' ? 'Back to Forgot Password' : 'Back to Registration'}
           </button>
         </div>
       </AuthLayout>

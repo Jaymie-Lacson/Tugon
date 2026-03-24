@@ -1,13 +1,14 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import {
-  Shield, Bell, Home, MapPin, FileText, User, Plus,
+  Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
   Flame, Droplets, Car, Activity, Zap, AlertCircle,
   Phone, Info, CloudRain, Eye, Search, Filter,
   ArrowRight, TrendingUp, Map, Menu,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
+import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
 import { IncidentMap } from '../components/IncidentMap';
@@ -123,7 +124,8 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
   return (
     <div
       style={{
-        background: 'linear-gradient(90deg, #B91C1C 0%, #991B1B 100%)',
+        background: '#B91C1C',
+        borderBottom: '1px solid #991B1B',
         color: '#fff',
         padding: '10px 16px',
         display: 'flex',
@@ -135,7 +137,7 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
       <span
         style={{
           background: 'rgba(255,255,255,0.2)',
-          borderRadius: '50%',
+          borderRadius: 8,
           width: 28,
           height: 28,
           display: 'flex',
@@ -230,11 +232,9 @@ function QuickActionCard({
     <button
       onClick={onClick}
       style={{
-        background: featured
-          ? `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`
-          : '#fff',
+        background: featured ? accent : '#fff',
         border: featured ? 'none' : `1.5px solid #E2E8F0`,
-        borderRadius: 16,
+        borderRadius: 12,
         padding: '18px 16px',
         cursor: 'pointer',
         display: 'flex',
@@ -244,8 +244,8 @@ function QuickActionCard({
         width: '100%',
         textAlign: 'left',
         boxShadow: featured
-          ? `0 6px 20px ${accent}44`
-          : '0 1px 4px rgba(0,0,0,0.07)',
+          ? '0 8px 16px rgba(15,23,42,0.14)'
+          : '0 1px 4px rgba(0,0,0,0.06)',
         transition: 'transform 0.15s, box-shadow 0.15s',
       }}
       onMouseOver={(e) =>
@@ -624,14 +624,6 @@ export default function CitizenDashboard() {
     }
   }, [location.search]);
 
-  const navItems: { key: Tab; icon: React.ReactNode; label: string }[] = [
-    { key: 'home', icon: <Home size={22} />, label: 'Home' },
-    { key: 'report', icon: <Plus size={22} />, label: 'Report' },
-    { key: 'map', icon: <Map size={22} />, label: 'Map' },
-    { key: 'myreports', icon: <FileText size={22} />, label: 'My Reports' },
-    { key: 'profile', icon: <User size={22} />, label: 'Profile' },
-  ];
-
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
@@ -654,7 +646,7 @@ export default function CitizenDashboard() {
         <header
           className="citizen-web-header"
           style={{
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+            background: '#1E3A8A',
             display: 'flex',
             alignItems: 'center',
             height: 60,
@@ -662,7 +654,7 @@ export default function CitizenDashboard() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            boxShadow: '0 2px 12px rgba(30,58,138,0.4)',
+            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
           }}
         >
           <div
@@ -727,7 +719,7 @@ export default function CitizenDashboard() {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    background: 'linear-gradient(135deg, #B4730A, #D97706)',
+                    background: '#B4730A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -752,7 +744,7 @@ export default function CitizenDashboard() {
                       width: 190,
                       background: '#fff',
                       borderRadius: 12,
-                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                      boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
                       border: '1px solid #E2E8F0',
                       overflow: 'hidden',
                       zIndex: 110,
@@ -818,66 +810,24 @@ export default function CitizenDashboard() {
       beforeMain={
         <>
           <AlertBanner incidents={incidents} />
-          <div
-            className="citizen-only-desktop citizen-web-strip"
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              paddingTop: 14,
-              paddingBottom: 10,
-              borderBottom: '1px solid #E2E8F0',
-              background: 'rgba(255,255,255,0.86)',
-              boxShadow: '0 1px 6px rgba(15,23,42,0.04)',
+          <CitizenDesktopNav
+            activeKey={activeTab}
+            onNavigate={(key) => {
+              if (key === 'report') {
+                navigate('/citizen/report');
+                return true;
+              }
+              if (key === 'myreports') {
+                navigate('/citizen/my-reports');
+                return true;
+              }
+              if (key === 'map' || key === 'profile' || key === 'home') {
+                setActiveTab(key);
+                return true;
+              }
+              return false;
             }}
-          >
-            <div
-              className="citizen-web-strip-inner"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                overflowX: 'auto',
-                flexWrap: 'nowrap',
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: 14,
-                padding: 8,
-                boxShadow: '0 4px 14px rgba(15,23,42,0.06)',
-              }}
-            >
-              {navItems.map((item) => {
-                const isActionRoute = item.key === 'report' || item.key === 'myreports';
-                const isActive = activeTab === item.key;
-
-                return (
-                  <button
-                    key={`desktop-${item.key}`}
-                    onClick={() => {
-                      if (item.key === 'report') navigate('/citizen/report');
-                      else if (item.key === 'myreports') navigate('/citizen/my-reports');
-                      else setActiveTab(item.key);
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '9px 14px',
-                      borderRadius: 10,
-                      border: `1px solid ${isActive ? '#1E3A8A' : '#E2E8F0'}`,
-                      background: isActive ? '#EFF6FF' : 'white',
-                      color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
-                      fontWeight: isActive ? 700 : 600,
-                      fontSize: 12,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          />
         </>
       }
       mainOnClick={() => {
@@ -940,11 +890,11 @@ function HomeTab({
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <section
         style={{
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 70%, #16318f 100%)',
-          borderRadius: 16,
+          background: '#1E3A8A',
+          borderRadius: 12,
           padding: '16px 16px 14px',
           color: '#fff',
-          boxShadow: '0 10px 24px rgba(30,58,138,0.24)',
+          boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
         }}
       >
         <div style={{ fontSize: 13, color: '#BFDBFE' }}>{greetingLabel}, {firstName}.</div>
@@ -953,10 +903,10 @@ function HomeTab({
           Track your submitted reports and stay updated on response progress.
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
+          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 8, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
             {barangayLabel}
           </span>
-          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
+          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 8, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
             {todayLabel}
           </span>
         </div>
@@ -1920,7 +1870,7 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
       {/* Header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+          background: '#1E3A8A',
           borderRadius: 16,
           padding: '16px',
           marginBottom: 18,
@@ -2057,7 +2007,7 @@ function ProfileTab({
       {/* Profile card */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1E3A8A 0%, #1e40af 100%)',
+          background: '#1E3A8A',
           borderRadius: 20,
           padding: '24px 20px',
           color: '#fff',
@@ -2074,7 +2024,7 @@ function ProfileTab({
             width: 72,
             height: 72,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #B4730A, #D97706)',
+            background: '#B4730A',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
