@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   Activity,
@@ -69,6 +69,7 @@ export default function SuperAdminLayout() {
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
     { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
   ]);
+  const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -192,6 +193,32 @@ export default function SuperAdminLayout() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [drawerOpen, notificationsOpen, profileMenuOpen]);
 
+  useEffect(() => {
+    if (!drawerOpen) {
+      return;
+    }
+
+    const closeMenuOnScroll = () => {
+      setDrawerOpen(false);
+    };
+
+    const closeMenuOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && mobileHeaderRef.current?.contains(target)) {
+        return;
+      }
+      setDrawerOpen(false);
+    };
+
+    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
+    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+
+    return () => {
+      window.removeEventListener('scroll', closeMenuOnScroll);
+      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    };
+  }, [drawerOpen]);
+
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
       try {
@@ -248,15 +275,6 @@ export default function SuperAdminLayout() {
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
-
-      {/* Overlay for mobile drawer */}
-      {drawerOpen && (
-        <div
-          onClick={() => setDrawerOpen(false)}
-          className="sa-mobile-overlay"
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1300, display: 'none' }}
-        />
-      )}
 
       {/* Desktop Sidebar */}
       <aside
@@ -384,6 +402,7 @@ export default function SuperAdminLayout() {
 
       {/* Main */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <div ref={mobileHeaderRef} style={{ position: 'relative', zIndex: 2600 }}>
         {/* Header */}
         <header style={{
           background: SIDEBAR_BG,
@@ -473,19 +492,22 @@ export default function SuperAdminLayout() {
             <button
               type="button"
               onClick={() => {
-                setDrawerOpen(!drawerOpen);
+                setDrawerOpen((prev) => !prev);
                 setProfileMenuOpen(false);
+                setNotificationsOpen(false);
               }}
-              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-label={drawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={drawerOpen}
-              aria-controls="superadmin-mobile-drawer"
-              className="sa-mobile-menu-btn icon-btn-square"
+              aria-controls="superadmin-mobile-nav"
+              className={drawerOpen ? 'sa-mobile-menu-btn icon-btn-square is-open' : 'sa-mobile-menu-btn icon-btn-square'}
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
                 cursor: 'pointer', display: 'none',
               }}
             >
-              <Menu size={20} color="white" />
+              <span className={drawerOpen ? 'sa-mobile-menu-icon is-open' : 'sa-mobile-menu-icon'}>
+                {drawerOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
+              </span>
             </button>
 
             <div className="sa-header-avatar-wrap" style={{ position: 'relative', zIndex: 2200 }}>
@@ -585,6 +607,105 @@ export default function SuperAdminLayout() {
           </div>
         </header>
 
+        <div
+          id="superadmin-mobile-nav"
+          className={drawerOpen ? 'sa-mobile-dropdown-panel is-open' : 'sa-mobile-dropdown-panel'}
+          aria-hidden={!drawerOpen}
+          style={{
+            background: 'rgba(30,58,138,0.98)',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            padding: drawerOpen ? '12px 14px 16px' : '0 14px',
+            maxHeight: drawerOpen ? 450 : 0,
+            opacity: drawerOpen ? 1 : 0,
+            transform: drawerOpen ? 'translateY(0)' : 'translateY(-10px)',
+            pointerEvents: drawerOpen ? 'auto' : 'none',
+            overflow: 'hidden',
+            transition: 'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
+          }}
+        >
+          <div
+            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 10,
+              opacity: drawerOpen ? 1 : 0,
+              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 11, flexShrink: 0 }}>
+              {userInitials}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userFullName}</div>
+              <div style={{ color: '#BFDBFE', fontSize: 10 }}>Super Admin</div>
+            </div>
+          </div>
+
+          {NAV_ITEMS.map((item) => {
+            const active = item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path) && !item.exact;
+            const exactActive = location.pathname === '/superadmin';
+            const isActive = item.exact ? exactActive : active;
+
+            return (
+              <NavLink
+                key={`sa-mobile-dropdown-${item.path}`}
+                to={item.path}
+                onClick={() => setDrawerOpen(false)}
+                className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textDecoration: 'none',
+                  padding: '11px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  color: isActive ? '#DBEAFE' : '#BFDBFE',
+                  fontSize: 14,
+                  fontWeight: isActive ? 700 : 500,
+                  opacity: drawerOpen ? 1 : 0,
+                  transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+                  transition: 'opacity 180ms ease, transform 180ms ease',
+                }}
+              >
+                <item.icon size={16} color={isActive ? '#DBEAFE' : '#93C5FD'} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              textAlign: 'left',
+              padding: '11px 0 4px',
+              background: 'none',
+              border: 'none',
+              color: '#FCA5A5',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 700,
+              opacity: drawerOpen ? 1 : 0,
+              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <LogOut size={16} color="#FCA5A5" />
+            <span>Sign out</span>
+          </button>
+        </div>
+        </div>
+
         <main
           style={{ flex: 1, overflowY: 'auto', paddingBottom: 0 }}
           onClick={() => {
@@ -608,126 +729,23 @@ export default function SuperAdminLayout() {
         </main>
       </div>
 
-      {/* Mobile right drawer */}
-      {drawerOpen && (
-        <div
-          id="superadmin-mobile-drawer"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Super admin mobile navigation drawer"
-          style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
-          background: SIDEBAR_BG, zIndex: 1400, display: 'flex', flexDirection: 'column',
-          boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
-        }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <NavLink
-              to="/superadmin"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Go to TUGON super admin overview"
-              style={{ display: 'inline-flex' }}
-            >
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Tondo Emergency Response"
-                style={{ width: 148, maxWidth: '100%', height: 'auto' }}
-              />
-            </NavLink>
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close navigation drawer"
-              className="icon-btn-square"
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
-            >
-              <X size={18} color="white" />
-            </button>
-          </div>
-
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 14, flexShrink: 0 }}>{userInitials}</div>
-            <div>
-              <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{userFullName}</div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>Super Admin</div>
-            </div>
-          </div>
-
-          <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
-            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
-              Navigation
-            </div>
-            {NAV_ITEMS.map((item) => {
-              const active = item.exact
-                ? location.pathname === item.path
-                : location.pathname.startsWith(item.path);
-              const exactActive = location.pathname === '/superadmin';
-              const isActive = item.exact ? exactActive : active;
-
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setDrawerOpen(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '14px 16px',
-                    borderRadius: 10,
-                    textDecoration: 'none',
-                    marginBottom: 6,
-                    background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)',
-                    border: isActive ? '1px solid rgba(191,219,254,0.65)' : '1px solid transparent',
-                  }}
-                >
-                  <item.icon size={20} color={isActive ? '#DBEAFE' : '#93C5FD'} />
-                  <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 14, fontWeight: isActive ? 700 : 500 }}>
-                    {item.label}
-                  </span>
-                </NavLink>
-              );
-            })}
-
-            <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-              <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
-                More
-              </div>
-              <NavLink
-                to="/superadmin/settings"
-                onClick={() => setDrawerOpen(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '14px 16px',
-                  borderRadius: 10,
-                  textDecoration: 'none',
-                  marginBottom: 6,
-                  background: 'rgba(255,255,255,0.07)',
-                }}
-              >
-                <Settings size={20} color="#93C5FD" />
-                <span style={{ color: '#BFDBFE', fontSize: 14 }}>Settings</span>
-              </NavLink>
-              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}
-                >
-                  <LogOut size={18} color="#FCA5A5" />
-                  <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
-                </button>
-              </div>
-            </div>
-          </nav>
-        </div>
-      )}
-
       <style>{`
+        .sa-mobile-menu-icon {
+          display: inline-flex;
+          transition: transform 180ms ease;
+        }
+
+        .sa-mobile-menu-icon.is-open {
+          transform: rotate(90deg);
+        }
+
         @media (max-width: 768px) {
           .sa-sidebar-desktop   { display: none !important; }
           .sa-mobile-menu-btn   { display: flex !important; }
+          .sa-mobile-menu-btn.is-open {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.2) !important;
+          }
           .sa-mobile-logo       { display: flex !important; }
           .sa-header-actions    { margin-left: auto !important; }
           .sa-header-breadcrumb { display: none !important; }
@@ -735,11 +753,29 @@ export default function SuperAdminLayout() {
           .sa-header-avatar     { display: none !important; }
           .sa-header-avatar-wrap { display: none !important; }
           .sa-mobile-page-label { display: none !important; }
-          .sa-mobile-overlay    { display: block !important; }
+
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(1) { transition-delay: 40ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(2) { transition-delay: 80ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(3) { transition-delay: 120ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(4) { transition-delay: 160ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(5) { transition-delay: 200ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(6) { transition-delay: 240ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(7) { transition-delay: 280ms; }
+          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(8) { transition-delay: 320ms; }
         }
         @media (min-width: 769px) {
           .sa-mobile-menu-btn { display: none !important; }
           .sa-mobile-page-label { display: none !important; }
+          .sa-mobile-dropdown-panel { display: none !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .sa-mobile-menu-icon,
+          .sa-mobile-dropdown-panel,
+          .sa-mobile-dropdown-item,
+          .sa-mobile-menu-btn {
+            transition: none !important;
+          }
         }
       `}</style>
     </div>

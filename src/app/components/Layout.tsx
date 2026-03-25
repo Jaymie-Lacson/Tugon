@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, Outlet, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
@@ -46,6 +46,7 @@ function Layout() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifications, setNotifications] = useState<ApiCrossBorderAlert[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -98,6 +99,32 @@ function Layout() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [drawerOpen, notificationsOpen, profileMenuOpen]);
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      return;
+    }
+
+    const closeMenuOnScroll = () => {
+      setDrawerOpen(false);
+    };
+
+    const closeMenuOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && mobileHeaderRef.current?.contains(target)) {
+        return;
+      }
+      setDrawerOpen(false);
+    };
+
+    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
+    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+
+    return () => {
+      window.removeEventListener('scroll', closeMenuOnScroll);
+      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    };
+  }, [drawerOpen]);
 
   useEffect(() => {
     let active = true;
@@ -197,15 +224,6 @@ function Layout() {
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
-
-      {/* Overlay for mobile drawer */}
-      {drawerOpen && (
-        <div
-          onClick={() => setDrawerOpen(false)}
-          className="mobile-overlay"
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1300, display: 'none' }}
-        />
-      )}
 
       {/* ── Desktop Sidebar ── */}
       <aside
@@ -328,6 +346,7 @@ function Layout() {
       {/* ── Main area ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
 
+        <div ref={mobileHeaderRef} style={{ position: 'relative', zIndex: isMapRoute ? 2500 : 90 }}>
         {/* Header */}
         <header style={{
           background: '#1E3A8A', padding: '0 16px', height: 56,
@@ -335,7 +354,7 @@ function Layout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
           position: 'relative',
-          zIndex: isMapRoute ? 2500 : 90,
+          zIndex: 2,
         }}>
           {/* Mobile logo */}
           <div className="mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
@@ -408,20 +427,22 @@ function Layout() {
             <button
               type="button"
               onClick={() => {
-                setDrawerOpen(!drawerOpen);
+                setDrawerOpen((prev) => !prev);
                 setProfileMenuOpen(false);
                 setNotificationsOpen(false);
               }}
-              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-label={drawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={drawerOpen}
-              aria-controls="layout-mobile-drawer"
-              className="mobile-menu-btn icon-btn-square"
+              aria-controls="layout-mobile-nav"
+              className={drawerOpen ? 'mobile-menu-btn icon-btn-square is-open' : 'mobile-menu-btn icon-btn-square'}
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
                 cursor: 'pointer', display: 'none',
               }}
             >
-              <Menu size={20} color="white" />
+              <span className={drawerOpen ? 'mobile-menu-icon is-open' : 'mobile-menu-icon'}>
+                {drawerOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
+              </span>
             </button>
 
             {/* User avatar */}
@@ -522,6 +543,128 @@ function Layout() {
           </div>
         </header>
 
+        <div
+          id="layout-mobile-nav"
+          className={drawerOpen ? 'mobile-dropdown-panel is-open' : 'mobile-dropdown-panel'}
+          aria-hidden={!drawerOpen}
+          style={{
+            background: 'rgba(30,58,138,0.98)',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            padding: drawerOpen ? '12px 14px 16px' : '0 14px',
+            maxHeight: drawerOpen ? 420 : 0,
+            opacity: drawerOpen ? 1 : 0,
+            transform: drawerOpen ? 'translateY(0)' : 'translateY(-10px)',
+            pointerEvents: drawerOpen ? 'auto' : 'none',
+            overflow: 'hidden',
+            transition: 'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
+          }}
+        >
+          <div
+            className={drawerOpen ? 'mobile-dropdown-item is-open' : 'mobile-dropdown-item'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 10,
+              opacity: drawerOpen ? 1 : 0,
+              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 11, flexShrink: 0 }}>
+              {userInitials}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userFullName}</div>
+              <div style={{ color: '#BFDBFE', fontSize: 10 }}>{userRoleLabel}</div>
+            </div>
+          </div>
+
+          {NAV_ITEMS.map((item) => {
+            const active = item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path) && item.path !== '/app';
+            const exactActive = location.pathname === '/app';
+            const isActive = item.exact ? exactActive : active;
+
+            return (
+              <NavLink
+                key={`mobile-dropdown-${item.path}`}
+                to={item.path}
+                onClick={() => setDrawerOpen(false)}
+                className={drawerOpen ? 'mobile-dropdown-item is-open' : 'mobile-dropdown-item'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textDecoration: 'none',
+                  padding: '11px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  color: isActive ? '#DBEAFE' : '#BFDBFE',
+                  fontSize: 14,
+                  fontWeight: isActive ? 700 : 500,
+                  opacity: drawerOpen ? 1 : 0,
+                  transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+                  transition: 'opacity 180ms ease, transform 180ms ease',
+                }}
+              >
+                <item.icon size={16} color={isActive ? '#DBEAFE' : '#93C5FD'} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+
+          <NavLink
+            to="/app/settings"
+            onClick={() => setDrawerOpen(false)}
+            className={drawerOpen ? 'mobile-dropdown-item is-open' : 'mobile-dropdown-item'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              textDecoration: 'none',
+              padding: '11px 0',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              color: '#BFDBFE',
+              fontSize: 14,
+              fontWeight: 500,
+              opacity: drawerOpen ? 1 : 0,
+              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <Settings size={16} color="#93C5FD" />
+            <span>Settings</span>
+          </NavLink>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className={drawerOpen ? 'mobile-dropdown-item is-open' : 'mobile-dropdown-item'}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              textAlign: 'left',
+              padding: '11px 0 4px',
+              background: 'none',
+              border: 'none',
+              color: '#FCA5A5',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 700,
+              opacity: drawerOpen ? 1 : 0,
+              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <LogOut size={16} color="#FCA5A5" />
+            <span>Sign out</span>
+          </button>
+        </div>
+        </div>
+
         {/* Page content */}
         <main
           className="page-content"
@@ -547,114 +690,17 @@ function Layout() {
         </main>
       </div>
 
-      {/* ── Mobile Extra Drawer (Settings) ── */}
-      {drawerOpen && (
-        <div
-          id="layout-mobile-drawer"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile navigation drawer"
-          style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
-          background: '#1E3A8A', zIndex: 1400, display: 'flex', flexDirection: 'column',
-          boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
-        }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <NavLink
-              to="/app"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Go to TUGON dashboard"
-              style={{ display: 'inline-flex' }}
-            >
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Tondo Emergency Response"
-                style={{ width: 148, maxWidth: '100%', height: 'auto' }}
-              />
-            </NavLink>
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close navigation drawer"
-              className="icon-btn-square"
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
-            >
-              <X size={18} color="white" />
-            </button>
-          </div>
-
-          {/* User info */}
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 14, flexShrink: 0 }}>{userInitials}</div>
-            <div>
-              <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{userFullName}</div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>{userRoleLabel}</div>
-            </div>
-          </div>
-
-          {/* Extra links */}
-          <div style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
-            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>Navigation</div>
-            {NAV_ITEMS.map((item) => {
-              const active = item.exact
-                ? location.pathname === item.path
-                : location.pathname.startsWith(item.path) && item.path !== '/app';
-              const exactActive = location.pathname === '/app';
-              const isActive = item.exact ? exactActive : active;
-
-              return (
-                <NavLink
-                  key={`mobile-drawer-${item.path}`}
-                  to={item.path}
-                  onClick={() => setDrawerOpen(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '14px 16px',
-                    borderRadius: 10,
-                    textDecoration: 'none',
-                    marginBottom: 6,
-                    background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)',
-                    border: isActive ? '1px solid rgba(191,219,254,0.65)' : '1px solid transparent',
-                  }}
-                >
-                  <item.icon size={20} color={isActive ? '#DBEAFE' : '#93C5FD'} />
-                  <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 14, fontWeight: isActive ? 700 : 500 }}>
-                    {item.label}
-                  </span>
-                </NavLink>
-              );
-            })}
-
-            <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-            <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>More</div>
-            <NavLink
-              to="/app/settings"
-              onClick={() => setDrawerOpen(false)}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, textDecoration: 'none', marginBottom: 6, background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Settings size={20} color="#93C5FD" />
-              <span style={{ color: '#BFDBFE', fontSize: 14 }}>Settings</span>
-            </NavLink>
-
-            <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, background: 'rgba(185,28,28,0.15)', border: 'none', width: '100%', cursor: 'pointer', minHeight: 48 }}
-              >
-                <LogOut size={18} color="#FCA5A5" />
-                <span style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>Sign Out</span>
-              </button>
-            </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style>{`
         .mobile-menu-btn { display: none !important; }
+
+        .mobile-menu-icon {
+          display: inline-flex;
+          transition: transform 180ms ease;
+        }
+
+        .mobile-menu-icon.is-open {
+          transform: rotate(90deg);
+        }
 
         a:focus-visible,
         button:focus-visible {
@@ -665,6 +711,10 @@ function Layout() {
         @media (max-width: 1024px) {
           .sidebar-desktop    { display: none !important; }
           .mobile-menu-btn    { display: flex !important; }
+          .mobile-menu-btn.is-open {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.2) !important;
+          }
           .mobile-logo        { display: flex !important; }
           .header-breadcrumb  { display: none !important; }
           .header-datetime    { display: none !important; }
@@ -672,12 +722,30 @@ function Layout() {
           .header-avatar-wrap { display: none !important; }
           .mobile-page-label  { display: flex !important; align-items: center !important; }
           .page-content       { padding-bottom: 0 !important; }
-          .mobile-overlay     { display: block !important; }
+
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(1) { transition-delay: 40ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(2) { transition-delay: 80ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(3) { transition-delay: 120ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(4) { transition-delay: 160ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(5) { transition-delay: 200ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(6) { transition-delay: 240ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(7) { transition-delay: 280ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(8) { transition-delay: 320ms; }
+          .mobile-dropdown-panel .mobile-dropdown-item:nth-child(9) { transition-delay: 360ms; }
         }
 
         @media (min-width: 1025px) {
           .mobile-page-label  { display: none !important; }
-          .mobile-overlay     { display: none !important; }
+          .mobile-dropdown-panel { display: none !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mobile-menu-icon,
+          .mobile-dropdown-panel,
+          .mobile-dropdown-item,
+          .mobile-menu-btn {
+            transition: none !important;
+          }
         }
       `}</style>
     </div>
