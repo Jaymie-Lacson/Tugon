@@ -96,6 +96,23 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const citizenReportsApi = {
+  validateReportPin(latitude: number, longitude: number) {
+    const params = new URLSearchParams({
+      latitude: String(latitude),
+      longitude: String(longitude),
+    });
+
+    return authedRequest<{
+      isAllowed: boolean;
+      isCrossBarangay?: boolean;
+      routedBarangayCode: string;
+      citizenBarangayCode: string;
+      message?: string;
+    }>(`/citizen/reports/geofence-check?${params.toString()}`, {
+      method: "GET",
+    });
+  },
+
   submitReport(input: {
     category: ReportCategory;
     subcategory: ReportSubcategory;

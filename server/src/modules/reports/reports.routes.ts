@@ -3,6 +3,7 @@ import multer from "multer";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { reportsService } from "./reports.service.js";
+import { geofencingService } from "../map/geofencing.service.js";
 
 export const citizenReportsRouter = Router();
 export const officialReportsRouter = Router();
@@ -11,12 +12,58 @@ const citizenReportUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     files: 3,
-    fileSize: env.evidenceMaxAudioBytes,
+    // Multer has a single per-file cap. Use the larger configured limit here,
+    // then enforce kind-specific size limits in evidenceStorageService.
+    fileSize: Math.max(env.evidenceMaxPhotoBytes, env.evidenceMaxAudioBytes),
   },
 }).fields([
   { name: "photos", maxCount: 2 },
   { name: "audio", maxCount: 1 },
 ]);
+
+function runCitizenReportUpload(req: Request, res: Response): Promise<void> {
+  return new Promise((resolve, reject) => {
+    citizenReportUpload(req, res, (error?: unknown) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function parseCitizenReportUploadError(error: unknown): { status: number; message: string } | null {
+  if (!(error instanceof multer.MulterError)) {
+    return null;
+  }
+
+  if (error.code === "LIMIT_FILE_SIZE") {
+    return {
+      status: 400,
+      message: "Evidence file exceeds maximum allowed size.",
+    };
+  }
+
+  if (error.code === "LIMIT_FILE_COUNT") {
+    return {
+      status: 400,
+      message: "Too many evidence files attached. You can upload up to 2 photos and 1 audio file.",
+    };
+  }
+
+  if (error.code === "LIMIT_UNEXPECTED_FILE") {
+    return {
+      status: 400,
+      message: "Unexpected evidence file field. Use only photos and audio fields.",
+    };
+  }
+
+  return {
+    status: 400,
+    message: "Invalid evidence upload payload.",
+  };
+}
 
 function isMultipartReportRequest(req: Request) {
   return req.is("multipart/form-data") === "multipart/form-data";
@@ -106,8 +153,10 @@ function mapReportBody(req: Request) {
   };
 }
 
-citizenReportsRouter.post("/reports", citizenReportUpload, async (req, res) => {
+citizenReportsRouter.post("/reports", async (req, res) => {
   try {
+    await runCitizenReportUpload(req, res);
+
     const authUser = req.authUser;
     if (!authUser) {
       return res.status(401).json({ message: "Unauthorized." });
@@ -155,8 +204,13 @@ citizenReportsRouter.post("/reports", citizenReportUpload, async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
+    const uploadError = parseCitizenReportUploadError(error);
+    if (uploadError) {
+      return res.status(uploadError.status).json({ message: uploadError.message });
+    }
+
     const parsed = reportsService.parseError(error);
-    res.status(parsed.status).json({ message: parsed.message });
+    return res.status(parsed.status).json({ message: parsed.message });
   }
 });
 
@@ -172,6 +226,82 @@ citizenReportsRouter.get("/reports", async (req, res) => {
   } catch (error) {
     const parsed = reportsService.parseError(error);
     res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+citizenReportsRouter.get("/reports/geofence-check", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const latitude = Number(req.query?.latitude);
+    const longitude = Number(req.query?.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return res.status(400).json({ message: "Valid latitude and longitude are required." });
+    }
+
+    const citizenUser = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        citizenProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const citizenBarangayCode = citizenUser?.citizenProfile?.barangay?.code;
+    if (!citizenBarangayCode) {
+      return res.status(403).json({ message: "Citizen barangay profile is required to submit reports." });
+    }
+
+    const routedBarangay = await geofencingService.resolveBarangayFromCoordinates(latitude, longitude);
+    const isCrossBarangay = routedBarangay.code !== citizenBarangayCode;
+
+    return res.status(200).json({
+      isAllowed: true,
+      isCrossBarangay,
+      routedBarangayCode: routedBarangay.code,
+      citizenBarangayCode,
+      message: isCrossBarangay
+        ? `Pinned location belongs to Barangay ${routedBarangay.code}. Your report will be accepted and classified as a cross-barangay incident.`
+        : undefined,
+    });
+  } catch (error) {
+    const parsed = geofencingService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.get("/reports/geofence-debug", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    if (authUser.role !== "SUPER_ADMIN") {
+      return res.status(403).json({ message: "Only super admins can access geofence diagnostics." });
+    }
+
+    const latitude = Number(req.query?.latitude);
+    const longitude = Number(req.query?.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return res.status(400).json({ message: "Valid latitude and longitude are required." });
+    }
+
+    const diagnostics = await geofencingService.debugClassification(latitude, longitude);
+    return res.status(200).json(diagnostics);
+  } catch (error) {
+    const parsed = geofencingService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
   }
 });
 

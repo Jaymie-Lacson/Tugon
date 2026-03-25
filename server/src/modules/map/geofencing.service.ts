@@ -25,6 +25,13 @@ type BarangayWithBoundary = {
   boundaryGeojson: string;
 };
 
+type ContainingBarangayMatch = {
+  barangay: BarangayWithBoundary;
+  boundaryDistance: number;
+};
+
+type ClassificationSource = "db" | "default" | null;
+
 class GeofencingError extends Error {
   status: number;
 
@@ -96,13 +103,22 @@ function isPointOnSegment(point: Position, segmentStart: Position, segmentEnd: P
   const [x1, y1] = segmentStart;
   const [x2, y2] = segmentEnd;
 
-  const cross = (py - y1) * (x2 - x1) - (px - x1) * (y2 - y1);
-  if (Math.abs(cross) > EDGE_EPSILON) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const segmentLengthSquared = dx * dx + dy * dy;
+
+  if (segmentLengthSquared === 0) {
+    return Math.hypot(px - x1, py - y1) <= EDGE_EPSILON;
+  }
+
+  const t = ((px - x1) * dx + (py - y1) * dy) / segmentLengthSquared;
+  if (t < -EDGE_EPSILON || t > 1 + EDGE_EPSILON) {
     return false;
   }
 
-  const dot = (px - x1) * (px - x2) + (py - y1) * (py - y2);
-  return dot <= EDGE_EPSILON;
+  const projectedX = x1 + t * dx;
+  const projectedY = y1 + t * dy;
+  return Math.hypot(px - projectedX, py - projectedY) <= EDGE_EPSILON;
 }
 
 function isPointInsideRing(point: Position, ring: LinearRing): boolean {
@@ -257,18 +273,32 @@ async function ensureDefaultBoundaries() {
     },
   });
 
+  const normalizeBoundaryForCompare = (rawBoundary: string): string | null => {
+    try {
+      return JSON.stringify(parseBoundary(rawBoundary));
+    } catch {
+      return null;
+    }
+  };
+
   const existingByCode = new Map(existing.map((row) => [row.code, row]));
-  const missingOrBoundaryless = defaultBarangayBoundaries.filter((boundary) => {
+  const boundariesToSync = defaultBarangayBoundaries.filter((boundary) => {
     const current = existingByCode.get(boundary.code);
-    return !current || !current.boundaryGeojson;
+    if (!current || !current.boundaryGeojson) {
+      return true;
+    }
+
+    const currentNormalized = normalizeBoundaryForCompare(current.boundaryGeojson);
+    const canonicalNormalized = normalizeBoundaryForCompare(boundary.boundaryGeojson);
+    return !currentNormalized || !canonicalNormalized || currentNormalized !== canonicalNormalized;
   });
 
-  if (missingOrBoundaryless.length === 0) {
+  if (boundariesToSync.length === 0) {
     return;
   }
 
   await Promise.all(
-    missingOrBoundaryless.map((boundary) =>
+    boundariesToSync.map((boundary) =>
       prisma.barangay.upsert({
         where: { code: boundary.code },
         update: {
@@ -283,6 +313,59 @@ async function ensureDefaultBoundaries() {
       }),
     ),
   );
+}
+
+async function classifyPoint(point: Position): Promise<{
+  owningBarangay: BarangayWithBoundary | undefined;
+  source: ClassificationSource;
+  containingBarangays: ContainingBarangayMatch[];
+}> {
+  await ensureDefaultBoundaries();
+  const barangays = await listSupportedBarangaysWithBoundary();
+
+  const containingBarangays: ContainingBarangayMatch[] = [];
+  let owningBarangay: BarangayWithBoundary | undefined;
+  let source: ClassificationSource = null;
+
+  for (const barangay of barangays) {
+    if (!barangay.boundaryGeojson) {
+      continue;
+    }
+
+    try {
+      const geometry = parseBoundary(barangay.boundaryGeojson);
+      if (isPointInsideGeometry(point, geometry)) {
+        containingBarangays.push({
+          barangay,
+          boundaryDistance: distancePointToGeometryBoundary(point, geometry),
+        });
+      }
+    } catch {
+      // Ignore malformed boundary records and keep checking others.
+    }
+  }
+
+  if (containingBarangays.length > 0) {
+    // If boundaries overlap, classify ownership using the polygon where the pin
+    // is deepest inside (largest distance from any boundary edge).
+    containingBarangays.sort((left, right) => right.boundaryDistance - left.boundaryDistance);
+    owningBarangay = containingBarangays[0].barangay;
+    source = "db";
+  }
+
+  if (!owningBarangay) {
+    const fallbackCode = resolveOwningBarangayCodeFromDefaults(point);
+    if (fallbackCode) {
+      owningBarangay = barangays.find((barangay) => barangay.code === fallbackCode);
+      source = owningBarangay ? "default" : null;
+    }
+  }
+
+  return {
+    owningBarangay,
+    source,
+    containingBarangays,
+  };
 }
 
 function resolveOwningBarangayCodeFromDefaults(point: Position): string | null {
@@ -305,37 +388,8 @@ export const geofencingService = {
     if (!isFiniteNumber(latitude) || !isFiniteNumber(longitude)) {
       throw new GeofencingError("Valid latitude and longitude are required.", 400);
     }
-
-    await ensureDefaultBoundaries();
-
-    const barangays = await listSupportedBarangaysWithBoundary();
-
     const point: Position = [longitude, latitude];
-
-    let owningBarangay: BarangayWithBoundary | undefined;
-
-    for (const barangay of barangays) {
-      if (!barangay.boundaryGeojson) {
-        continue;
-      }
-
-      try {
-        const geometry = parseBoundary(barangay.boundaryGeojson);
-        if (isPointInsideGeometry(point, geometry)) {
-          owningBarangay = barangay;
-          break;
-        }
-      } catch {
-        // Ignore malformed boundary records and keep checking others.
-      }
-    }
-
-    if (!owningBarangay) {
-      const fallbackCode = resolveOwningBarangayCodeFromDefaults(point);
-      if (fallbackCode) {
-        owningBarangay = barangays.find((barangay) => barangay.code === fallbackCode);
-      }
-    }
+    const { owningBarangay } = await classifyPoint(point);
 
     if (!owningBarangay) {
       throw new GeofencingError("Pinned location is outside supported barangay boundaries.", 400);
@@ -345,6 +399,34 @@ export const geofencingService = {
       id: owningBarangay.id,
       code: owningBarangay.code,
       name: owningBarangay.name,
+    };
+  },
+
+  async debugClassification(latitude: number, longitude: number) {
+    if (!isFiniteNumber(latitude) || !isFiniteNumber(longitude)) {
+      throw new GeofencingError("Valid latitude and longitude are required.", 400);
+    }
+
+    const point: Position = [longitude, latitude];
+    const { owningBarangay, source, containingBarangays } = await classifyPoint(point);
+
+    return {
+      latitude,
+      longitude,
+      source,
+      selectedBarangay: owningBarangay
+        ? {
+            id: owningBarangay.id,
+            code: owningBarangay.code,
+            name: owningBarangay.name,
+          }
+        : null,
+      containingBarangays: containingBarangays.map((match) => ({
+        id: match.barangay.id,
+        code: match.barangay.code,
+        name: match.barangay.name,
+        boundaryDistanceMeters: Number(match.boundaryDistance.toFixed(3)),
+      })),
     };
   },
 

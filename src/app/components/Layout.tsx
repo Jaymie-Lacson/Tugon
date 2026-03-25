@@ -38,7 +38,7 @@ function LiveClock() {
   );
 }
 
-export function Layout() {
+function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -522,3 +522,6 @@ export function Layout() {
     </div>
   );
 }
+
+export { Layout };
+export default Layout;

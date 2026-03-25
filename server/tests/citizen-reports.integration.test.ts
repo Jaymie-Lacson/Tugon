@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 
 type PrismaModule = typeof import("../src/config/prisma.js");
 type GeoModule = typeof import("../src/modules/map/geofencing.service.js");
+type BoundaryModule = typeof import("../src/modules/map/defaultBarangayBoundaries.js");
 
 const TEST_JWT_SECRET = "tugon-test-jwt-secret-12345";
 
@@ -12,8 +13,10 @@ let baseUrl = "";
 let server: Server;
 let prismaModule: PrismaModule;
 let geoModule: GeoModule;
+let boundaryModule: BoundaryModule;
 
 let originalUserFindUnique: PrismaModule["prisma"]["user"]["findUnique"];
+let originalBarangayFindMany: PrismaModule["prisma"]["barangay"]["findMany"];
 let originalResolveBarangay: GeoModule["geofencingService"]["resolveBarangayFromCoordinates"];
 let originalFindNearbyBarangays: GeoModule["geofencingService"]["findNearbyBarangaysForAlert"];
 
@@ -43,6 +46,31 @@ async function postJson(path: string, token: string, body: unknown) {
   return { response, payload };
 }
 
+async function postMultipart(path: string, token: string, formData: FormData) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as unknown;
+  return { response, payload };
+}
+
+async function getJson(path: string, token: string) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as unknown;
+  return { response, payload };
+}
+
 before(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
@@ -56,11 +84,13 @@ before(async () => {
     import("../src/config/prisma.js"),
     import("../src/modules/map/geofencing.service.js"),
   ]);
+  boundaryModule = await import("../src/modules/map/defaultBarangayBoundaries.js");
 
   prismaModule = prismaConfig;
   geoModule = geoConfig;
 
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
+  originalBarangayFindMany = prismaModule.prisma.barangay.findMany;
   originalResolveBarangay = geoModule.geofencingService.resolveBarangayFromCoordinates;
   originalFindNearbyBarangays = geoModule.geofencingService.findNearbyBarangaysForAlert;
 
@@ -79,6 +109,7 @@ before(async () => {
 
 after(async () => {
   prismaModule.prisma.user.findUnique = originalUserFindUnique;
+  prismaModule.prisma.barangay.findMany = originalBarangayFindMany;
   geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
   geoModule.geofencingService.findNearbyBarangaysForAlert = originalFindNearbyBarangays;
 
@@ -158,7 +189,7 @@ describe("Citizen report POST validation integration", () => {
     assert.deepEqual(payload, { message: "Voice recording is only allowed for noise-related incidents." });
   });
 
-  it("returns 403 when pinned location belongs to another barangay", async () => {
+  it("allows cross-barangay pin and classifies it as cross-barangay", async () => {
     prismaModule.prisma.user.findUnique = (async () => ({
       id: "test-citizen-id",
       fullName: "Test Citizen",
@@ -177,28 +208,63 @@ describe("Citizen report POST validation integration", () => {
 
     const token = createCitizenToken();
 
-    const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Noise",
-      subcategory: "Loud music or karaoke",
-      requiresMediation: false,
-      mediationWarning: null,
-      latitude: 14.6145,
-      longitude: 120.9778,
-      location: "Near boundary area",
-      description: "Noise complaint near boundary where jurisdiction could be different.",
-      severity: "medium",
-      affectedCount: "6-20",
-      photoCount: 1,
-      hasAudio: false,
-    });
+    const { response, payload } = await getJson(
+      "/api/citizen/reports/geofence-check?latitude=14.6145&longitude=120.9778",
+      token,
+    );
 
-    assert.equal(response.status, 403);
+    assert.equal(response.status, 200);
     assert.deepEqual(payload, {
+      isAllowed: true,
+      isCrossBarangay: true,
+      routedBarangayCode: "252",
+      citizenBarangayCode: "251",
       message:
-        "Pinned location belongs to Barangay 252. You can only submit incidents within Barangay 251.",
+        "Pinned location belongs to Barangay 252. Your report will be accepted and classified as a cross-barangay incident.",
     });
 
     geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+  });
+
+  it("classifies known overlap coordinate to Barangay 256 using canonical boundaries", async () => {
+    prismaModule.prisma.user.findUnique = (async () => ({
+      id: "test-citizen-id",
+      fullName: "Test Citizen",
+      citizenProfile: {
+        barangay: {
+          code: "251",
+        },
+      },
+    })) as typeof prismaModule.prisma.user.findUnique;
+
+    const boundaryRows = boundaryModule.defaultBarangayBoundaries.map((boundary) => ({
+      id: `brgy-${boundary.code}`,
+      code: boundary.code,
+      name: boundary.name,
+      boundaryGeojson: boundary.boundaryGeojson,
+    }));
+
+    prismaModule.prisma.barangay.findMany = (async () => boundaryRows) as typeof prismaModule.prisma.barangay.findMany;
+    geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
+
+    const token = createCitizenToken();
+
+    const { response, payload } = await getJson(
+      "/api/citizen/reports/geofence-check?latitude=14.61594&longitude=120.978492",
+      token,
+    );
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(payload, {
+      isAllowed: true,
+      isCrossBarangay: true,
+      routedBarangayCode: "256",
+      citizenBarangayCode: "251",
+      message:
+        "Pinned location belongs to Barangay 256. Your report will be accepted and classified as a cross-barangay incident.",
+    });
+
+    prismaModule.prisma.barangay.findMany = originalBarangayFindMany;
   });
 
   it("returns 400 when photo mime type is not allowed", async () => {
@@ -301,5 +367,30 @@ describe("Citizen report POST validation integration", () => {
 
     geoModule.geofencingService.resolveBarangayFromCoordinates = originalResolveBarangay;
     geoModule.geofencingService.findNearbyBarangaysForAlert = originalFindNearbyBarangays;
+  });
+
+  it("returns 400 when multipart evidence exceeds upload middleware file limit", async () => {
+    const token = createCitizenToken();
+    const formData = new FormData();
+
+    formData.append("category", "Noise");
+    formData.append("subcategory", "Loud music or karaoke");
+    formData.append("requiresMediation", "false");
+    formData.append("latitude", "14.6145");
+    formData.append("longitude", "120.9778");
+    formData.append("location", "Barangay 251 Hall");
+    formData.append("description", "Large multipart payload should be rejected early.");
+    formData.append("severity", "medium");
+    formData.append("affectedCount", "6-20");
+    formData.append("photoCount", "1");
+    formData.append("hasAudio", "false");
+
+    const oversizedPhoto = new Blob([Buffer.alloc(128, 0x01)], { type: "image/png" });
+    formData.append("photos", oversizedPhoto, "oversized.png");
+
+    const { response, payload } = await postMultipart("/api/citizen/reports", token, formData);
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(payload, { message: "Evidence file exceeds maximum allowed size." });
   });
 });

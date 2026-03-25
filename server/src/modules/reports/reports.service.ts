@@ -891,12 +891,7 @@ export const reportsService = {
       throw new ReportsError(parsed.message, parsed.status);
     }
 
-    if (routedBarangay.code !== citizenUser.barangayCode) {
-      throw new ReportsError(
-        `Pinned location belongs to Barangay ${routedBarangay.code}. You can only submit incidents within Barangay ${citizenUser.barangayCode}.`,
-        403,
-      );
-    }
+    const isCrossBarangayReport = routedBarangay.code !== citizenUser.barangayCode;
 
     const now = new Date().toISOString();
     const reportId = reportsStore.nextReportId();
@@ -997,6 +992,19 @@ export const reportsService = {
           actor: "TUGON System",
           actorRole: "Automated",
         },
+        ...(isCrossBarangayReport
+          ? [
+              {
+                status: "Submitted" as const,
+                label: "Cross-Barangay Classification",
+                description: `Reporter is registered in Barangay ${citizenUser.barangayCode}, but geofencing routed this incident to Barangay ${routedBarangay.code}.`,
+                timestamp: now,
+                actor: "TUGON System",
+                actorRole: "Automated",
+                note: "Informational classification only. Jurisdiction remains with the routed barangay.",
+              },
+            ]
+          : []),
       ],
     };
 
@@ -1800,6 +1808,20 @@ export const reportsService = {
       }
 
       if (error.code === "P2010") {
+        const rawMessage =
+          (typeof error.meta?.message === "string" && error.meta.message)
+          || (typeof error.message === "string" ? error.message : "");
+
+        const looksLikeSchemaMismatch = /does not exist|undefined table|undefined column|relation\s+.+\s+does not exist/i
+          .test(rawMessage);
+
+        if (looksLikeSchemaMismatch) {
+          return {
+            status: 503,
+            message: "Unable to process report request right now.",
+          };
+        }
+
         return {
           status: 500,
           message: "Unable to process report request right now.",
