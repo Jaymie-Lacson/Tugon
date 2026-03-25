@@ -31,6 +31,7 @@ const authRequirePersistedSessionFromEnv = process.env.AUTH_REQUIRE_PERSISTED_SE
 const csrfCookieNameFromEnv = (process.env.CSRF_COOKIE_NAME ?? "tugon.csrf").trim();
 const csrfHeaderNameFromEnv = (process.env.CSRF_HEADER_NAME ?? "x-csrf-token").trim().toLowerCase();
 const otpSmsFailoverToMockFromEnv = process.env.OTP_SMS_FAILOVER_TO_MOCK === "1";
+const otpReturnMockCodeInResponseFromEnv = !isProductionEnv && process.env.OTP_RETURN_MOCK_CODE_IN_RESPONSE === "1";
 const otpSmsProviderFromEnv = (process.env.OTP_SMS_PROVIDER ?? "semaphore").trim().toLowerCase();
 const semaphoreApiKeyFromEnv = (process.env.SEMAPHORE_API_KEY ?? "").trim();
 const semaphoreSenderNameFromEnv = (process.env.SEMAPHORE_SENDER_NAME ?? "").trim();
@@ -157,6 +158,14 @@ export function shouldAllowBearerAuth() {
   return parseBooleanFlag(process.env.AUTH_ALLOW_BEARER_TOKENS) || env.authAllowBearerTokens;
 }
 
+export function shouldReturnMockOtpCodeInResponse() {
+  if (isRuntimeProductionEnv()) {
+    return false;
+  }
+
+  return parseBooleanFlag(process.env.OTP_RETURN_MOCK_CODE_IN_RESPONSE) || env.otpReturnMockCodeInResponse;
+}
+
 export function shouldRequirePersistedSession() {
   if (isRuntimeProductionEnv()) {
     return true;
@@ -201,6 +210,7 @@ export const env = {
   csrfCookieName: csrfCookieNameFromEnv,
   csrfHeaderName: csrfHeaderNameFromEnv,
   otpSmsFailoverToMock: otpSmsFailoverToMockFromEnv,
+  otpReturnMockCodeInResponse: otpReturnMockCodeInResponseFromEnv,
   otpSmsProvider: otpSmsProviderFromEnv as "semaphore" | "infobip",
   semaphoreApiKey: semaphoreApiKeyFromEnv,
   semaphoreSenderName: semaphoreSenderNameFromEnv,
