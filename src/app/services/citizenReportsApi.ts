@@ -58,7 +58,7 @@ export interface ApiCitizenReport {
   timeline: ApiTimelineEntry[];
 }
 
-const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api").replace(
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
   /\/+$/,
   "",
 );

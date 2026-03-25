@@ -3,7 +3,7 @@ import { withSecurityHeaders } from "../utils/requestSecurity";
 import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
-const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api").replace(
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
   /\/+$/,
   "",
 );
