@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Layers, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  Navigation2, ArrowLeft, TrendingUp, SlidersHorizontal,
-  Navigation2, ArrowLeft, TrendingUp, CheckCircle2,
+  Navigation2, ArrowLeft, TrendingUp, SlidersHorizontal, CheckCircle2,
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
