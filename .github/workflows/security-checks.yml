@@ -54,4 +54,4 @@ jobs:
         run: npm --prefix server ci
 
       - name: Run security-focused backend integration tests
-        run: npm --prefix server run test:integration -- auth-session.integration.test.ts security.integration.test.ts auth-otp-security.integration.test.ts reports-error-sanitization.integration.test.ts
+        run: npm --prefix server run test:integration -- tests/auth-session.integration.test.ts tests/security.integration.test.ts tests/auth-otp-security.integration.test.ts tests/reports-error-sanitization.integration.test.ts tests/auth-production-hardening.integration.test.ts

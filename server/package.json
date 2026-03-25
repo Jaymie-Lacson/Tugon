@@ -7,7 +7,7 @@
     "dev": "npm run build && node dist/server.js",
     "build": "tsc -p tsconfig.json",
     "audit:security": "npm audit --omit=dev --audit-level=high",
-    "test:integration": "tsx --test tests/**/*.test.ts",
+    "test:integration": "tsx --test",
     "test": "npm run test:integration",
     "start": "node dist/server.js",
     "start:prod": "if [ \"$RUN_DB_MIGRATIONS\" = \"1\" ]; then npm run prisma:migrate:deploy; else echo 'Skipping prisma migrations (set RUN_DB_MIGRATIONS=1 to enable)'; fi && npm run start",
