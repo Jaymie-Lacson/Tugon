@@ -22,8 +22,9 @@ const authCookieNameFromEnv = (process.env.AUTH_COOKIE_NAME ?? "tugon.sid").trim
 const authCookieSecureModeFromEnv = (process.env.AUTH_COOKIE_SECURE_MODE ?? "auto").trim().toLowerCase();
 const authCookieSameSiteFromEnv = (process.env.AUTH_COOKIE_SAME_SITE ?? "lax").trim().toLowerCase();
 const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "28800");
-const authReturnTokenInBodyFromEnv = process.env.AUTH_RETURN_TOKEN_IN_BODY === "1";
-const authAllowBearerTokensFromEnv = process.env.AUTH_ALLOW_BEARER_TOKENS === "1";
+const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+const authReturnTokenInBodyFromEnv = !isProductionEnv && process.env.AUTH_RETURN_TOKEN_IN_BODY === "1";
+const authAllowBearerTokensFromEnv = !isProductionEnv && process.env.AUTH_ALLOW_BEARER_TOKENS === "1";
 const csrfCookieNameFromEnv = (process.env.CSRF_COOKIE_NAME ?? "tugon.csrf").trim();
 const csrfHeaderNameFromEnv = (process.env.CSRF_HEADER_NAME ?? "x-csrf-token").trim().toLowerCase();
 const otpSmsFailoverToMockFromEnv = process.env.OTP_SMS_FAILOVER_TO_MOCK === "1";

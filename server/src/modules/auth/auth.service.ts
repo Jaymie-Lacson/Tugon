@@ -77,6 +77,14 @@ function signToken(user: { id: string; role: Role; phoneNumber: string }) {
   };
 }
 
+function tokenExpiryMs(token: string) {
+  const decoded = jwt.decode(token) as { exp?: number } | null;
+  if (!decoded?.exp) {
+    return Date.now() + 8 * 60 * 60 * 1000;
+  }
+  return decoded.exp * 1000;
+}
+
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -1046,13 +1054,13 @@ export const authService = {
   },
 
   async logout(token: string) {
-    authStore.revokedTokens.add(token);
+    authStore.addRevokedToken(token, tokenExpiryMs(token));
     await markSessionRevoked(token);
     return { message: "Logged out successfully." };
   },
 
   async isTokenRevoked(token: string, payload: AuthPayload) {
-    if (authStore.revokedTokens.has(token)) {
+    if (authStore.isTokenRevoked(token)) {
       return true;
     }
 
@@ -1090,6 +1098,6 @@ export const authService = {
     }
 
     console.error("[AUTH] Unexpected error:", error);
-    return { status: 500, message: "Unexpected authentication error." };
+    return { status: 500, message: "Unable to process authentication request right now." };
   },
 };

@@ -1798,21 +1798,21 @@ export const reportsService = {
       if (error.code === "P2003") {
         return {
           status: 400,
-          message: "Report could not be saved because a related record is missing. Verify barangay/report references and rerun migrations.",
+          message: "Invalid report data.",
         };
       }
 
       if (error.code === "P2025") {
         return {
           status: 404,
-          message: "Report operation failed because a required record was not found.",
+          message: "Report not found.",
         };
       }
 
       if (error.code === "P2002") {
         return {
           status: 409,
-          message: "Duplicate report-related record detected. Please retry submission once.",
+          message: "Conflict while processing report request.",
         };
       }
 
@@ -1834,10 +1834,10 @@ export const reportsService = {
         name: error.name,
         message: error.message,
       });
-      return { status: 500, message: "Unexpected reports service error." };
+      return { status: 500, message: "Unable to process report request right now." };
     }
 
     console.error("[reports] Unexpected non-error failure", { error });
-    return { status: 500, message: "Unexpected reports service error." };
+    return { status: 500, message: "Unable to process report request right now." };
   },
 };

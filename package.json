@@ -7,6 +7,7 @@
     "build": "vite build",
     "dev": "vite",
     "build:server": "npm --prefix server run build",
+    "audit:security": "npm audit --omit=dev --audit-level=high && npm --prefix server run audit:security",
     "prisma:generate": "npm --prefix server run prisma:generate",
     "prisma:validate": "npm --prefix server run prisma:validate",
     "prisma:status": "npm --prefix server run prisma:status",

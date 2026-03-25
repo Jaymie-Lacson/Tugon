@@ -263,4 +263,37 @@ describe("Auth session token hardening integration", () => {
     });
     assert.equal(meAfterLogout.status, 401);
   });
+
+  it("rejects mixed cookie and bearer credentials in the same request", async () => {
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phoneNumber: "09179990000",
+        password: testPassword,
+      }),
+    });
+
+    const loginBody = (await loginResponse.json()) as { token?: string };
+    const token = loginBody.token ?? "";
+    assert.ok(token.length > 0);
+
+    const setCookies = loginResponse.headers.getSetCookie();
+    const authCookie = parseAuthCookie(setCookies.find((value) => value.startsWith("tugon.sid=")) ?? null);
+    assert.match(authCookie, /^tugon\.sid=/);
+
+    const mixedAuthRequest = await fetch(`${baseUrl}/api/auth/me`, {
+      method: "GET",
+      headers: {
+        Cookie: authCookie,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const mixedAuthBody = (await mixedAuthRequest.json()) as { message?: string };
+    assert.equal(mixedAuthRequest.status, 400);
+    assert.equal(mixedAuthBody.message, "Provide either cookie session or bearer authorization, not both.");
+  });
 });

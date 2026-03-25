@@ -40,6 +40,19 @@ This runs:
 - Prisma client generation
 - Prisma migration status check
 
+- Security dependency audit gate:
+   - `npm run audit:security`
+
+This fails on high-severity production dependency vulnerabilities in both root and `server/`.
+
+## Security CI
+
+- Workflow: `.github/workflows/security-checks.yml`
+- Runs on push/PR to `main` and manual dispatch.
+- Includes:
+   - dependency security audit gate (`npm run audit:security`)
+   - security-focused backend integration regression tests
+
 ## Deployment Manifests
 
 - Frontend: `vercel.json`
