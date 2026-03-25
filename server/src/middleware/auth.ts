@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { env } from "../config/env.js";
+import { env, shouldAllowBearerAuth } from "../config/env.js";
 import { authService } from "../modules/auth/auth.service.js";
 
 declare global {
@@ -37,7 +37,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
     return res.status(400).json({ message: "Provide either cookie session or bearer authorization, not both." });
   }
 
-  if (bearerToken && !env.authAllowBearerTokens) {
+  if (bearerToken && !shouldAllowBearerAuth()) {
     return res.status(401).json({ message: "Bearer authorization is disabled for this deployment." });
   }
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { CookieOptions } from "express";
-import { env } from "../../config/env.js";
+import { env, shouldReturnAuthTokenInBody } from "../../config/env.js";
 import { authService } from "./auth.service.js";
 import { authenticate } from "../../middleware/auth.js";
 import { ensureCsrfCookie } from "../../middleware/csrf.js";
@@ -119,7 +119,7 @@ authRouter.post("/create-password", async (req, res) => {
     }
     ensureCsrfCookie(req, res);
 
-    if (!env.authReturnTokenInBody) {
+    if (!shouldReturnAuthTokenInBody()) {
       const { token: _token, ...body } = result;
       return res.status(200).json(body);
     }
@@ -143,7 +143,7 @@ authRouter.post("/login", async (req, res) => {
     }
     ensureCsrfCookie(req, res);
 
-    if (!env.authReturnTokenInBody) {
+    if (!shouldReturnAuthTokenInBody()) {
       const { token: _token, ...body } = session;
       return res.status(200).json(body);
     }

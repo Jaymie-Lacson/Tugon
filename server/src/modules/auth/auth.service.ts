@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
-import { env } from "../../config/env.js";
+import { env, shouldRequirePersistedSession } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
 import { OtpSmsDeliveryError, sendOtpSms } from "./otp-sms.service.js";
@@ -1073,7 +1073,7 @@ export const authService = {
       return true;
     }
 
-    if (dbSessionState === "missing" && env.authRequirePersistedSession) {
+    if (dbSessionState === "missing" && shouldRequirePersistedSession()) {
       return true;
     }
 

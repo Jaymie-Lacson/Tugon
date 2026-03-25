@@ -133,6 +133,42 @@ if (!jwtSecret || jwtSecret.trim().length < 16) {
   throw new Error("JWT_SECRET must be set and at least 16 characters long.");
 }
 
+function isRuntimeProductionEnv() {
+  return (process.env.NODE_ENV ?? env.nodeEnv) === "production";
+}
+
+function parseBooleanFlag(value: string | undefined) {
+  return (value ?? "") === "1";
+}
+
+export function shouldReturnAuthTokenInBody() {
+  if (isRuntimeProductionEnv()) {
+    return false;
+  }
+
+  return parseBooleanFlag(process.env.AUTH_RETURN_TOKEN_IN_BODY) || env.authReturnTokenInBody;
+}
+
+export function shouldAllowBearerAuth() {
+  if (isRuntimeProductionEnv()) {
+    return false;
+  }
+
+  return parseBooleanFlag(process.env.AUTH_ALLOW_BEARER_TOKENS) || env.authAllowBearerTokens;
+}
+
+export function shouldRequirePersistedSession() {
+  if (isRuntimeProductionEnv()) {
+    return true;
+  }
+
+  if (typeof process.env.AUTH_REQUIRE_PERSISTED_SESSION === "string") {
+    return process.env.AUTH_REQUIRE_PERSISTED_SESSION === "1";
+  }
+
+  return env.authRequirePersistedSession;
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: portFromEnv,
