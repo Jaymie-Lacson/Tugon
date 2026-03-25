@@ -605,6 +605,7 @@ export default function MapView() {
             renderMode={isPublicCommunityMap ? 'standard' : mapRenderMode}
             heatmapRadiusPercent={heatRadiusPercent}
             heatmapOpacityPercent={heatOpacityPercent}
+            viewportKey={isPublicCommunityMap ? 'public-map' : (panelOpen ? 'official-panel-open' : 'official-panel-closed')}
           />
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Incident, incidentTypeConfig } from '../data/incidents';
@@ -114,6 +114,94 @@ function MapPanner({ incident }: { incident: Incident | null }) {
   return null;
 }
 
+function buildViewportSignature(incidents: Incident[]): string {
+  return incidents
+    .map((incident) => `${incident.id}:${incident.lat.toFixed(6)},${incident.lng.toFixed(6)}`)
+    .sort()
+    .join('|');
+}
+
+function MapViewportController({
+  incidents,
+  selectedIncident,
+  targetZoom,
+  viewportKey,
+}: {
+  incidents: Incident[];
+  selectedIncident: Incident | null;
+  targetZoom: number;
+  viewportKey: string;
+}) {
+  const map = useMap();
+  const lastFitSignatureRef = useRef('');
+
+  useEffect(() => {
+    if (selectedIncident || incidents.length === 0) {
+      return;
+    }
+
+    const signature = buildViewportSignature(incidents);
+    if (signature === lastFitSignatureRef.current) {
+      return;
+    }
+
+    const points = incidents.map((incident) => L.latLng(incident.lat, incident.lng));
+    const bounds = L.latLngBounds(points);
+    if (!bounds.isValid()) {
+      return;
+    }
+
+    if (points.length === 1) {
+      map.setView(points[0], Math.max(17, targetZoom), { animate: false });
+    } else {
+      map.fitBounds(bounds.pad(0.2), {
+        padding: [44, 44],
+        maxZoom: Math.max(17, targetZoom),
+        animate: false,
+      });
+    }
+
+    lastFitSignatureRef.current = signature;
+  }, [incidents, map, selectedIncident, targetZoom]);
+
+  useEffect(() => {
+    if (incidents.length === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      map.invalidateSize({ animate: false });
+
+      if (selectedIncident) {
+        map.setView([selectedIncident.lat, selectedIncident.lng], map.getZoom(), { animate: false });
+        return;
+      }
+
+      const points = incidents.map((incident) => L.latLng(incident.lat, incident.lng));
+      const bounds = L.latLngBounds(points);
+      if (!bounds.isValid()) {
+        return;
+      }
+
+      if (points.length === 1) {
+        map.setView(points[0], Math.max(17, targetZoom), { animate: false });
+      } else {
+        map.fitBounds(bounds.pad(0.2), {
+          padding: [44, 44],
+          maxZoom: Math.max(17, targetZoom),
+          animate: false,
+        });
+      }
+    }, 360);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [incidents, map, selectedIncident, targetZoom, viewportKey]);
+
+  return null;
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────
 export interface IncidentMapProps {
   incidents: Incident[];
@@ -128,6 +216,7 @@ export interface IncidentMapProps {
   heatmapRadiusPercent?: number;
   heatmapOpacityPercent?: number;
   interactive?: boolean;
+  viewportKey?: string;
 }
 
 export interface HeatmapClusterOverlay {
@@ -224,6 +313,7 @@ export function IncidentMap({
   heatmapRadiusPercent = 100,
   heatmapOpacityPercent = 100,
   interactive = true,
+  viewportKey = 'default',
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
@@ -290,6 +380,9 @@ export function IncidentMap({
 
         {/* Auto-pan when selected changes */}
         <MapPanner incident={selectedIncident} />
+
+        {/* Auto-fit viewport for the visible data scope (including single-barangay official views). */}
+        <MapViewportController incidents={sorted} selectedIncident={selectedIncident} targetZoom={zoom} viewportKey={viewportKey} />
 
         {/* Soft glow circles for active incidents */}
         {!isHotspotMode && sorted

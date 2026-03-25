@@ -502,6 +502,11 @@ export default function Incidents() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [selectedIncident, setSelectedIncident] = useState<IncidentView | null>(null);
   const [updatingIncidentId, setUpdatingIncidentId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    incident: IncidentView;
+    x: number;
+    y: number;
+  } | null>(null);
   const [page, setPage] = useState(1);
   const hasFilter = Boolean(search || filterCategory || filterSeverity || filterStatus);
 
@@ -667,6 +672,8 @@ export default function Incidents() {
   const handleUpdateStatus = async (nextStatus: ApiTicketStatus) => {
     if (!selectedIncident) return;
 
+    setContextMenu(null);
+
     setUpdatingIncidentId(selectedIncident.id);
     setError(null);
     try {
@@ -679,6 +686,60 @@ export default function Incidents() {
     } finally {
       setUpdatingIncidentId(null);
     }
+  };
+
+  const updateIncidentStatus = async (incident: IncidentView, nextStatus: ApiTicketStatus) => {
+    setContextMenu(null);
+
+    setUpdatingIncidentId(incident.id);
+    setError(null);
+    try {
+      const updated = await officialReportsApi.updateReportStatus(incident.id, { status: nextStatus });
+      const mapped = toIncidentView(updated.report);
+      setIncidents((current) => current.map((item) => (item.id === mapped.id ? mapped : item)));
+      setSelectedIncident((current) => (current?.id === mapped.id ? mapped : current));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status.');
+    } finally {
+      setUpdatingIncidentId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return;
+    }
+
+    const closeMenu = () => setContextMenu(null);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setContextMenu(null);
+      }
+    };
+
+    window.addEventListener('click', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      window.removeEventListener('click', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [contextMenu]);
+
+  const getArchiveTargetStatus = (incident: IncidentView): ApiTicketStatus | null => {
+    const allowed = STATUS_TRANSITIONS[incident.ticketStatus];
+    if (allowed.includes('Resolved')) {
+      return 'Resolved';
+    }
+    if (allowed.includes('Unresolvable')) {
+      return 'Unresolvable';
+    }
+    if (allowed.includes('Closed')) {
+      return 'Closed';
+    }
+    return null;
   };
 
   const SortIcon = ({ k }: { k: keyof IncidentView }) => {
@@ -842,6 +903,7 @@ export default function Incidents() {
               style={{
                 position: 'absolute',
                 top: '50%',
+                right: 12,
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
               }}
@@ -916,6 +978,19 @@ export default function Incidents() {
                 <tr
                   key={inc.id}
                   onClick={() => setSelectedIncident(inc)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    const canShowContextMenu = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches;
+                    if (!canShowContextMenu) {
+                      return;
+                    }
+
+                    setContextMenu({
+                      incident: inc,
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
                   style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
                 >
                   <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 12 }}>
@@ -961,6 +1036,81 @@ export default function Incidents() {
           </table>
         </div>
       </div>
+
+      {contextMenu ? (
+        <div
+          role="menu"
+          aria-label={`Actions for ${contextMenu.incident.id}`}
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            minWidth: 180,
+            background: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: 10,
+            boxShadow: '0 16px 30px rgba(15,23,42,0.22)',
+            padding: 6,
+            zIndex: 160,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedIncident(contextMenu.incident);
+              setContextMenu(null);
+            }}
+            style={{
+              width: '100%',
+              border: 'none',
+              background: '#FFFFFF',
+              color: '#334155',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '9px 10px',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Edit2 size={13} /> Open / Edit Incident
+          </button>
+
+          <button
+            type="button"
+            disabled={!getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id}
+            onClick={() => {
+              const archiveStatus = getArchiveTargetStatus(contextMenu.incident);
+              if (!archiveStatus) {
+                return;
+              }
+              void updateIncidentStatus(contextMenu.incident, archiveStatus);
+            }}
+            style={{
+              width: '100%',
+              border: 'none',
+              background: '#FFFFFF',
+              color: !getArchiveTargetStatus(contextMenu.incident) ? '#94A3B8' : '#B45309',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '9px 10px',
+              textAlign: 'left',
+              cursor: !getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Clock size={13} />
+            {updatingIncidentId === contextMenu.incident.id ? 'Archiving...' : 'Archive Incident'}
+          </button>
+        </div>
+      ) : null}
 
       <div
         className="incidents-mobile-cards"
