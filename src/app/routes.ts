@@ -33,6 +33,7 @@ const CitizenDashboard = lazyRoute(() => import('./pages/CitizenDashboard'));
 const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'));
 const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
 const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
+const SkeletonDemo = lazyRoute(() => import('./pages/SkeletonDemo'));
 const Verifications = lazyRoute(() => import('./pages/Verifications'));
 const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
 const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
@@ -90,6 +91,7 @@ export const router = createBrowserRouter([
   // Public landing
   { path: '/', Component: Landing },
   { path: '/community-map', Component: MapView },
+  { path: '/skeleton-demo', Component: SkeletonDemo },
 
   // Auth screens
   { path: '/auth/login', Component: Login },

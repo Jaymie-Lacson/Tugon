@@ -13,7 +13,9 @@ import {
 import { type Incident, incidentTypeConfig, isIncidentVisibleOnMap } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -312,7 +314,22 @@ export default function Dashboard() {
   };
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading official dashboard" />;
+    return (
+      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={4}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={3} title={false} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <TableSkeleton rows={8} columns={3} showHeader={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -355,7 +372,11 @@ export default function Dashboard() {
 
         <div style={{ padding: '8px 16px 14px' }}>
           {alertsLoading ? (
-            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Loading cross-border alerts...</div>
+            <TextSkeleton
+              rows={2}
+              title={false}
+              className="rounded-none border-0 bg-transparent p-0 shadow-none"
+            />
           ) : alerts.length === 0 ? (
             <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>No nearby cross-border alerts for your barangay right now.</div>
           ) : (
@@ -414,7 +435,11 @@ export default function Dashboard() {
               {heatmapError}
             </div>
           ) : heatmapLoading ? (
-            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Generating threshold hotspots...</div>
+            <TextSkeleton
+              rows={2}
+              title={false}
+              className="rounded-none border-0 bg-transparent p-0 shadow-none"
+            />
           ) : heatmapClusters.length === 0 ? (
             <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>
               No hotspot cluster reached the current threshold.
@@ -727,43 +752,49 @@ export default function Dashboard() {
             <RefreshCw size={13} color="#94A3B8" style={{ cursor: 'pointer' }} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
-            {(incidentsLoading ? [] : incidents).slice(0, 10).map((inc) => (
-              <div
-                key={inc.id}
-                onClick={() => navigate('/app/incidents')}
-                style={{
-                  padding: '10px 14px',
-                  borderBottom: '1px solid #F8FAFC',
-                  cursor: 'pointer',
-                  transition: 'background 0.1s',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
-                }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-              >
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                  background: incidentTypeConfig[inc.type].bgColor,
-                  color: incidentTypeConfig[inc.type].color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {typeIcons[inc.type]}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{inc.id}</span>
-                    <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
-                  </div>
-                  <div style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</div>
-                  <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
-                    {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                  </div>
-                </div>
-                <SeverityBadge severity={inc.severity} size="sm" />
+            {incidentsLoading ? (
+              <div style={{ padding: '10px 14px' }}>
+                <TableSkeleton rows={6} columns={3} showHeader={false} className="border-0 shadow-none" />
               </div>
-            ))}
+            ) : (
+              incidents.slice(0, 10).map((inc) => (
+                <div
+                  key={inc.id}
+                  onClick={() => navigate('/app/incidents')}
+                  style={{
+                    padding: '10px 14px',
+                    borderBottom: '1px solid #F8FAFC',
+                    cursor: 'pointer',
+                    transition: 'background 0.1s',
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'flex-start',
+                  }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    background: incidentTypeConfig[inc.type].bgColor,
+                    color: incidentTypeConfig[inc.type].color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {typeIcons[inc.type]}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{inc.id}</span>
+                      <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
+                    </div>
+                    <div style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</div>
+                    <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                      {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </div>
+                  </div>
+                  <SeverityBadge severity={inc.severity} size="sm" />
+                </div>
+              ))
+            )}
           </div>
           <div style={{ padding: '10px 14px', borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
             <button

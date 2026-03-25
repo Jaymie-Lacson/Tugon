@@ -10,7 +10,8 @@ import {
   incidentTypeConfig, severityConfig, statusConfig,
 } from '../data/incidents';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -466,7 +467,14 @@ export default function Incidents() {
   const hasFilter = search || filterCategory || filterSeverity || filterStatus;
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading incidents page" />;
+    return (
+      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+        <TableSkeleton rows={8} columns={8} showHeader />
+        <div style={{ marginTop: 14 }}>
+          <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -632,7 +640,9 @@ export default function Incidents() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>Loading reports...</td>
+                  <td colSpan={8} style={{ padding: 16 }}>
+                    <TableSkeleton rows={6} columns={8} showHeader={false} className="border-0 shadow-none" />
+                  </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
@@ -687,19 +697,7 @@ export default function Incidents() {
         }}
       >
         {loading ? (
-          <div
-            style={{
-              background: 'white',
-              borderRadius: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-              padding: '22px 16px',
-              textAlign: 'center',
-              color: '#94A3B8',
-              fontSize: 13,
-            }}
-          >
-            Loading reports...
-          </div>
+          <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
           <div
             style={{

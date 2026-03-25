@@ -234,7 +234,6 @@ function Layout() {
               <ChevronRight size={12} color="#93C5FD" />
               <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>{currentPage?.label}</span>
             </div>
-            <div style={{ color: '#93C5FD', fontSize: 10 }}>Municipality of Tugon — Region IV-A</div>
           </div>
 
           {/* Mobile page label */}

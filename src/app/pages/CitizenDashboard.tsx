@@ -13,6 +13,9 @@ import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge } from '../components/StatusBadge';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   incidentTypeConfig,
@@ -447,6 +450,8 @@ export default function CitizenDashboard() {
   const greetingLabel = nowHour < 12 ? 'Good morning' : nowHour < 18 ? 'Good afternoon' : 'Good evening';
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [myReports, setMyReports] = useState<CitizenMyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [verificationLoading, setVerificationLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -545,6 +550,7 @@ export default function CitizenDashboard() {
 
   useEffect(() => {
     const load = async () => {
+      setReportsLoading(true);
       try {
         const payload = await citizenReportsApi.getMyReports();
         const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
@@ -562,6 +568,8 @@ export default function CitizenDashboard() {
       } catch {
         setIncidents([]);
         setMyReports([]);
+      } finally {
+        setReportsLoading(false);
       }
     };
 
@@ -570,6 +578,7 @@ export default function CitizenDashboard() {
 
   useEffect(() => {
     const loadVerification = async () => {
+      setVerificationLoading(true);
       try {
         const payload = await profileVerificationApi.getMyStatus();
         const verificationState: CitizenVerificationPreview = {
@@ -589,11 +598,15 @@ export default function CitizenDashboard() {
         });
       } catch {
         // Keep session-backed preview if endpoint fails.
+      } finally {
+        setVerificationLoading(false);
       }
     };
 
     void loadVerification();
   }, []);
+
+  const homeLoading = reportsLoading || verificationLoading;
 
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
@@ -632,7 +645,7 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} />;
+        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} isLoading={homeLoading} />;
       case 'report':
         return null;
       case 'map':
@@ -874,6 +887,7 @@ function HomeTab({
   barangayLabel,
   todayLabel,
   verificationPreview,
+  isLoading,
 }: {
   incidents: Incident[];
   myReports: CitizenMyReport[];
@@ -885,11 +899,27 @@ function HomeTab({
   barangayLabel: string;
   todayLabel: string;
   verificationPreview: CitizenVerificationPreview;
+  isLoading: boolean;
 }) {
   const navigate = useNavigate();
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
+
+  if (isLoading) {
+    return (
+      <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <TextSkeleton rows={3} title={false} className="rounded-xl" />
+        <CardSkeleton
+          count={3}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
+        <TableSkeleton rows={6} columns={3} showHeader={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>

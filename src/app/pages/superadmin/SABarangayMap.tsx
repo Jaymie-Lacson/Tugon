@@ -158,7 +158,7 @@ function MapBoundaryEditor({
 const TONDO_TRI_BRGY_CENTER: [number, number] = [14.61495, 120.97795];
 const MAP_MIN_ZOOM = 15;
 const MAP_DEFAULT_ZOOM = 18;
-const MAP_MAX_ZOOM = 22;
+const MAP_MAX_ZOOM = 20;
 const BOUNDARY_EDIT_ENABLED = false;
 const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
 const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];

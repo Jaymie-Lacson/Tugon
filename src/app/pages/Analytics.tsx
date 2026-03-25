@@ -4,7 +4,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Download } from 'lucide-react';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -308,7 +309,19 @@ export default function Analytics() {
   const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading analytics page" />;
+    return (
+      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={4}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={6} title={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -356,10 +369,21 @@ export default function Analytics() {
 
       {/* Metric Cards */}
       <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: isMobile ? 14 : 12, marginBottom: isMobile ? 22 : 18 }}>
-        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B91C1C" />
-        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#059669" />
-        <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change={loading ? 'Loading' : 'Live'} up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
-        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub="reported assignment load" color="#1E3A8A" />
+        {loading ? (
+          <CardSkeleton
+            count={4}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          />
+        ) : (
+          <>
+            <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="#B91C1C" />
+            <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub={`${period} dataset`} color="#059669" />
+            <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
+            <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="#1E3A8A" />
+          </>
+        )}
       </div>
 
       {/* Trend Chart */}

@@ -147,6 +147,7 @@ const TONDO_TRI_BRGY_BOUNDS: [[number, number], [number, number]] = [
   [14.61345, 120.97645],
   [14.61675, 120.97965],
 ];
+const INCIDENT_MAP_MAX_ZOOM = 20;
 
 const BARANGAY_POLYGONS: Array<{ code: string; name: string; points: [number, number][] }> = [
   {
@@ -261,14 +262,14 @@ export function IncidentMap({
         maxBounds={TONDO_TRI_BRGY_BOUNDS}
         maxBoundsViscosity={1}
         minZoom={16}
-        maxZoom={22}
+        maxZoom={INCIDENT_MAP_MAX_ZOOM}
       >
         {/* OpenStreetMap tiles */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
           maxNativeZoom={20}
-          maxZoom={22}
+          maxZoom={INCIDENT_MAP_MAX_ZOOM}
         />
 
         {/* Official barangay boundaries */}
