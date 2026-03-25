@@ -613,6 +613,8 @@ export default function Incidents() {
   };
 
   const hasFilter = search || filterCategory || filterSeverity || filterStatus;
+  const isVerifiedReporter = (incident: IncidentView) =>
+    incident.source.reporterVerificationStatus.toLowerCase() === 'verified';
 
   if (initialLoadPending) {
     return (
@@ -802,7 +804,24 @@ export default function Incidents() {
                   onClick={() => setSelectedIncident(inc)}
                   style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
                 >
-                  <td style={{ padding: '11px 14px', fontWeight: 700, color: '#1E3A8A', whiteSpace: 'nowrap', fontSize: 12 }}>{inc.id}</td>
+                  <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 12 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 700, color: '#1E3A8A' }}>{inc.id}</span>
+                      {isVerifiedReporter(inc) ? (
+                        <span
+                          title="Verified Reporter"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            color: '#1E3A8A',
+                          }}
+                          aria-label="Verified Reporter"
+                        >
+                          <ShieldIcon size={13} />
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
                   <td style={{ padding: '11px 14px' }}><TypeBadge type={inc.type} size="sm" /></td>
                   <td style={{ padding: '11px 14px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <div style={{ color: '#1E293B', fontWeight: 500 }}>{inc.barangay}</div>
@@ -875,7 +894,22 @@ export default function Incidents() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+                <div style={{ display: 'grid', gap: 5 }}>
+                  <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+                  {isVerifiedReporter(inc) ? (
+                    <span
+                      title="Verified Reporter"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        color: '#1E3A8A',
+                      }}
+                      aria-label="Verified Reporter"
+                    >
+                      <ShieldIcon size={13} />
+                    </span>
+                  ) : null}
+                </div>
                 <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
               </div>
 
