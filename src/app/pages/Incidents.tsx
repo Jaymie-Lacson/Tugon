@@ -497,7 +497,7 @@ export default function Incidents() {
   const [selectedIncident, setSelectedIncident] = useState<IncidentView | null>(null);
   const [updatingIncidentId, setUpdatingIncidentId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const perPage = 8;
+  const hasFilter = Boolean(search || filterCategory || filterSeverity || filterStatus);
 
   const loadReports = async () => {
     setLoading(true);
@@ -551,7 +551,7 @@ export default function Incidents() {
   const filtered = useMemo(() => {
     return incidents
       .filter((inc) => {
-        const q = search.toLowerCase();
+        const q = search.toLowerCase(); 
         if (
           search &&
           !inc.id.toLowerCase().includes(q) &&
@@ -573,6 +573,7 @@ export default function Incidents() {
       });
   }, [incidents, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
 
+  const perPage = 10;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
@@ -612,7 +613,6 @@ export default function Incidents() {
     return sortDir === 'asc' ? <ChevronUp size={12} color="#1E3A8A" /> : <ChevronDown size={12} color="#1E3A8A" />;
   };
 
-  const hasFilter = search || filterCategory || filterSeverity || filterStatus;
   const isVerifiedReporter = (incident: IncidentView) =>
     incident.source.reporterVerificationStatus.toLowerCase() === 'verified';
 
@@ -972,6 +972,52 @@ export default function Incidents() {
           onUpdateStatus={handleUpdateStatus}
           isUpdating={updatingIncidentId === selectedIncident.id}
         />
+      ) : null}
+      {!loading && filtered.length > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'white', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 12px', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: '#64748B' }}>
+            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} of {filtered.length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page === 1}
+              style={{
+                border: '1px solid #CBD5E1',
+                borderRadius: 8,
+                background: page === 1 ? '#F8FAFC' : '#FFFFFF',
+                color: page === 1 ? '#94A3B8' : '#334155',
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '8px 12px',
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Previous
+            </button>
+            <div style={{ minWidth: 72, textAlign: 'center', fontSize: 12, color: '#334155', fontWeight: 700 }}>
+              Page {page} / {totalPages}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page === totalPages}
+              style={{
+                border: '1px solid #CBD5E1',
+                borderRadius: 8,
+                background: page === totalPages ? '#F8FAFC' : '#FFFFFF',
+                color: page === totalPages ? '#94A3B8' : '#334155',
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '8px 12px',
+                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       ) : null}
     </div>
   );
