@@ -50,6 +50,32 @@ function toLocalDateKey(value: string | Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function formatDurationFromMinutes(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return '0m';
+  }
+
+  const roundedMinutes = Math.round(totalMinutes);
+  const weeks = Math.floor(roundedMinutes / (7 * 24 * 60));
+  let remainder = roundedMinutes % (7 * 24 * 60);
+  const days = Math.floor(remainder / (24 * 60));
+  remainder %= 24 * 60;
+  const hours = Math.floor(remainder / 60);
+  const minutes = remainder % 60;
+
+  const parts: string[] = [];
+  if (weeks > 0) parts.push(`${weeks}w`);
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+
+  if (parts.length === 0) {
+    return '0m';
+  }
+
+  return parts.slice(0, 3).join(' ');
+}
+
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
   return (
@@ -380,7 +406,7 @@ export default function Analytics() {
           <>
             <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="#B91C1C" />
             <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub={`${period} dataset`} color="#059669" />
-            <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
+            <MetricCard title="Avg. Response" value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
             <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="#1E3A8A" />
           </>
         )}
@@ -475,7 +501,7 @@ export default function Analytics() {
                   <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 90 : 170} />
                   <Tooltip
                     formatter={(value, name) => [
-                      `${value} min`,
+                      formatDurationFromMinutes(Number(value)),
                       name === 'avgMin' ? 'Avg. Response' : 'Target',
                     ]}
                     contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }}
