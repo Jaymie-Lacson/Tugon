@@ -1,10 +1,9 @@
 import type { IncidentType } from '../data/incidents';
 
 const INCIDENT_TYPE_TO_CATEGORY_LABEL: Record<IncidentType, string> = {
-  fire: 'Fire',
   flood: 'Pollution',
   accident: 'Road Hazard',
-  medical: 'Other',
+  medical: 'Noise',
   crime: 'Crime',
   infrastructure: 'Other',
   typhoon: 'Other',

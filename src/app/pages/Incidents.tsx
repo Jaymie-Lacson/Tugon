@@ -3,7 +3,7 @@ import {
   Search, Edit2, Printer, RefreshCw,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
   ChevronRight,
-  Users, Clock, MapPin, Info, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
+  Users, Clock, MapPin, Info, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
 } from 'lucide-react';
 import {
   Incident, IncidentType, Severity, IncidentStatus,
@@ -24,7 +24,6 @@ type IncidentView = Incident & {
 };
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
-  fire: <Flame size={14} />,
   flood: <Droplets size={14} />,
   accident: <Car size={14} />,
   medical: <Heart size={14} />,
@@ -34,7 +33,6 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
 };
 
 const CATEGORY_FILTER_OPTIONS = [
-  'Fire',
   'Pollution',
   'Noise',
   'Crime',
@@ -43,7 +41,7 @@ const CATEGORY_FILTER_OPTIONS = [
 ] as const;
 
 function mapIncidentType(category: ReportCategory): IncidentType {
-  if (category === 'Fire') return 'fire';
+  if (category === 'Noise') return 'medical';
   if (category === 'Crime') return 'crime';
   if (category === 'Road Hazard') return 'accident';
   if (category === 'Pollution') return 'flood';

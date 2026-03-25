@@ -12,7 +12,6 @@ import { reportToIncident } from '../../utils/incidentAdapters';
 import type { Incident } from '../../data/incidents';
 
 const TYPE_COLORS: Record<string, string> = {
-  fire: '#B91C1C',
   flood: '#1D4ED8',
   accident: '#B4730A',
   medical: '#0F766E',

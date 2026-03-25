@@ -115,7 +115,7 @@ function printTextContent(title: string, content: string) {
 }
 
 function incidentTypeToReportCategory(type: string): string {
-  if (type === 'fire' || type === 'crime') {
+  if (type === 'crime') {
     return 'Executive';
   }
   if (type === 'accident' || type === 'medical') {

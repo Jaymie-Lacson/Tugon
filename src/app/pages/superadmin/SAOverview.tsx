@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
-  Clock, Shield, Zap, ArrowRight, MapPin, Flame, Droplets, Car, Heart,
+  Clock, Shield, Zap, ArrowRight, MapPin, Droplets, Car, Heart,
   RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -37,7 +37,7 @@ type BarangayOverviewCard = {
 };
 
 const incidentTypeIcons: Record<string, React.ReactNode> = {
-  fire: <Flame size={12} />, flood: <Droplets size={12} />, accident: <Car size={12} />,
+  flood: <Droplets size={12} />, accident: <Car size={12} />,
   medical: <Heart size={12} />, crime: <Shield size={12} />, infrastructure: <Zap size={12} />,
 };
 
@@ -162,7 +162,6 @@ export default function SAOverview() {
   })();
   const avgResponseLabel = formatDurationFromMinutes(avgResponseMinutes);
   const incidentTypeDist = [
-    { type: 'Fire', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Flood', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Accident', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Medical', brgy251: 0, brgy252: 0, brgy256: 0 },
@@ -173,12 +172,11 @@ export default function SAOverview() {
   for (const item of reportIncidents) {
     const barangayKey = item.barangay.includes('251') ? 'brgy251' : item.barangay.includes('252') ? 'brgy252' : 'brgy256';
     const row =
-      item.type === 'fire' ? incidentTypeDist[0] :
-      item.type === 'flood' ? incidentTypeDist[1] :
-      item.type === 'accident' ? incidentTypeDist[2] :
-      item.type === 'medical' ? incidentTypeDist[3] :
-      item.type === 'crime' ? incidentTypeDist[4] :
-      incidentTypeDist[5];
+      item.type === 'flood' ? incidentTypeDist[0] :
+      item.type === 'accident' ? incidentTypeDist[1] :
+      item.type === 'medical' ? incidentTypeDist[2] :
+      item.type === 'crime' ? incidentTypeDist[3] :
+      incidentTypeDist[4];
     row[barangayKey] += 1;
   }
 

@@ -25,19 +25,18 @@ import {
 const PERIODS = [...ANALYTICS_PERIODS];
 
 function toSeriesLegendName(seriesKey: string): string {
-  if (seriesKey === 'fire') return 'Fire';
   if (seriesKey === 'flood') return 'Pollution';
   if (seriesKey === 'accident') return 'Road Hazard';
-  if (seriesKey === 'medical') return 'Other';
+  if (seriesKey === 'medical') return 'Noise';
   if (seriesKey === 'crime') return 'Crime';
   if (seriesKey === 'infrastructure') return 'Other';
   return seriesKey;
 }
 
 function getResponseAxisLabel(type: Incident['type'], mobile = false): string {
-  if (type === 'fire') return 'Fire';
   if (type === 'flood') return mobile ? 'Pollution' : 'Pollution';
   if (type === 'accident') return mobile ? 'Road Hazard' : 'Road Hazard';
+  if (type === 'medical') return 'Noise';
   if (type === 'crime') return 'Crime';
   return 'Other';
 }
@@ -199,7 +198,6 @@ export default function Analytics() {
         key: toLocalDateKey(date),
         day: formatTrendDayLabel(date, period),
         total: 0,
-        fire: 0,
         flood: 0,
         accident: 0,
         medical: 0,

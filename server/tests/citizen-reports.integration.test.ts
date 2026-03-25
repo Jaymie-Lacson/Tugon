@@ -171,14 +171,14 @@ describe("Citizen report POST validation integration", () => {
     const token = createCitizenToken();
 
     const { response, payload } = await postJson("/api/citizen/reports", token, {
-      category: "Fire",
-      subcategory: "Structural fire",
+      category: "Pollution",
+      subcategory: "Illegal dumping or waste",
       requiresMediation: false,
       mediationWarning: null,
       latitude: 14.6145,
       longitude: 120.9778,
       location: "Barangay 251 Hall",
-      description: "Sparks from exposed wire near stalls are creating a fire risk.",
+      description: "Recurring illegal dumping near stalls is creating an unsanitary hazard.",
       severity: "high",
       affectedCount: "21-50",
       photoCount: 1,

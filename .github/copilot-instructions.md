@@ -48,7 +48,6 @@ Always preserve these project rules when suggesting, generating, or refactoring 
 
    Required fields:
    - Incident Type:
-     - Fire
      - Pollution
      - Noise
      - Crime

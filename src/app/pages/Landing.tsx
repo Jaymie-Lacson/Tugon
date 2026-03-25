@@ -8,7 +8,6 @@ import {
   Clock,
   Eye,
   FileText,
-  Flame,
   Map as MapIcon,
   MapPin,
   Menu,
@@ -1054,11 +1053,11 @@ function SupportedBarangays() {
 function SafetyTips() {
   const tips = [
     {
-      title: 'Fire Prevention',
-      icon: Flame,
-      color: '#B91C1C',
-      bg: '#FEE2E2',
-      actions: ['Switch off before leaving', 'Keep exits open'],
+      title: 'Clean Surroundings',
+      icon: Shield,
+      color: '#0F766E',
+      bg: '#CCFBF1',
+      actions: ['Dispose waste properly', 'Keep drainage clear'],
     },
     {
       title: 'Noise Control',

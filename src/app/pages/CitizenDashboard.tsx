@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
-  Flame, Droplets, Car, Activity, Zap, AlertCircle,
+  Droplets, Car, Activity, Zap, AlertCircle,
   Phone, Info, CloudRain, Eye, Search, Filter,
   ArrowRight, ArrowLeft, TrendingUp, Map, Menu,
 } from 'lucide-react';
@@ -108,7 +108,6 @@ function timeAgo(dateStr: string) {
 }
 
 const typeIcon: Record<IncidentType, React.ReactNode> = {
-  fire: <Flame size={14} />,
   flood: <Droplets size={14} />,
   accident: <Car size={14} />,
   medical: <Activity size={14} />,
@@ -1299,7 +1298,6 @@ function HomeTab({
    REPORT TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }[] = [
-  { type: 'fire', label: 'Fire', icon: <Flame size={20} /> },
   { type: 'flood', label: 'Flood', icon: <Droplets size={20} /> },
   { type: 'accident', label: 'Accident', icon: <Car size={20} /> },
   { type: 'medical', label: 'Medical', icon: <Activity size={20} /> },

@@ -3,7 +3,7 @@ import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenRepor
 import type { ReportCategory } from '../data/reportTaxonomy';
 
 export function mapIncidentType(category: ReportCategory): IncidentType {
-  if (category === 'Fire') return 'fire';
+  if (category === 'Noise') return 'medical';
   if (category === 'Crime') return 'crime';
   if (category === 'Road Hazard') return 'accident';
   if (category === 'Pollution') return 'flood';

@@ -10,7 +10,6 @@ export const ANALYTICS_PERIOD_DAYS: Record<(typeof ANALYTICS_PERIODS)[number], n
 };
 
 export const ANALYTICS_TYPE_ORDER: IncidentType[] = [
-  'fire',
   'flood',
   'accident',
   'medical',
@@ -19,17 +18,15 @@ export const ANALYTICS_TYPE_ORDER: IncidentType[] = [
 ];
 
 export const ANALYTICS_TYPE_LABELS: Record<IncidentType, string> = {
-  fire: 'Fire',
   flood: 'Pollution',
   accident: 'Road Hazard',
-  medical: 'Other',
+  medical: 'Noise',
   crime: 'Crime',
   infrastructure: 'Other',
   typhoon: 'Other',
 };
 
 export const ANALYTICS_TYPE_COLORS: Record<IncidentType, string> = {
-  fire: '#B91C1C',
   flood: '#1D4ED8',
   accident: '#B4730A',
   medical: '#0F766E',
@@ -39,7 +36,6 @@ export const ANALYTICS_TYPE_COLORS: Record<IncidentType, string> = {
 };
 
 export const ANALYTICS_RESPONSE_TARGETS: Record<IncidentType, number> = {
-  fire: 8,
   flood: 15,
   accident: 10,
   medical: 8,
@@ -49,10 +45,9 @@ export const ANALYTICS_RESPONSE_TARGETS: Record<IncidentType, number> = {
 };
 
 export const ANALYTICS_TREND_SERIES = [
-  { key: 'fire', label: 'Fire', color: '#B91C1C' },
   { key: 'flood', label: 'Pollution', color: '#1D4ED8' },
   { key: 'accident', label: 'Road Hazard', color: '#B4730A' },
-  { key: 'medical', label: 'Other', color: '#0F766E' },
+  { key: 'medical', label: 'Noise', color: '#0F766E' },
   { key: 'crime', label: 'Crime', color: '#7C3AED' },
   { key: 'infrastructure', label: 'Other', color: '#374151' },
 ] as const;

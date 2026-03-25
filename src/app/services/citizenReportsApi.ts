@@ -2,7 +2,7 @@ import { getAuthSession } from "../utils/authSession";
 import { withSecurityHeaders } from "../utils/requestSecurity";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
-export type ApiIncidentType = "FIRE" | "POLLUTION" | "NOISE" | "CRIME" | "ROAD_HAZARD" | "OTHER";
+export type ApiIncidentType = "POLLUTION" | "NOISE" | "CRIME" | "ROAD_HAZARD" | "OTHER";
 
 export type ApiTicketStatus =
   | "Submitted"

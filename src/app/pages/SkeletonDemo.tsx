@@ -32,7 +32,7 @@ export default function SkeletonDemo() {
           <CardSkeleton count={6} lines={2} />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {['Fire', 'Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'].map((label) => (
+            {['Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other'].map((label) => (
               <article key={label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="h-36 rounded-lg bg-gray-100" />
                 <h3 className="mt-4 text-sm font-semibold text-gray-900">{label} Incident</h3>

@@ -261,7 +261,6 @@ Use a **step-by-step form**, not a single long page.
 
 Allowed values:
 
-* Fire
 * Pollution
 * Noise
 * Crime

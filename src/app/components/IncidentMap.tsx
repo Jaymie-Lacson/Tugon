@@ -8,7 +8,6 @@ import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 // Vite mangles asset paths, so we use DivIcon for all markers instead.
 
 const TYPE_COLORS: Record<string, string> = {
-  fire:           '#B91C1C',
   flood:          '#1D4ED8',
   accident:       '#B4730A',
   medical:        '#0F766E',
@@ -19,8 +18,6 @@ const TYPE_COLORS: Record<string, string> = {
 
 function getTypeIconSvg(type: string, stroke: string): string {
   switch (type) {
-    case 'fire':
-      return `<path d="M12 2.6c1.9 2.3 2.2 4.9.8 7 .9-.2 2.2.1 3.2 1 1.3 1.1 1.9 2.6 1.9 4.1 0 3.1-2.5 5.7-5.9 5.7s-5.9-2.6-5.9-5.7c0-2.4 1.4-4 3.5-5.7.8-.7 1.5-1.5 2-2.4.2.8.3 1.6.4 2.4 1.4-1.5 1.5-3.6 0-6.4z" fill="${stroke}"/>`;
     case 'flood':
       return `<path d="M12 3c-2.6 3.5-5.7 6.2-5.7 9.6 0 3.2 2.4 5.6 5.7 5.6s5.7-2.4 5.7-5.6C17.7 9.2 14.6 6.5 12 3z" fill="none" stroke="${stroke}" stroke-width="2.1" stroke-linejoin="round"/><path d="M4.8 19.2c1 .7 2 .9 3 .9s2-.2 3-.9c1-.7 2-.7 3 0 1 .7 2 .9 3 .9" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>`;
     case 'accident':
@@ -318,8 +315,7 @@ export function IncidentMap({
           const color =
             TYPE_COLORS[normalizedType] ??
             (cluster.incidentType === 'Road Hazard' ? TYPE_COLORS.accident :
-              cluster.incidentType === 'Fire' ? TYPE_COLORS.fire :
-                cluster.incidentType === 'Pollution' ? TYPE_COLORS.flood :
+              cluster.incidentType === 'Pollution' ? TYPE_COLORS.flood :
                   cluster.incidentType === 'Crime' ? TYPE_COLORS.crime :
                     TYPE_COLORS.infrastructure);
           const radius = isHotspotMode

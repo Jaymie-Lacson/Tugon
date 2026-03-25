@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
-  TrendingDown, Minus, Radio, MapPin, ArrowRight, Flame,
+  TrendingDown, Minus, Radio, MapPin, ArrowRight,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   ChevronRight, RefreshCw, Navigation2, Bell,
   SlidersHorizontal,
@@ -22,7 +22,6 @@ import { reportToIncident } from '../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 const CATEGORY_DIST_CONFIG = [
-  { name: 'Fire', color: '#B91C1C' },
   { name: 'Pollution', color: '#0F766E' },
   { name: 'Noise', color: '#7C3AED' },
   { name: 'Crime', color: '#1E3A8A' },
@@ -31,7 +30,7 @@ const CATEGORY_DIST_CONFIG = [
 ];
 
 const typeIcons: Record<string, React.ReactNode> = {
-  fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
+  flood: <Droplets size={14} />, accident: <Car size={14} />,
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
 };
 

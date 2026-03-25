@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Layers, Search, X, Users,
-  Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
+  Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   Navigation2, ArrowLeft, TrendingUp, SlidersHorizontal, CheckCircle2,
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
@@ -17,7 +17,7 @@ import type { ApiTicketStatus } from '../services/citizenReportsApi';
 import '../../styles/map-view.css';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
-  fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
+  flood: <Droplets size={14} />, accident: <Car size={14} />,
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
 };
 

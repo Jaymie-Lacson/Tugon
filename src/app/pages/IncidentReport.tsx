@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
   ChevronLeft, Check, MapPin, Navigation,
-  Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
+  Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
 } from 'lucide-react';
@@ -11,8 +11,6 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
-import CardSkeleton from '../components/ui/CardSkeleton';
-import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
@@ -61,7 +59,6 @@ const CATEGORIES: {
   type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
   color: string; bg: string; desc: string; emoji: string;
 }[] = [
-  { type: 'Fire', label: 'Fire', icon: Flame, color: '#B91C1C', bg: '#FEE2E2', desc: 'Fire incidents and flammable hazards', emoji: 'F' },
   { type: 'Pollution', label: 'Pollution', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, and waste pollution concerns', emoji: 'P' },
   { type: 'Noise', label: 'Noise', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Public noise disturbance incidents', emoji: 'N' },
   { type: 'Crime', label: 'Crime', icon: AlertCircle, color: '#1E3A8A', bg: '#DBEAFE', desc: 'Criminal and suspicious activity reports', emoji: 'C' },
@@ -181,8 +178,7 @@ function findBarangayByCode(code: string | null) {
   return BARANGAY_BOUNDARIES.find((item) => item.code === code) ?? null;
 }
 
-function toLegacyIncidentType(category: IncidentCategory | null): 'FIRE' | 'POLLUTION' | 'NOISE' | 'CRIME' | 'ROAD_HAZARD' | 'OTHER' {
-  if (category === 'Fire') return 'FIRE';
+function toLegacyIncidentType(category: IncidentCategory | null): 'POLLUTION' | 'NOISE' | 'CRIME' | 'ROAD_HAZARD' | 'OTHER' {
   if (category === 'Pollution') return 'POLLUTION';
   if (category === 'Noise') return 'NOISE';
   if (category === 'Crime') return 'CRIME';
@@ -2018,32 +2014,69 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
   );
 }
 
-function SubmissionSkeletonOverlay() {
+function SubmissionLoadingOverlay() {
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 290,
-        background: 'rgba(248, 250, 252, 0.9)',
-        backdropFilter: 'blur(2px)',
-        padding: '84px 16px 24px',
-        overflowY: 'auto',
+        background: 'rgba(15, 23, 42, 0.34)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
       }}
       aria-live="polite"
       aria-busy="true"
       aria-label="Submitting report"
     >
-      <div style={{ maxWidth: 980, margin: '0 auto', display: 'grid', gap: 12 }}>
-        <TextSkeleton rows={2} title={false} />
-        <CardSkeleton
-          count={3}
-          lines={2}
-          showImage={false}
-          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-        />
-        <TextSkeleton rows={3} title={false} />
+      <div style={{ display: 'grid', gap: 12, justifyItems: 'center', textAlign: 'center' }}>
+        <div
+          role="status"
+          aria-label="Submitting report"
+          style={{
+            width: 108,
+            height: 108,
+            borderRadius: 9999,
+            background: 'rgba(255, 255, 255, 0.92)',
+            boxShadow: '0 18px 40px rgba(15, 23, 42, 0.24)',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: -6,
+              borderRadius: 9999,
+              border: '4px solid rgba(30, 58, 138, 0.16)',
+              borderTopColor: '#B91C1C',
+              borderRightColor: '#1E3A8A',
+              animation: 'incidentSubmitSpin 0.9s linear infinite',
+            }}
+          />
+          <img
+            src="/favicon.svg"
+            alt="TUGON"
+            style={{
+              width: 42,
+              height: 42,
+              display: 'block',
+              filter: 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15))',
+            }}
+          />
+        </div>
+        <p style={{ margin: 0, color: '#DBEAFE', fontSize: 13, fontWeight: 700, letterSpacing: '0.02em' }}>
+          Submitting your incident report...
+        </p>
       </div>
+      <style>{`@keyframes incidentSubmitSpin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -2325,7 +2358,7 @@ export default function IncidentReport() {
   return (
     <>
       {submitted && <SuccessScreen reportId={submittedReportId} onDone={() => navigate('/citizen')} />}
-      {submitting && !submitted ? <SubmissionSkeletonOverlay /> : null}
+      {submitting && !submitted ? <SubmissionLoadingOverlay /> : null}
 
       <CitizenPageLayout
         header={

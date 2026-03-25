@@ -77,7 +77,7 @@ export default function Settings() {
   const integrationItems = [
     { name: 'NDRRMC Data Feed', desc: `${integrationScope} incident advisory sync`, status: 'connected', color: '#059669' },
     { name: 'PAGASA Weather API', desc: `${integrationScope} weather and flooding advisories`, status: 'connected', color: '#059669' },
-    { name: 'BFP Dispatch System', desc: `${integrationScope} fire-response dispatch coordination`, status: 'connected', color: '#059669' },
+    { name: 'BFP Dispatch System', desc: `${integrationScope} emergency-response dispatch coordination`, status: 'connected', color: '#059669' },
     { name: 'PNP Command System', desc: `${integrationScope} law-enforcement coordination channel`, status: 'pending', color: '#B4730A' },
     { name: 'DOH Health Surveillance', desc: `${integrationScope} health-event alert integration`, status: 'disconnected', color: '#B91C1C' },
   ] as const;
