@@ -258,8 +258,10 @@ export default function Dashboard() {
     }));
   }, [incidents]);
 
-  const loadReports = async () => {
-    setIncidentsLoading(true);
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setIncidentsLoading(true);
+    }
     setIncidentsError(null);
     try {
       const payload = await officialReportsApi.getReports();
@@ -273,29 +275,41 @@ export default function Dashboard() {
         return mappedMapIncidents.find((item) => item.id === current.id) ?? null;
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load incidents.';
-      setIncidentsError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load incidents.';
+        setIncidentsError(message);
+      }
     } finally {
-      setIncidentsLoading(false);
+      if (!silent) {
+        setIncidentsLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const loadAlerts = async () => {
-    setAlertsLoading(true);
+  const loadAlerts = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setAlertsLoading(true);
+    }
     setAlertsError(null);
     try {
       const payload = await officialReportsApi.getAlerts();
       setAlerts(payload.alerts);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
-      setAlertsError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
+        setAlertsError(message);
+      }
     } finally {
-      setAlertsLoading(false);
+      if (!silent) {
+        setAlertsLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const loadHeatmap = async () => {
-    setHeatmapLoading(true);
+  const loadHeatmap = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setHeatmapLoading(true);
+    }
     setHeatmapError(null);
     try {
       const payload = await officialReportsApi.getHeatmap({
@@ -304,18 +318,34 @@ export default function Dashboard() {
       });
       setHeatmapClusters(payload.clusters);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
-      setHeatmapError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
+        setHeatmapError(message);
+      }
     } finally {
-      setHeatmapLoading(false);
+      if (!silent) {
+        setHeatmapLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadReports();
     void loadAlerts();
     void loadHeatmap();
-  }, []);
+  }, [loadAlerts, loadHeatmap, loadReports]);
+
+  useEffect(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void loadReports(true);
+      void loadAlerts(true);
+      void loadHeatmap(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadAlerts, loadHeatmap, loadReports]);
 
   useEffect(() => {
     if (!initialLoadPending) {

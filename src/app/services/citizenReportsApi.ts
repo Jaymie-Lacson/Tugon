@@ -58,10 +58,24 @@ export interface ApiCitizenReport {
   timeline: ApiTimelineEntry[];
 }
 
+export interface ApiReportStreamEvent {
+  eventId: string;
+  action: 'created' | 'status-updated' | 'cancelled';
+  reportId: string;
+  citizenUserId: string;
+  routedBarangayCode: string;
+  status: ApiTicketStatus;
+  updatedAt: string;
+}
+
 const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
   /\/+$/,
   "",
 );
+
+function buildStreamUrl(path: string) {
+  return new URL(`${API_BASE}${path}`, window.location.origin).toString();
+}
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
@@ -96,6 +110,34 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const citizenReportsApi = {
+  connectMyReportsStream(
+    onEvent: (event: ApiReportStreamEvent) => void,
+    onError?: () => void,
+  ) {
+    const source = new EventSource(buildStreamUrl('/citizen/reports/stream'), {
+      withCredentials: true,
+    });
+
+    source.addEventListener('report-event', (event) => {
+      try {
+        const parsed = JSON.parse((event as MessageEvent<string>).data) as ApiReportStreamEvent;
+        onEvent(parsed);
+      } catch {
+        // Ignore malformed stream payloads.
+      }
+    });
+
+    if (onError) {
+      source.addEventListener('error', () => {
+        onError();
+      });
+    }
+
+    return () => {
+      source.close();
+    };
+  },
+
   async validateReportPin(latitude: number, longitude: number) {
     const params = new URLSearchParams({
       latitude: String(latitude),

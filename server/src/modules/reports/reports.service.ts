@@ -17,6 +17,7 @@ import {
   type ReportCategory,
   type ReportSubcategory,
 } from "./taxonomy.js";
+import { reportsRealtimeService } from "./reportEvents.service.js";
 import type { Role } from "../auth/types.js";
 import type {
   CrossBorderAlertRecord,
@@ -1138,6 +1139,15 @@ export const reportsService = {
 
     await prisma.$transaction(txOperations);
 
+    reportsRealtimeService.publish({
+      action: "created",
+      reportId: report.id,
+      citizenUserId: report.citizenUserId,
+      routedBarangayCode: report.routedBarangayCode,
+      status: report.status,
+      updatedAt: report.updatedAt,
+    });
+
     return {
       message: "Report submitted successfully.",
       report,
@@ -1195,6 +1205,7 @@ export const reportsService = {
       select: {
         id: true,
         citizenUserId: true,
+        routedBarangayCode: true,
         status: true,
         citizen: {
           select: {
@@ -1232,6 +1243,15 @@ export const reportsService = {
         },
       }),
     ]);
+
+    reportsRealtimeService.publish({
+      action: "cancelled",
+      reportId,
+      citizenUserId: existing.citizenUserId,
+      routedBarangayCode: existing.routedBarangayCode,
+      status: "Closed",
+      updatedAt: new Date().toISOString(),
+    });
 
     return reportsService.getMineById(citizenUserId, reportId);
   },
@@ -1327,6 +1347,7 @@ export const reportsService = {
       where: { id: reportId },
       select: {
         id: true,
+        citizenUserId: true,
         status: true,
         routedBarangayCode: true,
       },
@@ -1420,6 +1441,15 @@ export const reportsService = {
     }
 
     await prisma.$transaction(txOperations);
+
+    reportsRealtimeService.publish({
+      action: "status-updated",
+      reportId,
+      citizenUserId: report.citizenUserId,
+      routedBarangayCode: report.routedBarangayCode,
+      status: finalStatus,
+      updatedAt: new Date().toISOString(),
+    });
 
     return reportsService.getForOfficialById(user, reportId);
   },

@@ -41,6 +41,7 @@ const SABarangayMap = lazyRoute(() => import('./pages/superadmin/SABarangayMap')
 const SAAnalytics = lazyRoute(() => import('./pages/superadmin/SAAnalytics'));
 const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
 const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
+const SASettings = lazyRoute(() => import('./pages/Settings'));
 
 function RedirectToApp() {
   const session = getAuthSession();
@@ -157,6 +158,7 @@ export const router = createBrowserRouter([
       { path: 'analytics', Component: SAAnalytics },
       { path: 'users', Component: SAUsers },
       { path: 'audit-logs', Component: SAAuditLogs },
+      { path: 'settings', Component: SASettings },
     ],
   },
 

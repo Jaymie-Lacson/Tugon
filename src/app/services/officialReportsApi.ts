@@ -1,12 +1,16 @@
 import { clearAuthSession, getAuthSession } from "../utils/authSession";
 import { withSecurityHeaders } from "../utils/requestSecurity";
-import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
+import type { ApiCitizenReport, ApiReportStreamEvent, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
   /\/+$/,
   "",
 );
+
+function buildStreamUrl(path: string) {
+  return new URL(`${API_BASE}${path}`, window.location.origin).toString();
+}
 
 const missingOfficialRoute = {
   historyExport: false,
@@ -430,6 +434,34 @@ export interface ApiDssRecommendationsResponse {
 export type ApiVerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
 
 export const officialReportsApi = {
+  connectReportsStream(
+    onEvent: (event: ApiReportStreamEvent) => void,
+    onError?: () => void,
+  ) {
+    const source = new EventSource(buildStreamUrl('/official/reports/stream'), {
+      withCredentials: true,
+    });
+
+    source.addEventListener('report-event', (event) => {
+      try {
+        const parsed = JSON.parse((event as MessageEvent<string>).data) as ApiReportStreamEvent;
+        onEvent(parsed);
+      } catch {
+        // Ignore malformed stream payloads.
+      }
+    });
+
+    if (onError) {
+      source.addEventListener('error', () => {
+        onError();
+      });
+    }
+
+    return () => {
+      source.close();
+    };
+  },
+
   getReports() {
     return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
       method: "GET",

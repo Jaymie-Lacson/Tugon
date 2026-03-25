@@ -145,9 +145,9 @@ export default function Analytics() {
   }, [loadReports]);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
       void loadReports(true);
-    }, 30000);
+    });
 
     const handleFocusRefresh = () => {
       void loadReports(true);
@@ -155,7 +155,7 @@ export default function Analytics() {
 
     window.addEventListener('focus', handleFocusRefresh);
     return () => {
-      window.clearInterval(intervalId);
+      disconnect();
       window.removeEventListener('focus', handleFocusRefresh);
     };
   }, [loadReports]);

@@ -8,6 +8,7 @@ import {
   LogOut,
   Map,
   Menu,
+  Settings,
   Users,
   X,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { path: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
   { path: '/superadmin/users', label: 'Users', icon: Users },
   { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
+  { path: '/superadmin/settings', label: 'Settings', icon: Settings },
 ];
 
 function LiveClock() {
@@ -539,7 +541,7 @@ export default function SuperAdminLayout() {
                     role="menuitem"
                     onClick={() => {
                       setProfileMenuOpen(false);
-                      navigate('/superadmin/users');
+                      navigate('/superadmin/settings');
                     }}
                     style={{
                       width: '100%',
@@ -554,7 +556,7 @@ export default function SuperAdminLayout() {
                       cursor: 'pointer',
                     }}
                   >
-                    Open user management
+                    Open settings
                   </button>
                   <button
                     type="button"
@@ -690,6 +692,23 @@ export default function SuperAdminLayout() {
               <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
                 More
               </div>
+              <NavLink
+                to="/superadmin/settings"
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 16px',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  marginBottom: 6,
+                  background: 'rgba(255,255,255,0.07)',
+                }}
+              >
+                <Settings size={20} color="#93C5FD" />
+                <span style={{ color: '#BFDBFE', fontSize: 14 }}>Settings</span>
+              </NavLink>
               <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
                 <button
                   type="button"

@@ -1159,34 +1159,49 @@ export default function CitizenMyReports() {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const { notificationItems, unreadNotificationCount } = useCitizenReportNotifications();
 
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoadingInitial(true);
+    }
+
+    try {
+      const response = await citizenReportsApi.getMyReports();
+      const mappedReports = response.reports.map(mapApiReport);
+      setReports(mappedReports);
+      setSelected((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return mappedReports.find((report) => report.id === current.id) ?? current;
+      });
+    } catch {
+      // Keep the current list when API is unavailable.
+    } finally {
+      if (!silent) {
+        setLoadingInitial(false);
+      }
+    }
+  }, []);
+
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
     navigate('/auth/login', { replace: true });
   }, [navigate]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadReports() {
-      try {
-        const response = await citizenReportsApi.getMyReports();
-        if (!isMounted) return;
-        setReports(response.reports.map(mapApiReport));
-      } catch {
-        // Keep the current list when API is unavailable.
-      } finally {
-        if (isMounted) {
-          setLoadingInitial(false);
-        }
-      }
-    }
-
     void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = citizenReportsApi.connectMyReportsStream(() => {
+      void loadReports(true);
+    });
 
     return () => {
-      isMounted = false;
+      disconnect();
     };
-  }, []);
+  }, [loadReports]);
 
   useEffect(() => {
     setCancelError(null);

@@ -90,67 +90,100 @@ export default function MapView() {
     setPanelOpen(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
   }, [isPublicCommunityMap]);
 
-  useEffect(() => {
-    const load = async () => {
-      if (isPublicCommunityMap) {
-        setIncidents([]);
-        setHeatmapClusters([]);
-        setMapRenderMode('standard');
-        setLoading(false);
-        setError(null);
-        return;
-      }
-
-      setLoading(true);
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (isPublicCommunityMap) {
+      setIncidents([]);
+      setHeatmapClusters([]);
+      setMapRenderMode('standard');
+      setLoading(false);
       setError(null);
-      try {
-        const payload = await officialReportsApi.getReports();
-        const mapped = payload.reports.map((report) => reportToIncident(report));
-        setIncidents(mapped);
-      } catch (loadError) {
+      return;
+    }
+
+    if (!silent) {
+      setLoading(true);
+    }
+    setError(null);
+    try {
+      const payload = await officialReportsApi.getReports();
+      const mapped = payload.reports.map((report) => reportToIncident(report));
+      setIncidents(mapped);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return current;
+        }
+        return mapped.find((incident) => incident.id === current.id) ?? null;
+      });
+    } catch (loadError) {
+      if (!silent) {
         const message = loadError instanceof Error ? loadError.message : 'Failed to load incidents.';
         setError(message);
-      } finally {
+      }
+    } finally {
+      if (!silent) {
         setLoading(false);
       }
-    };
-
-    void load();
+    }
   }, [isPublicCommunityMap]);
 
   useEffect(() => {
-    const loadHeatmap = async () => {
-      if (isPublicCommunityMap) {
-        setHeatmapClusters([]);
-        setHeatmapLoading(false);
-        setHeatmapError(null);
-        return;
-      }
+    void loadReports();
+  }, [loadReports]);
 
-      setHeatmapLoading(true);
+  const loadHeatmap = React.useCallback(async (silent = false) => {
+    if (isPublicCommunityMap) {
+      setHeatmapClusters([]);
+      setHeatmapLoading(false);
       setHeatmapError(null);
-      try {
-        const payload = await officialReportsApi.getHeatmap({ days: 14, threshold: 3 });
-        const overlays: HeatmapClusterOverlay[] = payload.clusters.map((cluster) => ({
-          id: cluster.clusterId,
-          latitude: cluster.centerLatitude,
-          longitude: cluster.centerLongitude,
-          intensity: cluster.intensity,
-          incidentCount: cluster.incidentCount,
-          incidentType: cluster.category,
-        }));
-        setHeatmapClusters(overlays);
-      } catch (loadError) {
+      return;
+    }
+
+    if (!silent) {
+      setHeatmapLoading(true);
+    }
+    setHeatmapError(null);
+    try {
+      const payload = await officialReportsApi.getHeatmap({ days: 14, threshold: 3 });
+      const overlays: HeatmapClusterOverlay[] = payload.clusters.map((cluster) => ({
+        id: cluster.clusterId,
+        latitude: cluster.centerLatitude,
+        longitude: cluster.centerLongitude,
+        intensity: cluster.intensity,
+        incidentCount: cluster.incidentCount,
+        incidentType: cluster.category,
+      }));
+      setHeatmapClusters(overlays);
+    } catch (loadError) {
+      if (!silent) {
         const message = loadError instanceof Error ? loadError.message : 'Failed to load hotspot clusters.';
         setHeatmapError(message);
-        setHeatmapClusters([]);
-      } finally {
+      }
+      setHeatmapClusters([]);
+    } finally {
+      if (!silent) {
         setHeatmapLoading(false);
       }
-    };
-
-    void loadHeatmap();
+    }
   }, [isPublicCommunityMap]);
+
+  useEffect(() => {
+    void loadHeatmap();
+  }, [loadHeatmap]);
+
+  useEffect(() => {
+    if (isPublicCommunityMap) {
+      return;
+    }
+
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void loadReports(true);
+      void loadHeatmap(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [isPublicCommunityMap, loadHeatmap, loadReports]);
 
   useEffect(() => {
     if (isPublicCommunityMap) {

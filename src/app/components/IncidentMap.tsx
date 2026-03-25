@@ -121,6 +121,56 @@ function buildViewportSignature(incidents: Incident[]): string {
     .join('|');
 }
 
+function extractBarangayCode(label: string): string | null {
+  const match = label.match(/\b(251|252|256)\b/);
+  return match ? match[1] : null;
+}
+
+function resolveViewportPoints(incidents: Incident[]): L.LatLng[] {
+  const incidentPoints = incidents.map((incident) => L.latLng(incident.lat, incident.lng));
+  if (incidents.length === 0) {
+    return incidentPoints;
+  }
+
+  const barangayCodes = new Set(
+    incidents
+      .map((incident) => extractBarangayCode(incident.barangay))
+      .filter((code): code is string => Boolean(code)),
+  );
+
+  if (barangayCodes.size !== 1) {
+    return incidentPoints;
+  }
+
+  const [barangayCode] = Array.from(barangayCodes);
+  const barangayPolygon = BARANGAY_POLYGONS.find((polygon) => polygon.code === barangayCode);
+  if (!barangayPolygon) {
+    return incidentPoints;
+  }
+
+  const boundaryPoints = barangayPolygon.points.map(([lat, lng]) => L.latLng(lat, lng));
+  return [...incidentPoints, ...boundaryPoints];
+}
+
+function fitViewportToPoints(map: L.Map, points: L.LatLng[], targetZoom: number) {
+  const bounds = L.latLngBounds(points);
+  if (!bounds.isValid()) {
+    return;
+  }
+
+  if (points.length === 1) {
+    map.setView(points[0], Math.max(17, targetZoom), { animate: false });
+    return;
+  }
+
+  map.fitBounds(bounds.pad(0.16), {
+    paddingTopLeft: [52, 44],
+    paddingBottomRight: [44, 44],
+    maxZoom: Math.max(17, targetZoom),
+    animate: false,
+  });
+}
+
 function MapViewportController({
   incidents,
   selectedIncident,
@@ -145,21 +195,8 @@ function MapViewportController({
       return;
     }
 
-    const points = incidents.map((incident) => L.latLng(incident.lat, incident.lng));
-    const bounds = L.latLngBounds(points);
-    if (!bounds.isValid()) {
-      return;
-    }
-
-    if (points.length === 1) {
-      map.setView(points[0], Math.max(17, targetZoom), { animate: false });
-    } else {
-      map.fitBounds(bounds.pad(0.2), {
-        padding: [44, 44],
-        maxZoom: Math.max(17, targetZoom),
-        animate: false,
-      });
-    }
+    const points = resolveViewportPoints(incidents);
+    fitViewportToPoints(map, points, targetZoom);
 
     lastFitSignatureRef.current = signature;
   }, [incidents, map, selectedIncident, targetZoom]);
@@ -177,21 +214,8 @@ function MapViewportController({
         return;
       }
 
-      const points = incidents.map((incident) => L.latLng(incident.lat, incident.lng));
-      const bounds = L.latLngBounds(points);
-      if (!bounds.isValid()) {
-        return;
-      }
-
-      if (points.length === 1) {
-        map.setView(points[0], Math.max(17, targetZoom), { animate: false });
-      } else {
-        map.fitBounds(bounds.pad(0.2), {
-          padding: [44, 44],
-          maxZoom: Math.max(17, targetZoom),
-          animate: false,
-        });
-      }
+      const points = resolveViewportPoints(incidents);
+      fitViewportToPoints(map, points, targetZoom);
     }, 360);
 
     return () => {

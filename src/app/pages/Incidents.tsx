@@ -527,22 +527,45 @@ export default function Incidents() {
     setPendingReportId(reportId);
   }, [location.state]);
 
-  const loadReports = async () => {
-    setLoading(true);
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const payload = await officialReportsApi.getReports();
-      setIncidents(payload.reports.map((report) => toIncidentView(report)));
+      const mapped = payload.reports.map((report) => toIncidentView(report));
+      setIncidents(mapped);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return current;
+        }
+        return mapped.find((incident) => incident.id === current.id) ?? current;
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load reports.');
+      if (!silent) {
+        setError(err instanceof Error ? err.message : 'Failed to load reports.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadReports();
-  }, []);
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void loadReports(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadReports]);
 
   useEffect(() => {
     if (!initialLoadPending) {

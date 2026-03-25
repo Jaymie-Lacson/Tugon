@@ -547,33 +547,55 @@ export default function CitizenDashboard() {
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
-  useEffect(() => {
-    const load = async () => {
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
       setReportsLoading(true);
-      try {
-        const payload = await citizenReportsApi.getMyReports();
-        const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
-        setIncidents(mappedIncidents);
-        setMyReports(
-          payload.reports.map((report) => ({
-            id: report.id,
-            type: reportToIncident(report).type,
-            description: report.description,
-            status: mapTicketStatus(report.status),
-            reportedAt: report.submittedAt,
-            location: report.location,
-          })),
-        );
-      } catch {
+    }
+    try {
+      const payload = await citizenReportsApi.getMyReports();
+      const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
+      setIncidents(mappedIncidents);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return current;
+        }
+        return mappedIncidents.find((incident) => incident.id === current.id) ?? null;
+      });
+      setMyReports(
+        payload.reports.map((report) => ({
+          id: report.id,
+          type: reportToIncident(report).type,
+          description: report.description,
+          status: mapTicketStatus(report.status),
+          reportedAt: report.submittedAt,
+          location: report.location,
+        })),
+      );
+    } catch {
+      if (!silent) {
         setIncidents([]);
         setMyReports([]);
-      } finally {
+      }
+    } finally {
+      if (!silent) {
         setReportsLoading(false);
       }
-    };
-
-    void load();
+    }
   }, []);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = citizenReportsApi.connectMyReportsStream(() => {
+      void loadReports(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadReports]);
 
   useEffect(() => {
     const loadVerification = async () => {
