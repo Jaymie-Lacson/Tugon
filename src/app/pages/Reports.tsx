@@ -188,8 +188,6 @@ function buildRecommendations(incidents: Incident[]): DSSRecommendation[] {
   }
   const topBarangay = [...byBarangay.entries()].sort((a, b) => b[1] - a[1])[0];
 
-  const respondersTotal = incidents.reduce((sum, incident) => sum + Math.max(incident.responders || 0, 0), 0);
-  const assignedRate = incidents.length > 0 ? Math.round((respondersTotal / incidents.length) * 100) : 0;
   const responseMinutes = incidents
     .filter((incident) => incident.respondedAt)
     .map((incident) => toMinutes(incident.reportedAt, incident.respondedAt ?? incident.reportedAt));
@@ -203,8 +201,8 @@ function buildRecommendations(incidents: Incident[]): DSSRecommendation[] {
     recommendations.push({
       priority: 'critical',
       title: 'Critical Incidents Need Immediate Action',
-      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? 's are' : ' is'} still unresolved in your queue. Prioritize verification and dispatch to reduce escalation risk.`,
-      actions: ['Escalate critical queue to duty officer', 'Confirm responder assignment for each critical case', 'Post barangay situational update for ongoing risks'],
+      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? 's are' : ' is'} still unresolved in your queue. Prioritize verification and status updates to reduce escalation risk.`,
+      actions: ['Escalate critical queue to duty officer', 'Update official status and notes for each critical case', 'Post barangay situational update for ongoing risks'],
       confidence: Math.min(95, 70 + criticalUnresolved.length * 5),
       source: 'Live Incident Queue',
     });
@@ -220,15 +218,6 @@ function buildRecommendations(incidents: Incident[]): DSSRecommendation[] {
       source: '7-Day Incident Distribution',
     });
   }
-
-  recommendations.push({
-    priority: 'medium',
-    title: 'Responder Assignment Coverage',
-    description: `${respondersTotal} responder unit assignment${respondersTotal !== 1 ? 's' : ''} recorded across ${incidents.length} report${incidents.length > 1 ? 's' : ''}. Current assignment intensity is ${assignedRate}%.`,
-    actions: ['Review unresolved reports without assigned responders', 'Balance assignment load across ongoing incidents', 'Document reassignment for shift handover'],
-    confidence: Math.min(90, 50 + Math.round(assignedRate * 0.4)),
-    source: 'Responder Utilization Metrics',
-  });
 
   if (avgResponse !== null) {
     recommendations.push({
@@ -289,12 +278,10 @@ const priorityStyle = {
 
 function DSSCard({
   rec,
-  onApprove,
   onDismiss,
   busy,
 }: {
   rec: DSSRecommendation;
-  onApprove: (rec: DSSRecommendation) => void;
   onDismiss: (rec: DSSRecommendation) => void;
   busy: boolean;
 }) {
@@ -363,18 +350,11 @@ function DSSCard({
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <button
-              onClick={() => onApprove(rec)}
-              disabled={busy}
-              style={{ flex: 1, background: rec.color, color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
-            >
-              {busy ? 'Submitting...' : 'Approve & Dispatch'}
-            </button>
-            <button
               onClick={() => onDismiss(rec)}
               disabled={busy}
-              style={{ background: 'white', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
+              style={{ width: '100%', background: 'white', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
             >
-              {busy ? 'Submitting...' : 'Dismiss'}
+              {busy ? 'Submitting...' : 'Dismiss Recommendation'}
             </button>
           </div>
         </div>
@@ -392,7 +372,6 @@ export default function Reports() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<number[]>([]);
-  const [approvedRecommendationIds, setApprovedRecommendationIds] = useState<number[]>([]);
   const [dssActionSubmittingId, setDssActionSubmittingId] = useState<number | null>(null);
   const [dssRefreshing, setDssRefreshing] = useState(false);
   const [dssLastRefreshedAt, setDssLastRefreshedAt] = useState<string | null>(null);
@@ -500,7 +479,6 @@ export default function Reports() {
       setReportsSignature(nextSignature);
       setDssLastRefreshedAt(new Date().toISOString());
       setDismissedRecommendationIds([]);
-      setApprovedRecommendationIds([]);
       const historyRows = payload.reports.slice(0, 8).map((report) => {
         const incident = reportToIncident(report);
         return {
@@ -620,33 +598,22 @@ export default function Reports() {
   };
 
   const visibleDssRecommendations = React.useMemo(
-    () => dssRecommendations.filter(
-      (rec) => !dismissedRecommendationIds.includes(rec.id) && !approvedRecommendationIds.includes(rec.id),
-    ),
-    [approvedRecommendationIds, dismissedRecommendationIds, dssRecommendations],
+    () => dssRecommendations.filter((rec) => !dismissedRecommendationIds.includes(rec.id)),
+    [dismissedRecommendationIds, dssRecommendations],
   );
   const dssActionCount = visibleDssRecommendations.reduce((sum, rec) => sum + rec.actions.length, 0);
-    const handleDssAction = async (rec: DSSRecommendation, actionType: 'APPROVE_DISPATCH' | 'DISMISS') => {
+    const handleDssAction = async (rec: DSSRecommendation) => {
       setDssActionSubmittingId(rec.id);
       setActionError(null);
       setActionSuccess(null);
       try {
         await officialReportsApi.submitDssAction({
-          actionType,
+          actionType: 'DISMISS',
           recommendationTitle: rec.title,
         });
 
-        if (actionType === 'DISMISS') {
-          setDismissedRecommendationIds((prev) => [...prev, rec.id]);
-        } else {
-          setApprovedRecommendationIds((prev) => [...prev, rec.id]);
-        }
-
-        setActionSuccess(
-          actionType === 'DISMISS'
-            ? 'Recommendation dismissed and removed from active queue.'
-            : 'Recommendation approved for dispatch and removed from pending actions.',
-        );
+        setDismissedRecommendationIds((prev) => [...prev, rec.id]);
+        setActionSuccess('Recommendation dismissed and removed from active queue.');
       } catch (error) {
         setActionError(error instanceof Error ? error.message : 'Failed to submit DSS action.');
       } finally {
@@ -776,7 +743,7 @@ export default function Reports() {
               <div style={{ color: 'white', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>TUGON Intelligence Engine</div>
               <div style={{ color: '#93C5FD', fontSize: 12 }}>
                 {analysisWindowDays > 0
-                  ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data and responder utilization to surface actionable recommendations.`
+                  ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data to surface actionable recommendations.`
                   : 'Waiting for incident data to generate recommendations.'}
               </div>
               <div style={{ color: '#93C5FD', fontSize: 11, marginTop: 4 }}>
@@ -847,8 +814,7 @@ export default function Reports() {
                 <DSSCard
                   key={rec.id}
                   rec={rec}
-                  onApprove={(item) => { void handleDssAction(item, 'APPROVE_DISPATCH'); }}
-                  onDismiss={(item) => { void handleDssAction(item, 'DISMISS'); }}
+                  onDismiss={(item) => { void handleDssAction(item); }}
                   busy={dssActionSubmittingId === rec.id}
                 />
               ))

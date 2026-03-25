@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Edit2, Printer, Download,
+  Search, Edit2, Printer, RefreshCw,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
   ChevronRight,
   Users, Clock, MapPin, Info, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
@@ -110,10 +110,13 @@ const STATUS_TRANSITIONS: Record<ApiTicketStatus, ApiTicketStatus[]> = {
   Submitted: ['Under Review', 'Unresolvable'],
   'Under Review': ['In Progress', 'Resolved', 'Unresolvable'],
   'In Progress': ['Resolved', 'Unresolvable'],
-  Resolved: ['Closed', 'In Progress'],
+  Resolved: [],
   Closed: [],
   Unresolvable: [],
 };
+
+const OPEN_TICKET_STATUSES = new Set<ApiTicketStatus>(['Submitted', 'Under Review', 'In Progress']);
+type IncidentListView = 'open' | 'archived';
 
 function IncidentDetailModal({
   incident,
@@ -135,6 +138,7 @@ function IncidentDetailModal({
     () => STATUS_TRANSITIONS[incident.ticketStatus],
     [incident.ticketStatus],
   );
+  const canUpdateStatus = availableStatuses.length > 0;
 
   useEffect(() => {
     setNextStatus(availableStatuses[0] ?? '');
@@ -296,7 +300,6 @@ function IncidentDetailModal({
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
               { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
               { label: 'Reporter Verification', value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
-              { label: 'Responders', value: `${incident.responders} unit(s) assigned`, icon: <Users size={13} /> },
               { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
               { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },
             ].map((item) => (
@@ -325,102 +328,104 @@ function IncidentDetailModal({
         </div>
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
-            {statusSelectorOpen ? (
-              <div
+          {canUpdateStatus ? (
+            <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
+              {statusSelectorOpen ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: 'calc(100% + 8px)',
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: 8,
+                    boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    zIndex: 120,
+                  }}
+                >
+                  {availableStatuses.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setNextStatus(status);
+                        setStatusSelectorOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        border: 'none',
+                        background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
+                        color: nextStatus === status ? '#1E3A8A' : '#334155',
+                        padding: '9px 12px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                disabled={isUpdating || !canUpdateStatus}
+                onClick={() => setStatusSelectorOpen((value) => !value)}
                 style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 'calc(100% + 8px)',
-                  background: '#FFFFFF',
+                  width: '100%',
                   border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
                   borderRadius: 8,
-                  boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  zIndex: 120,
+                  padding: '8px 10px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                 }}
               >
-                {availableStatuses.map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => {
-                      setNextStatus(status);
-                      setStatusSelectorOpen(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      border: 'none',
-                      background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
-                      color: nextStatus === status ? '#1E3A8A' : '#334155',
-                      padding: '9px 12px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+                <span>{nextStatus || 'Select new status'}</span>
+                <ChevronUp size={14} color="#64748B" />
+              </button>
 
-            <button
-              type="button"
-              disabled={isUpdating || availableStatuses.length === 0}
-              onClick={() => setStatusSelectorOpen((value) => !value)}
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#334155',
-                borderRadius: 8,
-                padding: '8px 10px',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>{nextStatus || 'Select new status'}</span>
-              <ChevronUp size={14} color="#64748B" />
-            </button>
+              <button
+                disabled={!nextStatus || isUpdating || !canUpdateStatus}
+                onClick={() => {
+                  if (!nextStatus) {
+                    return;
+                  }
+                  void onUpdateStatus(nextStatus);
+                }}
+                style={{
+                  width: '100%',
+                  background: '#1E3A8A',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '9px 16px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: !nextStatus || isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
+                  opacity: !nextStatus || isUpdating || !canUpdateStatus ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
+              </button>
+            </div>
+          ) : null}
 
-            <button
-              disabled={!nextStatus || isUpdating || availableStatuses.length === 0}
-              onClick={() => {
-                if (!nextStatus) {
-                  return;
-                }
-                void onUpdateStatus(nextStatus);
-              }}
-              style={{
-                width: '100%',
-                background: '#1E3A8A',
-                color: 'white',
-                border: 'none',
-                borderRadius: 8,
-                padding: '9px 16px',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: !nextStatus || isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: !nextStatus || isUpdating || availableStatuses.length === 0 ? 0.6 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
-            </button>
-          </div>
-
-          <button style={{ flex: 1, minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <button style={{ flex: canUpdateStatus ? 1 : '1 1 100%', minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Printer size={13} /> Print Report
           </button>
         </div>
@@ -487,6 +492,7 @@ export default function Incidents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const [listView, setListView] = useState<IncidentListView>('open');
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
@@ -498,6 +504,14 @@ export default function Incidents() {
   const [updatingIncidentId, setUpdatingIncidentId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const hasFilter = Boolean(search || filterCategory || filterSeverity || filterStatus);
+
+  const { openCount, archivedCount } = useMemo(() => {
+    const open = incidents.filter((incident) => OPEN_TICKET_STATUSES.has(incident.ticketStatus)).length;
+    return {
+      openCount: open,
+      archivedCount: incidents.length - open,
+    };
+  }, [incidents]);
 
   const loadReports = async () => {
     setLoading(true);
@@ -551,6 +565,14 @@ export default function Incidents() {
   const filtered = useMemo(() => {
     return incidents
       .filter((inc) => {
+        if (listView === 'open' && !OPEN_TICKET_STATUSES.has(inc.ticketStatus)) {
+          return false;
+        }
+
+        if (listView === 'archived' && OPEN_TICKET_STATUSES.has(inc.ticketStatus)) {
+          return false;
+        }
+
         const q = search.toLowerCase(); 
         if (
           search &&
@@ -571,7 +593,7 @@ export default function Incidents() {
         const vb = String(b[sortKey] ?? '');
         return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       });
-  }, [incidents, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
+  }, [incidents, listView, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
 
   const perPage = 10;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -619,7 +641,7 @@ export default function Incidents() {
   if (initialLoadPending) {
     return (
       <div style={{ padding: '14px 16px', minHeight: '100%' }}>
-        <TableSkeleton rows={8} columns={8} showHeader />
+        <TableSkeleton rows={8} columns={7} showHeader />
         <div style={{ marginTop: 14 }}>
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         </div>
@@ -633,9 +655,52 @@ export default function Incidents() {
         <div>
           <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Incident Management</h1>
           <p style={{ color: '#64748B', fontSize: 12 }}>
-            {loading ? 'Loading reports...' : `${filtered.length} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
+            {loading
+              ? 'Loading reports...'
+              : `${filtered.length} ${listView === 'open' ? 'active' : 'archived'} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
           </p>
         </div>
+      </div>
+
+      <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setListView('open');
+            setPage(1);
+          }}
+          style={{
+            border: '1px solid #CBD5E1',
+            background: listView === 'open' ? '#1E3A8A' : '#FFFFFF',
+            color: listView === 'open' ? '#FFFFFF' : '#334155',
+            borderRadius: 999,
+            padding: '8px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Open Incidents ({openCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setListView('archived');
+            setPage(1);
+          }}
+          style={{
+            border: '1px solid #CBD5E1',
+            background: listView === 'archived' ? '#1E3A8A' : '#FFFFFF',
+            color: listView === 'archived' ? '#FFFFFF' : '#334155',
+            borderRadius: 999,
+            padding: '8px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Archived ({archivedCount})
+        </button>
       </div>
 
       {error ? (
@@ -725,7 +790,6 @@ export default function Incidents() {
               color="#94A3B8"
               style={{
                 position: 'absolute',
-                right: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
@@ -755,7 +819,7 @@ export default function Incidents() {
           }}
           style={{ marginLeft: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
         >
-          <Download size={14} /> Refresh
+          <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
@@ -771,7 +835,6 @@ export default function Incidents() {
                   { key: 'severity' as keyof IncidentView, label: 'Severity' },
                   { key: 'status' as keyof IncidentView, label: 'Status' },
                   { key: 'reportedAt' as keyof IncidentView, label: 'Reported' },
-                  { key: 'responders' as keyof IncidentView, label: 'Responders' },
                   { key: null, label: 'Actions' },
                 ].map((col) => (
                   <th
@@ -790,13 +853,13 @@ export default function Incidents() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 16 }}>
-                    <TableSkeleton rows={6} columns={8} showHeader={false} className="border-0 shadow-none" />
+                  <td colSpan={7} style={{ padding: 16 }}>
+                    <TableSkeleton rows={6} columns={7} showHeader={false} className="border-0 shadow-none" />
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
+                  <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
                 </tr>
               ) : paginated.map((inc) => (
                 <tr
@@ -830,12 +893,6 @@ export default function Incidents() {
                   <td style={{ padding: '11px 14px' }}><SeverityBadge severity={inc.severity} size="sm" /></td>
                   <td style={{ padding: '11px 14px' }}><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
                   <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
-                  <td style={{ padding: '11px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Users size={12} color="#94A3B8" />
-                      <span style={{ color: '#475569', fontWeight: 500 }}>{inc.responders}</span>
-                    </div>
-                  </td>
                   <td style={{ padding: '11px 14px' }}>
                     <button
                       onClick={(event) => {
@@ -930,10 +987,6 @@ export default function Incidents() {
                     minute: '2-digit',
                     hour12: true,
                   })}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Users size={12} color="#94A3B8" />
-                  <span style={{ color: '#475569', fontWeight: 500, fontSize: 12 }}>{inc.responders}</span>
                 </div>
               </div>
 

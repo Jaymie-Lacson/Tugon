@@ -405,7 +405,7 @@ export interface ApiGeneratedTemplateReport {
 export interface ApiDssActionResult {
   message: string;
   action: {
-    actionType: "APPROVE_DISPATCH" | "DISMISS";
+    actionType: "DISMISS";
     recommendationTitle: string;
     actedAt: string;
     actor: string;
@@ -594,7 +594,7 @@ export const officialReportsApi = {
     });
   },
 
-  submitDssAction(input: { actionType: "APPROVE_DISPATCH" | "DISMISS"; recommendationTitle: string; notes?: string }) {
+  submitDssAction(input: { actionType: "DISMISS"; recommendationTitle: string; notes?: string }) {
     if (missingOfficialRouteState.dssActions) {
       const actor = getAuthSession()?.user.fullName ?? "Barangay Official";
       return Promise.resolve({

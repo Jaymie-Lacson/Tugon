@@ -2183,7 +2183,8 @@ export default function IncidentReport() {
   const stepValidationMessage = STEP_REQUIREMENTS[step]?.(form) ?? null;
   const canProceed = !stepValidationMessage;
   const voiceAllowed = (form.category === 'Noise') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
-  const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '1') !== '0';
+  const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+  const enableInlineEvidenceUpload = String(viteEnv?.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '1') !== '0';
 
   useEffect(() => {
     if (voiceAllowed) {
