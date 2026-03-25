@@ -33,6 +33,10 @@ export const authenticate: RequestHandler = async (req, res, next) => {
   const bearerToken = extractBearerToken(authHeader);
   const cookieToken = extractCookieToken(req);
 
+  if (cookieToken && bearerToken) {
+    return res.status(400).json({ message: "Provide either cookie session or bearer authorization, not both." });
+  }
+
   if (bearerToken && !env.authAllowBearerTokens) {
     return res.status(401).json({ message: "Bearer authorization is disabled for this deployment." });
   }

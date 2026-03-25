@@ -11,6 +11,32 @@ type WindowCounter = {
   count: number;
 };
 
+const MAX_TRACKED_IPS = 20_000;
+
+function pruneCounters(counters: Map<string, WindowCounter>, nowMs: number, windowMs: number) {
+  for (const [ip, counter] of counters.entries()) {
+    if (nowMs - counter.windowStartMs >= windowMs) {
+      counters.delete(ip);
+    }
+  }
+
+  if (counters.size <= MAX_TRACKED_IPS) {
+    return;
+  }
+
+  const entriesToTrim = counters.size - MAX_TRACKED_IPS;
+  let trimmed = 0;
+
+  // Map preserves insertion order, so this drops oldest tracked counters first.
+  for (const ip of counters.keys()) {
+    counters.delete(ip);
+    trimmed += 1;
+    if (trimmed >= entriesToTrim) {
+      break;
+    }
+  }
+}
+
 function getClientIp(request: Request) {
   const forwardedFor = request.headers["x-forwarded-for"];
 
@@ -30,6 +56,8 @@ export function createIpRateLimiter(options: IpRateLimiterOptions): RequestHandl
 
   return (req, res, next) => {
     const nowMs = Date.now();
+    pruneCounters(counters, nowMs, options.windowMs);
+
     const clientIp = getClientIp(req);
     const existing = counters.get(clientIp);
 
