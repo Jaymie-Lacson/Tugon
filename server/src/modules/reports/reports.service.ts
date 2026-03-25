@@ -1056,15 +1056,20 @@ export const reportsService = {
           reportId: report.id,
         },
       }),
-      prisma.crossBorderAlert.createMany({
-        data: nearbyBarangays.map((barangay) => ({
-          reportId: report.id,
-          sourceBarangayCode: routedBarangay.code,
-          targetBarangayCode: barangay.code,
-          alertReason: "Incident reported near shared jurisdiction boundary.",
-        })),
-      }),
     ];
+
+    if (nearbyBarangays.length > 0) {
+      txOperations.push(
+        prisma.crossBorderAlert.createMany({
+          data: nearbyBarangays.map((barangay) => ({
+            reportId: report.id,
+            sourceBarangayCode: routedBarangay.code,
+            targetBarangayCode: barangay.code,
+            alertReason: "Incident reported near shared jurisdiction boundary.",
+          })),
+        }),
+      );
+    }
 
     const superAdminRecipients = await prisma.user.findMany({
       where: {
@@ -1867,6 +1872,23 @@ export const reportsService = {
       };
     }
 
+    if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+      if (shouldLogInternals) {
+        console.error("[reports] Prisma unknown request error", {
+          name: error.name,
+          message: error.message,
+        });
+      }
+
+      const looksLikeConnectivityFailure = /can't reach database server|connection|timed out|econnrefused|ehostunreach|server closed the connection/i
+        .test(error.message);
+
+      return {
+        status: looksLikeConnectivityFailure ? 503 : 500,
+        message: "Unable to process report request right now.",
+      };
+    }
+
     if (error instanceof Error) {
       if (shouldLogInternals) {
         console.error("[reports] Unexpected service error", {
@@ -1874,6 +1896,14 @@ export const reportsService = {
           message: error.message,
         });
       }
+
+      const looksLikeConnectivityFailure = /can't reach database server|connection|timed out|econnrefused|ehostunreach|server closed the connection/i
+        .test(error.message);
+
+      if (looksLikeConnectivityFailure) {
+        return { status: 503, message: "Unable to process report request right now." };
+      }
+
       return { status: 500, message: "Unable to process report request right now." };
     }
 

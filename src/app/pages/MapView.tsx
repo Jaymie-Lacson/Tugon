@@ -3,6 +3,7 @@ import {
   Layers, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   Navigation2, ArrowLeft, TrendingUp, SlidersHorizontal,
+  Navigation2, ArrowLeft, TrendingUp, CheckCircle2,
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
@@ -13,6 +14,7 @@ import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import type { ApiTicketStatus } from '../services/citizenReportsApi';
 import '../../styles/map-view.css';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
@@ -76,6 +78,8 @@ export default function MapView() {
     typeof window !== 'undefined' ? (!isPublicCommunityMap && window.innerWidth > 768) : !isPublicCommunityMap,
   );
   const [showPublicLoginModal, setShowPublicLoginModal] = useState(isPublicCommunityMap);
+  const [dispatchingIncidentId, setDispatchingIncidentId] = useState<string | null>(null);
+  const [dispatchSuccessOpen, setDispatchSuccessOpen] = useState(false);
 
   useEffect(() => {
     if (isPublicCommunityMap) {
@@ -177,6 +181,62 @@ export default function MapView() {
     navigate('/');
   };
 
+  const resolveDispatchStatus = (currentStatus: ApiTicketStatus): ApiTicketStatus | null => {
+    if (currentStatus === 'Submitted') {
+      return 'Under Review';
+    }
+
+    if (currentStatus === 'Under Review') {
+      return 'In Progress';
+    }
+
+    // In-progress or terminal tickets are already dispatched or cannot be dispatched.
+    return null;
+  };
+
+  const handleDispatchResponse = async () => {
+    if (!selectedIncident || dispatchingIncidentId) {
+      return;
+    }
+
+    setDispatchingIncidentId(selectedIncident.id);
+    setError(null);
+
+    try {
+      const reportPayload = await officialReportsApi.getReportById(selectedIncident.id);
+      const nextStatus = resolveDispatchStatus(reportPayload.report.status);
+
+      if (!nextStatus) {
+        setError('This incident is already dispatched or no longer eligible for dispatch.');
+        return;
+      }
+
+      const updatedPayload = await officialReportsApi.updateReportStatus(selectedIncident.id, {
+        status: nextStatus,
+      });
+      const mapped = reportToIncident(updatedPayload.report);
+
+      setIncidents((current) => current.map((item) => (item.id === mapped.id ? mapped : item)));
+      setSelectedIncident(mapped);
+      setDispatchSuccessOpen(true);
+    } catch (dispatchError) {
+      const message = dispatchError instanceof Error ? dispatchError.message : 'Failed to dispatch response.';
+      setError(message);
+    } finally {
+      setDispatchingIncidentId(null);
+    }
+  };
+
+  const handleOpenFullReport = () => {
+    if (!selectedIncident) {
+      return;
+    }
+
+    navigate('/app/incidents', {
+      state: { reportId: selectedIncident.id },
+    });
+  };
+
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
 
   const filtered = mapIncidents.filter(inc => {
@@ -220,6 +280,20 @@ export default function MapView() {
       setHasHotspotAutoSelected(false);
     }
   }, [mapRenderMode]);
+
+  useEffect(() => {
+    if (!dispatchSuccessOpen) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setDispatchSuccessOpen(false);
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [dispatchSuccessOpen]);
 
   const coverageSubtitle = React.useMemo(() => {
     const barangays = [...new Set(mapIncidents.map((incident) => incident.barangay).filter(Boolean))];
@@ -346,6 +420,24 @@ export default function MapView() {
       )}
 
       <div className="map-area">
+        {dispatchSuccessOpen && !isPublicCommunityMap ? (
+          <div className="map-dispatch-success-modal" role="status" aria-live="polite">
+            <div className="map-dispatch-success-main">
+              <CheckCircle2 size={16} color="#166534" />
+              <span className="map-dispatch-success-text">Response has been dispatched.</span>
+            </div>
+            <button
+              type="button"
+              className="map-dispatch-success-close"
+              onClick={() => setDispatchSuccessOpen(false)}
+              aria-label="Close dispatch confirmation"
+              title="Close dispatch confirmation"
+            >
+              <X size={14} color="#166534" />
+            </button>
+          </div>
+        ) : null}
+
         <div className="map-header-bar">
           {isPublicCommunityMap && (
             <button
@@ -580,8 +672,21 @@ export default function MapView() {
                 </div>
 
                 <div className="map-selected-actions">
-                  <button className="map-selected-action-primary">Dispatch Response</button>
-                  <button className="map-selected-action-secondary">Full Report</button>
+                  <button
+                    className="map-selected-action-primary"
+                    onClick={() => {
+                      void handleDispatchResponse();
+                    }}
+                    disabled={dispatchingIncidentId === selectedIncident.id}
+                  >
+                    {dispatchingIncidentId === selectedIncident.id ? 'Dispatching...' : 'Dispatch Response'}
+                  </button>
+                  <button
+                    className="map-selected-action-secondary"
+                    onClick={handleOpenFullReport}
+                  >
+                    Full Report
+                  </button>
                 </div>
               </div>
             </div>

@@ -512,6 +512,17 @@ export default function Incidents() {
       archivedCount: incidents.length - open,
     };
   }, [incidents]);
+  const [pendingReportId, setPendingReportId] = useState<string | null>(() => {
+    const routeState = location.state as { reportId?: unknown } | null;
+    return typeof routeState?.reportId === 'string' ? routeState.reportId : null;
+  });
+  const perPage = 8;
+
+  useEffect(() => {
+    const routeState = location.state as { reportId?: unknown } | null;
+    const reportId = typeof routeState?.reportId === 'string' ? routeState.reportId : null;
+    setPendingReportId(reportId);
+  }, [location.state]);
 
   const loadReports = async () => {
     setLoading(true);
@@ -561,6 +572,46 @@ export default function Incidents() {
       setSelectedIncident(target);
     }
   }, [incidents, loading, location.search]);
+    if (!pendingReportId || loading) {
+      return;
+    }
+
+    const localMatch = incidents.find((incident) => incident.id === pendingReportId);
+    if (localMatch) {
+      setSelectedIncident(localMatch);
+      setPendingReportId(null);
+      return;
+    }
+
+    let disposed = false;
+
+    const openFromApi = async () => {
+      try {
+        const payload = await officialReportsApi.getReportById(pendingReportId);
+        if (disposed) {
+          return;
+        }
+
+        const mapped = toIncidentView(payload.report);
+        setIncidents((current) => (current.some((item) => item.id === mapped.id) ? current : [mapped, ...current]));
+        setSelectedIncident(mapped);
+      } catch (err) {
+        if (!disposed) {
+          setError(err instanceof Error ? err.message : 'Failed to open selected report.');
+        }
+      } finally {
+        if (!disposed) {
+          setPendingReportId(null);
+        }
+      }
+    };
+
+    void openFromApi();
+
+    return () => {
+      disposed = true;
+    };
+  }, [incidents, loading, pendingReportId]);
 
   const filtered = useMemo(() => {
     return incidents

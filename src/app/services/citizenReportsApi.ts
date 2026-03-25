@@ -96,21 +96,51 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const citizenReportsApi = {
-  validateReportPin(latitude: number, longitude: number) {
+  async validateReportPin(latitude: number, longitude: number) {
     const params = new URLSearchParams({
       latitude: String(latitude),
       longitude: String(longitude),
     });
 
-    return authedRequest<{
-      isAllowed: boolean;
-      isCrossBarangay?: boolean;
-      routedBarangayCode: string;
-      citizenBarangayCode: string;
-      message?: string;
-    }>(`/citizen/reports/geofence-check?${params.toString()}`, {
-      method: "GET",
-    });
+    const endpointCandidates = [
+      `/citizen/reports/geofence-check?${params.toString()}`,
+      // Backward-compatible fallback for older route-mount structures.
+      `/citizen/reports/reports/geofence-check?${params.toString()}`,
+      `/citizen/geofence-check?${params.toString()}`,
+    ] as const;
+
+    let lastError: unknown = null;
+
+    for (const endpoint of endpointCandidates) {
+      try {
+        return await authedRequest<{
+          isAllowed: boolean;
+          isCrossBarangay?: boolean;
+          routedBarangayCode: string;
+          citizenBarangayCode: string;
+          message?: string;
+        }>(endpoint, {
+          method: "GET",
+        });
+      } catch (error) {
+        lastError = error;
+        const message = (error instanceof Error ? error.message : "").toLowerCase();
+        const isRetryableRouteMiss =
+          message.includes("report not found") ||
+          message.includes("cannot get") ||
+          message.includes("not found");
+
+        if (!isRetryableRouteMiss) {
+          throw error;
+        }
+      }
+    }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+
+    return Promise.reject(new Error("Unable to validate pin location right now."));
   },
 
   submitReport(input: {
