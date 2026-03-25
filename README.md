@@ -83,11 +83,13 @@ This runs:
    - keep Railway at `RUN_DB_MIGRATIONS=0` for stable deploys
    - run migrations manually from a machine that can reach Supabase direct host:
      - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
-5. After first successful deploy, copy your Railway public URL and set frontend env:
-   - `VITE_API_BASE_URL=https://<your-service>.up.railway.app/api`
+5. Configure frontend API routing to keep browser auth cookies first-party:
+   - `vercel.json` rewrites `/api/*` to `https://tugon-server-production.up.railway.app/api/*`
+   - set `VITE_API_BASE_URL=/api`
    - `VITE_ENABLE_BEARER_AUTH=0`
    - `VITE_CSRF_COOKIE_NAME=tugon.csrf`
    - `VITE_CSRF_HEADER_NAME=x-csrf-token`
+   - for local development, Vite proxies `/api` to `http://localhost:4000`
 
 ## Railway Deployment Health Checklist
 

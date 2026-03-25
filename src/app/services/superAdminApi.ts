@@ -2,7 +2,7 @@ import { getAuthSession } from "../utils/authSession";
 import { withSecurityHeaders } from "../utils/requestSecurity";
 import type { Role } from "./authApi";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:4000/api";
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(/\/+$/, "");
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
