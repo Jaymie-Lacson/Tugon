@@ -12,6 +12,7 @@ let server: Server;
 let prismaModule: PrismaModule;
 let originalUserFindUnique: PrismaModule["prisma"]["user"]["findUnique"];
 let originalExecuteRaw: PrismaModule["prisma"]["$executeRaw"];
+let originalDatabaseUrl: string | undefined;
 
 let executeRawCallCount = 0;
 const testPassword = "Password#123";
@@ -41,9 +42,12 @@ function parseCookieValueFromSetCookie(setCookieHeaders: string[], name: string)
 }
 
 before(async () => {
+  originalDatabaseUrl = process.env.DATABASE_URL;
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? TEST_JWT_SECRET;
   process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "1h";
   process.env.NODE_ENV = "test";
+  // Enable DB-backed auth-session branches while keeping Prisma writes mocked in this suite.
+  process.env.DATABASE_URL = (process.env.DATABASE_URL || "").trim() || "postgresql://test:test@127.0.0.1:5432/tugon_test";
   process.env.AUTH_COOKIE_NAME = "tugon.sid";
   process.env.AUTH_COOKIE_SECURE_MODE = "never";
   process.env.AUTH_COOKIE_SAME_SITE = "lax";
@@ -129,6 +133,12 @@ before(async () => {
 after(async () => {
   prismaModule.prisma.user.findUnique = originalUserFindUnique;
   prismaModule.prisma.$executeRaw = originalExecuteRaw;
+
+  if (typeof originalDatabaseUrl === "undefined") {
+    delete process.env.DATABASE_URL;
+  } else {
+    process.env.DATABASE_URL = originalDatabaseUrl;
+  }
 
   await new Promise<void>((resolve, reject) => {
     server.close((error) => {
