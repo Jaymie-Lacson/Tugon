@@ -2241,7 +2241,7 @@ function ProfileTab({
 
       {!session?.user.isPhoneVerified ? (
         <button
-          onClick={() => navigate('/auth/verify')}
+          onClick={() => navigate('/auth/register')}
           style={{
             width: '100%',
             padding: '12px',
