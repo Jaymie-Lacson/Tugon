@@ -20,6 +20,45 @@ const missingOfficialRouteState: { [K in keyof typeof missingOfficialRoute]: boo
   dssActions: false,
 };
 
+type CsrfBootstrap = {
+  csrfToken: string;
+  headerName: string;
+};
+
+let cachedCsrfBootstrap: CsrfBootstrap | null = null;
+
+function requiresCsrfHeader(method: string | undefined) {
+  const normalized = (method ?? "GET").toUpperCase();
+  return normalized === "POST" || normalized === "PUT" || normalized === "PATCH" || normalized === "DELETE";
+}
+
+async function fetchCsrfBootstrap(forceRefresh = false): Promise<CsrfBootstrap> {
+  if (!forceRefresh && cachedCsrfBootstrap) {
+    return cachedCsrfBootstrap;
+  }
+
+  const response = await fetch(`${API_BASE}/auth/csrf`, {
+    method: "GET",
+    credentials: "include",
+    headers: withSecurityHeaders({}, { method: "GET" }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to initialize secure session. Please refresh and try again.");
+  }
+
+  const payload = (await response.json().catch(() => ({}))) as Partial<CsrfBootstrap>;
+  const csrfToken = typeof payload.csrfToken === "string" ? payload.csrfToken.trim() : "";
+  const headerName = typeof payload.headerName === "string" ? payload.headerName.trim() : "";
+
+  if (!csrfToken || !headerName) {
+    throw new Error("Unable to initialize secure session. Please refresh and try again.");
+  }
+
+  cachedCsrfBootstrap = { csrfToken, headerName };
+  return cachedCsrfBootstrap;
+}
+
 function normalizeOfficialApiMessage(message: string): string {
   const session = getAuthSession();
   if (
@@ -221,10 +260,18 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
+  const method = init?.method;
+  const headers = new Headers(withSecurityHeaders({
     "Content-Type": "application/json",
     ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  }, { method, token: session.token }));
+
+  if (requiresCsrfHeader(method) && path !== "/auth/csrf") {
+    const bootstrap = await fetchCsrfBootstrap();
+    if (!headers.has(bootstrap.headerName)) {
+      headers.set(bootstrap.headerName, bootstrap.csrfToken);
+    }
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -253,9 +300,17 @@ async function authedTextRequest(path: string, init?: RequestInit): Promise<{ te
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
+  const method = init?.method;
+  const headers = new Headers(withSecurityHeaders({
     ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  }, { method, token: session.token }));
+
+  if (requiresCsrfHeader(method) && path !== "/auth/csrf") {
+    const bootstrap = await fetchCsrfBootstrap();
+    if (!headers.has(bootstrap.headerName)) {
+      headers.set(bootstrap.headerName, bootstrap.csrfToken);
+    }
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
