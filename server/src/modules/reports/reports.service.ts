@@ -1077,15 +1077,20 @@ export const reportsService = {
           reportId: report.id,
         },
       }),
-      prisma.crossBorderAlert.createMany({
-        data: nearbyBarangays.map((barangay) => ({
-          reportId: report.id,
-          sourceBarangayCode: routedBarangay.code,
-          targetBarangayCode: barangay.code,
-          alertReason: "Incident reported near shared jurisdiction boundary.",
-        })),
-      }),
     ];
+
+    if (nearbyBarangays.length > 0) {
+      txOperations.push(
+        prisma.crossBorderAlert.createMany({
+          data: nearbyBarangays.map((barangay) => ({
+            reportId: report.id,
+            sourceBarangayCode: routedBarangay.code,
+            targetBarangayCode: barangay.code,
+            alertReason: "Incident reported near shared jurisdiction boundary.",
+          })),
+        }),
+      );
+    }
 
     const superAdminRecipients = await prisma.user.findMany({
       where: {
