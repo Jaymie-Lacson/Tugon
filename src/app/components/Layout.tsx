@@ -70,6 +70,25 @@ function Layout() {
     setProfileMenuOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+      }
+
+      if (drawerOpen) {
+        setDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen, profileMenuOpen]);
+
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
 
@@ -273,10 +292,14 @@ function Layout() {
 
             {/* Mobile hamburger — on the right of the bell */}
             <button
+              type="button"
               onClick={() => {
                 setDrawerOpen(!drawerOpen);
                 setProfileMenuOpen(false);
               }}
+              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-expanded={drawerOpen}
+              aria-controls="layout-mobile-drawer"
               className="mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -404,7 +427,12 @@ function Layout() {
 
       {/* ── Mobile Extra Drawer (Settings) ── */}
       {drawerOpen && (
-        <div style={{
+        <div
+          id="layout-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation drawer"
+          style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
           background: '#1E3A8A', zIndex: 1400, display: 'flex', flexDirection: 'column',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
@@ -422,7 +450,13 @@ function Layout() {
                 style={{ width: 148, maxWidth: '100%', height: 'auto' }}
               />
             </NavLink>
-            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation drawer"
+              className="icon-btn-square"
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
+            >
               <X size={18} color="white" />
             </button>
           </div>
@@ -499,6 +533,12 @@ function Layout() {
 
       <style>{`
         .mobile-menu-btn { display: none !important; }
+
+        a:focus-visible,
+        button:focus-visible {
+          outline: 3px solid #FCD34D;
+          outline-offset: 2px;
+        }
 
         @media (max-width: 1024px) {
           .sidebar-desktop    { display: none !important; }

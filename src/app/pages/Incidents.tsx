@@ -204,7 +204,9 @@ function IncidentDetailModal({
             <div style={{ color: '#DBEAFE', fontSize: 12 }}>{incident.location}</div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close incident details"
             className="icon-btn-square"
             style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'white' }}
           >

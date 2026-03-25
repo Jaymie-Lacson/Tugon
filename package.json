@@ -8,6 +8,8 @@
     "dev": "vite",
     "test:frontend": "vitest run",
     "test:frontend:watch": "vitest",
+    "test:frontend:a11y": "node scripts/a11y-smoke.cjs",
+    "test:frontend:all": "npm run test:frontend && npm run test:frontend:a11y",
     "build:server": "npm --prefix server run build",
     "audit:security": "npm audit --omit=dev --audit-level=high && npm --prefix server run audit:security",
     "prisma:generate": "npm --prefix server run prisma:generate",

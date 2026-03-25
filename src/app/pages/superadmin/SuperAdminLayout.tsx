@@ -196,6 +196,29 @@ export default function SuperAdminLayout() {
     setNotificationsOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+      }
+
+      if (notificationsOpen) {
+        setNotificationsOpen(false);
+      }
+
+      if (drawerOpen) {
+        setDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen, notificationsOpen, profileMenuOpen]);
+
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
       try {
@@ -579,10 +602,14 @@ export default function SuperAdminLayout() {
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 setDrawerOpen(!drawerOpen);
                 setProfileMenuOpen(false);
               }}
+              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-expanded={drawerOpen}
+              aria-controls="superadmin-mobile-drawer"
               className="sa-mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -714,7 +741,12 @@ export default function SuperAdminLayout() {
 
       {/* Mobile right drawer */}
       {drawerOpen && (
-        <div style={{
+        <div
+          id="superadmin-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Super admin mobile navigation drawer"
+          style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
           background: SIDEBAR_BG, zIndex: 1400, display: 'flex', flexDirection: 'column',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
@@ -732,7 +764,13 @@ export default function SuperAdminLayout() {
                 style={{ width: 148, maxWidth: '100%', height: 'auto' }}
               />
             </NavLink>
-            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation drawer"
+              className="icon-btn-square"
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
+            >
               <X size={18} color="white" />
             </button>
           </div>

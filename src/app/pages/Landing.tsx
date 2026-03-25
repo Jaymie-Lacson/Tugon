@@ -72,7 +72,7 @@ function SectionHeading({
       </h2>
       <p
         style={{
-          color: light ? '#BFDBFE' : '#64748B',
+          color: light ? '#DBEAFE' : '#64748B',
           fontSize: 14,
           maxWidth: 620,
           margin: '0 auto',
@@ -303,6 +303,7 @@ function Navbar() {
           </div>
 
           <button
+            type="button"
             className={mobileOpen ? 'nav-mobile-btn is-open' : 'nav-mobile-btn'}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -995,7 +996,7 @@ function SupportedBarangays() {
               </div>
 
               <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
-              <p style={{ margin: '0 0 18px 0', fontSize: 13, color: '#BFDBFE', fontWeight: 600 }}>{item.zone}</p>
+              <p style={{ margin: '0 0 18px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 600 }}>{item.zone}</p>
 
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }}>
                 {item.responders.map(r => (
@@ -1287,7 +1288,7 @@ function Footer() {
                 style={{ height: 36, width: 'auto', display: 'block' }}
               />
             </button>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.58)', lineHeight: 1.62, margin: 0, maxWidth: 500 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.74)', lineHeight: 1.62, margin: 0, maxWidth: 500 }}>
               A web-based incident management and decision support platform for Barangays 251, 252, and 256 in Tondo, Manila.
             </p>
           </div>
@@ -1351,7 +1352,7 @@ function Footer() {
           }}
         >
           <span>© {year} TUGON. Digital support tool for community reporting and response coordination.</span>
-          <span style={{ color: 'rgba(255,255,255,0.34)' }}>Barangays 251, 252, 256 · Tondo, Manila</span>
+          <span style={{ color: 'rgba(255,255,255,0.55)' }}>Barangays 251, 252, 256 · Tondo, Manila</span>
         </div>
       </div>
 
@@ -1438,14 +1439,19 @@ export default function Landing() {
         touchAction: 'pan-y',
       }}
     >
+      <a className="skip-link" href="#landing-main-content">
+        Skip to main content
+      </a>
       <Navbar />
-      <Hero />
-      <QuickActions />
-      <HowToUse />
-      <SupportedBarangays />
-      <SafetyTips />
-      <EmergencyHotlines />
-      <Footer />
+      <main id="landing-main-content">
+        <Hero />
+        <QuickActions />
+        <HowToUse />
+        <SupportedBarangays />
+        <SafetyTips />
+        <EmergencyHotlines />
+        <Footer />
+      </main>
 
       <style>{`
         [data-reveal] {
@@ -1482,6 +1488,32 @@ export default function Landing() {
 
         .hero-transition-scope {
           transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .skip-link {
+          position: fixed;
+          left: 12px;
+          top: -56px;
+          z-index: 1200;
+          background: #FFFFFF;
+          color: #0F172A;
+          border: 2px solid #1E3A8A;
+          border-radius: 8px;
+          padding: 8px 12px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 700;
+          transition: top 140ms ease;
+        }
+
+        .skip-link:focus {
+          top: 12px;
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+          outline: 3px solid #FCD34D;
+          outline-offset: 2px;
         }
 
         .hero-transition-scope.is-routing {
