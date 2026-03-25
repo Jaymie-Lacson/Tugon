@@ -128,6 +128,9 @@ export interface IncidentMapProps {
   heatmapClusters?: HeatmapClusterOverlay[];
   showSelectedPopup?: boolean;
   renderMode?: 'standard' | 'hotspot';
+  heatmapRadiusPercent?: number;
+  heatmapOpacityPercent?: number;
+  interactive?: boolean;
 }
 
 export interface HeatmapClusterOverlay {
@@ -220,6 +223,9 @@ export function IncidentMap({
   heatmapClusters = [],
   showSelectedPopup = false,
   renderMode = 'standard',
+  heatmapRadiusPercent = 100,
+  heatmapOpacityPercent = 100,
+  interactive = true,
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
@@ -227,6 +233,8 @@ export function IncidentMap({
     return (order[b.severity] ?? 3) - (order[a.severity] ?? 3);
   });
   const isHotspotMode = renderMode === 'hotspot' && heatmapClusters.length > 0;
+  const heatRadiusScale = Math.max(0.3, Math.min(1, heatmapRadiusPercent / 100));
+  const heatOpacityScale = Math.max(0.3, Math.min(1.2, heatmapOpacityPercent / 100));
   const selectedIncident = incidents.find((incident) => incident.id === selectedId) ?? null;
   const markerIncidents = isHotspotMode
     ? (selectedIncident ? [selectedIncident] : [])
@@ -240,7 +248,12 @@ export function IncidentMap({
         style={{ width: '100%', height: '100%' }}
         zoomControl={!compact}
         attributionControl={true}
-        scrollWheelZoom={true}
+        scrollWheelZoom={interactive}
+        dragging={interactive}
+        touchZoom={interactive}
+        doubleClickZoom={interactive}
+        boxZoom={interactive}
+        keyboard={interactive}
         maxBounds={TONDO_TRI_BRGY_BOUNDS}
         maxBoundsViscosity={1}
         minZoom={16}
@@ -305,8 +318,8 @@ export function IncidentMap({
                   cluster.incidentType === 'Crime' ? TYPE_COLORS.crime :
                     TYPE_COLORS.infrastructure);
           const radius = isHotspotMode
-            ? Math.max(85, Math.round(70 + cluster.intensity * 58 + cluster.incidentCount * 2))
-            : Math.max(55, Math.round(45 + cluster.intensity * 45));
+            ? Math.max(50, Math.round((70 + cluster.intensity * 58 + cluster.incidentCount * 2) * heatRadiusScale))
+            : Math.max(35, Math.round((45 + cluster.intensity * 45) * heatRadiusScale));
 
           return (
             <Circle
@@ -317,8 +330,8 @@ export function IncidentMap({
                 color,
                 fillColor: color,
                 fillOpacity: isHotspotMode
-                  ? Math.min(0.46, 0.18 + cluster.intensity * 0.07)
-                  : Math.min(0.34, 0.1 + cluster.intensity * 0.05),
+                  ? Math.min(0.46, (0.18 + cluster.intensity * 0.07) * heatOpacityScale)
+                  : Math.min(0.34, (0.1 + cluster.intensity * 0.05) * heatOpacityScale),
                 weight: isHotspotMode ? 2 : 1,
                 opacity: isHotspotMode ? 0.7 : 0.5,
               }}

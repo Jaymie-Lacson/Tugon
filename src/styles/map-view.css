@@ -506,6 +506,10 @@
   font-weight: 600;
 }
 
+.sa-map-heat-circle {
+  transition: fill-opacity 0.2s ease;
+}
+
 .map-public-login-modal-wrap {
   position: absolute;
   top: 68px;

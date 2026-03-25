@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useM
 import L from 'leaflet';
 import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
-  Filter, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
+  Filter, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
 } from 'lucide-react';
 import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
 import { superAdminApi } from '../../services/superAdminApi';
@@ -60,7 +60,7 @@ function getIncidentTypeIcon(type: string, size: number, color: string) {
   if (!icon) {
     return <AlertTriangle size={size} color={color} />;
   }
-  return React.cloneElement(icon, { size, color });
+  return React.cloneElement(icon as React.ReactElement<{ size?: number; color?: string }>, { size, color });
 }
 
 // ── Custom DivIcon factory ───────────────────────────────────────────────────
@@ -234,6 +234,8 @@ const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; c
   '252': { color: '#0F766E', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
   '256': { color: '#B4730A', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
 };
+const BARANGAY_FILTER_CODES = ['251', '252', '256'] as const;
+const HEAT_RADIUS_MAX_SCALE = 0.6;
 
 type BarangayMapView = {
   id: string;
@@ -388,6 +390,11 @@ function alertLevelFromActive(activeIncidents: number): 'normal' | 'elevated' | 
   return 'normal';
 }
 
+function extractBarangayCode(label: string): string | null {
+  const matched = label.match(/251|252|256/);
+  return matched ? matched[0] : null;
+}
+
 export default function SABarangayMap() {
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>([]);
   const [loadingBarangays, setLoadingBarangays] = useState(true);
@@ -398,7 +405,12 @@ export default function SABarangayMap() {
   const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showHeatmapSettings, setShowHeatmapSettings] = useState(false);
+  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatOpacityScale, setHeatOpacityScale] = useState(1);
   const [filterType, setFilterType] = useState<string>('all');
+  const [selectedBarangayCodes, setSelectedBarangayCodes] = useState<string[]>([...BARANGAY_FILTER_CODES]);
+  const [isCompactFilters, setIsCompactFilters] = useState(false);
   const [boundaryDraft, setBoundaryDraft] = useState('');
   const [boundarySaving, setBoundarySaving] = useState(false);
   const [boundaryMessage, setBoundaryMessage] = useState<string | null>(null);
@@ -407,16 +419,25 @@ export default function SABarangayMap() {
   const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([]);
 
   const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
-  const filteredIncidents = filterType === 'all'
+  const categoryFilteredIncidents = filterType === 'all'
     ? reportIncidents
     : reportIncidents.filter(i => i.type === filterType);
+  const filteredIncidents = selectedBarangayCodes.length === 0
+    ? categoryFilteredIncidents
+    : categoryFilteredIncidents.filter((incident) => {
+        const code = extractBarangayCode(incident.barangay);
+        return code ? selectedBarangayCodes.includes(code) : true;
+      });
+  const heatRadiusScale = (heatRadiusPercent / 100) * HEAT_RADIUS_MAX_SCALE;
 
   const heatCircles = filteredIncidents.map((incident) => ({
+    baseRadius: incident.severity === 'critical' ? 110 : incident.severity === 'high' ? 85 : 60,
+    baseOpacity: incident.severity === 'critical' ? 0.14 : incident.severity === 'high' ? 0.11 : 0.08,
     lat: incident.lat,
     lng: incident.lng,
-    radius: incident.severity === 'critical' ? 120 : incident.severity === 'high' ? 90 : 70,
+    radius: Math.max(20, (incident.severity === 'critical' ? 110 : incident.severity === 'high' ? 85 : 60) * heatRadiusScale),
     color: INCIDENT_COLORS[incident.type] ?? '#374151',
-    opacity: incident.severity === 'critical' ? 0.28 : 0.18,
+    opacity: Math.max(0.03, Math.min(0.42, (incident.severity === 'critical' ? 0.14 : incident.severity === 'high' ? 0.11 : 0.08) * heatOpacityScale)),
   }));
 
   const loadBarangays = async () => {
@@ -501,6 +522,16 @@ export default function SABarangayMap() {
   useEffect(() => {
     void loadBarangays();
     void loadReportIncidents();
+  }, []);
+
+  useEffect(() => {
+    const updateCompactMode = () => {
+      setIsCompactFilters(window.innerWidth < 900);
+    };
+
+    updateCompactMode();
+    window.addEventListener('resize', updateCompactMode);
+    return () => window.removeEventListener('resize', updateCompactMode);
   }, []);
 
   useEffect(() => {
@@ -615,6 +646,25 @@ export default function SABarangayMap() {
     }
   };
 
+  const toggleBarangayCode = (code: string) => {
+    setSelectedBarangayCodes((current) => {
+      if (current.includes(code)) {
+        return current.filter((item) => item !== code);
+      }
+      return [...current, code].sort();
+    });
+  };
+
+  const handleCompactBarangaySelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCodes = Array.from(event.target.selectedOptions).map((option) => option.value);
+    setSelectedBarangayCodes(selectedCodes);
+  };
+
+  const handleResetHeatmapSettings = () => {
+    setHeatRadiusPercent(85);
+    setHeatOpacityScale(1);
+  };
+
   if ((loadingBarangays || loadingIncidents) && reportIncidents.length === 0) {
     return <OfficialPageInitialLoader label="Loading super admin map" />;
   }
@@ -656,6 +706,21 @@ export default function SABarangayMap() {
           >
             <Layers size={13} /> {showHeatmap ? 'Hide Heatmap' : 'Show Heatmap'}
           </button>
+          <button
+            onClick={() => {
+              setShowHeatmapSettings((open) => !open);
+              setShowHeatmap(true);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: showHeatmapSettings ? '#1E3A8A' : 'white',
+              color: showHeatmapSettings ? 'white' : '#374151',
+              border: '1px solid #E5E7EB', borderRadius: 8,
+              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <SlidersHorizontal size={13} /> Tune Heatmap
+          </button>
         </div>
       </div>
 
@@ -684,22 +749,106 @@ export default function SABarangayMap() {
             borderBottom: '1px solid #F3F4F6', background: '#FAFAFA', flexWrap: 'wrap',
           }}>
             <Filter size={13} color="#6B7280" />
-            <span style={{ color: '#6B7280', fontSize: 12, fontWeight: 600 }}>Filter:</span>
-            {['all', 'fire', 'flood', 'accident', 'medical', 'crime'].map(t => (
-              <button
-                key={t}
-                onClick={() => setFilterType(t)}
-                style={{
-                  padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                  cursor: 'pointer', border: '1px solid transparent', textTransform: 'capitalize',
-                  background: filterType === t ? (INCIDENT_COLORS[t] ?? '#374151') : '#F3F4F6',
-                  color: filterType === t ? 'white' : '#6B7280',
-                }}
-              >
-                {t !== 'all' ? <span style={{ marginRight: 4, display: 'inline-flex', verticalAlign: 'middle' }}>{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
-                {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
-              </button>
-            ))}
+            <span style={{ color: '#6B7280', fontSize: 12, fontWeight: 600 }}>Filters:</span>
+            {isCompactFilters ? (
+              <>
+                <select
+                  value={filterType}
+                  onChange={(event) => setFilterType(event.target.value)}
+                  style={{
+                    border: '1px solid #CBD5E1',
+                    borderRadius: 8,
+                    background: 'white',
+                    color: '#334155',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '6px 8px',
+                    minWidth: 140,
+                  }}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="fire">{getCategoryLabelForIncidentType('fire')}</option>
+                  <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
+                  <option value="accident">{getCategoryLabelForIncidentType('accident')}</option>
+                  <option value="medical">{getCategoryLabelForIncidentType('medical')}</option>
+                  <option value="crime">{getCategoryLabelForIncidentType('crime')}</option>
+                </select>
+                <select
+                  multiple
+                  value={selectedBarangayCodes}
+                  onChange={handleCompactBarangaySelect}
+                  title="Select one or more barangays"
+                  style={{
+                    border: '1px solid #CBD5E1',
+                    borderRadius: 8,
+                    background: 'white',
+                    color: '#334155',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '6px 8px',
+                    minWidth: 120,
+                    height: 72,
+                  }}
+                >
+                  {BARANGAY_FILTER_CODES.map((code) => (
+                    <option key={code} value={code}>Barangay {code}</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <>
+                {['all', 'fire', 'flood', 'accident', 'medical', 'crime'].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setFilterType(t)}
+                    style={{
+                      padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      cursor: 'pointer', border: '1px solid transparent', textTransform: 'capitalize',
+                      background: filterType === t ? (INCIDENT_COLORS[t] ?? '#374151') : '#F3F4F6',
+                      color: filterType === t ? 'white' : '#6B7280',
+                    }}
+                  >
+                    {t !== 'all' ? <span style={{ marginRight: 4, display: 'inline-flex', verticalAlign: 'middle' }}>{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
+                    {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
+                  </button>
+                ))}
+                <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 4 }}>Barangay:</span>
+                <button
+                  onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
+                  style={{
+                    padding: '4px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                    cursor: 'pointer', border: '1px solid #CBD5E1', background: '#FFFFFF', color: '#475569',
+                  }}
+                >
+                  All
+                </button>
+                {BARANGAY_FILTER_CODES.map((code) => (
+                  <label
+                    key={code}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 8px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: 999,
+                      background: selectedBarangayCodes.includes(code) ? '#DBEAFE' : '#FFFFFF',
+                      color: selectedBarangayCodes.includes(code) ? '#1D4ED8' : '#475569',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedBarangayCodes.includes(code)}
+                      onChange={() => toggleBarangayCode(code)}
+                    />
+                    {code}
+                  </label>
+                ))}
+              </>
+            )}
             <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
               {filteredIncidents.length} incidents shown
             </span>
@@ -712,13 +861,104 @@ export default function SABarangayMap() {
 
           {/* Map */}
           <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
+            {showHeatmapSettings ? (
+              <div style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 1200,
+                width: 232,
+                background: 'rgba(255,255,255,0.98)',
+                border: '1px solid #DBEAFE',
+                borderRadius: 12,
+                boxShadow: '0 6px 24px rgba(15,23,42,.16)',
+                padding: 12,
+              }}
+              onMouseDown={(event) => event.stopPropagation()}
+              onMouseMove={(event) => event.stopPropagation()}
+              onTouchStart={(event) => event.stopPropagation()}
+              onTouchMove={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
+              onPointerMove={(event) => event.stopPropagation()}
+              onWheel={(event) => event.stopPropagation()}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Heatmap Settings</span>
+                  <button
+                    onClick={handleResetHeatmapSettings}
+                    style={{
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      borderRadius: 6,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: '3px 6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Radius scale</span>
+                    <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={100}
+                    step={1}
+                    value={heatRadiusPercent}
+                    onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 2 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Opacity scale</span>
+                    <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatOpacityScale.toFixed(2)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0.25}
+                    max={3}
+                    step={0.05}
+                    value={heatOpacityScale}
+                    onChange={(event) => setHeatOpacityScale(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            ) : null}
+
             <MapContainer
               center={TONDO_TRI_BRGY_CENTER}
               zoom={MAP_DEFAULT_ZOOM}
               style={{ width: '100%', height: '100%', minHeight: 500 }}
               zoomControl={false}
               attributionControl={true}
-              scrollWheelZoom={true}
+              scrollWheelZoom={!showHeatmapSettings}
+              dragging={!showHeatmapSettings}
+              touchZoom={!showHeatmapSettings}
+              doubleClickZoom={!showHeatmapSettings}
+              boxZoom={!showHeatmapSettings}
+              keyboard={!showHeatmapSettings}
               minZoom={MAP_MIN_ZOOM}
               maxZoom={MAP_MAX_ZOOM}
             >
@@ -740,8 +980,8 @@ export default function SABarangayMap() {
                   pathOptions={{
                     color: b.color,
                     fillColor: b.color,
-                    fillOpacity: selectedBarangay === b.id ? 0.22 : 0.10,
-                    weight: selectedBarangay === b.id ? 3 : 2,
+                    fillOpacity: selectedBarangay === b.id ? (showHeatmap ? 0.28 : 0.22) : (showHeatmap ? 0.15 : 0.10),
+                    weight: selectedBarangay === b.id ? (showHeatmap ? 4 : 3) : (showHeatmap ? 3 : 2),
                     dashArray: undefined,
                   }}
                   eventHandlers={{
@@ -788,7 +1028,7 @@ export default function SABarangayMap() {
                 : null}
 
               {/* Heatmap circles */}
-              {showHeatmap && heatCircles.map((c, i) => (
+              {heatCircles.map((c, i) => (
                 <Circle
                   key={`heat-${i}`}
                   center={[c.lat, c.lng]}
@@ -796,14 +1036,15 @@ export default function SABarangayMap() {
                   pathOptions={{
                     color: c.color,
                     fillColor: c.color,
-                    fillOpacity: c.opacity,
+                    className: 'sa-map-heat-circle',
+                    fillOpacity: showHeatmap ? c.opacity : 0,
                     weight: 0,
                   }}
                 />
               ))}
 
               {/* Incident markers */}
-              {filteredIncidents.map(inc => (
+              {!showHeatmap && filteredIncidents.map(inc => (
                 <Marker
                   key={inc.id}
                   position={[inc.lat, inc.lng]}
@@ -848,14 +1089,34 @@ export default function SABarangayMap() {
                   <span style={{ color: '#374151', fontSize: 10 }}>{b.name}</span>
                 </div>
               ))}
-              <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
-                {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
-                  <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type)}</span>
+              {showHeatmap ? (
+                <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
+                  <div style={{ color: '#6B7280', fontSize: 9, marginBottom: 4, fontWeight: 700 }}>
+                    Heat Intensity
                   </div>
-                ))}
-              </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#64748B', opacity: Math.max(0.03, Math.min(0.42, 0.08 * heatOpacityScale)) }} />
+                    <span style={{ color: '#6B7280', fontSize: 9 }}>Low ({Math.round(60 * heatRadiusScale)}m)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#475569', opacity: Math.max(0.03, Math.min(0.42, 0.11 * heatOpacityScale)) }} />
+                    <span style={{ color: '#6B7280', fontSize: 9 }}>High ({Math.round(85 * heatRadiusScale)}m)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#334155', opacity: Math.max(0.03, Math.min(0.42, 0.14 * heatOpacityScale)) }} />
+                    <span style={{ color: '#6B7280', fontSize: 9 }}>Critical ({Math.round(110 * heatRadiusScale)}m)</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
+                  {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
+                    <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center' }}>{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
+                      <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* OSM attribution note */}

@@ -4,6 +4,7 @@ import {
   TrendingDown, Minus, Radio, MapPin, ArrowRight, Flame,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   ChevronRight, RefreshCw, Navigation2, Bell,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   LineChart, Line, PieChart, Pie, Cell,
@@ -120,6 +121,9 @@ export default function Dashboard() {
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
+  const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
+  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
@@ -302,6 +306,10 @@ export default function Dashboard() {
     ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
     : 'Latest reporting window';
   const staffedActiveIncidents = activeIncidents.filter((incident) => incident.responders > 0).length;
+  const handleResetHeatmapTuning = () => {
+    setHeatRadiusPercent(85);
+    setHeatOpacityPercent(100);
+  };
 
   if (initialLoadPending) {
     return <OfficialPageInitialLoader label="Loading official dashboard" />;
@@ -546,9 +554,117 @@ export default function Dashboard() {
               >
                 Full Map <ArrowRight size={11} />
               </button>
+              <button
+                onClick={() => {
+                  setShowHeatmapTuning((current) => !current);
+                  setMapRenderMode('hotspot');
+                }}
+                style={{
+                  background: showHeatmapTuning ? '#1E3A8A' : '#EFF6FF',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 11,
+                  color: showHeatmapTuning ? '#FFFFFF' : '#1E3A8A',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <SlidersHorizontal size={11} /> Tune
+              </button>
             </div>
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            {showHeatmapTuning ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  zIndex: 1200,
+                  width: 220,
+                  background: 'rgba(255,255,255,0.98)',
+                  border: '1px solid #DBEAFE',
+                  borderRadius: 12,
+                  boxShadow: '0 6px 24px rgba(15,23,42,.16)',
+                  padding: 10,
+                }}
+                onMouseDown={(event) => event.stopPropagation()}
+                onMouseMove={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onWheel={(event) => event.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+                  <span style={{ color: '#1E293B', fontSize: 11, fontWeight: 700 }}>Heatmap Settings</span>
+                  <button
+                    onClick={handleResetHeatmapTuning}
+                    style={{
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      borderRadius: 6,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      padding: '3px 6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Radius</span>
+                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={100}
+                    step={1}
+                    value={heatRadiusPercent}
+                    onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Opacity</span>
+                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatOpacityPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={120}
+                    step={1}
+                    value={heatOpacityPercent}
+                    onChange={(event) => setHeatOpacityPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            ) : null}
+
             <IncidentMap
               incidents={mapIncidents}
               height={280}
@@ -558,6 +674,9 @@ export default function Dashboard() {
               zoom={14}
               heatmapClusters={heatmapOverlays}
               renderMode={mapRenderMode}
+              heatmapRadiusPercent={heatRadiusPercent}
+              heatmapOpacityPercent={heatOpacityPercent}
+              interactive={!showHeatmapTuning}
             />
           </div>
           {selectedIncident && (

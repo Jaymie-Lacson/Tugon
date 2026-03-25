@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Layers, Search, X, Users,
   Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  Navigation2, ArrowLeft, TrendingUp,
+  Navigation2, ArrowLeft, TrendingUp, SlidersHorizontal,
 } from 'lucide-react';
 import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentVisibleOnMap, statusConfig } from '../data/incidents';
 import { useLocation, useNavigate } from 'react-router';
@@ -57,6 +57,9 @@ export default function MapView() {
   const [heatmapLoading, setHeatmapLoading] = useState(false);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
+  const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
+  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [hasHotspotAutoSelected, setHasHotspotAutoSelected] = useState(false);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const location = useLocation();
@@ -224,6 +227,11 @@ export default function MapView() {
     return `Barangay Coverage: ${barangays.join(' • ')} — OpenStreetMap`;
   }, [mapIncidents]);
 
+  const handleResetHeatmapTuning = () => {
+    setHeatRadiusPercent(85);
+    setHeatOpacityPercent(100);
+  };
+
   if (initialLoadPending) {
     return <OfficialPageInitialLoader label="Loading incident map" minHeight="calc(100vh - 120px)" />;
   }
@@ -364,6 +372,16 @@ export default function MapView() {
               >
                 <Layers size={12} /> Incidents
               </button>
+              <button
+                className="map-mode-button"
+                onClick={() => {
+                  setShowHeatmapTuning((current) => !current);
+                  setMapRenderMode('hotspot');
+                }}
+                title="Tune hotspot radius and opacity"
+              >
+                <SlidersHorizontal size={12} /> Tune
+              </button>
             </div>
           )}
 
@@ -382,6 +400,93 @@ export default function MapView() {
         </div>
 
         <div className="map-canvas-wrap">
+          {!isPublicCommunityMap && showHeatmapTuning && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 56,
+                right: 12,
+                zIndex: 1200,
+                width: 230,
+                background: 'rgba(255,255,255,0.98)',
+                border: '1px solid #DBEAFE',
+                borderRadius: 12,
+                boxShadow: '0 6px 24px rgba(15,23,42,.16)',
+                padding: 12,
+              }}
+              onMouseDown={(event) => event.stopPropagation()}
+              onMouseMove={(event) => event.stopPropagation()}
+              onTouchStart={(event) => event.stopPropagation()}
+              onTouchMove={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
+              onPointerMove={(event) => event.stopPropagation()}
+              onWheel={(event) => event.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Heatmap Settings</span>
+                <button
+                  onClick={handleResetHeatmapTuning}
+                  style={{
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '3px 6px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Radius</span>
+                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={100}
+                  step={1}
+                  value={heatRadiusPercent}
+                  onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onMouseMove={(event) => event.stopPropagation()}
+                  onTouchStart={(event) => event.stopPropagation()}
+                  onTouchMove={(event) => event.stopPropagation()}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onPointerMove={(event) => event.stopPropagation()}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Opacity</span>
+                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatOpacityPercent}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={120}
+                  step={1}
+                  value={heatOpacityPercent}
+                  onChange={(event) => setHeatOpacityPercent(Number(event.target.value))}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onMouseMove={(event) => event.stopPropagation()}
+                  onTouchStart={(event) => event.stopPropagation()}
+                  onTouchMove={(event) => event.stopPropagation()}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onPointerMove={(event) => event.stopPropagation()}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          )}
+
           {!isPublicCommunityMap && heatmapError && (
             <div className="map-heatmap-error-banner" role="status">
               {heatmapError}
@@ -399,6 +504,9 @@ export default function MapView() {
             zoom={18}
             heatmapClusters={heatmapClusters}
             renderMode={isPublicCommunityMap ? 'standard' : mapRenderMode}
+            heatmapRadiusPercent={heatRadiusPercent}
+            heatmapOpacityPercent={heatOpacityPercent}
+            interactive={!showHeatmapTuning}
           />
         </div>
 

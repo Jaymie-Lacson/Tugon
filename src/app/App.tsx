@@ -4,11 +4,14 @@ import './utils/rechartsWarningPatch';
 
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router';
+import { OfficialPageInitialLoader } from './components/OfficialPageInitialLoader';
 import { router } from './routes';
 
 export default function App() {
   return (
-    <Suspense fallback={<div className="app-route-loading">Loading page...</div>}>
+    <Suspense
+      fallback={<OfficialPageInitialLoader label="Loading TUGON" minHeight="100vh" />}
+    >
       <RouterProvider router={router} />
     </Suspense>
   );
