@@ -17,7 +17,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:resolve": "prisma migrate resolve",
-    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:deploy": "node scripts/prisma-migrate-deploy.cjs",
     "prisma:status": "prisma migrate status",
     "prisma:validate": "prisma validate",
     "prisma:seed": "npm run seed",
