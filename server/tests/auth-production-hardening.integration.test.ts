@@ -13,6 +13,7 @@ let server: Server;
 let prismaModule: PrismaModule;
 let originalUserFindUnique: PrismaModule["prisma"]["user"]["findUnique"];
 let originalExecuteRaw: PrismaModule["prisma"]["$executeRaw"];
+let originalQueryRaw: PrismaModule["prisma"]["$queryRaw"];
 
 const testPassword = "Password#123";
 let passwordHash = "";
@@ -35,6 +36,7 @@ before(async () => {
   // Intentionally set permissive values; production env config must still force hardening.
   process.env.AUTH_RETURN_TOKEN_IN_BODY = "1";
   process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
+  process.env.AUTH_REQUIRE_PERSISTED_SESSION = "1";
 
   passwordHash = await bcrypt.hash(testPassword, 10);
 
@@ -46,6 +48,7 @@ before(async () => {
   prismaModule = prismaConfig;
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
   originalExecuteRaw = prismaModule.prisma.$executeRaw;
+  originalQueryRaw = prismaModule.prisma.$queryRaw;
 
   prismaModule.prisma.user.findUnique = (async (args: any) => {
     if (args?.where?.phoneNumber === "09179990000") {
@@ -98,6 +101,11 @@ before(async () => {
     return 1;
   }) as typeof prismaModule.prisma.$executeRaw;
 
+  prismaModule.prisma.$queryRaw = (async (...args: any[]) => {
+    void args;
+    return [];
+  }) as typeof prismaModule.prisma.$queryRaw;
+
   const app = createApp();
   await new Promise<void>((resolve) => {
     server = app.listen(0, () => resolve());
@@ -114,6 +122,7 @@ before(async () => {
 after(async () => {
   prismaModule.prisma.user.findUnique = originalUserFindUnique;
   prismaModule.prisma.$executeRaw = originalExecuteRaw;
+  prismaModule.prisma.$queryRaw = originalQueryRaw;
 
   await new Promise<void>((resolve, reject) => {
     server.close((error) => {
@@ -170,5 +179,35 @@ describe("Production auth hardening integration", () => {
     const body = (await meWithBearer.json()) as { message?: string };
     assert.equal(meWithBearer.status, 401);
     assert.equal(body.message, "Bearer authorization is disabled for this deployment.");
+  });
+
+  it("rejects cookie session when persisted AuthSession is missing in strict mode", async () => {
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phoneNumber: "09179990000",
+        password: testPassword,
+      }),
+    });
+
+    assert.equal(loginResponse.status, 200);
+
+    const setCookies = loginResponse.headers.getSetCookie();
+    const authCookie = parseAuthCookie(setCookies.find((value) => value.startsWith("tugon.sid=")) ?? null);
+    assert.match(authCookie, /^tugon\.sid=/);
+
+    const meWithCookie = await fetch(`${baseUrl}/api/auth/me`, {
+      method: "GET",
+      headers: {
+        Cookie: authCookie,
+      },
+    });
+
+    const body = (await meWithCookie.json()) as { message?: string };
+    assert.equal(meWithCookie.status, 401);
+    assert.equal(body.message, "Token is no longer valid.");
   });
 });

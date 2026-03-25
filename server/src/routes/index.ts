@@ -5,6 +5,7 @@ import { requireRole } from "../middleware/requireRole.js";
 import { citizenReportsRouter, officialReportsRouter } from "../modules/reports/reports.routes.js";
 import { adminRouter } from "../modules/admin/admin.routes.js";
 import { citizenVerificationRouter, officialVerificationRouter } from "../modules/verification/verification.routes.js";
+import { getIpRateLimiterDiagnostics } from "../middleware/rateLimit.js";
 
 export const apiRouter = Router();
 
@@ -13,6 +14,9 @@ apiRouter.get("/health", (_req, res) => {
     ok: true,
     service: "tugon-server",
     timestamp: new Date().toISOString(),
+    reliability: {
+      ipRateLimiter: getIpRateLimiterDiagnostics(),
+    },
   });
 });
 
