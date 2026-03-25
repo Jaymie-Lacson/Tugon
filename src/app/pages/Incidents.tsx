@@ -16,6 +16,7 @@ import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenRepor
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
+import { useLocation } from 'react-router';
 
 type IncidentView = Incident & {
   ticketStatus: ApiTicketStatus;
@@ -128,6 +129,8 @@ function IncidentDetailModal({
   const cfg = incidentTypeConfig[incident.type];
   const [statusSelectorOpen, setStatusSelectorOpen] = useState(false);
   const [nextStatus, setNextStatus] = useState<ApiTicketStatus | ''>('');
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
+  const [previewPhotoName, setPreviewPhotoName] = useState<string>('');
   const availableStatuses = useMemo(
     () => STATUS_TRANSITIONS[incident.ticketStatus],
     [incident.ticketStatus],
@@ -152,6 +155,8 @@ function IncidentDetailModal({
   const responseTime = incident.respondedAt
     ? Math.round((new Date(incident.respondedAt).getTime() - new Date(incident.reportedAt).getTime()) / 60000)
     : null;
+  const photoEvidence = incident.source.evidence.filter((item) => item.kind === 'photo');
+  const audioEvidence = incident.source.evidence.filter((item) => item.kind === 'audio');
 
   return (
     <div
@@ -217,10 +222,78 @@ function IncidentDetailModal({
             </div>
           </div>
 
+          <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Evidence Attachments
+            </div>
+
+            {photoEvidence.length === 0 && audioEvidence.length === 0 ? (
+              <div style={{ color: '#64748B', fontSize: 12 }}>
+                No evidence files are available for this report.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {photoEvidence.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                      Photos ({photoEvidence.length})
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+                      {photoEvidence.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setPreviewPhotoUrl(item.publicUrl);
+                            setPreviewPhotoName(item.fileName);
+                          }}
+                          style={{
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                            border: '1px solid #E2E8F0',
+                            background: '#F8FAFC',
+                            textDecoration: 'none',
+                            padding: 0,
+                            margin: 0,
+                            cursor: 'zoom-in',
+                          }}
+                        >
+                          <img
+                            src={item.publicUrl}
+                            alt={item.fileName}
+                            style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }}
+                          />
+                          <div style={{ padding: '6px 8px', fontSize: 10, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.fileName}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {audioEvidence.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                      Audio ({audioEvidence.length})
+                    </div>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {audioEvidence.map((item) => (
+                        <div key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 8, background: '#F8FAFC' }}>
+                          <div style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{item.fileName}</div>
+                          <audio controls src={item.publicUrl} style={{ width: '100%' }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 16 }}>
             {[
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
-              { label: 'District', value: incident.district, icon: <Info size={13} /> },
               { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
               { label: 'Reporter Verification', value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
               { label: 'Responders', value: `${incident.responders} unit(s) assigned`, icon: <Users size={13} /> },
@@ -351,12 +424,65 @@ function IncidentDetailModal({
             <Printer size={13} /> Print Report
           </button>
         </div>
+
+        {previewPhotoUrl ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Evidence photo preview"
+            onClick={() => setPreviewPhotoUrl(null)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 140,
+              background: 'rgba(2,6,23,0.86)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 18,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewPhotoUrl(null)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                border: '1px solid rgba(255,255,255,0.35)',
+                background: 'rgba(15,23,42,0.7)',
+                color: '#fff',
+                borderRadius: 999,
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              aria-label="Close photo preview"
+            >
+              <X size={16} />
+            </button>
+            <div onClick={(event) => event.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'grid', gap: 10 }}>
+              <img
+                src={previewPhotoUrl}
+                alt={previewPhotoName}
+                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)', borderRadius: 12 }}
+              />
+              <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600, textAlign: 'center' }}>
+                {previewPhotoName}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
 export default function Incidents() {
+  const location = useLocation();
   const [incidents, setIncidents] = useState<IncidentView[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -399,6 +525,28 @@ export default function Incidents() {
       setInitialLoadPending(false);
     }
   }, [initialLoadPending, loading]);
+
+  useEffect(() => {
+    const incidentId = new URLSearchParams(location.search).get('incident');
+    if (!incidentId) {
+      return;
+    }
+
+    setSearch(incidentId);
+    setPage(1);
+  }, [location.search]);
+
+  useEffect(() => {
+    const incidentId = new URLSearchParams(location.search).get('incident');
+    if (!incidentId || loading) {
+      return;
+    }
+
+    const target = incidents.find((item) => item.id.toLowerCase() === incidentId.toLowerCase());
+    if (target) {
+      setSelectedIncident(target);
+    }
+  }, [incidents, loading, location.search]);
 
   const filtered = useMemo(() => {
     return incidents

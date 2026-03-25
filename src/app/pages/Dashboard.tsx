@@ -79,7 +79,13 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   );
 }
 
-const AlertBanner = ({ incidents }: { incidents: Incident[] }) => {
+const AlertBanner = ({
+  incidents,
+  onOpenIncident,
+}: {
+  incidents: Incident[];
+  onOpenIncident: (incidentId: string) => void;
+}) => {
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
@@ -98,13 +104,43 @@ const AlertBanner = ({ incidents }: { incidents: Incident[] }) => {
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ color: '#B91C1C', fontWeight: 700, fontSize: 12 }}>ACTIVE ALERT: </span>
         <span style={{ color: '#7F1D1D', fontSize: 12 }}>
-          {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response — {critical.map(c => c.id).join(' · ')}
+          {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response —{' '}
+          {critical.map((incident, index) => (
+            <React.Fragment key={incident.id}>
+              <button
+                type="button"
+                onClick={() => onOpenIncident(incident.id)}
+                style={{
+                  border: 'none',
+                  padding: 0,
+                  margin: 0,
+                  background: 'transparent',
+                  color: '#7F1D1D',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                {incident.id}
+              </button>
+              {index < critical.length - 1 ? ' · ' : null}
+            </React.Fragment>
+          ))}
         </span>
       </div>
-      <span style={{
+      <button
+        type="button"
+        onClick={() => onOpenIncident(critical[0].id)}
+        style={{
         background: '#B91C1C', color: 'white', fontSize: 9, fontWeight: 700, padding: '3px 8px',
         borderRadius: 4, letterSpacing: '0.06em', whiteSpace: 'nowrap', flexShrink: 0,
-      }}>CRITICAL</span>
+        border: 'none',
+        cursor: 'pointer',
+      }}
+      >
+        CRITICAL
+      </button>
     </div>
   );
 };
@@ -335,7 +371,12 @@ export default function Dashboard() {
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
       {/* Alert banner */}
-      <AlertBanner incidents={incidents} />
+      <AlertBanner
+        incidents={incidents}
+        onOpenIncident={(incidentId) => {
+          navigate(`/app/incidents?incident=${encodeURIComponent(incidentId)}`);
+        }}
+      />
 
       {incidentsError ? (
         <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
