@@ -479,6 +479,11 @@ export default function CitizenDashboard() {
       }));
 
     const verificationSummary = getVerificationSummary(verificationPreview);
+    const hasPendingVerificationNotification =
+      verificationPreview.verificationStatus === 'PENDING'
+      || verificationPreview.verificationStatus === 'REJECTED'
+      || verificationPreview.verificationStatus === 'REUPLOAD_REQUESTED';
+
     const verificationItems = !verificationPreview.isVerified && !verificationPreview.isBanned
       ? [{
         icon: <Shield size={14} />,
@@ -487,7 +492,7 @@ export default function CitizenDashboard() {
         title: verificationSummary.title,
         desc: verificationSummary.statusLabel,
         time: 'Account',
-        unread: true,
+        unread: hasPendingVerificationNotification,
         action: 'open-verification' as const,
       }]
       : [];

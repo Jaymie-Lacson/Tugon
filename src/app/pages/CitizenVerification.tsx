@@ -201,6 +201,11 @@ export default function CitizenVerification() {
   }, [status]);
 
   const notificationItems = useMemo<CitizenNotificationItem[]>(() => {
+    const hasPendingVerificationNotification =
+      status?.verificationStatus === 'PENDING'
+      || status?.verificationStatus === 'REJECTED'
+      || status?.verificationStatus === 'REUPLOAD_REQUESTED';
+
     const verificationItem = !status?.isVerified && !status?.isBanned
       ? [{
         icon: meta.icon,
@@ -209,7 +214,7 @@ export default function CitizenVerification() {
         title: 'Verification Update',
         desc: meta.helper,
         time: 'Account',
-        unread: true,
+        unread: hasPendingVerificationNotification,
         action: 'open-verification' as const,
       }]
       : [];
