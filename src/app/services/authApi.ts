@@ -33,20 +33,71 @@ const API_BASE =
     "",
   );
 
+type CsrfBootstrap = {
+  csrfToken: string;
+  headerName: string;
+};
+
+let cachedCsrf: CsrfBootstrap | null = null;
+
+function requiresCsrfHeader(method: string | undefined) {
+  const normalized = (method ?? "GET").toUpperCase();
+  return normalized === "POST" || normalized === "PUT" || normalized === "PATCH" || normalized === "DELETE";
+}
+
+async function fetchCsrfBootstrap(forceRefresh = false): Promise<CsrfBootstrap> {
+  if (!forceRefresh && cachedCsrf) {
+    return cachedCsrf;
+  }
+
+  const response = await fetch(`${API_BASE}/auth/csrf`, {
+    method: "GET",
+    credentials: "include",
+    headers: withSecurityHeaders({}, { method: "GET" }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to initialize secure session. Please try again.");
+  }
+
+  const payload = (await response.json().catch(() => ({}))) as Partial<CsrfBootstrap>;
+  const csrfToken = typeof payload.csrfToken === "string" ? payload.csrfToken.trim() : "";
+  const headerName = typeof payload.headerName === "string" ? payload.headerName.trim() : "";
+
+  if (!csrfToken || !headerName) {
+    throw new Error("Unable to initialize secure session. Please try again.");
+  }
+
+  cachedCsrf = { csrfToken, headerName };
+  return cachedCsrf;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = init?.method;
+  const headers = new Headers(
+    withSecurityHeaders(
+      {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+      { method },
+    ),
+  );
+
+  if (requiresCsrfHeader(method) && path !== "/auth/csrf") {
+    const bootstrap = await fetchCsrfBootstrap();
+    if (!headers.has(bootstrap.headerName)) {
+      headers.set(bootstrap.headerName, bootstrap.csrfToken);
+    }
+  }
+
   let response: Response;
 
   try {
     response = await fetch(`${API_BASE}${path}`, {
       credentials: "include",
       ...init,
-      headers: withSecurityHeaders(
-        {
-          "Content-Type": "application/json",
-          ...(init?.headers ?? {}),
-        },
-        { method: init?.method },
-      ),
+      headers,
     });
   } catch {
     throw new Error(

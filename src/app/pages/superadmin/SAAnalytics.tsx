@@ -39,6 +39,27 @@ function StatCard({ label, value, color }: { label: string; value: string | numb
   );
 }
 
+function formatDurationFromMinutes(totalMinutes: number) {
+  const safeMinutes = Number.isFinite(totalMinutes) ? Math.max(0, totalMinutes) : 0;
+
+  if (safeMinutes < 60) {
+    return `${safeMinutes.toFixed(1)} minutes`;
+  }
+
+  const hours = safeMinutes / 60;
+  if (hours < 24) {
+    return `${hours.toFixed(1)} hours`;
+  }
+
+  const days = hours / 24;
+  if (days < 7) {
+    return `${days.toFixed(1)} days`;
+  }
+
+  const weeks = days / 7;
+  return `${weeks.toFixed(1)} weeks`;
+}
+
 export default function SAAnalytics() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +102,7 @@ export default function SAAnalytics() {
       active,
       resolved,
       avgResponse,
+      avgResponseLabel: formatDurationFromMinutes(avgResponse),
     };
   }, [incidents]);
 
@@ -145,7 +167,7 @@ export default function SAAnalytics() {
         <StatCard label="Total Reports" value={kpis.total} color="#1E3A8A" />
         <StatCard label="Open Reports" value={kpis.active} color="#B91C1C" />
         <StatCard label="Resolved Reports" value={kpis.resolved} color="#059669" />
-        <StatCard label="Avg Response" value={`${kpis.avgResponse} min`} color="#B4730A" />
+        <StatCard label="Avg Response" value={kpis.avgResponseLabel} color="#B4730A" />
       </div>
 
       <div className="sa-analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 14 }}>

@@ -100,6 +100,27 @@ function formatLogTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
+function formatDurationFromMinutes(totalMinutes: number) {
+  const safeMinutes = Number.isFinite(totalMinutes) ? Math.max(0, totalMinutes) : 0;
+
+  if (safeMinutes < 60) {
+    return `${safeMinutes.toFixed(1)} minutes`;
+  }
+
+  const hours = safeMinutes / 60;
+  if (hours < 24) {
+    return `${hours.toFixed(1)} hours`;
+  }
+
+  const days = hours / 24;
+  if (days < 7) {
+    return `${days.toFixed(1)} days`;
+  }
+
+  const weeks = days / 7;
+  return `${weeks.toFixed(1)} weeks`;
+}
+
 export default function SAOverview() {
   const navigate = useNavigate();
   const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
@@ -137,6 +158,7 @@ export default function SAOverview() {
 
     return Number((totalMinutes / withResponse.length).toFixed(1));
   })();
+  const avgResponseLabel = formatDurationFromMinutes(avgResponseMinutes);
   const incidentTypeDist = [
     { type: 'Fire', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Flood', brgy251: 0, brgy252: 0, brgy256: 0 },
@@ -363,7 +385,7 @@ export default function SAOverview() {
         />
         <KPICard
           label="Avg. Response Time"
-          value={`${avgResponseMinutes || 0} min`}
+          value={avgResponseLabel}
           sub="Target: ≤ 10 min"
           icon={<Clock />}
           color="#B4730A"
