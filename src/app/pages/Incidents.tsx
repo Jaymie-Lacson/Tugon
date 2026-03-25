@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Edit2, Printer, Download,
+  Search, Edit2, Printer, RefreshCw,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
   ChevronRight,
-  Users, Clock, MapPin, Info, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
+  Users, Clock, MapPin, Info, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
 } from 'lucide-react';
 import {
   Incident, IncidentType, Severity, IncidentStatus,
   incidentTypeConfig, severityConfig, statusConfig,
 } from '../data/incidents';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -23,7 +24,6 @@ type IncidentView = Incident & {
 };
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
-  fire: <Flame size={14} />,
   flood: <Droplets size={14} />,
   accident: <Car size={14} />,
   medical: <Heart size={14} />,
@@ -33,7 +33,6 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
 };
 
 const CATEGORY_FILTER_OPTIONS = [
-  'Fire',
   'Pollution',
   'Noise',
   'Crime',
@@ -42,7 +41,7 @@ const CATEGORY_FILTER_OPTIONS = [
 ] as const;
 
 function mapIncidentType(category: ReportCategory): IncidentType {
-  if (category === 'Fire') return 'fire';
+  if (category === 'Noise') return 'medical';
   if (category === 'Crime') return 'crime';
   if (category === 'Road Hazard') return 'accident';
   if (category === 'Pollution') return 'flood';
@@ -109,10 +108,13 @@ const STATUS_TRANSITIONS: Record<ApiTicketStatus, ApiTicketStatus[]> = {
   Submitted: ['Under Review', 'Unresolvable'],
   'Under Review': ['In Progress', 'Resolved', 'Unresolvable'],
   'In Progress': ['Resolved', 'Unresolvable'],
-  Resolved: ['Closed', 'In Progress'],
+  Resolved: [],
   Closed: [],
   Unresolvable: [],
 };
+
+const OPEN_TICKET_STATUSES = new Set<ApiTicketStatus>(['Submitted', 'Under Review', 'In Progress']);
+type IncidentListView = 'open' | 'archived';
 
 function IncidentDetailModal({
   incident,
@@ -128,10 +130,13 @@ function IncidentDetailModal({
   const cfg = incidentTypeConfig[incident.type];
   const [statusSelectorOpen, setStatusSelectorOpen] = useState(false);
   const [nextStatus, setNextStatus] = useState<ApiTicketStatus | ''>('');
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
+  const [previewPhotoName, setPreviewPhotoName] = useState<string>('');
   const availableStatuses = useMemo(
     () => STATUS_TRANSITIONS[incident.ticketStatus],
     [incident.ticketStatus],
   );
+  const canUpdateStatus = availableStatuses.length > 0;
 
   useEffect(() => {
     setNextStatus(availableStatuses[0] ?? '');
@@ -152,6 +157,8 @@ function IncidentDetailModal({
   const responseTime = incident.respondedAt
     ? Math.round((new Date(incident.respondedAt).getTime() - new Date(incident.reportedAt).getTime()) / 60000)
     : null;
+  const photoEvidence = incident.source.evidence.filter((item) => item.kind === 'photo');
+  const audioEvidence = incident.source.evidence.filter((item) => item.kind === 'audio');
 
   return (
     <div
@@ -195,7 +202,9 @@ function IncidentDetailModal({
             <div style={{ color: '#DBEAFE', fontSize: 12 }}>{incident.location}</div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close incident details"
             className="icon-btn-square"
             style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'white' }}
           >
@@ -217,13 +226,80 @@ function IncidentDetailModal({
             </div>
           </div>
 
+          <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Evidence Attachments
+            </div>
+
+            {photoEvidence.length === 0 && audioEvidence.length === 0 ? (
+              <div style={{ color: '#64748B', fontSize: 12 }}>
+                No evidence files are available for this report.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {photoEvidence.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                      Photos ({photoEvidence.length})
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+                      {photoEvidence.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setPreviewPhotoUrl(item.publicUrl);
+                            setPreviewPhotoName(item.fileName);
+                          }}
+                          style={{
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                            border: '1px solid #E2E8F0',
+                            background: '#F8FAFC',
+                            textDecoration: 'none',
+                            padding: 0,
+                            margin: 0,
+                            cursor: 'zoom-in',
+                          }}
+                        >
+                          <img
+                            src={item.publicUrl}
+                            alt={item.fileName}
+                            style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }}
+                          />
+                          <div style={{ padding: '6px 8px', fontSize: 10, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.fileName}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {audioEvidence.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                      Audio ({audioEvidence.length})
+                    </div>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {audioEvidence.map((item) => (
+                        <div key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 8, background: '#F8FAFC' }}>
+                          <div style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{item.fileName}</div>
+                          <audio controls src={item.publicUrl} style={{ width: '100%' }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 16 }}>
             {[
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
-              { label: 'District', value: incident.district, icon: <Info size={13} /> },
               { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
               { label: 'Reporter Verification', value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
-              { label: 'Responders', value: `${incident.responders} unit(s) assigned`, icon: <Users size={13} /> },
               { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
               { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },
             ].map((item) => (
@@ -252,105 +328,159 @@ function IncidentDetailModal({
         </div>
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
-            {statusSelectorOpen ? (
-              <div
+          {canUpdateStatus ? (
+            <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
+              {statusSelectorOpen ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: 'calc(100% + 8px)',
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: 8,
+                    boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    zIndex: 120,
+                  }}
+                >
+                  {availableStatuses.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setNextStatus(status);
+                        setStatusSelectorOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        border: 'none',
+                        background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
+                        color: nextStatus === status ? '#1E3A8A' : '#334155',
+                        padding: '9px 12px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                disabled={isUpdating || !canUpdateStatus}
+                onClick={() => setStatusSelectorOpen((value) => !value)}
                 style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 'calc(100% + 8px)',
-                  background: '#FFFFFF',
+                  width: '100%',
                   border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
                   borderRadius: 8,
-                  boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  zIndex: 120,
+                  padding: '8px 10px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                 }}
               >
-                {availableStatuses.map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => {
-                      setNextStatus(status);
-                      setStatusSelectorOpen(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      border: 'none',
-                      background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
-                      color: nextStatus === status ? '#1E3A8A' : '#334155',
-                      padding: '9px 12px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+                <span>{nextStatus || 'Select new status'}</span>
+                <ChevronUp size={14} color="#64748B" />
+              </button>
 
-            <button
-              type="button"
-              disabled={isUpdating || availableStatuses.length === 0}
-              onClick={() => setStatusSelectorOpen((value) => !value)}
-              style={{
-                width: '100%',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#334155',
-                borderRadius: 8,
-                padding: '8px 10px',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>{nextStatus || 'Select new status'}</span>
-              <ChevronUp size={14} color="#64748B" />
-            </button>
+              <button
+                disabled={!nextStatus || isUpdating || !canUpdateStatus}
+                onClick={() => {
+                  if (!nextStatus) {
+                    return;
+                  }
+                  void onUpdateStatus(nextStatus);
+                }}
+                style={{
+                  width: '100%',
+                  background: '#1E3A8A',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '9px 16px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: !nextStatus || isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
+                  opacity: !nextStatus || isUpdating || !canUpdateStatus ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
+              </button>
+            </div>
+          ) : null}
 
-            <button
-              disabled={!nextStatus || isUpdating || availableStatuses.length === 0}
-              onClick={() => {
-                if (!nextStatus) {
-                  return;
-                }
-                void onUpdateStatus(nextStatus);
-              }}
-              style={{
-                width: '100%',
-                background: '#1E3A8A',
-                color: 'white',
-                border: 'none',
-                borderRadius: 8,
-                padding: '9px 16px',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: !nextStatus || isUpdating || availableStatuses.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: !nextStatus || isUpdating || availableStatuses.length === 0 ? 0.6 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
-            </button>
-          </div>
-
-          <button style={{ flex: 1, minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <button style={{ flex: canUpdateStatus ? 1 : '1 1 100%', minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Printer size={13} /> Print Report
           </button>
         </div>
+
+        {previewPhotoUrl ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Evidence photo preview"
+            onClick={() => setPreviewPhotoUrl(null)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 140,
+              background: 'rgba(2,6,23,0.86)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 18,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewPhotoUrl(null)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                border: '1px solid rgba(255,255,255,0.35)',
+                background: 'rgba(15,23,42,0.7)',
+                color: '#fff',
+                borderRadius: 999,
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              aria-label="Close photo preview"
+            >
+              <X size={16} />
+            </button>
+            <div onClick={(event) => event.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'grid', gap: 10 }}>
+              <img
+                src={previewPhotoUrl}
+                alt={previewPhotoName}
+                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)', borderRadius: 12 }}
+              />
+              <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600, textAlign: 'center' }}>
+                {previewPhotoName}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -362,6 +492,7 @@ export default function Incidents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const [listView, setListView] = useState<IncidentListView>('open');
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
@@ -371,35 +502,70 @@ export default function Incidents() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [selectedIncident, setSelectedIncident] = useState<IncidentView | null>(null);
   const [updatingIncidentId, setUpdatingIncidentId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    incident: IncidentView;
+    x: number;
+    y: number;
+  } | null>(null);
   const [page, setPage] = useState(1);
+  const hasFilter = Boolean(search || filterCategory || filterSeverity || filterStatus);
+
+  const { openCount, archivedCount } = useMemo(() => {
+    const open = incidents.filter((incident) => OPEN_TICKET_STATUSES.has(incident.ticketStatus)).length;
+    return {
+      openCount: open,
+      archivedCount: incidents.length - open,
+    };
+  }, [incidents]);
   const [pendingReportId, setPendingReportId] = useState<string | null>(() => {
     const routeState = location.state as { reportId?: unknown } | null;
     return typeof routeState?.reportId === 'string' ? routeState.reportId : null;
   });
-  const perPage = 8;
-
   useEffect(() => {
     const routeState = location.state as { reportId?: unknown } | null;
     const reportId = typeof routeState?.reportId === 'string' ? routeState.reportId : null;
     setPendingReportId(reportId);
   }, [location.state]);
 
-  const loadReports = async () => {
-    setLoading(true);
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const payload = await officialReportsApi.getReports();
-      setIncidents(payload.reports.map((report) => toIncidentView(report)));
+      const mapped = payload.reports.map((report) => toIncidentView(report));
+      setIncidents(mapped);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return current;
+        }
+        return mapped.find((incident) => incident.id === current.id) ?? current;
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load reports.');
+      if (!silent) {
+        setError(err instanceof Error ? err.message : 'Failed to load reports.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadReports();
-  }, []);
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void loadReports(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadReports]);
 
   useEffect(() => {
     if (!initialLoadPending) {
@@ -410,6 +576,28 @@ export default function Incidents() {
       setInitialLoadPending(false);
     }
   }, [initialLoadPending, loading]);
+
+  useEffect(() => {
+    const incidentId = new URLSearchParams(location.search).get('incident');
+    if (!incidentId) {
+      return;
+    }
+
+    setSearch(incidentId);
+    setPage(1);
+  }, [location.search]);
+
+  useEffect(() => {
+    const incidentId = new URLSearchParams(location.search).get('incident');
+    if (!incidentId || loading) {
+      return;
+    }
+
+    const target = incidents.find((item) => item.id.toLowerCase() === incidentId.toLowerCase());
+    if (target) {
+      setSelectedIncident(target);
+    }
+  }, [incidents, loading, location.search]);
 
   useEffect(() => {
     if (!pendingReportId || loading) {
@@ -456,7 +644,15 @@ export default function Incidents() {
   const filtered = useMemo(() => {
     return incidents
       .filter((inc) => {
-        const q = search.toLowerCase();
+        if (listView === 'open' && !OPEN_TICKET_STATUSES.has(inc.ticketStatus)) {
+          return false;
+        }
+
+        if (listView === 'archived' && OPEN_TICKET_STATUSES.has(inc.ticketStatus)) {
+          return false;
+        }
+
+        const q = search.toLowerCase(); 
         if (
           search &&
           !inc.id.toLowerCase().includes(q) &&
@@ -476,8 +672,9 @@ export default function Incidents() {
         const vb = String(b[sortKey] ?? '');
         return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       });
-  }, [incidents, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
+  }, [incidents, listView, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
 
+  const perPage = 10;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
@@ -498,6 +695,8 @@ export default function Incidents() {
   const handleUpdateStatus = async (nextStatus: ApiTicketStatus) => {
     if (!selectedIncident) return;
 
+    setContextMenu(null);
+
     setUpdatingIncidentId(selectedIncident.id);
     setError(null);
     try {
@@ -512,15 +711,77 @@ export default function Incidents() {
     }
   };
 
+  const updateIncidentStatus = async (incident: IncidentView, nextStatus: ApiTicketStatus) => {
+    setContextMenu(null);
+
+    setUpdatingIncidentId(incident.id);
+    setError(null);
+    try {
+      const updated = await officialReportsApi.updateReportStatus(incident.id, { status: nextStatus });
+      const mapped = toIncidentView(updated.report);
+      setIncidents((current) => current.map((item) => (item.id === mapped.id ? mapped : item)));
+      setSelectedIncident((current) => (current?.id === mapped.id ? mapped : current));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status.');
+    } finally {
+      setUpdatingIncidentId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return;
+    }
+
+    const closeMenu = () => setContextMenu(null);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setContextMenu(null);
+      }
+    };
+
+    window.addEventListener('click', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      window.removeEventListener('click', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [contextMenu]);
+
+  const getArchiveTargetStatus = (incident: IncidentView): ApiTicketStatus | null => {
+    const allowed = STATUS_TRANSITIONS[incident.ticketStatus];
+    if (allowed.includes('Resolved')) {
+      return 'Resolved';
+    }
+    if (allowed.includes('Unresolvable')) {
+      return 'Unresolvable';
+    }
+    if (allowed.includes('Closed')) {
+      return 'Closed';
+    }
+    return null;
+  };
+
   const SortIcon = ({ k }: { k: keyof IncidentView }) => {
     if (sortKey !== k) return <ChevronsUpDown size={12} color="#CBD5E1" />;
     return sortDir === 'asc' ? <ChevronUp size={12} color="#1E3A8A" /> : <ChevronDown size={12} color="#1E3A8A" />;
   };
 
-  const hasFilter = search || filterCategory || filterSeverity || filterStatus;
+  const isVerifiedReporter = (incident: IncidentView) =>
+    incident.source.reporterVerificationStatus.toLowerCase() === 'verified';
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading incidents page" />;
+    return (
+      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+        <TableSkeleton rows={8} columns={7} showHeader />
+        <div style={{ marginTop: 14 }}>
+          <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -529,9 +790,52 @@ export default function Incidents() {
         <div>
           <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Incident Management</h1>
           <p style={{ color: '#64748B', fontSize: 12 }}>
-            {loading ? 'Loading reports...' : `${filtered.length} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
+            {loading
+              ? 'Loading reports...'
+              : `${filtered.length} ${listView === 'open' ? 'active' : 'archived'} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
           </p>
         </div>
+      </div>
+
+      <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setListView('open');
+            setPage(1);
+          }}
+          style={{
+            border: '1px solid #CBD5E1',
+            background: listView === 'open' ? '#1E3A8A' : '#FFFFFF',
+            color: listView === 'open' ? '#FFFFFF' : '#334155',
+            borderRadius: 999,
+            padding: '8px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Open Incidents ({openCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setListView('archived');
+            setPage(1);
+          }}
+          style={{
+            border: '1px solid #CBD5E1',
+            background: listView === 'archived' ? '#1E3A8A' : '#FFFFFF',
+            color: listView === 'archived' ? '#FFFFFF' : '#334155',
+            borderRadius: 999,
+            padding: '8px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Archived ({archivedCount})
+        </button>
       </div>
 
       {error ? (
@@ -621,8 +925,8 @@ export default function Incidents() {
               color="#94A3B8"
               style={{
                 position: 'absolute',
-                right: 10,
                 top: '50%',
+                right: 12,
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
               }}
@@ -651,7 +955,7 @@ export default function Incidents() {
           }}
           style={{ marginLeft: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
         >
-          <Download size={14} /> Refresh
+          <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
@@ -667,7 +971,6 @@ export default function Incidents() {
                   { key: 'severity' as keyof IncidentView, label: 'Severity' },
                   { key: 'status' as keyof IncidentView, label: 'Status' },
                   { key: 'reportedAt' as keyof IncidentView, label: 'Reported' },
-                  { key: 'responders' as keyof IncidentView, label: 'Responders' },
                   { key: null, label: 'Actions' },
                 ].map((col) => (
                   <th
@@ -686,19 +989,51 @@ export default function Incidents() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>Loading reports...</td>
+                  <td colSpan={7} style={{ padding: 16 }}>
+                    <TableSkeleton rows={6} columns={7} showHeader={false} className="border-0 shadow-none" />
+                  </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
+                  <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
                 </tr>
               ) : paginated.map((inc) => (
                 <tr
                   key={inc.id}
                   onClick={() => setSelectedIncident(inc)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    const canShowContextMenu = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches;
+                    if (!canShowContextMenu) {
+                      return;
+                    }
+
+                    setContextMenu({
+                      incident: inc,
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
                   style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
                 >
-                  <td style={{ padding: '11px 14px', fontWeight: 700, color: '#1E3A8A', whiteSpace: 'nowrap', fontSize: 12 }}>{inc.id}</td>
+                  <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 12 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 700, color: '#1E3A8A' }}>{inc.id}</span>
+                      {isVerifiedReporter(inc) ? (
+                        <span
+                          title="Verified Reporter"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            color: '#1E3A8A',
+                          }}
+                          aria-label="Verified Reporter"
+                        >
+                          <ShieldIcon size={13} />
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
                   <td style={{ padding: '11px 14px' }}><TypeBadge type={inc.type} size="sm" /></td>
                   <td style={{ padding: '11px 14px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <div style={{ color: '#1E293B', fontWeight: 500 }}>{inc.barangay}</div>
@@ -707,12 +1042,6 @@ export default function Incidents() {
                   <td style={{ padding: '11px 14px' }}><SeverityBadge severity={inc.severity} size="sm" /></td>
                   <td style={{ padding: '11px 14px' }}><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
                   <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
-                  <td style={{ padding: '11px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Users size={12} color="#94A3B8" />
-                      <span style={{ color: '#475569', fontWeight: 500 }}>{inc.responders}</span>
-                    </div>
-                  </td>
                   <td style={{ padding: '11px 14px' }}>
                     <button
                       onClick={(event) => {
@@ -731,6 +1060,81 @@ export default function Incidents() {
         </div>
       </div>
 
+      {contextMenu ? (
+        <div
+          role="menu"
+          aria-label={`Actions for ${contextMenu.incident.id}`}
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            minWidth: 180,
+            background: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: 10,
+            boxShadow: '0 16px 30px rgba(15,23,42,0.22)',
+            padding: 6,
+            zIndex: 160,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedIncident(contextMenu.incident);
+              setContextMenu(null);
+            }}
+            style={{
+              width: '100%',
+              border: 'none',
+              background: '#FFFFFF',
+              color: '#334155',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '9px 10px',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Edit2 size={13} /> Open / Edit Incident
+          </button>
+
+          <button
+            type="button"
+            disabled={!getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id}
+            onClick={() => {
+              const archiveStatus = getArchiveTargetStatus(contextMenu.incident);
+              if (!archiveStatus) {
+                return;
+              }
+              void updateIncidentStatus(contextMenu.incident, archiveStatus);
+            }}
+            style={{
+              width: '100%',
+              border: 'none',
+              background: '#FFFFFF',
+              color: !getArchiveTargetStatus(contextMenu.incident) ? '#94A3B8' : '#B45309',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '9px 10px',
+              textAlign: 'left',
+              cursor: !getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Clock size={13} />
+            {updatingIncidentId === contextMenu.incident.id ? 'Archiving...' : 'Archive Incident'}
+          </button>
+        </div>
+      ) : null}
+
       <div
         className="incidents-mobile-cards"
         style={{
@@ -741,19 +1145,7 @@ export default function Incidents() {
         }}
       >
         {loading ? (
-          <div
-            style={{
-              background: 'white',
-              borderRadius: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-              padding: '22px 16px',
-              textAlign: 'center',
-              color: '#94A3B8',
-              fontSize: 13,
-            }}
-          >
-            Loading reports...
-          </div>
+          <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
           <div
             style={{
@@ -783,7 +1175,22 @@ export default function Incidents() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+                <div style={{ display: 'grid', gap: 5 }}>
+                  <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+                  {isVerifiedReporter(inc) ? (
+                    <span
+                      title="Verified Reporter"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        color: '#1E3A8A',
+                      }}
+                      aria-label="Verified Reporter"
+                    >
+                      <ShieldIcon size={13} />
+                    </span>
+                  ) : null}
+                </div>
                 <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
               </div>
 
@@ -804,10 +1211,6 @@ export default function Incidents() {
                     minute: '2-digit',
                     hour12: true,
                   })}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Users size={12} color="#94A3B8" />
-                  <span style={{ color: '#475569', fontWeight: 500, fontSize: 12 }}>{inc.responders}</span>
                 </div>
               </div>
 
@@ -846,6 +1249,52 @@ export default function Incidents() {
           onUpdateStatus={handleUpdateStatus}
           isUpdating={updatingIncidentId === selectedIncident.id}
         />
+      ) : null}
+      {!loading && filtered.length > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'white', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 12px', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: '#64748B' }}>
+            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} of {filtered.length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page === 1}
+              style={{
+                border: '1px solid #CBD5E1',
+                borderRadius: 8,
+                background: page === 1 ? '#F8FAFC' : '#FFFFFF',
+                color: page === 1 ? '#94A3B8' : '#334155',
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '8px 12px',
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Previous
+            </button>
+            <div style={{ minWidth: 72, textAlign: 'center', fontSize: 12, color: '#334155', fontWeight: 700 }}>
+              Page {page} / {totalPages}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page === totalPages}
+              style={{
+                border: '1px solid #CBD5E1',
+                borderRadius: 8,
+                background: page === totalPages ? '#F8FAFC' : '#FFFFFF',
+                color: page === totalPages ? '#94A3B8' : '#334155',
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '8px 12px',
+                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

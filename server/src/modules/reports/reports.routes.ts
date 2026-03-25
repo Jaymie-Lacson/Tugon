@@ -3,6 +3,7 @@ import multer from "multer";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { reportsService } from "./reports.service.js";
+import { reportsRealtimeService, type ReportEventPayload } from "./reportEvents.service.js";
 import { geofencingService } from "../map/geofencing.service.js";
 
 export const citizenReportsRouter = Router();
@@ -153,6 +154,19 @@ function mapReportBody(req: Request) {
   };
 }
 
+function initializeSse(res: Response) {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+}
+
+function writeSseEvent(res: Response, event: string, payload: unknown) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+}
+
 citizenReportsRouter.post("/reports", async (req, res) => {
   try {
     await runCitizenReportUpload(req, res);
@@ -227,6 +241,39 @@ citizenReportsRouter.get("/reports", async (req, res) => {
     const parsed = reportsService.parseError(error);
     res.status(parsed.status).json({ message: parsed.message });
   }
+});
+
+citizenReportsRouter.get("/reports/stream", (req, res) => {
+  const authUser = req.authUser;
+  if (!authUser) {
+    return res.status(401).json({ message: "Unauthorized." });
+  }
+
+  initializeSse(res);
+  writeSseEvent(res, "connected", {
+    scope: "citizen",
+    userId: authUser.id,
+    connectedAt: new Date().toISOString(),
+  });
+
+  const onReportEvent = (payload: ReportEventPayload) => {
+    if (payload.citizenUserId !== authUser.id) {
+      return;
+    }
+
+    writeSseEvent(res, "report-event", payload);
+  };
+
+  const unsubscribe = reportsRealtimeService.subscribe(onReportEvent);
+  const heartbeat = setInterval(() => {
+    res.write(`: keep-alive ${Date.now()}\n\n`);
+  }, 25000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    unsubscribe();
+    res.end();
+  });
 });
 
 citizenReportsRouter.get("/reports/geofence-check", async (req, res) => {
@@ -368,6 +415,71 @@ officialReportsRouter.get("/reports", async (req, res) => {
     });
 
     return res.status(200).json({ reports });
+  } catch (error) {
+    const parsed = reportsService.parseError(error);
+    return res.status(parsed.status).json({ message: parsed.message });
+  }
+});
+
+officialReportsRouter.get("/reports/stream", async (req, res) => {
+  try {
+    const authUser = req.authUser;
+    if (!authUser) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        role: true,
+        officialProfile: {
+          select: {
+            barangay: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Authenticated user not found." });
+    }
+
+    const role = user.role;
+    const barangayCode = user.officialProfile?.barangay?.code ?? null;
+    if (role === "OFFICIAL" && !barangayCode) {
+      return res.status(403).json({ message: "Official barangay profile is required." });
+    }
+
+    initializeSse(res);
+    writeSseEvent(res, "connected", {
+      scope: "official",
+      role,
+      barangayCode,
+      connectedAt: new Date().toISOString(),
+    });
+
+    const onReportEvent = (payload: ReportEventPayload) => {
+      if (role === "OFFICIAL" && payload.routedBarangayCode !== barangayCode) {
+        return;
+      }
+
+      writeSseEvent(res, "report-event", payload);
+    };
+
+    const unsubscribe = reportsRealtimeService.subscribe(onReportEvent);
+    const heartbeat = setInterval(() => {
+      res.write(`: keep-alive ${Date.now()}\n\n`);
+    }, 25000);
+
+    req.on("close", () => {
+      clearInterval(heartbeat);
+      unsubscribe();
+      res.end();
+    });
   } catch (error) {
     const parsed = reportsService.parseError(error);
     return res.status(parsed.status).json({ message: parsed.message });

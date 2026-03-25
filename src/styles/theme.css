@@ -43,6 +43,9 @@
   --scrollbar-thumb: #1e3a8a;
   --scrollbar-thumb-hover: #1d4ed8;
   --scrollbar-thumb-active: #b4730a;
+  --a11y-focus-ring: #fcd34d;
+  --a11y-focus-ring-offset: #ffffff;
+  --a11y-text-muted-on-dark: rgba(255, 255, 255, 0.74);
 }
 
 .dark {
@@ -84,6 +87,9 @@
   --scrollbar-thumb: #1e40af;
   --scrollbar-thumb-hover: #2563eb;
   --scrollbar-thumb-active: #b4730a;
+  --a11y-focus-ring: #fcd34d;
+  --a11y-focus-ring-offset: #0f172a;
+  --a11y-text-muted-on-dark: rgba(255, 255, 255, 0.78);
 }
 
 @theme inline {
@@ -159,6 +165,18 @@
 
   * {
     @apply border-border outline-ring/50;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role='button']:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--a11y-focus-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--a11y-focus-ring-offset);
   }
 
   body {

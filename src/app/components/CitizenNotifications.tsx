@@ -17,6 +17,8 @@ interface CitizenNotificationBellTriggerProps {
 }
 
 export function CitizenNotificationBellTrigger({ unreadCount, onClick }: CitizenNotificationBellTriggerProps) {
+  const unreadLabel = unreadCount > 99 ? '99+' : String(unreadCount);
+
   return (
     <button
       type="button"
@@ -41,15 +43,25 @@ export function CitizenNotificationBellTrigger({ unreadCount, onClick }: Citizen
         <span
           style={{
             position: 'absolute',
-            top: 6,
-            right: 6,
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
+            top: -4,
+            right: -4,
+            minWidth: 18,
+            height: 18,
+            borderRadius: 999,
             background: '#B91C1C',
+            color: '#FFFFFF',
             border: '1.5px solid #1E3A8A',
+            fontSize: 10,
+            lineHeight: '16px',
+            fontWeight: 700,
+            padding: '0 4px',
+            textAlign: 'center',
+            boxSizing: 'border-box',
           }}
-        />
+          aria-hidden="true"
+        >
+          {unreadLabel}
+        </span>
       ) : null}
     </button>
   );

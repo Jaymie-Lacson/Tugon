@@ -3,17 +3,18 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   Activity,
   BarChart2,
-  Bell,
   ChevronRight,
   LayoutDashboard,
   LogOut,
   Map,
   Menu,
+  Settings,
   Users,
   X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
+import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
 
 const NAV_ITEMS = [
   { path: '/superadmin', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { path: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
   { path: '/superadmin/users', label: 'Users', icon: Users },
   { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
+  { path: '/superadmin/settings', label: 'Settings', icon: Settings },
 ];
 
 function LiveClock() {
@@ -53,35 +55,6 @@ function getMonitoringColor(incidents: number): string {
     return '#F59E0B';
   }
   return '#22C55E';
-}
-
-function formatNotificationTimestamp(value: string): string {
-  const timestamp = new Date(value).getTime();
-  if (Number.isNaN(timestamp)) {
-    return 'Just now';
-  }
-
-  const elapsedMs = Date.now() - timestamp;
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-
-  if (elapsedMs < minute) {
-    return 'Just now';
-  }
-  if (elapsedMs < hour) {
-    return `${Math.floor(elapsedMs / minute)}m ago`;
-  }
-  if (elapsedMs < day) {
-    return `${Math.floor(elapsedMs / hour)}h ago`;
-  }
-
-  return new Date(value).toLocaleDateString('en-PH', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 export default function SuperAdminLayout() {
@@ -196,6 +169,29 @@ export default function SuperAdminLayout() {
     setNotificationsOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+      }
+
+      if (notificationsOpen) {
+        setNotificationsOpen(false);
+      }
+
+      if (drawerOpen) {
+        setDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen, notificationsOpen, profileMenuOpen]);
+
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
       try {
@@ -241,6 +237,14 @@ export default function SuperAdminLayout() {
       // Keep menu open; next poll can recover latest state.
     }
   };
+
+  const notificationItems: AdminNotificationItem[] = notifications.map((item) => ({
+    id: item.id,
+    title: item.title,
+    message: item.message,
+    createdAt: item.createdAt,
+    readAt: item.readAt,
+  }));
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -389,7 +393,7 @@ export default function SuperAdminLayout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
           position: 'relative',
-          zIndex: 90,
+          zIndex: 2600,
         }}>
           <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
             <NavLink
@@ -442,147 +446,39 @@ export default function SuperAdminLayout() {
             </div>
 
             {/* Alerts */}
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                aria-label="Open notifications"
-                title="Open notifications"
-                className="icon-btn-square"
-                onClick={() => {
-                  setNotificationsOpen((prev) => !prev);
-                  setProfileMenuOpen(false);
-                }}
-                style={{
-                lineHeight: 0,
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                padding: 0,
-              }}>
-                <Bell size={18} color="white" />
-                {unreadCount > 0 ? (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: -4,
-                      right: -4,
-                      minWidth: 18,
-                      height: 18,
-                      borderRadius: 9,
-                      background: '#B91C1C',
-                      color: '#fff',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '0 4px',
-                      border: '1px solid rgba(255,255,255,0.35)',
-                    }}
-                  >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                ) : null}
-              </button>
-
-              {notificationsOpen ? (
-                <div
-                  role="menu"
-                  aria-label="Super admin notifications"
-                  style={{
-                    position: 'absolute',
-                    top: 44,
-                    right: 0,
-                    width: 320,
-                    maxHeight: 360,
-                    overflowY: 'auto',
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-                    border: '1px solid #E2E8F0',
-                    zIndex: 2300,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderBottom: '1px solid #E2E8F0',
-                    }}
-                  >
-                    <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Notifications</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void handleMarkAllRead();
-                      }}
-                      disabled={unreadCount === 0}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: unreadCount === 0 ? '#94A3B8' : '#1E3A8A',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        cursor: unreadCount === 0 ? 'default' : 'pointer',
-                      }}
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-
-                  {notificationsLoading ? (
-                    <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>Loading notifications...</div>
-                  ) : null}
-
-                  {!notificationsLoading && notifications.length === 0 ? (
-                    <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>No notifications yet.</div>
-                  ) : null}
-
-                  {!notificationsLoading
-                    ? notifications.map((item) => {
-                        const isUnread = !item.readAt;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              void handleNotificationClick(item);
-                            }}
-                            style={{
-                              width: '100%',
-                              textAlign: 'left',
-                              padding: '10px 12px',
-                              border: 'none',
-                              borderBottom: '1px solid #F1F5F9',
-                              background: isUnread ? '#EFF6FF' : '#fff',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                              <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700, flex: 1 }}>{item.title}</span>
-                              {isUnread ? (
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B91C1C', flexShrink: 0 }} />
-                              ) : null}
-                            </div>
-                            <div style={{ color: '#334155', fontSize: 12, lineHeight: 1.35 }}>{item.message}</div>
-                            <div style={{ color: '#64748B', fontSize: 11, marginTop: 4 }}>
-                              {formatNotificationTimestamp(item.createdAt)}
-                            </div>
-                          </button>
-                        );
-                      })
-                    : null}
-                </div>
-              ) : null}
-            </div>
+            <AdminNotifications
+              open={notificationsOpen}
+              loading={notificationsLoading}
+              unreadCount={unreadCount}
+              items={notificationItems}
+              panelLabel="Super admin notifications"
+              panelTop={44}
+              panelRight={0}
+              panelZIndex={2300}
+              onToggle={() => {
+                setNotificationsOpen((prev) => !prev);
+                setProfileMenuOpen(false);
+              }}
+              onMarkAllRead={() => {
+                void handleMarkAllRead();
+              }}
+              onItemClick={(item) => {
+                const target = notifications.find((entry) => entry.id === item.id);
+                if (target) {
+                  void handleNotificationClick(target);
+                }
+              }}
+            />
 
             <button
+              type="button"
               onClick={() => {
                 setDrawerOpen(!drawerOpen);
                 setProfileMenuOpen(false);
               }}
+              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-expanded={drawerOpen}
+              aria-controls="superadmin-mobile-drawer"
               className="sa-mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -645,7 +541,7 @@ export default function SuperAdminLayout() {
                     role="menuitem"
                     onClick={() => {
                       setProfileMenuOpen(false);
-                      navigate('/superadmin/users');
+                      navigate('/superadmin/settings');
                     }}
                     style={{
                       width: '100%',
@@ -660,7 +556,7 @@ export default function SuperAdminLayout() {
                       cursor: 'pointer',
                     }}
                   >
-                    Open user management
+                    Open settings
                   </button>
                   <button
                     type="button"
@@ -714,7 +610,12 @@ export default function SuperAdminLayout() {
 
       {/* Mobile right drawer */}
       {drawerOpen && (
-        <div style={{
+        <div
+          id="superadmin-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Super admin mobile navigation drawer"
+          style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
           background: SIDEBAR_BG, zIndex: 1400, display: 'flex', flexDirection: 'column',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
@@ -732,7 +633,13 @@ export default function SuperAdminLayout() {
                 style={{ width: 148, maxWidth: '100%', height: 'auto' }}
               />
             </NavLink>
-            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation drawer"
+              className="icon-btn-square"
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
+            >
               <X size={18} color="white" />
             </button>
           </div>
@@ -785,6 +692,23 @@ export default function SuperAdminLayout() {
               <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 6 }}>
                 More
               </div>
+              <NavLink
+                to="/superadmin/settings"
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 16px',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  marginBottom: 6,
+                  background: 'rgba(255,255,255,0.07)',
+                }}
+              >
+                <Settings size={20} color="#93C5FD" />
+                <span style={{ color: '#BFDBFE', fontSize: 14 }}>Settings</span>
+              </NavLink>
               <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
                 <button
                   type="button"

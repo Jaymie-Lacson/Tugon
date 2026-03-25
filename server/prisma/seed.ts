@@ -61,7 +61,7 @@ const CATEGORIES: CategorySeed[] = [
   {
     category: "Hazards and Safety",
     requiresMediation: false,
-    subcategories: ["Dangling or sparking electric wires", "Stray or aggressive animals", "Fire hazards"],
+    subcategories: ["Dangling or exposed electric wires", "Stray or aggressive animals", "General safety hazards"],
   },
   {
     category: "Neighbor Disputes / Lupon",

@@ -2,3 +2,29 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
+
+@keyframes skeleton-shimmer {
+	0% {
+		background-position: 180% 0;
+	}
+	100% {
+		background-position: -180% 0;
+	}
+}
+
+.skeleton-subtle-shimmer {
+	background-image: linear-gradient(
+		90deg,
+		rgba(229, 231, 235, 0.58) 0%,
+		rgba(243, 244, 246, 0.95) 48%,
+		rgba(229, 231, 235, 0.58) 100%
+	);
+	background-size: 220% 100%;
+	animation: skeleton-shimmer 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-subtle-shimmer {
+		animation: none !important;
+	}
+}

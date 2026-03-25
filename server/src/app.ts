@@ -19,6 +19,38 @@ function normalizeRequestOrigin(origin: string) {
   return origin.trim().replace(/\/+$/, "");
 }
 
+function isLocalhostOrigin(origin: string) {
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === "http:" && (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1");
+  } catch {
+    return false;
+  }
+}
+
+function hasExplicitLocalhostAllowance(allowedOrigins: Set<string>) {
+  for (const origin of allowedOrigins) {
+    if (isLocalhostOrigin(origin)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isCorsOriginAllowed(origin: string, allowedOrigins: Set<string>) {
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  // If localhost dev is explicitly enabled for one port, allow other localhost ports too.
+  if (isLocalhostOrigin(origin) && hasExplicitLocalhostAllowance(allowedOrigins)) {
+    return true;
+  }
+
+  return false;
+}
+
 function resolveCorsAllowedOrigins(rawValue: string | undefined, nodeEnv: string | undefined) {
   const parsedOrigins = parseAllowedOriginsFromEnv(rawValue);
 
@@ -89,7 +121,7 @@ export function createApp() {
 
     const requestOrigin = normalizeRequestOrigin(requestOriginHeader);
 
-    if (corsAllowedOrigins.has(requestOrigin)) {
+    if (isCorsOriginAllowed(requestOrigin, corsAllowedOrigins)) {
       return next();
     }
 
@@ -103,7 +135,7 @@ export function createApp() {
           callback(null, true);
           return;
         }
-        callback(null, corsAllowedOrigins.has(normalizeRequestOrigin(origin)));
+        callback(null, isCorsOriginAllowed(normalizeRequestOrigin(origin), corsAllowedOrigins));
       },
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],

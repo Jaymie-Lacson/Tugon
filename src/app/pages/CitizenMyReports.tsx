@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import {
   Search, Filter, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
-  Flame, Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
+  Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
   Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
   MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
   ChevronDown, SlidersHorizontal, Info,
@@ -12,7 +12,6 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   citizenReportsApi,
@@ -32,7 +31,7 @@ export type CitizenReportStatus =
   | 'unresolvable';
 
 export type CitizenReportType =
-  | 'fire' | 'pollution' | 'noise' | 'crime' | 'road_hazard'
+  | 'pollution' | 'noise' | 'crime' | 'road_hazard'
   | 'flood' | 'accident' | 'medical' | 'infrastructure' | 'other';
 
 export interface TimelineEvent {
@@ -86,7 +85,6 @@ function mapApiStatus(status: ApiTicketStatus): CitizenReportStatus {
 }
 
 function mapApiType(category: ReportCategory): CitizenReportType {
-  if (category === 'Fire') return 'fire';
   if (category === 'Pollution') return 'pollution';
   if (category === 'Noise') return 'noise';
   if (category === 'Crime') return 'crime';
@@ -167,7 +165,6 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
 const typeConfig: Record<CitizenReportType, {
   label: string; color: string; bg: string; icon: React.FC<{ size?: number }>;
 }> = {
-  fire:          { label: 'Fire',           color: '#B91C1C', bg: '#FEE2E2', icon: Flame },
   pollution:     { label: 'Pollution',      color: '#0F766E', bg: '#CCFBF1', icon: Wind },
   noise:         { label: 'Noise',          color: '#7C3AED', bg: '#EDE9FE', icon: Volume2 },
   crime:         { label: 'Crime',          color: '#1E3A8A', bg: '#DBEAFE', icon: AlertCircle },
@@ -1067,6 +1064,73 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
   );
 }
 
+function TicketPageLoadingState() {
+  return (
+    <div className="citizen-content-shell" style={{ paddingTop: 28, paddingBottom: 28 }}>
+      <section
+        style={{
+          minHeight: 320,
+          borderRadius: 18,
+          border: '1px solid #DBEAFE',
+          background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 56%, #F8FAFC 100%)',
+          boxShadow: '0 12px 28px rgba(30,58,138,0.08)',
+          display: 'grid',
+          placeItems: 'center',
+          padding: '24px 20px',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ display: 'grid', justifyItems: 'center', gap: 12 }}>
+          <div
+            role="status"
+            aria-label="Loading my reports"
+            style={{
+              width: 104,
+              height: 104,
+              borderRadius: 9999,
+              background: 'rgba(255, 255, 255, 0.96)',
+              boxShadow: '0 18px 40px rgba(15, 23, 42, 0.18)',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                inset: -6,
+                borderRadius: 9999,
+                border: '4px solid rgba(30, 58, 138, 0.16)',
+                borderTopColor: '#B91C1C',
+                borderRightColor: '#1E3A8A',
+                animation: 'ticketPageSpin 0.9s linear infinite',
+              }}
+            />
+            <img
+              src="/favicon.svg"
+              alt="TUGON"
+              style={{
+                width: 40,
+                height: 40,
+                display: 'block',
+                filter: 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15))',
+              }}
+            />
+          </div>
+          <p style={{ margin: 0, color: '#1E3A8A', fontSize: 14, fontWeight: 800 }}>
+            Loading your ticket records...
+          </p>
+          <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
+            Pulling incident status updates from your barangay queue.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 type FilterKey = 'all' | 'active' | 'resolved';
 type DateSortKey = 'newest' | 'oldest';
 
@@ -1095,34 +1159,49 @@ export default function CitizenMyReports() {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const { notificationItems, unreadNotificationCount } = useCitizenReportNotifications();
 
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoadingInitial(true);
+    }
+
+    try {
+      const response = await citizenReportsApi.getMyReports();
+      const mappedReports = response.reports.map(mapApiReport);
+      setReports(mappedReports);
+      setSelected((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return mappedReports.find((report) => report.id === current.id) ?? current;
+      });
+    } catch {
+      // Keep the current list when API is unavailable.
+    } finally {
+      if (!silent) {
+        setLoadingInitial(false);
+      }
+    }
+  }, []);
+
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
     navigate('/auth/login', { replace: true });
   }, [navigate]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadReports() {
-      try {
-        const response = await citizenReportsApi.getMyReports();
-        if (!isMounted) return;
-        setReports(response.reports.map(mapApiReport));
-      } catch {
-        // Keep the current list when API is unavailable.
-      } finally {
-        if (isMounted) {
-          setLoadingInitial(false);
-        }
-      }
-    }
-
     void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = citizenReportsApi.connectMyReportsStream(() => {
+      void loadReports(true);
+    });
 
     return () => {
-      isMounted = false;
+      disconnect();
     };
-  }, []);
+  }, [loadReports]);
 
   useEffect(() => {
     setCancelError(null);
@@ -1470,18 +1549,52 @@ export default function CitizenMyReports() {
         }}
       >
         {loadingInitial ? (
-          <div className="citizen-content-shell" style={{ paddingTop: 24, paddingBottom: 16 }}>
-            <OfficialPageInitialLoader label="Loading my reports page" minHeight="320px" />
-          </div>
+          <TicketPageLoadingState />
         ) : (
           <>
             <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
               <section
                 style={{
-                  background: '#fff',
-                  border: '1px solid #E2E8F0',
                   borderRadius: 16,
-                  boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+                  padding: '16px 16px 14px',
+                  marginBottom: 10,
+                  border: '1px solid #DBEAFE',
+                  background: 'linear-gradient(140deg, #EFF6FF 0%, #F8FAFC 46%, #FFFFFF 100%)',
+                  boxShadow: '0 8px 24px rgba(30,58,138,0.08)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 220 }}>
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: '#1E3A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      Ticket Monitoring
+                    </p>
+                    <h2 style={{ margin: '6px 0 4px', color: '#1E293B', fontSize: 'clamp(18px,2.4vw,22px)', fontWeight: 800, lineHeight: 1.2 }}>
+                      My Incident Reports
+                    </h2>
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
+                      Track your submitted reports, review timeline updates, and open ticket details anytime.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ background: '#FFFFFF', border: '1px solid #BFDBFE', color: '#1E3A8A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                      Total: {allCount}
+                    </span>
+                    <span style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#B4730A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                      Active: {activeCount}
+                    </span>
+                    <span style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                      Resolved: {resolvedCount}
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                style={{
+                  background: '#fff',
+                  border: '1px solid #DBEAFE',
+                  borderRadius: 16,
+                  boxShadow: '0 10px 24px rgba(15,23,42,0.07)',
                   padding: 12,
                 }}
               >
@@ -1633,6 +1746,10 @@ export default function CitizenMyReports() {
         )}
 
         <style>{`
+          @keyframes ticketPageSpin {
+            to { transform: rotate(360deg); }
+          }
+
           .citizen-report-card-modern:hover,
           .citizen-report-card-modern:focus-visible {
             border-color: #93c5fd !important;

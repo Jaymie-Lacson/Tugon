@@ -1,4 +1,4 @@
-export type IncidentType = 'fire' | 'flood' | 'accident' | 'medical' | 'crime' | 'infrastructure' | 'typhoon';
+export type IncidentType = 'flood' | 'accident' | 'medical' | 'crime' | 'infrastructure' | 'typhoon';
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 export type IncidentStatus = 'active' | 'responding' | 'contained' | 'resolved';
 
@@ -28,7 +28,6 @@ export function isIncidentVisibleOnMap(incident: Pick<Incident, 'status'>): bool
 }
 
 export const incidentTypeConfig: Record<IncidentType, { label: string; color: string; bgColor: string }> = {
-  fire: { label: 'Fire', color: '#B91C1C', bgColor: '#FEE2E2' },
   flood: { label: 'Flood', color: '#1D4ED8', bgColor: '#DBEAFE' },
   accident: { label: 'Accident', color: '#B4730A', bgColor: '#FEF3C7' },
   medical: { label: 'Medical', color: '#0F766E', bgColor: '#CCFBF1' },

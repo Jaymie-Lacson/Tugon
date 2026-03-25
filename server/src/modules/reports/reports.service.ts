@@ -17,6 +17,7 @@ import {
   type ReportCategory,
   type ReportSubcategory,
 } from "./taxonomy.js";
+import { reportsRealtimeService } from "./reportEvents.service.js";
 import type { Role } from "../auth/types.js";
 import type {
   CrossBorderAlertRecord,
@@ -50,7 +51,7 @@ const REPORT_TEMPLATE_IDS = [
 ] as const;
 
 type ReportTemplateId = (typeof REPORT_TEMPLATE_IDS)[number];
-const DSS_ACTION_TYPES = ["APPROVE_DISPATCH", "DISMISS"] as const;
+const DSS_ACTION_TYPES = ["DISMISS"] as const;
 type DssActionType = (typeof DSS_ACTION_TYPES)[number];
 
 type DssRecommendationPriority = "critical" | "high" | "medium" | "info";
@@ -95,7 +96,7 @@ const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   "Submitted": ["Under Review", "Unresolvable"],
   "Under Review": ["In Progress", "Resolved", "Unresolvable"],
   "In Progress": ["Resolved", "Unresolvable"],
-  "Resolved": ["Closed", "In Progress"],
+  "Resolved": [],
   "Closed": [],
   "Unresolvable": [],
 };
@@ -132,7 +133,7 @@ function statusDescription(status: TicketStatus): string {
     case "Resolved":
       return "Official marked this report as resolved.";
     case "Closed":
-      return "Official closed this report after resolution.";
+      return "Report was closed after final disposition.";
     case "Unresolvable":
       return "Official marked this report as unresolvable.";
     case "Submitted":
@@ -216,7 +217,6 @@ function buildTemplateBody(templateId: ReportTemplateId, reports: CitizenReportR
   const bySeverity = new Map<string, number>();
   const byBarangay = new Map<string, number>();
   const byCategory = new Map<string, number>();
-  let respondersTotal = 0;
   let criticalCount = 0;
 
   for (const report of reports) {
@@ -224,7 +224,6 @@ function buildTemplateBody(templateId: ReportTemplateId, reports: CitizenReportR
     bySeverity.set(report.severity, (bySeverity.get(report.severity) ?? 0) + 1);
     byBarangay.set(report.barangay, (byBarangay.get(report.barangay) ?? 0) + 1);
     byCategory.set(report.category, (byCategory.get(report.category) ?? 0) + 1);
-    respondersTotal += report.assignedUnit ? 1 : 0;
     if (report.severity === "critical") {
       criticalCount += 1;
     }
@@ -246,7 +245,6 @@ function buildTemplateBody(templateId: ReportTemplateId, reports: CitizenReportR
     lines.push("Daily Operations Summary");
     lines.push(`Unresolved Queue: ${unresolved}`);
     lines.push(`Critical Incidents: ${criticalCount}`);
-    lines.push(`Responder Assignments: ${respondersTotal}`);
   }
 
   if (templateId === "incident-summary") {
@@ -258,8 +256,8 @@ function buildTemplateBody(templateId: ReportTemplateId, reports: CitizenReportR
 
   if (templateId === "resource-deployment") {
     lines.push("Resource Deployment Snapshot");
-    lines.push(`Reports with Assigned Unit: ${respondersTotal}`);
-    lines.push(`Reports without Assignment: ${Math.max(0, reports.length - respondersTotal)}`);
+    lines.push(`Unresolved Queue: ${unresolved}`);
+    lines.push(`Resolved Reports: ${Math.max(0, reports.length - unresolved)}`);
   }
 
   if (templateId === "critical-incidents") {
@@ -406,9 +404,6 @@ function buildFallbackDssRecommendations(reports: CitizenReportRecord[]): DssRec
   }
   const topBarangay = [...byBarangay.entries()].sort((a, b) => b[1] - a[1])[0];
 
-  const respondersTotal = reports.reduce((sum, report) => sum + (report.assignedUnit ? 1 : 0), 0);
-  const assignedRate = reports.length > 0 ? Math.round((respondersTotal / reports.length) * 100) : 0;
-
   const recommendations: DssRecommendationRecord[] = [];
 
   if (criticalUnresolved.length > 0) {
@@ -416,10 +411,10 @@ function buildFallbackDssRecommendations(reports: CitizenReportRecord[]): DssRec
       id: "fallback-1",
       priority: "critical",
       title: "Critical Incidents Need Immediate Action",
-      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? "s are" : " is"} still unresolved in your queue. Prioritize verification and dispatch to reduce escalation risk.`,
+      description: `${criticalUnresolved.length} critical incident${criticalUnresolved.length > 1 ? "s are" : " is"} still unresolved in your queue. Prioritize verification and status updates to reduce escalation risk.`,
       actions: [
         "Escalate critical queue to duty officer",
-        "Confirm responder assignment for each critical case",
+        "Update official status and notes for each critical case",
         "Publish barangay situational update for ongoing risks",
       ],
       confidence: Math.min(95, 70 + criticalUnresolved.length * 5),
@@ -442,20 +437,6 @@ function buildFallbackDssRecommendations(reports: CitizenReportRecord[]): DssRec
       source: "7-Day Incident Distribution",
     });
   }
-
-  recommendations.push({
-    id: "fallback-3",
-    priority: "medium",
-    title: "Responder Assignment Coverage",
-    description: `${respondersTotal} responder assignment${respondersTotal !== 1 ? "s" : ""} recorded across ${reports.length} reports. Current assignment intensity is ${assignedRate}%.`,
-    actions: [
-      "Review unresolved reports without assigned responders",
-      "Balance assignment load across ongoing incidents",
-      "Document reassignment for shift handover",
-    ],
-    confidence: Math.min(90, 50 + Math.round(assignedRate * 0.4)),
-    source: "Responder Utilization Metrics",
-  });
 
   if (unresolvedOlderThan24h.length > 0) {
     recommendations.push({
@@ -488,7 +469,6 @@ async function buildAiDssRecommendations(reports: CitizenReportRecord[]): Promis
     severity: report.severity,
     barangay: report.barangay,
     submittedAt: report.submittedAt,
-    hasAssignedUnit: Boolean(report.assignedUnit),
     hasAudio: report.hasAudio,
     photoCount: report.photoCount,
   }));
@@ -1159,6 +1139,15 @@ export const reportsService = {
 
     await prisma.$transaction(txOperations);
 
+    reportsRealtimeService.publish({
+      action: "created",
+      reportId: report.id,
+      citizenUserId: report.citizenUserId,
+      routedBarangayCode: report.routedBarangayCode,
+      status: report.status,
+      updatedAt: report.updatedAt,
+    });
+
     return {
       message: "Report submitted successfully.",
       report,
@@ -1216,6 +1205,7 @@ export const reportsService = {
       select: {
         id: true,
         citizenUserId: true,
+        routedBarangayCode: true,
         status: true,
         citizen: {
           select: {
@@ -1253,6 +1243,15 @@ export const reportsService = {
         },
       }),
     ]);
+
+    reportsRealtimeService.publish({
+      action: "cancelled",
+      reportId,
+      citizenUserId: existing.citizenUserId,
+      routedBarangayCode: existing.routedBarangayCode,
+      status: "Closed",
+      updatedAt: new Date().toISOString(),
+    });
 
     return reportsService.getMineById(citizenUserId, reportId);
   },
@@ -1348,6 +1347,7 @@ export const reportsService = {
       where: { id: reportId },
       select: {
         id: true,
+        citizenUserId: true,
         status: true,
         routedBarangayCode: true,
       },
@@ -1367,6 +1367,9 @@ export const reportsService = {
       );
     }
 
+    const shouldAutoClose = input.status === "Resolved" || input.status === "Unresolvable";
+    const finalStatus: TicketStatus = shouldAutoClose ? "Closed" : input.status;
+
     const note = input.note?.trim();
     const superAdminRecipients = await prisma.user.findMany({
       where: {
@@ -1382,7 +1385,7 @@ export const reportsService = {
       prisma.citizenReport.update({
         where: { id: reportId },
         data: {
-          status: toPrismaStatusMap[input.status],
+          status: toPrismaStatusMap[finalStatus],
           updatedAt: new Date(),
           assignedOfficer: user.fullName,
         },
@@ -1400,6 +1403,22 @@ export const reportsService = {
       }),
     ];
 
+    if (shouldAutoClose) {
+      txOperations.push(
+        prisma.ticketStatusHistory.create({
+          data: {
+            reportId,
+            status: toPrismaStatusMap.Closed,
+            label: statusLabel("Closed"),
+            description: statusDescription("Closed"),
+            actor: user.fullName,
+            actorRole: user.role === "SUPER_ADMIN" ? "Super Admin" : "Official",
+            note: null,
+          },
+        }),
+      );
+    }
+
     if (superAdminRecipients.length > 0) {
       txOperations.push(
         prisma.adminNotification.createMany({
@@ -1407,12 +1426,12 @@ export const reportsService = {
             recipientUserId: recipient.id,
             kind: "REPORT_STATUS_UPDATED",
             title: "Incident Status Updated",
-            message: `${user.fullName} changed ${reportId} to ${input.status}.`,
+            message: `${user.fullName} changed ${reportId} to ${finalStatus}.`,
             reportId,
             metadata: buildSuperAdminNotificationMetadata({
               actorUserId: user.id,
               actorRole: user.role,
-              status: input.status,
+              status: finalStatus,
               note: note ?? null,
               routedBarangayCode: report.routedBarangayCode,
             }),
@@ -1422,6 +1441,15 @@ export const reportsService = {
     }
 
     await prisma.$transaction(txOperations);
+
+    reportsRealtimeService.publish({
+      action: "status-updated",
+      reportId,
+      citizenUserId: report.citizenUserId,
+      routedBarangayCode: report.routedBarangayCode,
+      status: finalStatus,
+      updatedAt: new Date().toISOString(),
+    });
 
     return reportsService.getForOfficialById(user, reportId);
   },

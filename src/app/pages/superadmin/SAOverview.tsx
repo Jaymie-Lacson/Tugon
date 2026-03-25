@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
-  Clock, Shield, Zap, ArrowRight, MapPin, Flame, Droplets, Car, Heart,
+  Clock, Shield, Zap, ArrowRight, MapPin, Droplets, Car, Heart,
   RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -9,7 +9,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
 import { IncidentMap } from '../../components/IncidentMap';
-import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TableSkeleton from '../../components/ui/TableSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
@@ -35,7 +37,7 @@ type BarangayOverviewCard = {
 };
 
 const incidentTypeIcons: Record<string, React.ReactNode> = {
-  fire: <Flame size={12} />, flood: <Droplets size={12} />, accident: <Car size={12} />,
+  flood: <Droplets size={12} />, accident: <Car size={12} />,
   medical: <Heart size={12} />, crime: <Shield size={12} />, infrastructure: <Zap size={12} />,
 };
 
@@ -100,6 +102,27 @@ function formatLogTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
+function formatDurationFromMinutes(totalMinutes: number) {
+  const safeMinutes = Number.isFinite(totalMinutes) ? Math.max(0, totalMinutes) : 0;
+
+  if (safeMinutes < 60) {
+    return `${safeMinutes.toFixed(1)} minutes`;
+  }
+
+  const hours = safeMinutes / 60;
+  if (hours < 24) {
+    return `${hours.toFixed(1)} hours`;
+  }
+
+  const days = hours / 24;
+  if (days < 7) {
+    return `${days.toFixed(1)} days`;
+  }
+
+  const weeks = days / 7;
+  return `${weeks.toFixed(1)} weeks`;
+}
+
 export default function SAOverview() {
   const navigate = useNavigate();
   const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
@@ -137,8 +160,8 @@ export default function SAOverview() {
 
     return Number((totalMinutes / withResponse.length).toFixed(1));
   })();
+  const avgResponseLabel = formatDurationFromMinutes(avgResponseMinutes);
   const incidentTypeDist = [
-    { type: 'Fire', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Flood', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Accident', brgy251: 0, brgy252: 0, brgy256: 0 },
     { type: 'Medical', brgy251: 0, brgy252: 0, brgy256: 0 },
@@ -149,12 +172,11 @@ export default function SAOverview() {
   for (const item of reportIncidents) {
     const barangayKey = item.barangay.includes('251') ? 'brgy251' : item.barangay.includes('252') ? 'brgy252' : 'brgy256';
     const row =
-      item.type === 'fire' ? incidentTypeDist[0] :
-      item.type === 'flood' ? incidentTypeDist[1] :
-      item.type === 'accident' ? incidentTypeDist[2] :
-      item.type === 'medical' ? incidentTypeDist[3] :
-      item.type === 'crime' ? incidentTypeDist[4] :
-      incidentTypeDist[5];
+      item.type === 'flood' ? incidentTypeDist[0] :
+      item.type === 'accident' ? incidentTypeDist[1] :
+      item.type === 'medical' ? incidentTypeDist[2] :
+      item.type === 'crime' ? incidentTypeDist[3] :
+      incidentTypeDist[4];
     row[barangayKey] += 1;
   }
 
@@ -284,7 +306,22 @@ export default function SAOverview() {
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading super admin overview" />;
+    return (
+      <div style={{ padding: '20px', minHeight: '100%' }}>
+        <TextSkeleton rows={2} title={false} />
+        <div style={{ marginTop: 12 }}>
+          <CardSkeleton
+            count={4}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <TableSkeleton rows={7} columns={4} showHeader />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -363,7 +400,7 @@ export default function SAOverview() {
         />
         <KPICard
           label="Avg. Response Time"
-          value={`${avgResponseMinutes || 0} min`}
+          value={avgResponseLabel}
           sub="Target: ≤ 10 min"
           icon={<Clock />}
           color="#B4730A"

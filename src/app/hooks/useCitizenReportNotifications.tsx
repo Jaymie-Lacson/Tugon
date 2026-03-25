@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Clock3, Info } from 'lucide-react';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 
@@ -38,15 +38,9 @@ function timeAgo(timestamp: string): string {
 export function useCitizenReportNotifications() {
   const [items, setItems] = useState<CitizenReportNotificationItem[]>([]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadNotifications = async () => {
-      try {
-        const payload = await citizenReportsApi.getMyReports();
-        if (!isMounted) {
-          return;
-        }
+  const loadNotifications = useCallback(async () => {
+    try {
+      const payload = await citizenReportsApi.getMyReports();
 
         const activeItems = payload.reports
           .filter((report) => report.status === 'Submitted' || report.status === 'Under Review' || report.status === 'In Progress')
@@ -78,20 +72,23 @@ export function useCitizenReportNotifications() {
             reportId: report.id,
           }));
 
-        setItems([...activeItems, ...resolvedItems].slice(0, 3));
-      } catch {
-        if (isMounted) {
-          setItems([]);
-        }
-      }
-    };
+      setItems([...activeItems, ...resolvedItems].slice(0, 3));
+    } catch {
+      setItems([]);
+    }
+  }, []);
 
+  useEffect(() => {
     void loadNotifications();
 
+    const disconnect = citizenReportsApi.connectMyReportsStream(() => {
+      void loadNotifications();
+    });
+
     return () => {
-      isMounted = false;
+      disconnect();
     };
-  }, []);
+  }, [loadNotifications]);
 
   const notificationItems = useMemo<CitizenReportNotificationItem[]>(() => {
     if (items.length > 0) {

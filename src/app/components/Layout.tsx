@@ -7,7 +7,6 @@ import {
   BarChart2,
   FileText,
   UserCheck,
-  Bell,
   ChevronRight,
   Settings,
   LogOut,
@@ -15,6 +14,8 @@ import {
   X,
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
+import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 
 const NAV_ITEMS = [
   { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -41,6 +42,10 @@ function LiveClock() {
 function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notifications, setNotifications] = useState<ApiCrossBorderAlert[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -68,7 +73,127 @@ function Layout() {
 
   useEffect(() => {
     setProfileMenuOpen(false);
+    setNotificationsOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+      }
+
+      if (notificationsOpen) {
+        setNotificationsOpen(false);
+      }
+
+      if (drawerOpen) {
+        setDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen, notificationsOpen, profileMenuOpen]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadNotifications = async () => {
+      if (active) {
+        setNotificationsLoading(true);
+      }
+
+      try {
+        const payload = await officialReportsApi.getAlerts();
+        if (!active) {
+          return;
+        }
+        setNotifications(payload.alerts);
+        setUnreadCount(payload.alerts.filter((alert) => !alert.readAt).length);
+      } catch {
+        if (active) {
+          setUnreadCount(0);
+          setNotifications([]);
+        }
+      } finally {
+        if (active) {
+          setNotificationsLoading(false);
+        }
+      }
+    };
+
+    void loadNotifications();
+    const timer = window.setInterval(() => {
+      void loadNotifications();
+    }, 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const handleNotificationClick = async (item: ApiCrossBorderAlert) => {
+    if (!item.readAt) {
+      try {
+        await officialReportsApi.markAlertRead(item.id);
+        setNotifications((current) =>
+          current.map((entry) =>
+            entry.id === item.id
+              ? {
+                  ...entry,
+                  readAt: new Date().toISOString(),
+                }
+              : entry,
+          ),
+        );
+        setUnreadCount((current) => Math.max(0, current - 1));
+      } catch {
+        // Keep UI usable even if mark-read fails.
+      }
+    }
+
+    setNotificationsOpen(false);
+    navigate('/app/incidents', { state: { focusReportId: item.reportId } });
+  };
+
+  const handleMarkAllRead = async () => {
+    if (unreadCount <= 0) {
+      return;
+    }
+
+    const pending = notifications.filter((item) => !item.readAt);
+    if (pending.length === 0) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      await Promise.all(pending.map((item) => officialReportsApi.markAlertRead(item.id)));
+      const nowIso = new Date().toISOString();
+      setNotifications((current) =>
+        current.map((item) => ({
+          ...item,
+          readAt: item.readAt ?? nowIso,
+        })),
+      );
+      setUnreadCount(0);
+    } catch {
+      // Keep menu open; next poll can recover latest state.
+    }
+  };
+
+  const notificationItems: AdminNotificationItem[] = notifications.map((item) => ({
+    id: item.id,
+    title: `${item.report.category} incident nearby`,
+    message: item.alertReason || `Cross-border update for ${item.report.location}`,
+    createdAt: item.createdAt,
+    readAt: item.readAt,
+  }));
 
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
@@ -234,7 +359,6 @@ function Layout() {
               <ChevronRight size={12} color="#93C5FD" />
               <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>{currentPage?.label}</span>
             </div>
-            <div style={{ color: '#93C5FD', fontSize: 10 }}>Municipality of Tugon — Region IV-A</div>
           </div>
 
           {/* Mobile page label */}
@@ -255,29 +379,42 @@ function Layout() {
             </div>
 
             {/* Alert bell */}
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                aria-label="No notifications"
-                title="No notifications yet"
-                disabled
-                className="icon-btn-square"
-                style={{
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'default', position: 'relative',
-                opacity: 0.8,
+            <AdminNotifications
+              open={notificationsOpen}
+              loading={notificationsLoading}
+              unreadCount={unreadCount}
+              items={notificationItems}
+              panelLabel="Official notifications"
+              panelTop={44}
+              panelRight={0}
+              panelZIndex={2200}
+              onToggle={() => {
+                setNotificationsOpen((prev) => !prev);
+                setProfileMenuOpen(false);
+                setDrawerOpen(false);
               }}
-              >
-                <Bell size={18} color="white" />
-              </button>
-            </div>
+              onMarkAllRead={() => {
+                void handleMarkAllRead();
+              }}
+              onItemClick={(item) => {
+                const target = notifications.find((entry) => entry.id === item.id);
+                if (target) {
+                  void handleNotificationClick(target);
+                }
+              }}
+            />
 
             {/* Mobile hamburger — on the right of the bell */}
             <button
+              type="button"
               onClick={() => {
                 setDrawerOpen(!drawerOpen);
                 setProfileMenuOpen(false);
+                setNotificationsOpen(false);
               }}
+              aria-label={drawerOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+              aria-expanded={drawerOpen}
+              aria-controls="layout-mobile-drawer"
               className="mobile-menu-btn icon-btn-square"
               style={{
                 background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
@@ -295,6 +432,7 @@ function Layout() {
                 onClick={() => {
                   setProfileMenuOpen((prev) => !prev);
                   setDrawerOpen(false);
+                  setNotificationsOpen(false);
                 }}
                 aria-label="Open profile actions"
                 aria-haspopup="menu"
@@ -392,10 +530,16 @@ function Layout() {
             if (profileMenuOpen) {
               setProfileMenuOpen(false);
             }
+            if (notificationsOpen) {
+              setNotificationsOpen(false);
+            }
           }}
           onScroll={() => {
             if (profileMenuOpen) {
               setProfileMenuOpen(false);
+            }
+            if (notificationsOpen) {
+              setNotificationsOpen(false);
             }
           }}
         >
@@ -405,7 +549,12 @@ function Layout() {
 
       {/* ── Mobile Extra Drawer (Settings) ── */}
       {drawerOpen && (
-        <div style={{
+        <div
+          id="layout-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation drawer"
+          style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 280,
           background: '#1E3A8A', zIndex: 1400, display: 'flex', flexDirection: 'column',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.35)',
@@ -423,7 +572,13 @@ function Layout() {
                 style={{ width: 148, maxWidth: '100%', height: 'auto' }}
               />
             </NavLink>
-            <button onClick={() => setDrawerOpen(false)} className="icon-btn-square" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation drawer"
+              className="icon-btn-square"
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer' }}
+            >
               <X size={18} color="white" />
             </button>
           </div>
@@ -500,6 +655,12 @@ function Layout() {
 
       <style>{`
         .mobile-menu-btn { display: none !important; }
+
+        a:focus-visible,
+        button:focus-visible {
+          outline: 3px solid #FCD34D;
+          outline-offset: 2px;
+        }
 
         @media (max-width: 1024px) {
           .sidebar-desktop    { display: none !important; }

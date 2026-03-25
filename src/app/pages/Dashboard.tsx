@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
-  TrendingDown, Minus, Radio, MapPin, ArrowRight, Flame,
+  TrendingDown, Minus, Radio, MapPin, ArrowRight,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   ChevronRight, RefreshCw, Navigation2, Bell,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   LineChart, Line, PieChart, Pie, Cell,
@@ -12,14 +13,15 @@ import {
 import { type Incident, incidentTypeConfig, isIncidentVisibleOnMap } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 const CATEGORY_DIST_CONFIG = [
-  { name: 'Fire', color: '#B91C1C' },
   { name: 'Pollution', color: '#0F766E' },
   { name: 'Noise', color: '#7C3AED' },
   { name: 'Crime', color: '#1E3A8A' },
@@ -28,9 +30,30 @@ const CATEGORY_DIST_CONFIG = [
 ];
 
 const typeIcons: Record<string, React.ReactNode> = {
-  fire: <Flame size={14} />, flood: <Droplets size={14} />, accident: <Car size={14} />,
+  flood: <Droplets size={14} />, accident: <Car size={14} />,
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
 };
+
+function formatDurationFromMinutes(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return '0m';
+  }
+
+  const roundedMinutes = Math.round(totalMinutes);
+  const days = Math.floor(roundedMinutes / (24 * 60));
+  const hours = Math.floor((roundedMinutes % (24 * 60)) / 60);
+  const minutes = roundedMinutes % 60;
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  }
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+
+  return `${minutes}m`;
+}
 
 interface KPICardProps {
   title: string; value: string | number; subtitle: string;
@@ -76,7 +99,13 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   );
 }
 
-const AlertBanner = ({ incidents }: { incidents: Incident[] }) => {
+const AlertBanner = ({
+  incidents,
+  onOpenIncident,
+}: {
+  incidents: Incident[];
+  onOpenIncident: (incidentId: string) => void;
+}) => {
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
@@ -95,13 +124,43 @@ const AlertBanner = ({ incidents }: { incidents: Incident[] }) => {
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ color: '#B91C1C', fontWeight: 700, fontSize: 12 }}>ACTIVE ALERT: </span>
         <span style={{ color: '#7F1D1D', fontSize: 12 }}>
-          {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response — {critical.map(c => c.id).join(' · ')}
+          {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response —{' '}
+          {critical.map((incident, index) => (
+            <React.Fragment key={incident.id}>
+              <button
+                type="button"
+                onClick={() => onOpenIncident(incident.id)}
+                style={{
+                  border: 'none',
+                  padding: 0,
+                  margin: 0,
+                  background: 'transparent',
+                  color: '#7F1D1D',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                {incident.id}
+              </button>
+              {index < critical.length - 1 ? ' · ' : null}
+            </React.Fragment>
+          ))}
         </span>
       </div>
-      <span style={{
+      <button
+        type="button"
+        onClick={() => onOpenIncident(critical[0].id)}
+        style={{
         background: '#B91C1C', color: 'white', fontSize: 9, fontWeight: 700, padding: '3px 8px',
         borderRadius: 4, letterSpacing: '0.06em', whiteSpace: 'nowrap', flexShrink: 0,
-      }}>CRITICAL</span>
+        border: 'none',
+        cursor: 'pointer',
+      }}
+      >
+        CRITICAL
+      </button>
     </div>
   );
 };
@@ -120,6 +179,9 @@ export default function Dashboard() {
   const [heatmapLoading, setHeatmapLoading] = useState(true);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
+  const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
+  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
@@ -196,8 +258,10 @@ export default function Dashboard() {
     }));
   }, [incidents]);
 
-  const loadReports = async () => {
-    setIncidentsLoading(true);
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setIncidentsLoading(true);
+    }
     setIncidentsError(null);
     try {
       const payload = await officialReportsApi.getReports();
@@ -211,29 +275,41 @@ export default function Dashboard() {
         return mappedMapIncidents.find((item) => item.id === current.id) ?? null;
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load incidents.';
-      setIncidentsError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load incidents.';
+        setIncidentsError(message);
+      }
     } finally {
-      setIncidentsLoading(false);
+      if (!silent) {
+        setIncidentsLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const loadAlerts = async () => {
-    setAlertsLoading(true);
+  const loadAlerts = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setAlertsLoading(true);
+    }
     setAlertsError(null);
     try {
       const payload = await officialReportsApi.getAlerts();
       setAlerts(payload.alerts);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
-      setAlertsError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
+        setAlertsError(message);
+      }
     } finally {
-      setAlertsLoading(false);
+      if (!silent) {
+        setAlertsLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const loadHeatmap = async () => {
-    setHeatmapLoading(true);
+  const loadHeatmap = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setHeatmapLoading(true);
+    }
     setHeatmapError(null);
     try {
       const payload = await officialReportsApi.getHeatmap({
@@ -242,18 +318,34 @@ export default function Dashboard() {
       });
       setHeatmapClusters(payload.clusters);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
-      setHeatmapError(message);
+      if (!silent) {
+        const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
+        setHeatmapError(message);
+      }
     } finally {
-      setHeatmapLoading(false);
+      if (!silent) {
+        setHeatmapLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadReports();
     void loadAlerts();
     void loadHeatmap();
-  }, []);
+  }, [loadAlerts, loadHeatmap, loadReports]);
+
+  useEffect(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void loadReports(true);
+      void loadAlerts(true);
+      void loadHeatmap(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadAlerts, loadHeatmap, loadReports]);
 
   useEffect(() => {
     if (!initialLoadPending) {
@@ -302,15 +394,39 @@ export default function Dashboard() {
     ? `${trendData[0].day} - ${trendData[trendData.length - 1].day}`
     : 'Latest reporting window';
   const staffedActiveIncidents = activeIncidents.filter((incident) => incident.responders > 0).length;
+  const handleResetHeatmapTuning = () => {
+    setHeatRadiusPercent(85);
+    setHeatOpacityPercent(100);
+  };
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading official dashboard" />;
+    return (
+      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={4}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={3} title={false} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <TableSkeleton rows={8} columns={3} showHeader={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div style={{ padding: '14px 16px', minHeight: '100%' }}>
       {/* Alert banner */}
-      <AlertBanner incidents={incidents} />
+      <AlertBanner
+        incidents={incidents}
+        onOpenIncident={(incidentId) => {
+          navigate(`/app/incidents?incident=${encodeURIComponent(incidentId)}`);
+        }}
+      />
 
       {incidentsError ? (
         <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
@@ -347,7 +463,11 @@ export default function Dashboard() {
 
         <div style={{ padding: '8px 16px 14px' }}>
           {alertsLoading ? (
-            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Loading cross-border alerts...</div>
+            <TextSkeleton
+              rows={2}
+              title={false}
+              className="rounded-none border-0 bg-transparent p-0 shadow-none"
+            />
           ) : alerts.length === 0 ? (
             <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>No nearby cross-border alerts for your barangay right now.</div>
           ) : (
@@ -406,7 +526,11 @@ export default function Dashboard() {
               {heatmapError}
             </div>
           ) : heatmapLoading ? (
-            <div style={{ color: '#94A3B8', fontSize: 12, padding: '8px 0' }}>Generating threshold hotspots...</div>
+            <TextSkeleton
+              rows={2}
+              title={false}
+              className="rounded-none border-0 bg-transparent p-0 shadow-none"
+            />
           ) : heatmapClusters.length === 0 ? (
             <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>
               No hotspot cluster reached the current threshold.
@@ -462,7 +586,7 @@ export default function Dashboard() {
         />
         <KPICard
           title="Avg. Response"
-          value={avgResponseMinutes !== null ? `${avgResponseMinutes} min` : 'N/A'}
+          value={avgResponseMinutes !== null ? formatDurationFromMinutes(avgResponseMinutes) : 'N/A'}
           subtitle={avgResponseMinutes !== null ? 'Based on responded reports' : 'Waiting for response timestamps'}
           icon={<Clock size={20} />}
           accent="#B4730A"
@@ -546,9 +670,117 @@ export default function Dashboard() {
               >
                 Full Map <ArrowRight size={11} />
               </button>
+              <button
+                onClick={() => {
+                  setShowHeatmapTuning((current) => !current);
+                  setMapRenderMode('hotspot');
+                }}
+                style={{
+                  background: showHeatmapTuning ? '#1E3A8A' : '#EFF6FF',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 11,
+                  color: showHeatmapTuning ? '#FFFFFF' : '#1E3A8A',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <SlidersHorizontal size={11} /> Tune
+              </button>
             </div>
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            {showHeatmapTuning ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  zIndex: 1200,
+                  width: 220,
+                  background: 'rgba(255,255,255,0.98)',
+                  border: '1px solid #DBEAFE',
+                  borderRadius: 12,
+                  boxShadow: '0 6px 24px rgba(15,23,42,.16)',
+                  padding: 10,
+                }}
+                onMouseDown={(event) => event.stopPropagation()}
+                onMouseMove={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onWheel={(event) => event.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+                  <span style={{ color: '#1E293B', fontSize: 11, fontWeight: 700 }}>Heatmap Settings</span>
+                  <button
+                    onClick={handleResetHeatmapTuning}
+                    style={{
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      borderRadius: 6,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      padding: '3px 6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Radius</span>
+                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={100}
+                    step={1}
+                    value={heatRadiusPercent}
+                    onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Opacity</span>
+                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatOpacityPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={120}
+                    step={1}
+                    value={heatOpacityPercent}
+                    onChange={(event) => setHeatOpacityPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            ) : null}
+
             <IncidentMap
               incidents={mapIncidents}
               height={280}
@@ -558,6 +790,9 @@ export default function Dashboard() {
               zoom={14}
               heatmapClusters={heatmapOverlays}
               renderMode={mapRenderMode}
+              heatmapRadiusPercent={heatRadiusPercent}
+              heatmapOpacityPercent={heatOpacityPercent}
+              interactive={!showHeatmapTuning}
             />
           </div>
           {selectedIncident && (
@@ -608,43 +843,49 @@ export default function Dashboard() {
             <RefreshCw size={13} color="#94A3B8" style={{ cursor: 'pointer' }} />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
-            {(incidentsLoading ? [] : incidents).slice(0, 10).map((inc) => (
-              <div
-                key={inc.id}
-                onClick={() => navigate('/app/incidents')}
-                style={{
-                  padding: '10px 14px',
-                  borderBottom: '1px solid #F8FAFC',
-                  cursor: 'pointer',
-                  transition: 'background 0.1s',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
-                }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-              >
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                  background: incidentTypeConfig[inc.type].bgColor,
-                  color: incidentTypeConfig[inc.type].color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {typeIcons[inc.type]}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{inc.id}</span>
-                    <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
-                  </div>
-                  <div style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</div>
-                  <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
-                    {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                  </div>
-                </div>
-                <SeverityBadge severity={inc.severity} size="sm" />
+            {incidentsLoading ? (
+              <div style={{ padding: '10px 14px' }}>
+                <TableSkeleton rows={6} columns={3} showHeader={false} className="border-0 shadow-none" />
               </div>
-            ))}
+            ) : (
+              incidents.slice(0, 10).map((inc) => (
+                <div
+                  key={inc.id}
+                  onClick={() => navigate('/app/incidents')}
+                  style={{
+                    padding: '10px 14px',
+                    borderBottom: '1px solid #F8FAFC',
+                    cursor: 'pointer',
+                    transition: 'background 0.1s',
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'flex-start',
+                  }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    background: incidentTypeConfig[inc.type].bgColor,
+                    color: incidentTypeConfig[inc.type].color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {typeIcons[inc.type]}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{inc.id}</span>
+                      <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
+                    </div>
+                    <div style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</div>
+                    <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                      {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </div>
+                  </div>
+                  <SeverityBadge severity={inc.severity} size="sm" />
+                </div>
+              ))
+            )}
           </div>
           <div style={{ padding: '10px 14px', borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
             <button

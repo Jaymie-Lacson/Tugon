@@ -1,12 +1,16 @@
 import { clearAuthSession, getAuthSession } from "../utils/authSession";
 import { withSecurityHeaders } from "../utils/requestSecurity";
-import type { ApiCitizenReport, ApiTicketStatus } from "./citizenReportsApi";
+import type { ApiCitizenReport, ApiReportStreamEvent, ApiTicketStatus } from "./citizenReportsApi";
 import type { ReportCategory, ReportSubcategory } from "../data/reportTaxonomy";
 
 const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
   /\/+$/,
   "",
 );
+
+function buildStreamUrl(path: string) {
+  return new URL(`${API_BASE}${path}`, window.location.origin).toString();
+}
 
 const missingOfficialRoute = {
   historyExport: false,
@@ -19,6 +23,45 @@ const missingOfficialRouteState: { [K in keyof typeof missingOfficialRoute]: boo
   reportExport: false,
   dssActions: false,
 };
+
+type CsrfBootstrap = {
+  csrfToken: string;
+  headerName: string;
+};
+
+let cachedCsrfBootstrap: CsrfBootstrap | null = null;
+
+function requiresCsrfHeader(method: string | undefined) {
+  const normalized = (method ?? "GET").toUpperCase();
+  return normalized === "POST" || normalized === "PUT" || normalized === "PATCH" || normalized === "DELETE";
+}
+
+async function fetchCsrfBootstrap(forceRefresh = false): Promise<CsrfBootstrap> {
+  if (!forceRefresh && cachedCsrfBootstrap) {
+    return cachedCsrfBootstrap;
+  }
+
+  const response = await fetch(`${API_BASE}/auth/csrf`, {
+    method: "GET",
+    credentials: "include",
+    headers: withSecurityHeaders({}, { method: "GET" }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to initialize secure session. Please refresh and try again.");
+  }
+
+  const payload = (await response.json().catch(() => ({}))) as Partial<CsrfBootstrap>;
+  const csrfToken = typeof payload.csrfToken === "string" ? payload.csrfToken.trim() : "";
+  const headerName = typeof payload.headerName === "string" ? payload.headerName.trim() : "";
+
+  if (!csrfToken || !headerName) {
+    throw new Error("Unable to initialize secure session. Please refresh and try again.");
+  }
+
+  cachedCsrfBootstrap = { csrfToken, headerName };
+  return cachedCsrfBootstrap;
+}
 
 function normalizeOfficialApiMessage(message: string): string {
   const session = getAuthSession();
@@ -221,10 +264,18 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
+  const method = init?.method;
+  const headers = new Headers(withSecurityHeaders({
     "Content-Type": "application/json",
     ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  }, { method, token: session.token }));
+
+  if (requiresCsrfHeader(method) && path !== "/auth/csrf") {
+    const bootstrap = await fetchCsrfBootstrap();
+    if (!headers.has(bootstrap.headerName)) {
+      headers.set(bootstrap.headerName, bootstrap.csrfToken);
+    }
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -253,9 +304,17 @@ async function authedTextRequest(path: string, init?: RequestInit): Promise<{ te
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
+  const method = init?.method;
+  const headers = new Headers(withSecurityHeaders({
     ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  }, { method, token: session.token }));
+
+  if (requiresCsrfHeader(method) && path !== "/auth/csrf") {
+    const bootstrap = await fetchCsrfBootstrap();
+    if (!headers.has(bootstrap.headerName)) {
+      headers.set(bootstrap.headerName, bootstrap.csrfToken);
+    }
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -350,7 +409,7 @@ export interface ApiGeneratedTemplateReport {
 export interface ApiDssActionResult {
   message: string;
   action: {
-    actionType: "APPROVE_DISPATCH" | "DISMISS";
+    actionType: "DISMISS";
     recommendationTitle: string;
     actedAt: string;
     actor: string;
@@ -375,6 +434,34 @@ export interface ApiDssRecommendationsResponse {
 export type ApiVerificationDecision = "APPROVE" | "REJECT" | "REQUEST_REUPLOAD" | "BAN_ACCOUNT";
 
 export const officialReportsApi = {
+  connectReportsStream(
+    onEvent: (event: ApiReportStreamEvent) => void,
+    onError?: () => void,
+  ) {
+    const source = new EventSource(buildStreamUrl('/official/reports/stream'), {
+      withCredentials: true,
+    });
+
+    source.addEventListener('report-event', (event) => {
+      try {
+        const parsed = JSON.parse((event as MessageEvent<string>).data) as ApiReportStreamEvent;
+        onEvent(parsed);
+      } catch {
+        // Ignore malformed stream payloads.
+      }
+    });
+
+    if (onError) {
+      source.addEventListener('error', () => {
+        onError();
+      });
+    }
+
+    return () => {
+      source.close();
+    };
+  },
+
   getReports() {
     return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
       method: "GET",
@@ -539,7 +626,7 @@ export const officialReportsApi = {
     });
   },
 
-  submitDssAction(input: { actionType: "APPROVE_DISPATCH" | "DISMISS"; recommendationTitle: string; notes?: string }) {
+  submitDssAction(input: { actionType: "DISMISS"; recommendationTitle: string; notes?: string }) {
     if (missingOfficialRouteState.dssActions) {
       const actor = getAuthSession()?.user.fullName ?? "Barangay Official";
       return Promise.resolve({

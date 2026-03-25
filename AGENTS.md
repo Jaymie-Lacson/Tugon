@@ -8,7 +8,7 @@ This repository is for **TUGON**, a web-based incident management and geospatial
 - Keep citizen flow: Register -> Phone OTP -> Create Password -> Dashboard -> Report Incident -> Track Report.
 - Keep citizen modules: Report Submitting, My Reports, Community Map, Profile Settings.
 - Incident form is step-by-step.
-- Incident types: Fire, Pollution, Noise, Crime, Road Hazard, Other.
+- Incident types: Pollution, Noise, Crime, Road Hazard, Other.
 - Evidence types: Photo and voice recording.
 - Ticket statuses: Submitted, Under Review, In Progress, Resolved, Closed, Unresolvable.
 - Geofencing routes incidents only to the owning barangay.

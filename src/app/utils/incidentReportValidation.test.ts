@@ -7,13 +7,13 @@ import {
 
 function createBaseState(overrides: Partial<IncidentReportValidationState> = {}): IncidentReportValidationState {
   return {
-    category: 'Fire',
-    subcategory: 'Structural fire',
+    category: 'Pollution',
+    subcategory: 'Illegal dumping or waste',
     severity: 'high',
     pin: { barangay: 'Barangay 251' },
     isPinWithinSupportedBarangay: true,
     address: 'Street 1, Tondo, Manila',
-    description: 'Visible flames from a residential building.',
+    description: 'Waste buildup in the canal is causing foul odor in the area.',
     photoPreviews: ['data:image/jpeg;base64,abc'],
     ...overrides,
   };

@@ -5,7 +5,9 @@ import {
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
-import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TableSkeleton from '../../components/ui/TableSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
 
@@ -435,7 +437,22 @@ export default function SAUsers() {
   };
 
   if (loading && usersData.length === 0) {
-    return <OfficialPageInitialLoader label="Loading super admin users" />;
+    return (
+      <div style={{ padding: '20px', minHeight: '100%' }}>
+        <TextSkeleton rows={2} title={false} />
+        <div style={{ marginTop: 12 }}>
+          <CardSkeleton
+            count={3}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <TableSkeleton rows={8} columns={5} showHeader />
+        </div>
+      </div>
+    );
   }
 
   const handleEditUser = async (payload: UserModalSubmitPayload) => {

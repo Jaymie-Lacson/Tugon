@@ -3,11 +3,6 @@ export const MEDIATION_WARNING =
 
 export const REPORT_TAXONOMY = [
   {
-    category: "Fire",
-    requiresMediation: false,
-    subcategories: ["Structural fire", "Electrical fire hazard", "Open burning", "Gas leak or flammable risk"],
-  },
-  {
     category: "Pollution",
     requiresMediation: false,
     subcategories: [

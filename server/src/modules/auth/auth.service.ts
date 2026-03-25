@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
-import { env, shouldRequirePersistedSession } from "../../config/env.js";
+import { env, shouldRequirePersistedSession, shouldReturnMockOtpCodeInResponse } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
 import { OtpSmsDeliveryError, sendOtpSms } from "./otp-sms.service.js";
@@ -258,11 +258,14 @@ function barangayNameFromCode(code: string) {
   return `Barangay ${code}`;
 }
 
-function buildOtpDispatchResponse(phoneNumber: string, message: string) {
+function buildOtpDispatchResponse(phoneNumber: string, message: string, otpCode?: string) {
+  const shouldExposeMockOtp = env.otpDeliveryMode === "mock" && shouldReturnMockOtpCodeInResponse();
+
   return {
     phoneNumber,
     expiresInSeconds: env.otpExpiryMinutes * 60,
     message,
+    ...(shouldExposeMockOtp && otpCode ? { mockOtpCode: otpCode } : {}),
   };
 }
 
@@ -583,6 +586,7 @@ export const authService = {
       env.otpDeliveryMode === "mock"
         ? "OTP generated in mock mode. Continue to OTP verification."
         : "OTP sent successfully.",
+      code,
     );
   },
 
@@ -654,6 +658,7 @@ export const authService = {
       env.otpDeliveryMode === "mock"
         ? "OTP regenerated in mock mode. Continue to OTP verification."
         : "OTP resent successfully.",
+      newCode,
     );
   },
 
@@ -896,7 +901,11 @@ export const authService = {
       );
     }
 
-    return buildOtpDispatchResponse(phoneNumber, "If the phone number is registered, a password reset OTP has been sent.");
+    return buildOtpDispatchResponse(
+      phoneNumber,
+      "If the phone number is registered, a password reset OTP has been sent.",
+      code,
+    );
   },
 
   async verifyPasswordResetOtp(input: { phoneNumber: string; otpCode: string }) {

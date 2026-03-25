@@ -33,6 +33,7 @@ const CitizenDashboard = lazyRoute(() => import('./pages/CitizenDashboard'));
 const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'));
 const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
 const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
+const SkeletonDemo = lazyRoute(() => import('./pages/SkeletonDemo'));
 const Verifications = lazyRoute(() => import('./pages/Verifications'));
 const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
 const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
@@ -40,6 +41,7 @@ const SABarangayMap = lazyRoute(() => import('./pages/superadmin/SABarangayMap')
 const SAAnalytics = lazyRoute(() => import('./pages/superadmin/SAAnalytics'));
 const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
 const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
+const SASettings = lazyRoute(() => import('./pages/Settings'));
 
 function RedirectToApp() {
   const session = getAuthSession();
@@ -90,6 +92,7 @@ export const router = createBrowserRouter([
   // Public landing
   { path: '/', Component: Landing },
   { path: '/community-map', Component: MapView },
+  { path: '/skeleton-demo', Component: SkeletonDemo },
 
   // Auth screens
   { path: '/auth/login', Component: Login },
@@ -155,6 +158,7 @@ export const router = createBrowserRouter([
       { path: 'analytics', Component: SAAnalytics },
       { path: 'users', Component: SAUsers },
       { path: 'audit-logs', Component: SAAuditLogs },
+      { path: 'settings', Component: SASettings },
     ],
   },
 

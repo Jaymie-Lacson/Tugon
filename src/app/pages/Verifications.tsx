@@ -5,7 +5,8 @@ import {
   type ApiPendingVerification,
   type ApiVerificationDecision,
 } from '../services/officialReportsApi';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 
 const REJECTION_REASONS = [
   'Blurry / unreadable image',
@@ -102,7 +103,16 @@ export default function Verifications() {
   };
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading verification page" />;
+    return (
+      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={3}
+          lines={3}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3"
+        />
+      </div>
+    );
   }
 
   return (
@@ -146,7 +156,7 @@ export default function Verifications() {
       </div>
 
       {loading ? (
-        <div style={{ fontSize: 13, color: '#64748B' }}>Loading verification queue...</div>
+        <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
         <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12, padding: '16px', color: '#64748B', fontSize: 13 }}>
           No pending resident ID submissions in your barangay.

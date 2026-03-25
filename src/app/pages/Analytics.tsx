@@ -4,7 +4,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Download } from 'lucide-react';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -24,19 +25,18 @@ import {
 const PERIODS = [...ANALYTICS_PERIODS];
 
 function toSeriesLegendName(seriesKey: string): string {
-  if (seriesKey === 'fire') return 'Fire';
   if (seriesKey === 'flood') return 'Pollution';
   if (seriesKey === 'accident') return 'Road Hazard';
-  if (seriesKey === 'medical') return 'Other';
+  if (seriesKey === 'medical') return 'Noise';
   if (seriesKey === 'crime') return 'Crime';
   if (seriesKey === 'infrastructure') return 'Other';
   return seriesKey;
 }
 
 function getResponseAxisLabel(type: Incident['type'], mobile = false): string {
-  if (type === 'fire') return 'Fire';
   if (type === 'flood') return mobile ? 'Pollution' : 'Pollution';
   if (type === 'accident') return mobile ? 'Road Hazard' : 'Road Hazard';
+  if (type === 'medical') return 'Noise';
   if (type === 'crime') return 'Crime';
   return 'Other';
 }
@@ -47,6 +47,32 @@ function toLocalDateKey(value: string | Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function formatDurationFromMinutes(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return '0m';
+  }
+
+  const roundedMinutes = Math.round(totalMinutes);
+  const weeks = Math.floor(roundedMinutes / (7 * 24 * 60));
+  let remainder = roundedMinutes % (7 * 24 * 60);
+  const days = Math.floor(remainder / (24 * 60));
+  remainder %= 24 * 60;
+  const hours = Math.floor(remainder / 60);
+  const minutes = remainder % 60;
+
+  const parts: string[] = [];
+  if (weeks > 0) parts.push(`${weeks}w`);
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+
+  if (parts.length === 0) {
+    return '0m';
+  }
+
+  return parts.slice(0, 3).join(' ');
 }
 
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
@@ -78,6 +104,10 @@ function formatTrendDayLabel(date: Date, period: string): string {
 function getCompactCategoryLabel(label: string): string {
   if (label === 'Road Hazard') return 'Road Haz';
   return label;
+}
+
+function formatBarangayTick(label: string): string {
+  return label.replace('Barangay ', 'Brgy ');
 }
 
 export default function Analytics() {
@@ -115,9 +145,9 @@ export default function Analytics() {
   }, [loadReports]);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
+    const disconnect = officialReportsApi.connectReportsStream(() => {
       void loadReports(true);
-    }, 30000);
+    });
 
     const handleFocusRefresh = () => {
       void loadReports(true);
@@ -125,7 +155,7 @@ export default function Analytics() {
 
     window.addEventListener('focus', handleFocusRefresh);
     return () => {
-      window.clearInterval(intervalId);
+      disconnect();
       window.removeEventListener('focus', handleFocusRefresh);
     };
   }, [loadReports]);
@@ -168,7 +198,6 @@ export default function Analytics() {
         key: toLocalDateKey(date),
         day: formatTrendDayLabel(date, period),
         total: 0,
-        fire: 0,
         flood: 0,
         accident: 0,
         medical: 0,
@@ -282,7 +311,7 @@ export default function Analytics() {
   const resolutionRate = totalIncidents > 0 ? (resolvedIncidents / totalIncidents) * 100 : 0;
   const chartTitleSize = isMobile ? 18 : 13;
   const chartSubtitleSize = isMobile ? 14 : 11;
-  const trendChartHeight = isMobile ? 300 : 240;
+  const trendChartHeight = isMobile ? 250 : 240;
   const responseChartHeight = isMobile ? 230 : 200;
   const hourlyChartHeight = isMobile ? 230 : 200;
   const barangayChartHeight = isMobile ? 260 : 220;
@@ -308,11 +337,23 @@ export default function Analytics() {
   const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading analytics page" />;
+    return (
+      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={4}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={6} title={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+    <div className="analytics-page" style={{ padding: isMobile ? '14px 12px 20px' : '16px 20px', minHeight: '100%' }}>
       {error ? (
         <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
           {error}
@@ -320,7 +361,7 @@ export default function Analytics() {
       ) : null}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+      <div className="analytics-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Analytics & Insights</h1>
           <p style={{ color: '#64748B', fontSize: 12 }}>Incident data analysis — TUGON Decision Support System</p>
@@ -355,21 +396,32 @@ export default function Analytics() {
       </div>
 
       {/* Metric Cards */}
-      <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: isMobile ? 14 : 12, marginBottom: isMobile ? 22 : 18 }}>
-        <MetricCard title="Total Incidents" value={totalIncidents.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#B91C1C" />
-        <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change={loading ? 'Loading' : 'Live'} up={true} sub={`${period} dataset`} color="#059669" />
-        <MetricCard title="Avg. Response" value={avgResponse !== null ? `${avgResponse.toFixed(1)} min` : 'N/A'} change={loading ? 'Loading' : 'Live'} up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
-        <MetricCard title="Deployed Units" value={deployedUnits.toString()} change={loading ? 'Loading' : 'Live'} up={true} sub="reported assignment load" color="#1E3A8A" />
+      <div className="analytics-metrics" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: isMobile ? 14 : 12, marginBottom: isMobile ? 22 : 18 }}>
+        {loading ? (
+          <CardSkeleton
+            count={4}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          />
+        ) : (
+          <>
+            <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="#B91C1C" />
+            <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub={`${period} dataset`} color="#059669" />
+            <MetricCard title="Avg. Response" value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
+            <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="#1E3A8A" />
+          </>
+        )}
       </div>
 
       {/* Trend Chart */}
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px', marginBottom: isMobile ? 18 : 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+      <div className="analytics-card analytics-trend-card" style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px', marginBottom: isMobile ? 18 : 14 }}>
+        <div className="analytics-trend-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize }}>Incident Trend by Category</div>
             <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginTop: 2 }}>{period} — daily incident count by category</div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="analytics-chart-toggle" style={{ display: 'flex', gap: 6 }}>
             {(['area', 'bar'] as const).map(t => (
               <button key={t} onClick={() => setChartType(t)} style={{
                 padding: isMobile ? '8px 14px' : '5px 12px', borderRadius: 6, border: '1px solid', fontSize: isMobile ? 13 : 11, fontWeight: 600, cursor: 'pointer',
@@ -384,7 +436,7 @@ export default function Analytics() {
         </div>
         <ResponsiveContainer width="100%" height={trendChartHeight}>
           {chartType === 'area' ? (
-            <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 32 : 22 }}>
+            <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
               <defs>
                 {TREND_SERIES_FOR_CHART.map(({ key, color }) => (
                   <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
@@ -394,10 +446,9 @@ export default function Analytics() {
                 ))}
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 'preserveStartEnd' : 1} />
+              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 1 : 0} tickMargin={8} minTickGap={isMobile ? 14 : 8} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
-              <Legend align="center" verticalAlign="bottom" iconType="circle" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11, lineHeight: isMobile ? '18px' : '16px', width: '100%', left: 0 }} />
               {TREND_SERIES_FOR_CHART.map((series) => (
                 <Area
                   key={`area-${series.key}`}
@@ -411,12 +462,11 @@ export default function Analytics() {
               ))}
             </AreaChart>
           ) : (
-            <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 32 : 22 }}>
+            <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 'preserveStartEnd' : 1} />
+              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 1 : 0} tickMargin={8} minTickGap={isMobile ? 14 : 8} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
-              <Legend align="center" verticalAlign="bottom" iconType="square" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11, lineHeight: isMobile ? '18px' : '16px', width: '100%', left: 0 }} />
               {TREND_SERIES_FOR_CHART.map((series) => (
                 <Bar
                   key={`bar-${series.key}`}
@@ -430,12 +480,39 @@ export default function Analytics() {
             </BarChart>
           )}
         </ResponsiveContainer>
+        <div className="analytics-trend-legend" style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '8px 12px' : '6px 10px', marginTop: 10 }}>
+          {TREND_SERIES_FOR_CHART.map((series) => (
+            <span
+              key={`legend-${series.key}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: '#475569',
+                fontSize: isMobile ? 11 : 10,
+                lineHeight: 1.2,
+              }}
+            >
+              <span
+                style={{
+                  width: isMobile ? 9 : 8,
+                  height: isMobile ? 9 : 8,
+                  borderRadius: '50%',
+                  background: series.color,
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}
+              />
+              {series.chartName}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Middle row charts */}
       <div className="analytics-middle-row" style={{ display: 'flex', gap: 14, marginBottom: isMobile ? 18 : 14, flexWrap: 'wrap' }}>
         {/* Response time */}
-        <div style={{ flex: '2 1 280px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+        <div className="analytics-card" style={{ flex: '2 1 280px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Average Response Time by Category</div>
           <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 12 }}>Minutes from report to first response (target overlay)</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
@@ -445,13 +522,13 @@ export default function Analytics() {
           ) : (
             <>
               <ResponsiveContainer width="100%" height={responseChartHeight}>
-                <BarChart data={RESPONSE_TIME_VISIBLE} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                <BarChart data={RESPONSE_TIME_VISIBLE} layout="vertical" margin={{ top: 0, right: isMobile ? 14 : 40, left: isMobile ? -6 : 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} unit="m" />
-                  <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 90 : 170} />
+                  <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 82 : 170} />
                   <Tooltip
                     formatter={(value, name) => [
-                      `${value} min`,
+                      formatDurationFromMinutes(Number(value)),
                       name === 'avgMin' ? 'Avg. Response' : 'Target',
                     ]}
                     contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }}
@@ -474,7 +551,7 @@ export default function Analytics() {
         </div>
 
         {/* Severity Distribution */}
-        <div style={{ flex: '1 1 200px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+        <div className="analytics-card" style={{ flex: '1 1 200px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Severity Distribution</div>
             <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 10 }}>{period} incidents by severity</div>
           <ResponsiveContainer width="100%" height={140}>
@@ -500,13 +577,13 @@ export default function Analytics() {
         </div>
 
         {/* Hourly pattern */}
-        <div style={{ flex: '2 1 260px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+        <div className="analytics-card" style={{ flex: '2 1 260px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Hourly Incident Pattern</div>
           <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 12 }}>Average incidents per hour ({period})</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 11 : 8, fill: '#64748B' }} axisLine={false} tickLine={false} interval={3} />
+              <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 11 : 8, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 5 : 3} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} formatter={(value) => [`${value} incidents`]} />
               <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
@@ -531,13 +608,13 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row" style={{ display: 'flex', gap: 14, marginBottom: 8, flexWrap: 'wrap' }}>
         {/* Barangay comparison */}
-        <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+        <div className="analytics-card" style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Barangay Incident Comparison</div>
           <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 14 }}>Incidents reported vs. resolved by barangay ({period})</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
-            <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: 50 }}>
+            <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: isMobile ? 42 : 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 11 : 9, fill: '#64748B' }} axisLine={false} tickLine={false} angle={isMobile ? -18 : -30} textAnchor="end" interval={0} />
+              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 11 : 9, fill: '#64748B' }} axisLine={false} tickLine={false} angle={isMobile ? -16 : -30} textAnchor="end" interval={0} tickFormatter={formatBarangayTick} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} />
               <Legend iconType="square" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11 }} />
@@ -549,7 +626,7 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div style={{ flex: '2 1 240px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
+        <div className="analytics-card" style={{ flex: '2 1 240px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: isMobile ? '18px 16px' : '14px 16px' }}>
           <div style={{ fontWeight: 700, color: '#1E293B', fontSize: chartTitleSize, marginBottom: 4 }}>Resource Utilization</div>
           <div style={{ color: '#94A3B8', fontSize: chartSubtitleSize, marginBottom: 14 }}>Reported responders by incident type</div>
           {RESOURCE_DATA.map(r => {
@@ -606,6 +683,68 @@ export default function Analytics() {
           .analytics-header-controls > button {
             width: 100%;
             justify-content: center;
+          }
+
+          .analytics-page {
+            padding: 14px 12px 22px !important;
+          }
+
+          .analytics-metrics {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+
+          .analytics-middle-row,
+          .analytics-bottom-row {
+            flex-direction: column;
+            gap: 12px !important;
+          }
+
+          .analytics-middle-row > div,
+          .analytics-bottom-row > div {
+            width: 100%;
+            flex: 1 1 auto !important;
+          }
+
+          .analytics-card,
+          .analytics-trend-card {
+            border-radius: 14px !important;
+            padding: 16px 14px !important;
+          }
+
+          .analytics-trend-header {
+            align-items: stretch !important;
+          }
+
+          .analytics-chart-toggle {
+            width: 100%;
+          }
+
+          .analytics-chart-toggle > button {
+            flex: 1;
+            min-height: 42px;
+          }
+
+          .analytics-trend-legend {
+            justify-content: flex-start;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .analytics-page {
+            padding: 12px 10px 20px !important;
+          }
+
+          .analytics-header h1 {
+            font-size: 18px !important;
+          }
+
+          .analytics-header p {
+            font-size: 11px !important;
+          }
+
+          .analytics-trend-legend {
+            gap: 6px 10px !important;
           }
         }
       `}</style>

@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router';
 import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
-  Flame, Droplets, Car, Activity, Zap, AlertCircle,
+  Droplets, Car, Activity, Zap, AlertCircle,
   Phone, Info, CloudRain, Eye, Search, Filter,
-  ArrowRight, TrendingUp, Map, Menu,
+  ArrowRight, ArrowLeft, TrendingUp, Map, Menu,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
@@ -13,6 +13,9 @@ import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge } from '../components/StatusBadge';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   incidentTypeConfig,
@@ -105,7 +108,6 @@ function timeAgo(dateStr: string) {
 }
 
 const typeIcon: Record<IncidentType, React.ReactNode> = {
-  fire: <Flame size={14} />,
   flood: <Droplets size={14} />,
   accident: <Car size={14} />,
   medical: <Activity size={14} />,
@@ -447,6 +449,8 @@ export default function CitizenDashboard() {
   const greetingLabel = nowHour < 12 ? 'Good morning' : nowHour < 18 ? 'Good afternoon' : 'Good evening';
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [myReports, setMyReports] = useState<CitizenMyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [verificationLoading, setVerificationLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -479,6 +483,11 @@ export default function CitizenDashboard() {
       }));
 
     const verificationSummary = getVerificationSummary(verificationPreview);
+    const hasPendingVerificationNotification =
+      verificationPreview.verificationStatus === 'PENDING'
+      || verificationPreview.verificationStatus === 'REJECTED'
+      || verificationPreview.verificationStatus === 'REUPLOAD_REQUESTED';
+
     const verificationItems = !verificationPreview.isVerified && !verificationPreview.isBanned
       ? [{
         icon: <Shield size={14} />,
@@ -487,7 +496,7 @@ export default function CitizenDashboard() {
         title: verificationSummary.title,
         desc: verificationSummary.statusLabel,
         time: 'Account',
-        unread: true,
+        unread: hasPendingVerificationNotification,
         action: 'open-verification' as const,
       }]
       : [];
@@ -538,33 +547,59 @@ export default function CitizenDashboard() {
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const payload = await citizenReportsApi.getMyReports();
-        const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
-        setIncidents(mappedIncidents);
-        setMyReports(
-          payload.reports.map((report) => ({
-            id: report.id,
-            type: reportToIncident(report).type,
-            description: report.description,
-            status: mapTicketStatus(report.status),
-            reportedAt: report.submittedAt,
-            location: report.location,
-          })),
-        );
-      } catch {
+  const loadReports = React.useCallback(async (silent = false) => {
+    if (!silent) {
+      setReportsLoading(true);
+    }
+    try {
+      const payload = await citizenReportsApi.getMyReports();
+      const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
+      setIncidents(mappedIncidents);
+      setSelectedIncident((current) => {
+        if (!current) {
+          return current;
+        }
+        return mappedIncidents.find((incident) => incident.id === current.id) ?? null;
+      });
+      setMyReports(
+        payload.reports.map((report) => ({
+          id: report.id,
+          type: reportToIncident(report).type,
+          description: report.description,
+          status: mapTicketStatus(report.status),
+          reportedAt: report.submittedAt,
+          location: report.location,
+        })),
+      );
+    } catch {
+      if (!silent) {
         setIncidents([]);
         setMyReports([]);
       }
-    };
-
-    void load();
+    } finally {
+      if (!silent) {
+        setReportsLoading(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const disconnect = citizenReportsApi.connectMyReportsStream(() => {
+      void loadReports(true);
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [loadReports]);
+
+  useEffect(() => {
     const loadVerification = async () => {
+      setVerificationLoading(true);
       try {
         const payload = await profileVerificationApi.getMyStatus();
         const verificationState: CitizenVerificationPreview = {
@@ -584,11 +619,15 @@ export default function CitizenDashboard() {
         });
       } catch {
         // Keep session-backed preview if endpoint fails.
+      } finally {
+        setVerificationLoading(false);
       }
     };
 
     void loadVerification();
   }, []);
+
+  const homeLoading = reportsLoading || verificationLoading;
 
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
@@ -627,11 +666,11 @@ export default function CitizenDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} />;
+        return <HomeTab incidents={mapIncidents} myReports={myReports} setActiveTab={setActiveTab} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} firstName={firstName} greetingLabel={greetingLabel} barangayLabel={barangayLabel} todayLabel={todayLabel} verificationPreview={verificationPreview} isLoading={homeLoading} />;
       case 'report':
         return null;
       case 'map':
-        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} onBack={() => setActiveTab('home')} />;
       case 'myreports':
         navigate('/citizen/my-reports');
         return null;
@@ -869,6 +908,7 @@ function HomeTab({
   barangayLabel,
   todayLabel,
   verificationPreview,
+  isLoading,
 }: {
   incidents: Incident[];
   myReports: CitizenMyReport[];
@@ -880,11 +920,27 @@ function HomeTab({
   barangayLabel: string;
   todayLabel: string;
   verificationPreview: CitizenVerificationPreview;
+  isLoading: boolean;
 }) {
   const navigate = useNavigate();
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
+
+  if (isLoading) {
+    return (
+      <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <TextSkeleton rows={3} title={false} className="rounded-xl" />
+        <CardSkeleton
+          count={3}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
+        <TableSkeleton rows={6} columns={3} showHeader={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1101,7 +1157,7 @@ function HomeTab({
                 selectedId={selectedIncident?.id ?? null}
                 onSelectIncident={setSelectedIncident}
                 compact={false}
-                zoom={14}
+                zoom={17}
                 showSelectedPopup
               />
             </div>
@@ -1264,7 +1320,6 @@ function HomeTab({
    REPORT TAB
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }[] = [
-  { type: 'fire', label: 'Fire', icon: <Flame size={20} /> },
   { type: 'flood', label: 'Flood', icon: <Droplets size={20} /> },
   { type: 'accident', label: 'Accident', icon: <Car size={20} /> },
   { type: 'medical', label: 'Medical', icon: <Activity size={20} /> },
@@ -1677,10 +1732,12 @@ function MapTab({
   incidents,
   selectedIncident,
   setSelectedIncident,
+  onBack,
 }: {
   incidents: Incident[];
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
+  onBack: () => void;
 }) {
   const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
@@ -1755,6 +1812,26 @@ function MapTab({
         <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
           My Report Map
         </div>
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            padding: isMobileViewport ? '8px 12px' : '6px 10px',
+            borderRadius: 10,
+            border: '1px solid #BFDBFE',
+            background: '#EFF6FF',
+            color: '#1E3A8A',
+            fontWeight: 700,
+            fontSize: 11,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <ArrowLeft size={12} />
+          Back to Dashboard
+        </button>
         {(['all', 'active', 'responding'] as const).map((f) => (
           <button
             className="citizen-map-filter-chip"
@@ -1805,8 +1882,8 @@ function MapTab({
           selectedId={selectedIncident?.id ?? null}
           onSelectIncident={setSelectedIncident}
           compact={false}
-          zoom={15}
-                showSelectedPopup
+          zoom={17}
+          showSelectedPopup
         />
         {!hasPinsForFilter ? (
           <div
@@ -2184,7 +2261,7 @@ function ProfileTab({
 
       {!session?.user.isPhoneVerified ? (
         <button
-          onClick={() => navigate('/auth/verify')}
+          onClick={() => navigate('/auth/register')}
           style={{
             width: '100%',
             padding: '12px',
