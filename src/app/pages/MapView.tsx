@@ -8,7 +8,9 @@ import { Incident, IncidentType, IncidentStatus, incidentTypeConfig, isIncidentV
 import { useLocation, useNavigate } from 'react-router';
 import { HeatmapClusterOverlay, IncidentMap } from '../components/IncidentMap';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import '../../styles/map-view.css';
@@ -56,7 +58,7 @@ export default function MapView() {
   const [heatmapClusters, setHeatmapClusters] = useState<HeatmapClusterOverlay[]>([]);
   const [heatmapLoading, setHeatmapLoading] = useState(false);
   const [heatmapError, setHeatmapError] = useState<string | null>(null);
-  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
+  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot')
   const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
@@ -233,7 +235,22 @@ export default function MapView() {
   };
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading incident map" minHeight="calc(100vh - 120px)" />;
+    return (
+      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={3}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={3} title={false} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <TableSkeleton rows={6} columns={3} showHeader={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -313,7 +330,7 @@ export default function MapView() {
           {error ? (
             <div className="map-list-state map-list-state-error">{error}</div>
           ) : loading ? (
-            <div className="map-list-state">Loading incidents...</div>
+            <TableSkeleton rows={6} columns={2} showHeader={false} className="border-0 bg-transparent" />
           ) : filtered.length === 0 ? (
             <div className="map-list-state">No incidents match</div>
           ) : filtered.map(inc => (
@@ -415,11 +432,8 @@ export default function MapView() {
                 padding: 12,
               }}
               onMouseDown={(event) => event.stopPropagation()}
-              onMouseMove={(event) => event.stopPropagation()}
               onTouchStart={(event) => event.stopPropagation()}
-              onTouchMove={(event) => event.stopPropagation()}
               onPointerDown={(event) => event.stopPropagation()}
-              onPointerMove={(event) => event.stopPropagation()}
               onWheel={(event) => event.stopPropagation()}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -454,11 +468,8 @@ export default function MapView() {
                   value={heatRadiusPercent}
                   onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
                   onMouseDown={(event) => event.stopPropagation()}
-                  onMouseMove={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
-                  onTouchMove={(event) => event.stopPropagation()}
                   onPointerDown={(event) => event.stopPropagation()}
-                  onPointerMove={(event) => event.stopPropagation()}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -476,11 +487,8 @@ export default function MapView() {
                   value={heatOpacityPercent}
                   onChange={(event) => setHeatOpacityPercent(Number(event.target.value))}
                   onMouseDown={(event) => event.stopPropagation()}
-                  onMouseMove={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
-                  onTouchMove={(event) => event.stopPropagation()}
                   onPointerDown={(event) => event.stopPropagation()}
-                  onPointerMove={(event) => event.stopPropagation()}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -506,7 +514,6 @@ export default function MapView() {
             renderMode={isPublicCommunityMap ? 'standard' : mapRenderMode}
             heatmapRadiusPercent={heatRadiusPercent}
             heatmapOpacityPercent={heatOpacityPercent}
-            interactive={!showHeatmapTuning}
           />
         </div>
 

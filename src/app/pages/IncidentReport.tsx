@@ -11,6 +11,8 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
@@ -2016,6 +2018,36 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
   );
 }
 
+function SubmissionSkeletonOverlay() {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 290,
+        background: 'rgba(248, 250, 252, 0.9)',
+        backdropFilter: 'blur(2px)',
+        padding: '84px 16px 24px',
+        overflowY: 'auto',
+      }}
+      aria-live="polite"
+      aria-busy="true"
+      aria-label="Submitting report"
+    >
+      <div style={{ maxWidth: 980, margin: '0 auto', display: 'grid', gap: 12 }}>
+        <TextSkeleton rows={2} title={false} />
+        <CardSkeleton
+          count={3}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
+        <TextSkeleton rows={3} title={false} />
+      </div>
+    </div>
+  );
+}
+
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN EXPORT
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -2292,6 +2324,7 @@ export default function IncidentReport() {
   return (
     <>
       {submitted && <SuccessScreen reportId={submittedReportId} onDone={() => navigate('/citizen')} />}
+      {submitting && !submitted ? <SubmissionSkeletonOverlay /> : null}
 
       <CitizenPageLayout
         header={

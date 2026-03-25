@@ -15,6 +15,8 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { profileVerificationApi, type CitizenVerificationState } from '../services/profileVerificationApi';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
@@ -614,7 +616,15 @@ export default function CitizenVerification() {
             </div>
 
             {loading ? (
-              <p style={{ marginTop: 12, color: '#64748B', fontSize: 13 }}>Loading verification status...</p>
+              <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                <TextSkeleton rows={2} title={false} className="rounded-lg" />
+                <CardSkeleton
+                  count={2}
+                  lines={2}
+                  showImage={false}
+                  gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                />
+              </div>
             ) : (
               <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
                 <div style={{ fontSize: 12, color: '#64748B' }}>{meta.helper}</div>

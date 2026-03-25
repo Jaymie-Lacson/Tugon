@@ -6,7 +6,9 @@ import {
   FileBarChart, FilePieChart, FileSearch, FileClock, RefreshCw,
   Lightbulb, Info, ChevronDown,
 } from 'lucide-react';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -683,7 +685,22 @@ export default function Reports() {
   }, [incidentData]);
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading reports page" />;
+    return (
+      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+        <CardSkeleton
+          count={3}
+          lines={2}
+          showImage={false}
+          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
+        <div style={{ marginTop: 16 }}>
+          <TextSkeleton rows={3} title={false} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <TableSkeleton rows={7} columns={4} showHeader={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -930,7 +947,9 @@ export default function Reports() {
                 </tr>
               ) : reportsLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '12px 14px', color: '#94A3B8' }}>Loading report history...</td>
+                  <td colSpan={6} style={{ padding: '10px 12px' }}>
+                    <TableSkeleton rows={5} columns={6} showHeader={false} className="border-0" />
+                  </td>
                 </tr>
               ) : recentReports.length === 0 ? (
                 <tr>

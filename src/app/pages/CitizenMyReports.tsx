@@ -12,7 +12,9 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
-import { OfficialPageInitialLoader } from '../components/OfficialPageInitialLoader';
+import CardSkeleton from '../components/ui/CardSkeleton';
+import TableSkeleton from '../components/ui/TableSkeleton';
+import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   citizenReportsApi,
@@ -1471,7 +1473,18 @@ export default function CitizenMyReports() {
       >
         {loadingInitial ? (
           <div className="citizen-content-shell" style={{ paddingTop: 24, paddingBottom: 16 }}>
-            <OfficialPageInitialLoader label="Loading my reports page" minHeight="320px" />
+            <TextSkeleton rows={2} title={false} />
+            <div style={{ marginTop: 12 }}>
+              <CardSkeleton
+                count={3}
+                lines={2}
+                showImage={false}
+                gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <TableSkeleton rows={7} columns={4} showHeader />
+            </div>
           </div>
         ) : (
           <>

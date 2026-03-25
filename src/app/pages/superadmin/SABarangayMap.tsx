@@ -5,7 +5,8 @@ import {
   MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
   Filter, Flame, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
 } from 'lucide-react';
-import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { reportToIncident } from '../../utils/incidentAdapters';
@@ -666,7 +667,14 @@ export default function SABarangayMap() {
   };
 
   if ((loadingBarangays || loadingIncidents) && reportIncidents.length === 0) {
-    return <OfficialPageInitialLoader label="Loading super admin map" />;
+    return (
+      <div style={{ padding: '20px', minHeight: '100%' }}>
+        <TextSkeleton rows={2} title={false} />
+        <div style={{ marginTop: 12 }}>
+          <CardSkeleton count={3} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" />
+        </div>
+      </div>
+    );
   }
 
   return (

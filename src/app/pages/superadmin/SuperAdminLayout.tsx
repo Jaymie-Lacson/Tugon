@@ -389,7 +389,7 @@ export default function SuperAdminLayout() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
           position: 'relative',
-          zIndex: 90,
+          zIndex: 2600,
         }}>
           <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
             <NavLink

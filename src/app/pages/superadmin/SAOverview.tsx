@@ -9,7 +9,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
 import { IncidentMap } from '../../components/IncidentMap';
-import { OfficialPageInitialLoader } from '../../components/OfficialPageInitialLoader';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TableSkeleton from '../../components/ui/TableSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
@@ -306,7 +308,22 @@ export default function SAOverview() {
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
   if (initialLoadPending) {
-    return <OfficialPageInitialLoader label="Loading super admin overview" />;
+    return (
+      <div style={{ padding: '20px', minHeight: '100%' }}>
+        <TextSkeleton rows={2} title={false} />
+        <div style={{ marginTop: 12 }}>
+          <CardSkeleton
+            count={4}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <TableSkeleton rows={7} columns={4} showHeader />
+        </div>
+      </div>
+    );
   }
 
   return (
