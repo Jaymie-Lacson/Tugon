@@ -5,7 +5,7 @@ import {
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
   Flame, Droplets, Car, Activity, Zap, AlertCircle,
   Phone, Info, CloudRain, Eye, Search, Filter,
-  ArrowRight, TrendingUp, Map, Menu,
+  ArrowRight, ArrowLeft, TrendingUp, Map, Menu,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
@@ -631,7 +631,7 @@ export default function CitizenDashboard() {
       case 'report':
         return null;
       case 'map':
-        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} />;
+        return <MapTab incidents={mapIncidents} selectedIncident={selectedIncident} setSelectedIncident={setSelectedIncident} onBack={() => setActiveTab('home')} />;
       case 'myreports':
         navigate('/citizen/my-reports');
         return null;
@@ -1101,7 +1101,7 @@ function HomeTab({
                 selectedId={selectedIncident?.id ?? null}
                 onSelectIncident={setSelectedIncident}
                 compact={false}
-                zoom={14}
+                zoom={17}
                 showSelectedPopup
               />
             </div>
@@ -1677,10 +1677,12 @@ function MapTab({
   incidents,
   selectedIncident,
   setSelectedIncident,
+  onBack,
 }: {
   incidents: Incident[];
   selectedIncident: Incident | null;
   setSelectedIncident: (i: Incident | null) => void;
+  onBack: () => void;
 }) {
   const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
@@ -1755,6 +1757,26 @@ function MapTab({
         <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
           My Report Map
         </div>
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            padding: isMobileViewport ? '8px 12px' : '6px 10px',
+            borderRadius: 10,
+            border: '1px solid #BFDBFE',
+            background: '#EFF6FF',
+            color: '#1E3A8A',
+            fontWeight: 700,
+            fontSize: 11,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <ArrowLeft size={12} />
+          Back to Dashboard
+        </button>
         {(['all', 'active', 'responding'] as const).map((f) => (
           <button
             className="citizen-map-filter-chip"
@@ -1805,8 +1827,8 @@ function MapTab({
           selectedId={selectedIncident?.id ?? null}
           onSelectIncident={setSelectedIncident}
           compact={false}
-          zoom={15}
-                showSelectedPopup
+          zoom={17}
+          showSelectedPopup
         />
         {!hasPinsForFilter ? (
           <div
