@@ -40,6 +40,15 @@ type CsrfBootstrap = {
 
 let cachedCsrf: CsrfBootstrap | null = null;
 
+function isCsrfValidationFailure(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  const message = (payload as { message?: unknown }).message;
+  return typeof message === "string" && message.trim().toLowerCase() === "csrf validation failed.";
+}
+
 function requiresCsrfHeader(method: string | undefined) {
   const normalized = (method ?? "GET").toUpperCase();
   return normalized === "POST" || normalized === "PUT" || normalized === "PATCH" || normalized === "DELETE";
@@ -73,6 +82,10 @@ async function fetchCsrfBootstrap(forceRefresh = false): Promise<CsrfBootstrap> 
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return requestWithRetry<T>(path, init, false);
+}
+
+async function requestWithRetry<T>(path: string, init: RequestInit | undefined, hasRetried: boolean): Promise<T> {
   const method = init?.method;
   const headers = new Headers(
     withSecurityHeaders(
@@ -108,6 +121,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    // Recover once when token/header is stale relative to the CSRF cookie.
+    if (!hasRetried && response.status === 403 && requiresCsrfHeader(method) && path !== "/auth/csrf" && isCsrfValidationFailure(payload)) {
+      await fetchCsrfBootstrap(true);
+      return requestWithRetry<T>(path, init, true);
+    }
+
     const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
     throw new Error(message);
   }
