@@ -12,6 +12,7 @@ import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import { getAuthSession } from '../utils/authSession';
 import type { Incident } from '../data/incidents';
 
 const REPORT_TEMPLATES = [
@@ -86,6 +87,16 @@ interface RecentReportItem {
   size: string;
 }
 
+interface TemplateGenerationHistoryItem {
+  templateId: string;
+  templateName: string;
+  generatedAt: string;
+  generatedBy: string;
+  fileName: string;
+}
+
+const TEMPLATE_GENERATION_HISTORY_KEY = 'tugon.official.template.generation.history';
+
 function downloadFile(fileName: string, content: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -112,6 +123,62 @@ function printTextContent(title: string, content: string) {
   popup.document.close();
   popup.focus();
   popup.print();
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString('en-PH', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function resolveTemplateTitle(templateId: string): string {
+  return REPORT_TEMPLATES.find((template) => template.id === templateId)?.title ?? templateId;
+}
+
+function loadTemplateGenerationHistory(): TemplateGenerationHistoryItem[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(TEMPLATE_GENERATION_HISTORY_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter((item): item is TemplateGenerationHistoryItem => {
+      if (!item || typeof item !== 'object') {
+        return false;
+      }
+
+      const candidate = item as Partial<TemplateGenerationHistoryItem>;
+      return typeof candidate.templateId === 'string'
+        && typeof candidate.templateName === 'string'
+        && typeof candidate.generatedAt === 'string'
+        && typeof candidate.generatedBy === 'string'
+        && typeof candidate.fileName === 'string';
+    }).slice(0, 20);
+  } catch {
+    return [];
+  }
+}
+
+function persistTemplateGenerationHistory(items: TemplateGenerationHistoryItem[]) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.setItem(TEMPLATE_GENERATION_HISTORY_KEY, JSON.stringify(items.slice(0, 20)));
 }
 
 function incidentTypeToReportCategory(type: string): string {
@@ -380,6 +447,7 @@ export default function Reports() {
   const [dssRecommendations, setDssRecommendations] = useState<DSSRecommendation[]>([]);
   const [dssRecommendationSource, setDssRecommendationSource] = useState<'ai' | 'fallback'>('fallback');
   const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const [templateHistory, setTemplateHistory] = useState<TemplateGenerationHistoryItem[]>(() => loadTemplateGenerationHistory());
 
   useEffect(() => {
     const load = async () => {
@@ -530,6 +598,20 @@ export default function Reports() {
     try {
       const result = await officialReportsApi.generateTemplateReport(id);
       setActionSuccess(`${result.fileName} generated successfully.`);
+
+      const historyEntry: TemplateGenerationHistoryItem = {
+        templateId: id,
+        templateName: resolveTemplateTitle(id),
+        generatedAt: new Date().toISOString(),
+        generatedBy: getAuthSession()?.user.fullName?.trim() || 'Barangay Official',
+        fileName: result.fileName,
+      };
+
+      setTemplateHistory((prev) => {
+        const next = [historyEntry, ...prev].slice(0, 20);
+        persistTemplateGenerationHistory(next);
+        return next;
+      });
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Failed to generate report template.');
     } finally {
@@ -858,7 +940,15 @@ export default function Reports() {
                       <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{t.frequency}</div>
                     </div>
                   </div>
-                  <div className="report-template-actions" style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                  <div className="report-template-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+                    <div className="report-template-secondary-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      <button onClick={() => { void handleTemplateDownload(t.id); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 600 }}>
+                        <Download size={14} /> Download
+                      </button>
+                      <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#334155' }}>
+                        <Printer size={14} /> Print
+                      </button>
+                    </div>
                     <button
                       onClick={() => handleGenerate(t.id)}
                       disabled={generating === t.id}
@@ -871,19 +961,83 @@ export default function Reports() {
                       {generating === t.id ? (
                         <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</>
                       ) : (
-                        <><FileText size={12} /> Generate</>
+                        <><FileText size={12} /> Generate New Report</>
                       )}
-                    </button>
-                    <button onClick={() => { void handleTemplateDownload(t.id); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Download size={14} color="#475569" />
-                    </button>
-                    <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Printer size={14} color="#475569" />
                     </button>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={{ marginTop: 14, background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Past Generated Template Reports</span>
+              <span style={{ color: '#64748B', fontSize: 11 }}>{templateHistory.length} record{templateHistory.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div className="report-history-table-wrapper" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: 680, borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC' }}>
+                    {['Template', 'Generated At', 'Generated By', 'File Name', 'Quick Actions'].map((heading) => (
+                      <th key={heading} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748B', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', borderBottom: '1px solid #F1F5F9', whiteSpace: 'nowrap' }}>{heading}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {templateHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '12px 14px', color: '#64748B' }}>
+                        No generated templates yet. Use any template card above to generate your first report.
+                      </td>
+                    </tr>
+                  ) : templateHistory.map((historyItem) => (
+                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} style={{ borderBottom: '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '11px 14px', color: '#1E293B', fontWeight: 600 }}>{historyItem.templateName}</td>
+                      <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{formatDateTime(historyItem.generatedAt)}</td>
+                      <td style={{ padding: '11px 14px', color: '#64748B' }}>{historyItem.generatedBy}</td>
+                      <td style={{ padding: '11px 14px', color: '#475569' }}>{historyItem.fileName}</td>
+                      <td style={{ padding: '11px 14px' }}>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Download size={11} /> Download
+                          </button>
+                          <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#334155', fontSize: 11, fontWeight: 600 }}>
+                            <Printer size={11} /> Print
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="report-history-mobile-list" style={{ padding: 12 }}>
+              {templateHistory.length === 0 ? (
+                <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '12px 14px', color: '#64748B', fontSize: 12 }}>
+                  No generated templates yet. Use any template card above to generate your first report.
+                </div>
+              ) : templateHistory.map((historyItem) => (
+                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 10, background: '#FFFFFF' }}>
+                  <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{historyItem.templateName}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 4, marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748B' }}><strong>Generated:</strong> {formatDateTime(historyItem.generatedAt)}</div>
+                    <div style={{ fontSize: 11, color: '#64748B' }}><strong>By:</strong> {historyItem.generatedBy}</div>
+                    <div style={{ fontSize: 11, color: '#64748B', wordBreak: 'break-word' }}><strong>File:</strong> {historyItem.fileName}</div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      <Download size={12} /> Download
+                    </button>
+                    <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} style={{ background: '#F8FAFC', color: '#334155', border: '1px solid #E2E8F0', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      <Printer size={12} /> Print
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -897,7 +1051,7 @@ export default function Reports() {
               <Download size={12} /> Export All CSV
             </button>
           </div>
-          <div style={{ overflowX: 'auto' }}>
+          <div className="report-history-table-wrapper" style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: '#F8FAFC' }}>
@@ -953,19 +1107,76 @@ export default function Reports() {
             </tbody>
           </table>
           </div>
+
+          <div className="report-history-mobile-list" style={{ padding: 12 }}>
+            {reportsError ? (
+              <div style={{ border: '1px solid #FECACA', borderRadius: 10, padding: '12px 14px', color: '#B91C1C', fontSize: 12, background: '#FEF2F2' }}>
+                {reportsError}
+              </div>
+            ) : reportsLoading ? (
+              <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px' }}>
+                <TableSkeleton rows={4} columns={1} showHeader={false} className="border-0" />
+              </div>
+            ) : recentReports.length === 0 ? (
+              <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '12px 14px', color: '#64748B', fontSize: 12 }}>
+                No report history available.
+              </div>
+            ) : recentReports.map((reportItem, index) => (
+              <div key={`mobile-report:${reportItem.reportId}:${index}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 10, background: '#FFFFFF' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                  <FileText size={14} color="#94A3B8" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>{reportItem.name}</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 4, marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Category:</strong> {reportItem.type}</div>
+                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Generated:</strong> {reportItem.time}</div>
+                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>By:</strong> {reportItem.by}</div>
+                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Evidence:</strong> {reportItem.size}</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <Download size={12} /> Download
+                  </button>
+                  <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} style={{ background: '#F8FAFC', color: '#334155', border: '1px solid #E2E8F0', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <Printer size={12} /> Print
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        .report-history-table-wrapper {
+          display: block;
+        }
+
+        .report-history-mobile-list {
+          display: none;
+        }
+
         @media (max-width: 768px) {
           .report-template-actions {
             align-items: center;
           }
 
+          .report-template-secondary-actions {
+            grid-template-columns: 1fr;
+          }
+
           .report-template-actions > button {
             min-height: 44px;
+          }
+
+          .report-history-table-wrapper {
+            display: none;
+          }
+
+          .report-history-mobile-list {
+            display: block;
           }
         }
       `}</style>

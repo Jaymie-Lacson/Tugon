@@ -133,7 +133,7 @@ describe('Accessibility layout safeguards', () => {
     expect(menuToggle).not.toBeNull();
     expect(menuToggle?.getAttribute('aria-expanded')).toBe('false');
 
-    const notificationsButton = mounted.container.querySelector('button[aria-label="No notifications"]');
+    const notificationsButton = mounted.container.querySelector('button[aria-label="Open notifications"]');
     expect(notificationsButton).not.toBeNull();
   });
 
