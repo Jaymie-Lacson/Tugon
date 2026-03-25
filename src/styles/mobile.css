@@ -36,6 +36,213 @@
   flex-shrink: 0;
 }
 
+.citizen-report-header {
+  background: #1e3a8a;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+}
+
+.citizen-report-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 var(--citizen-content-gutter);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.citizen-report-home-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.citizen-report-home-logo {
+  height: 38px;
+  width: auto;
+  display: block;
+}
+
+.citizen-report-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.citizen-report-profile-wrap {
+  position: relative;
+}
+
+.citizen-report-profile-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #b4730a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.citizen-report-profile-menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 190px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  z-index: 110;
+}
+
+.citizen-report-profile-menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 11px 12px;
+  background: #fff;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.citizen-report-profile-menu-item-danger {
+  border-bottom: none;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.citizen-report-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  transform: none;
+  width: 100%;
+  max-width: var(--citizen-desktop-main-max);
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px var(--citizen-content-gutter);
+  display: block;
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.citizen-report-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.citizen-report-back-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.citizen-report-next-btn {
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.citizen-report-next-btn.is-single {
+  flex: 1;
+}
+
+.citizen-report-next-btn.is-wide {
+  flex: 2;
+}
+
+.citizen-report-next-btn.is-default {
+  background: #1e3a8a;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+}
+
+.citizen-report-next-btn.is-submit {
+  background: #b91c1c;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+}
+
+.citizen-report-next-btn.is-disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.citizen-report-submit-error {
+  margin-top: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #b91c1c;
+  font-size: 12px;
+  padding: 10px 12px;
+}
+
+@media (max-width: 900px) {
+  .citizen-report-footer {
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 520px !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .citizen-report-footer {
+    position: sticky !important;
+    left: 0 !important;
+    transform: none !important;
+    max-width: none !important;
+  }
+
+  .citizen-report-content-wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+}
+
 /* ── Citizen motion consistency ── */
 .citizen-map-filter-chip,
 .citizen-map-clear-btn,

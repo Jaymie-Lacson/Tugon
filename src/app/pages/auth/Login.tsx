@@ -4,6 +4,7 @@ import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House, ArrowLeft } f
 import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
+import { validateLoginForm } from '../../utils/authValidation';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,18 +14,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ phone?: string; password?: string; general?: string }>({});
 
-  const validate = () => {
-    const e: typeof errors = {};
-    const digits = phone.replace(/\D/g, '');
-    if (!phone) e.phone = 'Phone number is required.';
-    else if (digits.length < 10) e.phone = 'Enter a valid Philippine phone number.';
-    if (!password) e.password = 'Password is required.';
-    else if (password.length < 8) e.password = 'Password must be at least 8 characters.';
-    return e;
-  };
-
   const handleLogin = async () => {
-    const e = validate();
+    const e = validateLoginForm(phone, password);
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setLoading(true);
@@ -91,9 +82,9 @@ export default function Login() {
       >
         {/* General error */}
         {errors.general && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <ShieldAlert size={16} color="#B91C1C" style={{ flexShrink: 0, marginTop: 1 }} />
-            <span style={{ color: '#B91C1C', fontSize: 13 }}>{errors.general}</span>
+          <div className="auth-login-error-banner">
+            <ShieldAlert size={16} color="#B91C1C" className="auth-login-error-icon" />
+            <span className="auth-login-error-text">{errors.general}</span>
           </div>
         )}
 
@@ -127,7 +118,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#94A3B8', display: 'flex', alignItems: 'center' }}
+                className="auth-login-password-toggle"
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
@@ -135,11 +126,11 @@ export default function Login() {
           />
 
           {/* Forgot password */}
-          <div style={{ textAlign: 'right', marginTop: -10, marginBottom: 24 }}>
+          <div className="auth-login-forgot-wrap">
             <button
               type="button"
               onClick={() => navigate('/auth/forgot-password')}
-              style={{ background: 'none', border: 'none', color: '#1E3A8A', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+              className="auth-login-link-btn"
             >
               Forgot Password?
             </button>
@@ -151,29 +142,21 @@ export default function Login() {
         </form>
 
         {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
-          <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
-          <span style={{ color: '#94A3B8', fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap' }}>New to TUGON?</span>
-          <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+        <div className="auth-login-divider">
+          <div className="auth-login-divider-line" />
+          <span className="auth-login-divider-text">New to TUGON?</span>
+          <div className="auth-login-divider-line" />
         </div>
 
         {/* Register link */}
         <button
           onClick={() => navigate('/auth/register')}
-          style={{
-            width: '100%', padding: '14px', background: '#F0F4FF',
-            border: '1.5px solid #BFDBFE', borderRadius: 10,
-            color: '#1E3A8A', fontSize: 14, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#DBEAFE'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#F0F4FF'; }}
+          className="auth-login-register-btn"
         >
           Register a New Account
         </button>
 
-        <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: 11, marginTop: 20, lineHeight: 1.6 }}>
+        <p className="auth-login-terms-copy">
           By signing in, you agree to TUGON's terms and confirm you are a resident or official of Barangays 251, 252, or 256.
         </p>
       </AuthLayout>

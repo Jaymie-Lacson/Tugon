@@ -426,6 +426,100 @@
   box-shadow: 0 6px 20px rgba(185, 28, 28, 0.28);
 }
 
+.auth-login-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.auth-login-error-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.auth-login-error-text {
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.auth-login-password-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+.auth-login-forgot-wrap {
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 24px;
+}
+
+.auth-login-link-btn {
+  background: none;
+  border: none;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.auth-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.auth-login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-login-divider-text {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.auth-login-register-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f0f4ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1e3a8a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s;
+}
+
+.auth-login-register-btn:hover {
+  background: #dbeafe;
+}
+
+.auth-login-terms-copy {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 11px;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
 .auth-spinner {
   width: 18px;
   height: 18px;

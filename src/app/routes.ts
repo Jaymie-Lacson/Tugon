@@ -26,22 +26,11 @@ import SAUsers from './pages/superadmin/SAUsers';
 import SAAuditLogs from './pages/superadmin/SAAuditLogs';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
+import { resolveDefaultAppPath } from './utils/navigationGuards';
 
 function RedirectToApp() {
   const session = getAuthSession();
-  if (!session) {
-    return React.createElement(Navigate, { to: '/auth/login', replace: true });
-  }
-
-  if (session.user.role === 'CITIZEN') {
-    return React.createElement(Navigate, { to: '/citizen', replace: true });
-  }
-
-  if (session.user.role === 'SUPER_ADMIN') {
-    return React.createElement(Navigate, { to: '/superadmin', replace: true });
-  }
-
-  return React.createElement(Navigate, { to: '/app', replace: true });
+  return React.createElement(Navigate, { to: resolveDefaultAppPath(session), replace: true });
 }
 
 function CitizenGuard() {
