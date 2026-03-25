@@ -926,21 +926,27 @@ function SupportedBarangays() {
   const barangays = [
   {
     name: 'Barangay 251',
-    zone: 'Zone 24',
+    captain: 'Reynaldo Angat',
+    district: 'District II, Tondo, Manila',
+    hallAddress: '1781 Almeda Street, Tondo, Manila',
     responders: ['MDRRMO', 'BFP', 'PNP'],
     color: '#1E3A8A',
     light: '#EFF6FF',
   },
   {
     name: 'Barangay 252',
-    zone: 'Zone 25',
+    captain: 'Leana Angat',
+    district: 'District II, Tondo, Manila',
+    hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
     responders: ['MDRRMO', 'PNP', 'EMS'],
     color: '#B91C1C',
     light: '#FEE2E2',
   },
   {
     name: 'Barangay 256',
-    zone: 'Zone 26',
+    captain: 'Ramon "Peaches" Perez',
+    district: 'District II, Tondo, Manila',
+    hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
     responders: ['MDRRMO', 'BFP', 'EMS'],
     color: '#B4730A',
     light: '#FEF3C7',
@@ -995,7 +1001,9 @@ function SupportedBarangays() {
               </div>
 
               <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
-              <p style={{ margin: '0 0 18px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 600 }}>{item.zone}</p>
+              <p style={{ margin: '0 0 6px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 700 }}>Barangay Captain: {item.captain}</p>
+              <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#DBEAFE', fontWeight: 600 }}>{item.district}</p>
+              <p style={{ margin: '0 0 18px 0', fontSize: 12, color: '#BFDBFE', fontWeight: 500 }}>{item.hallAddress}</p>
 
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }}>
                 {item.responders.map(r => (
