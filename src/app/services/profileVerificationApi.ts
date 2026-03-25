@@ -12,10 +12,16 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
-    "Content-Type": "application/json",
-    ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  const isFormDataBody = typeof FormData !== "undefined" && init?.body instanceof FormData;
+
+  const baseHeaders = isFormDataBody
+    ? { ...(init?.headers ?? {}) }
+    : {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      };
+
+  const headers = withSecurityHeaders(baseHeaders, { method: init?.method, token: session.token });
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -65,7 +71,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function combineIdImages(frontFile: File, backFile: File): Promise<string> {
+async function combineIdImages(frontFile: File, backFile: File): Promise<Blob> {
   const [frontDataUrl, backDataUrl] = await Promise.all([
     fileToDataUrl(frontFile),
     fileToDataUrl(backFile),
@@ -96,7 +102,15 @@ async function combineIdImages(frontFile: File, backFile: File): Promise<string>
   ctx.drawImage(frontImage, 0, 0, width, frontHeight);
   ctx.drawImage(backImage, 0, frontHeight, width, backHeight);
 
-  return canvas.toDataURL("image/jpeg", 0.9);
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Unable to process selected ID image."));
+        return;
+      }
+      resolve(blob);
+    }, "image/jpeg", 0.9);
+  });
 }
 
 export interface CitizenVerificationState {
@@ -130,7 +144,10 @@ export const profileVerificationApi = {
   },
 
   async submitMyId(frontFile: File, backFile: File) {
-    const dataUrl = await combineIdImages(frontFile, backFile);
+    const blob = await combineIdImages(frontFile, backFile);
+    const fileName = `combined-${Date.now()}-${frontFile.name.replace(/\.[^.]+$/, "")}-and-${backFile.name}`;
+    const formData = new FormData();
+    formData.append("idImage", blob, fileName);
 
     return authedRequest<{
       message: string;
@@ -141,11 +158,7 @@ export const profileVerificationApi = {
       };
     }>("/citizen/verification-id", {
       method: "POST",
-      body: JSON.stringify({
-        fileName: `combined-${Date.now()}-${frontFile.name.replace(/\.[^.]+$/, "")}-and-${backFile.name}`,
-        mimeType: "image/jpeg",
-        dataUrl,
-      }),
+      body: formData,
     });
   },
 };

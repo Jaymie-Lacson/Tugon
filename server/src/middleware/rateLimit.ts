@@ -12,6 +12,7 @@ type WindowCounter = {
 };
 
 const MAX_TRACKED_IPS = 20_000;
+const PRUNE_COOLDOWN_MS = 5_000;
 
 function pruneCounters(counters: Map<string, WindowCounter>, nowMs: number, windowMs: number) {
   for (const [ip, counter] of counters.entries()) {
@@ -53,10 +54,14 @@ function getClientIp(request: Request) {
 
 export function createIpRateLimiter(options: IpRateLimiterOptions): RequestHandler {
   const counters = new Map<string, WindowCounter>();
+  let lastPruneAtMs = 0;
 
   return (req, res, next) => {
     const nowMs = Date.now();
-    pruneCounters(counters, nowMs, options.windowMs);
+    if (nowMs - lastPruneAtMs >= PRUNE_COOLDOWN_MS || counters.size > MAX_TRACKED_IPS) {
+      pruneCounters(counters, nowMs, options.windowMs);
+      lastPruneAtMs = nowMs;
+    }
 
     const clientIp = getClientIp(req);
     const existing = counters.get(clientIp);

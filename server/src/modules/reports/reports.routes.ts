@@ -1,11 +1,112 @@
 import { Router, type Request, type Response } from "express";
+import multer from "multer";
+import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { reportsService } from "./reports.service.js";
 
 export const citizenReportsRouter = Router();
 export const officialReportsRouter = Router();
 
-citizenReportsRouter.post("/reports", async (req, res) => {
+const citizenReportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    files: 3,
+    fileSize: env.evidenceMaxAudioBytes,
+  },
+}).fields([
+  { name: "photos", maxCount: 2 },
+  { name: "audio", maxCount: 1 },
+]);
+
+function isMultipartReportRequest(req: Request) {
+  return req.is("multipart/form-data") === "multipart/form-data";
+}
+
+function normalizeBooleanInput(value: unknown): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true" || normalized === "yes";
+  }
+
+  return Boolean(value);
+}
+
+function mapReportBody(req: Request) {
+  if (!isMultipartReportRequest(req)) {
+    return {
+      category: req.body?.category,
+      subcategory: req.body?.subcategory,
+      requiresMediation: normalizeBooleanInput(req.body?.requiresMediation),
+      mediationWarning:
+        typeof req.body?.mediationWarning === "string" ? req.body.mediationWarning : null,
+      latitude: Number(req.body?.latitude),
+      longitude: Number(req.body?.longitude),
+      location: req.body?.location,
+      description: req.body?.description,
+      severity: req.body?.severity,
+      affectedCount: req.body?.affectedCount ?? null,
+      photoCount: req.body?.photoCount ?? 0,
+      hasAudio: normalizeBooleanInput(req.body?.hasAudio),
+      photos: Array.isArray(req.body?.photos)
+        ? req.body.photos
+            .filter((item: unknown) => Boolean(item && typeof item === "object"))
+            .map((item: { fileName?: unknown; mimeType?: unknown; dataUrl?: unknown }) => ({
+              fileName: typeof item.fileName === "string" ? item.fileName : undefined,
+              mimeType: typeof item.mimeType === "string" ? item.mimeType : undefined,
+              dataUrl: typeof item.dataUrl === "string" ? item.dataUrl : "",
+            }))
+        : [],
+      audio:
+        req.body?.audio && typeof req.body.audio === "object"
+          ? {
+              fileName:
+                typeof req.body.audio.fileName === "string" ? req.body.audio.fileName : undefined,
+              mimeType:
+                typeof req.body.audio.mimeType === "string" ? req.body.audio.mimeType : undefined,
+              dataUrl: typeof req.body.audio.dataUrl === "string" ? req.body.audio.dataUrl : "",
+            }
+          : null,
+    };
+  }
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+  const photoFiles = files?.photos ?? [];
+  const audioFiles = files?.audio ?? [];
+  const audioFile = audioFiles[0];
+
+  return {
+    category: req.body?.category,
+    subcategory: req.body?.subcategory,
+    requiresMediation: normalizeBooleanInput(req.body?.requiresMediation),
+    mediationWarning: typeof req.body?.mediationWarning === "string" ? req.body.mediationWarning : null,
+    latitude: Number(req.body?.latitude),
+    longitude: Number(req.body?.longitude),
+    location: req.body?.location,
+    description: req.body?.description,
+    severity: req.body?.severity,
+    affectedCount: req.body?.affectedCount ?? null,
+    photoCount: Number(req.body?.photoCount ?? photoFiles.length ?? 0),
+    hasAudio: normalizeBooleanInput(req.body?.hasAudio) || Boolean(audioFile),
+    photos: photoFiles.map((file) => ({
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      bytes: file.buffer,
+    })),
+    audio: audioFile
+      ? {
+          fileName: audioFile.originalname,
+          mimeType: audioFile.mimetype,
+          bytes: audioFile.buffer,
+        }
+      : null,
+  };
+}
+
+citizenReportsRouter.post("/reports", citizenReportUpload, async (req, res) => {
   try {
     const authUser = req.authUser;
     if (!authUser) {
@@ -49,40 +150,7 @@ citizenReportsRouter.post("/reports", async (req, res) => {
         isBanned: (citizenUser as { isBanned?: boolean }).isBanned,
         verificationStatus: (citizenUser as { verificationStatus?: "PENDING" | "APPROVED" | "REJECTED" | null }).verificationStatus ?? null,
       },
-      {
-        category: req.body?.category,
-        subcategory: req.body?.subcategory,
-        requiresMediation: Boolean(req.body?.requiresMediation),
-        mediationWarning:
-          typeof req.body?.mediationWarning === "string" ? req.body.mediationWarning : null,
-        latitude: Number(req.body?.latitude),
-        longitude: Number(req.body?.longitude),
-        location: req.body?.location,
-        description: req.body?.description,
-        severity: req.body?.severity,
-        affectedCount: req.body?.affectedCount ?? null,
-        photoCount: req.body?.photoCount ?? 0,
-        hasAudio: Boolean(req.body?.hasAudio),
-        photos: Array.isArray(req.body?.photos)
-          ? req.body.photos
-              .filter((item: unknown) => Boolean(item && typeof item === "object"))
-              .map((item: { fileName?: unknown; mimeType?: unknown; dataUrl?: unknown }) => ({
-                fileName: typeof item.fileName === "string" ? item.fileName : undefined,
-                mimeType: typeof item.mimeType === "string" ? item.mimeType : undefined,
-                dataUrl: typeof item.dataUrl === "string" ? item.dataUrl : "",
-              }))
-          : [],
-        audio:
-          req.body?.audio && typeof req.body.audio === "object"
-            ? {
-                fileName:
-                  typeof req.body.audio.fileName === "string" ? req.body.audio.fileName : undefined,
-                mimeType:
-                  typeof req.body.audio.mimeType === "string" ? req.body.audio.mimeType : undefined,
-                dataUrl: typeof req.body.audio.dataUrl === "string" ? req.body.audio.dataUrl : "",
-              }
-            : null,
-      },
+      mapReportBody(req),
     );
 
     res.status(201).json(result);

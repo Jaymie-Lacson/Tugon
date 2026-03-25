@@ -69,10 +69,16 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("You must be logged in to continue.");
   }
 
-  const headers = withSecurityHeaders({
-    "Content-Type": "application/json",
-    ...(init?.headers ?? {}),
-  }, { method: init?.method, token: session.token });
+  const isFormDataBody = typeof FormData !== "undefined" && init?.body instanceof FormData;
+
+  const baseHeaders = isFormDataBody
+    ? { ...(init?.headers ?? {}) }
+    : {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      };
+
+  const headers = withSecurityHeaders(baseHeaders, { method: init?.method, token: session.token });
 
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -109,12 +115,43 @@ export const citizenReportsApi = {
       mimeType?: string;
       dataUrl: string;
     }>;
+    photoFiles?: File[];
     audio?: {
       fileName?: string;
       mimeType?: string;
       dataUrl: string;
     } | null;
+    audioFile?: File | null;
   }) {
+    if (Array.isArray(input.photoFiles) && input.photoFiles.length > 0) {
+      const formData = new FormData();
+      formData.set("category", input.category);
+      formData.set("subcategory", input.subcategory);
+      formData.set("requiresMediation", String(input.requiresMediation));
+      formData.set("mediationWarning", input.mediationWarning ?? "");
+      formData.set("latitude", String(input.latitude));
+      formData.set("longitude", String(input.longitude));
+      formData.set("location", input.location);
+      formData.set("description", input.description);
+      formData.set("severity", input.severity);
+      formData.set("affectedCount", input.affectedCount ?? "");
+      formData.set("photoCount", String(input.photoCount));
+      formData.set("hasAudio", String(input.hasAudio));
+
+      input.photoFiles.forEach((file) => {
+        formData.append("photos", file, file.name);
+      });
+
+      if (input.audioFile) {
+        formData.append("audio", input.audioFile, input.audioFile.name || "voice-note.webm");
+      }
+
+      return authedRequest<{ message: string; report: ApiCitizenReport }>("/citizen/reports", {
+        method: "POST",
+        body: formData,
+      });
+    }
+
     return authedRequest<{ message: string; report: ApiCitizenReport }>("/citizen/reports", {
       method: "POST",
       body: JSON.stringify(input),

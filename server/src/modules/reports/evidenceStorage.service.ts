@@ -14,7 +14,8 @@ export type PreparedEvidence = {
 type EvidencePayload = {
   fileName?: string;
   mimeType?: string;
-  dataUrl: string;
+  dataUrl?: string;
+  bytes?: Buffer;
 };
 
 function startsWithBytes(bytes: Buffer, prefix: number[]): boolean {
@@ -128,6 +129,23 @@ function parseDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } {
   return { mimeType, bytes };
 }
 
+function parseEvidencePayload(payload: EvidencePayload): { mimeType: string; bytes: Buffer } {
+  if (Buffer.isBuffer(payload.bytes) && payload.bytes.length > 0) {
+    const mimeType = typeof payload.mimeType === "string" ? payload.mimeType.trim() : "";
+    if (!mimeType) {
+      throw new Error("Evidence mime type is required for binary uploads.");
+    }
+
+    return { mimeType, bytes: payload.bytes };
+  }
+
+  if (typeof payload.dataUrl === "string" && payload.dataUrl.length > 0) {
+    return parseDataUrl(payload.dataUrl);
+  }
+
+  throw new Error("Evidence payload is required.");
+}
+
 function sanitizeFileName(fileName: string | undefined, fallback: string): string {
   const candidate = (fileName ?? fallback).trim();
   const safe = candidate.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
@@ -164,7 +182,7 @@ async function uploadToSupabase(
   kind: "photo" | "audio",
   index: number,
 ): Promise<PreparedEvidence> {
-  const { mimeType: parsedMimeType, bytes } = parseDataUrl(payload.dataUrl);
+  const { mimeType: parsedMimeType, bytes } = parseEvidencePayload(payload);
   const mimeType = normalizeEvidenceMimeType(kind, payload.mimeType?.trim() || parsedMimeType);
   validateEvidencePayload(kind, mimeType, bytes);
 
@@ -206,7 +224,7 @@ function prepareWithoutUpload(
   kind: "photo" | "audio",
   index: number,
 ): PreparedEvidence {
-  const { mimeType: parsedMimeType, bytes } = parseDataUrl(payload.dataUrl);
+  const { mimeType: parsedMimeType, bytes } = parseEvidencePayload(payload);
   const mimeType = normalizeEvidenceMimeType(kind, payload.mimeType?.trim() || parsedMimeType);
   validateEvidencePayload(kind, mimeType, bytes);
   const extension = mimeType.split("/")[1] ?? "bin";

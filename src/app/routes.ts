@@ -1,32 +1,45 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
-import { Layout } from './components/Layout';
-import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import Incidents from './pages/Incidents';
-import MapView from './pages/MapView';
-import Analytics from './pages/Analytics';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Verify from './pages/auth/Verify';
-import CreatePassword from './pages/auth/CreatePassword';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import CitizenDashboard from './pages/CitizenDashboard';
-import CitizenVerification from './pages/CitizenVerification';
-import IncidentReport from './pages/IncidentReport';
-import CitizenMyReports from './pages/CitizenMyReports';
-import Verifications from './pages/Verifications';
-import SuperAdminLayout from './pages/superadmin/SuperAdminLayout';
-import SAOverview from './pages/superadmin/SAOverview';
-import SABarangayMap from './pages/superadmin/SABarangayMap';
-import SAAnalytics from './pages/superadmin/SAAnalytics';
-import SAUsers from './pages/superadmin/SAUsers';
-import SAAuditLogs from './pages/superadmin/SAAuditLogs';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
 import { resolveDefaultAppPath } from './utils/navigationGuards';
+
+type RouteModule = {
+  default: React.ComponentType;
+};
+
+function lazyRoute(importModule: () => Promise<RouteModule>) {
+  const LazyComponent = React.lazy(importModule);
+
+  return function LazyRouteComponent() {
+    return React.createElement(LazyComponent);
+  };
+}
+
+const Layout = lazyRoute(() => import('./components/Layout'));
+const Landing = lazyRoute(() => import('./pages/Landing'));
+const Dashboard = lazyRoute(() => import('./pages/Dashboard'));
+const Incidents = lazyRoute(() => import('./pages/Incidents'));
+const MapView = lazyRoute(() => import('./pages/MapView'));
+const Analytics = lazyRoute(() => import('./pages/Analytics'));
+const Reports = lazyRoute(() => import('./pages/Reports'));
+const Settings = lazyRoute(() => import('./pages/Settings'));
+const Login = lazyRoute(() => import('./pages/auth/Login'));
+const Register = lazyRoute(() => import('./pages/auth/Register'));
+const Verify = lazyRoute(() => import('./pages/auth/Verify'));
+const CreatePassword = lazyRoute(() => import('./pages/auth/CreatePassword'));
+const ForgotPassword = lazyRoute(() => import('./pages/auth/ForgotPassword'));
+const CitizenDashboard = lazyRoute(() => import('./pages/CitizenDashboard'));
+const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'));
+const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
+const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
+const Verifications = lazyRoute(() => import('./pages/Verifications'));
+const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
+const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
+const SABarangayMap = lazyRoute(() => import('./pages/superadmin/SABarangayMap'));
+const SAAnalytics = lazyRoute(() => import('./pages/superadmin/SAAnalytics'));
+const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
+const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
 
 function RedirectToApp() {
   const session = getAuthSession();
