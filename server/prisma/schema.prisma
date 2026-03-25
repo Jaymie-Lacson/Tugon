@@ -214,6 +214,16 @@ model OtpChallenge {
   @@index([expiresAt])
 }
 
+model IpRateLimitBucket {
+  bucketKey     String   @id
+  windowStartMs BigInt
+  count         Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
 enum Role {
   CITIZEN
   OFFICIAL
