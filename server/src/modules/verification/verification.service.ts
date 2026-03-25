@@ -130,14 +130,30 @@ function normalizeIdMimeType(mimeType: string): string {
   return mimeType;
 }
 
+function toDataUrl(bytes: Buffer, mimeType: string): string {
+  return `data:${mimeType};base64,${bytes.toString("base64")}`;
+}
+
 async function uploadCitizenIdImage(input: {
   citizenUserId: string;
   fileName?: string;
   mimeType?: string;
-  dataUrl: string;
+  dataUrl?: string;
+  bytes?: Buffer;
 }): Promise<string> {
-  const { mimeType: parsedMimeType, bytes } = parseDataUrl(input.dataUrl);
-  const mimeType = normalizeIdMimeType(input.mimeType?.trim() || parsedMimeType);
+  const parsed = Buffer.isBuffer(input.bytes)
+    ? {
+        mimeType: typeof input.mimeType === "string" ? input.mimeType : "",
+        bytes: input.bytes,
+      }
+    : (typeof input.dataUrl === "string" ? parseDataUrl(input.dataUrl) : null);
+
+  if (!parsed || parsed.bytes.length === 0) {
+    throw new VerificationError("ID image payload is required.", 400);
+  }
+
+  const { bytes } = parsed;
+  const mimeType = normalizeIdMimeType(input.mimeType?.trim() || parsed.mimeType);
   if (!ALLOWED_ID_MIME_TYPES.has(mimeType)) {
     throw new VerificationError(`Unsupported ID image format: ${mimeType}`, 400);
   }
@@ -155,7 +171,7 @@ async function uploadCitizenIdImage(input: {
     if (shouldFailClosed) {
       throw new VerificationError("ID storage is unavailable. Please try again later.", 503);
     }
-    return input.dataUrl;
+    return typeof input.dataUrl === "string" ? input.dataUrl : toDataUrl(bytes, mimeType);
   }
 
   const extension = mimeType.split("/")[1] ?? "jpg";
@@ -180,7 +196,7 @@ async function uploadCitizenIdImage(input: {
     }
 
     console.warn(`[verification] Storage upload failed; using inline ID fallback. Reason: ${upload.error.message}`);
-    return input.dataUrl;
+    return typeof input.dataUrl === "string" ? input.dataUrl : toDataUrl(bytes, mimeType);
   }
 
   // Return only the storage path; an authenticated endpoint should later
@@ -335,6 +351,7 @@ export const verificationService = {
       fileName?: unknown;
       mimeType?: unknown;
       dataUrl?: unknown;
+      bytes?: unknown;
     },
   ) {
     const user = await (prisma.user as any).findUnique({
@@ -373,7 +390,9 @@ export const verificationService = {
       );
     }
 
-    if (typeof input.dataUrl !== "string" || input.dataUrl.length === 0) {
+    const hasDataUrl = typeof input.dataUrl === "string" && input.dataUrl.length > 0;
+    const hasBytes = Buffer.isBuffer(input.bytes) && input.bytes.length > 0;
+    if (!hasDataUrl && !hasBytes) {
       throw new VerificationError("ID image payload is required.", 400);
     }
 
@@ -381,7 +400,8 @@ export const verificationService = {
       citizenUserId,
       fileName: typeof input.fileName === "string" ? input.fileName : undefined,
       mimeType: typeof input.mimeType === "string" ? input.mimeType : undefined,
-      dataUrl: input.dataUrl,
+      dataUrl: hasDataUrl ? input.dataUrl as string : undefined,
+      bytes: hasBytes ? input.bytes as Buffer : undefined,
     });
 
     await (prisma.user as any).update({

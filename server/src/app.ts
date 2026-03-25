@@ -57,6 +57,13 @@ export function createApp() {
     process.env.REPORT_SUBMIT_RATE_LIMIT_MAX_REQUESTS,
     10,
   );
+  const defaultJsonBodyLimit = process.env.JSON_BODY_LIMIT_DEFAULT ?? "2mb";
+  const reportSubmitJsonBodyLimit = process.env.JSON_BODY_LIMIT_REPORT_SUBMIT ?? "25mb";
+  const verificationSubmitJsonBodyLimit = process.env.JSON_BODY_LIMIT_VERIFICATION_SUBMIT ?? "10mb";
+
+  const defaultJsonParser = express.json({ limit: defaultJsonBodyLimit });
+  const reportSubmitJsonParser = express.json({ limit: reportSubmitJsonBodyLimit });
+  const verificationSubmitJsonParser = express.json({ limit: verificationSubmitJsonBodyLimit });
 
   const authRateLimiter = createIpRateLimiter({
     windowMs: authRateLimitWindowMs,
@@ -105,7 +112,19 @@ export function createApp() {
   );
   app.use(helmet());
   app.use(cookieParser());
-  app.use(express.json({ limit: "25mb" }));
+
+  app.use((req, res, next) => {
+    if (req.method === "POST" && req.path === "/api/citizen/reports") {
+      return reportSubmitJsonParser(req, res, next);
+    }
+
+    if (req.method === "POST" && req.path === "/api/citizen/verification-id") {
+      return verificationSubmitJsonParser(req, res, next);
+    }
+
+    return defaultJsonParser(req, res, next);
+  });
+
   app.use(csrfProtectStateChangingRequests);
 
   app.use("/api/auth", authRateLimiter);

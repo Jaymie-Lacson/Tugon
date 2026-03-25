@@ -15,6 +15,7 @@ type WindowCounter = {
 };
 
 const MAX_TRACKED_IPS = 20_000;
+const PRUNE_COOLDOWN_MS = 5_000;
 let dbRateLimiterUnavailable = false;
 let lastDbPruneMs = 0;
 let sharedDbHitCount = 0;
@@ -167,10 +168,16 @@ async function incrementDbCounter(
 
 export function createIpRateLimiter(options: IpRateLimiterOptions): RequestHandler {
   const counters = new Map<string, WindowCounter>();
+  let lastPruneAtMs = 0;
   const keyPrefix = (options.keyPrefix || "api").trim() || "api";
 
   return async (req, res, next) => {
     const nowMs = Date.now();
+    if (nowMs - lastPruneAtMs >= PRUNE_COOLDOWN_MS || counters.size > MAX_TRACKED_IPS) {
+      pruneCounters(counters, nowMs, options.windowMs);
+      lastPruneAtMs = nowMs;
+    }
+
     const clientIp = getClientIp(req);
     const bucketKey = `${keyPrefix}:${clientIp}`;
 

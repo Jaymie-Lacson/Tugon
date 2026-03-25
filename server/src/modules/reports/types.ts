@@ -75,12 +75,14 @@ export interface CreateCitizenReportInput {
   photos?: Array<{
     fileName?: string;
     mimeType?: string;
-    dataUrl: string;
+    dataUrl?: string;
+    bytes?: Buffer;
   }>;
   audio?: {
     fileName?: string;
     mimeType?: string;
-    dataUrl: string;
+    dataUrl?: string;
+    bytes?: Buffer;
   } | null;
 }
 

@@ -698,12 +698,14 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   photos: Array<{
     fileName?: string;
     mimeType?: string;
-    dataUrl: string;
+    dataUrl?: string;
+    bytes?: Buffer;
   }>;
   audio: {
     fileName?: string;
     mimeType?: string;
-    dataUrl: string;
+    dataUrl?: string;
+    bytes?: Buffer;
   } | null;
 } {
   const category = input.category?.trim();
@@ -746,12 +748,20 @@ function validateCreateInput(input: CreateCitizenReportInput): CreateCitizenRepo
   }
 
   const photos = Array.isArray(input.photos)
-    ? input.photos.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.trim().length > 0)
+    ? input.photos.filter(
+        (item) =>
+          (typeof item?.dataUrl === "string" && item.dataUrl.trim().length > 0)
+          || Buffer.isBuffer(item?.bytes),
+      )
     : [];
 
-  const audio = input.audio && typeof input.audio.dataUrl === "string" && input.audio.dataUrl.trim().length > 0
-    ? input.audio
-    : null;
+  const audio = input.audio
+    && (
+      (typeof input.audio.dataUrl === "string" && input.audio.dataUrl.trim().length > 0)
+      || Buffer.isBuffer(input.audio.bytes)
+    )
+      ? input.audio
+      : null;
 
   const rawPhotoCount = Number(input.photoCount ?? 0);
   if (Number.isNaN(rawPhotoCount) || rawPhotoCount < 0) {

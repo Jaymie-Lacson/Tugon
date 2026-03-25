@@ -142,7 +142,7 @@ export default function IncidentReport() {
   });
   const canProceed = !stepValidationMessage;
   const voiceAllowed = (form.category === 'Noise') || (form.subcategory?.toLowerCase().includes('noise') ?? false);
-  const enableInlineEvidenceUpload = String(import.meta.env.VITE_ENABLE_EVIDENCE_INLINE_UPLOAD ?? '1') !== '0';
+  const enableMultipartEvidenceUpload = String(import.meta.env.VITE_ENABLE_MULTIPART_EVIDENCE_UPLOAD ?? '1') !== '0';
   const nextButtonStateClass = (submitting || (!canProceed && step < 5))
     ? 'is-disabled'
     : step === 5
@@ -180,7 +180,7 @@ export default function IncidentReport() {
       const photoPayloads: Array<{ fileName: string; mimeType: string; dataUrl: string }> = [];
       let encodedAudio: { fileName: string; mimeType: string; dataUrl: string } | null = null;
 
-      if (enableInlineEvidenceUpload) {
+      if (!enableMultipartEvidenceUpload) {
         const MAX_EVIDENCE_PAYLOAD_BYTES = 450_000;
         let runningEvidenceBytes = 0;
 
@@ -229,10 +229,16 @@ export default function IncidentReport() {
         description: form.description.trim(),
         severity: form.severity ?? 'medium',
         affectedCount: form.affectedCount,
-        photoCount: enableInlineEvidenceUpload ? photoPayloads.length : selectedPhotoCount,
+        photoCount: enableMultipartEvidenceUpload ? selectedPhotoCount : photoPayloads.length,
         hasAudio: Boolean(form.audioBlob),
-        photos: enableInlineEvidenceUpload ? photoPayloads : undefined,
-        audio: enableInlineEvidenceUpload ? encodedAudio : null,
+        photos: !enableMultipartEvidenceUpload ? photoPayloads : undefined,
+        audio: !enableMultipartEvidenceUpload ? encodedAudio : null,
+        photoFiles: enableMultipartEvidenceUpload ? form.photoFiles.slice(0, 2) : undefined,
+        audioFile: enableMultipartEvidenceUpload && form.audioBlob
+          ? new File([form.audioBlob], 'voice-note.webm', {
+              type: form.audioBlob.type || 'audio/webm',
+            })
+          : null,
       });
 
       setSubmittedReportId(response.report.id);
