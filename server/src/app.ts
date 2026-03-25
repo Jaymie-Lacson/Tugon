@@ -69,12 +69,14 @@ export function createApp() {
     windowMs: authRateLimitWindowMs,
     maxRequests: authRateLimitMaxRequests,
     message: "Too many authentication requests. Please try again later.",
+    keyPrefix: "auth",
   });
 
   const reportSubmitRateLimiter = createIpRateLimiter({
     windowMs: reportSubmitRateLimitWindowMs,
     maxRequests: reportSubmitRateLimitMaxRequests,
     message: "Too many report submissions. Please try again later.",
+    keyPrefix: "report-submit",
   });
 
   app.use((req, res, next) => {

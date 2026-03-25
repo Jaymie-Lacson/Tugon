@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
-import { env } from "../../config/env.js";
+import { env, shouldRequirePersistedSession } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
 import { authStore } from "./store.js";
 import { OtpSmsDeliveryError, sendOtpSms } from "./otp-sms.service.js";
@@ -192,15 +192,16 @@ async function markSessionRevoked(token: string) {
   }
 }
 
-async function isSessionRevokedInDb(token: string, payload: AuthPayload) {
-  void token;
+type DbSessionState = "valid" | "revoked" | "missing" | "unavailable" | "not-applicable";
+
+async function getDbSessionState(payload: AuthPayload): Promise<DbSessionState> {
 
   if (!hasDatabaseUrlConfigured()) {
-    return false;
+    return "not-applicable";
   }
 
   if (!payload.sid) {
-    return false;
+    return "not-applicable";
   }
 
   try {
@@ -215,20 +216,23 @@ async function isSessionRevokedInDb(token: string, payload: AuthPayload) {
 
     const row = rows[0];
     if (!row) {
-      // Compatibility path for sessions issued before DB-backed tracking is active.
-      return false;
+      return "missing";
     }
 
     if (row.revokedAt) {
-      return true;
+      return "revoked";
     }
 
-    return row.expiresAt.getTime() <= Date.now();
+    if (row.expiresAt.getTime() <= Date.now()) {
+      return "revoked";
+    }
+
+    return "valid";
   } catch (error) {
     if (!(error instanceof Prisma.PrismaClientInitializationError)) {
       console.warn("[AUTH] Failed DB-backed revocation check:", error);
     }
-    return false;
+    return "unavailable";
   }
 }
 
@@ -1064,8 +1068,16 @@ export const authService = {
       return true;
     }
 
-    const dbRevoked = await isSessionRevokedInDb(token, payload);
-    return dbRevoked;
+    const dbSessionState = await getDbSessionState(payload);
+    if (dbSessionState === "revoked") {
+      return true;
+    }
+
+    if (dbSessionState === "missing" && shouldRequirePersistedSession()) {
+      return true;
+    }
+
+    return false;
   },
 
   verifyToken(token: string): AuthPayload {

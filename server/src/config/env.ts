@@ -25,6 +25,9 @@ const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SE
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
 const authReturnTokenInBodyFromEnv = !isProductionEnv && process.env.AUTH_RETURN_TOKEN_IN_BODY === "1";
 const authAllowBearerTokensFromEnv = !isProductionEnv && process.env.AUTH_ALLOW_BEARER_TOKENS === "1";
+const authRequirePersistedSessionFromEnv = process.env.AUTH_REQUIRE_PERSISTED_SESSION
+  ? process.env.AUTH_REQUIRE_PERSISTED_SESSION === "1"
+  : isProductionEnv;
 const csrfCookieNameFromEnv = (process.env.CSRF_COOKIE_NAME ?? "tugon.csrf").trim();
 const csrfHeaderNameFromEnv = (process.env.CSRF_HEADER_NAME ?? "x-csrf-token").trim().toLowerCase();
 const otpSmsFailoverToMockFromEnv = process.env.OTP_SMS_FAILOVER_TO_MOCK === "1";
@@ -130,6 +133,42 @@ if (!jwtSecret || jwtSecret.trim().length < 16) {
   throw new Error("JWT_SECRET must be set and at least 16 characters long.");
 }
 
+function isRuntimeProductionEnv() {
+  return (process.env.NODE_ENV ?? env.nodeEnv) === "production";
+}
+
+function parseBooleanFlag(value: string | undefined) {
+  return (value ?? "") === "1";
+}
+
+export function shouldReturnAuthTokenInBody() {
+  if (isRuntimeProductionEnv()) {
+    return false;
+  }
+
+  return parseBooleanFlag(process.env.AUTH_RETURN_TOKEN_IN_BODY) || env.authReturnTokenInBody;
+}
+
+export function shouldAllowBearerAuth() {
+  if (isRuntimeProductionEnv()) {
+    return false;
+  }
+
+  return parseBooleanFlag(process.env.AUTH_ALLOW_BEARER_TOKENS) || env.authAllowBearerTokens;
+}
+
+export function shouldRequirePersistedSession() {
+  if (isRuntimeProductionEnv()) {
+    return true;
+  }
+
+  if (typeof process.env.AUTH_REQUIRE_PERSISTED_SESSION === "string") {
+    return process.env.AUTH_REQUIRE_PERSISTED_SESSION === "1";
+  }
+
+  return env.authRequirePersistedSession;
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: portFromEnv,
@@ -158,6 +197,7 @@ export const env = {
   authCookieMaxAgeSeconds: authCookieMaxAgeSecondsFromEnv,
   authReturnTokenInBody: authReturnTokenInBodyFromEnv,
   authAllowBearerTokens: authAllowBearerTokensFromEnv,
+  authRequirePersistedSession: authRequirePersistedSessionFromEnv,
   csrfCookieName: csrfCookieNameFromEnv,
   csrfHeaderName: csrfHeaderNameFromEnv,
   otpSmsFailoverToMock: otpSmsFailoverToMockFromEnv,
