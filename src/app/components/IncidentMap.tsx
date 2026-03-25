@@ -233,8 +233,12 @@ export function IncidentMap({
     return (order[b.severity] ?? 3) - (order[a.severity] ?? 3);
   });
   const isHotspotMode = renderMode === 'hotspot' && heatmapClusters.length > 0;
-  const heatRadiusScale = Math.max(0.3, Math.min(1, heatmapRadiusPercent / 100));
-  const heatOpacityScale = Math.max(0.3, Math.min(1.2, heatmapOpacityPercent / 100));
+  const clampedRadiusPercent = Math.max(50, Math.min(100, heatmapRadiusPercent));
+  const clampedOpacityPercent = Math.max(50, Math.min(120, heatmapOpacityPercent));
+  const heatRadiusScale = 0.1 + ((clampedRadiusPercent - 50) / 50) * 0.9;
+  const heatOpacityScale = 0.2 + ((clampedOpacityPercent - 50) / 70) * 1.3;
+  const glowRadiusScale = 0.35 + ((clampedRadiusPercent - 50) / 50) * 0.65;
+  const glowOpacityScale = 0.55 + ((clampedOpacityPercent - 50) / 70) * 0.95;
   const selectedIncident = incidents.find((incident) => incident.id === selectedId) ?? null;
   const markerIncidents = isHotspotMode
     ? (selectedIncident ? [selectedIncident] : [])
@@ -296,11 +300,11 @@ export function IncidentMap({
             <Circle
               key={`glow-${inc.id}`}
               center={[inc.lat, inc.lng]}
-              radius={inc.severity === 'critical' ? 80 : 55}
+              radius={Math.max(14, (inc.severity === 'critical' ? 80 : 55) * glowRadiusScale)}
               pathOptions={{
                 color: TYPE_COLORS[inc.type] ?? '#374151',
                 fillColor: TYPE_COLORS[inc.type] ?? '#374151',
-                fillOpacity: 0.12,
+                fillOpacity: Math.max(0.03, Math.min(0.4, 0.12 * glowOpacityScale)),
                 weight: 1,
                 opacity: 0.4,
               }}
@@ -318,8 +322,10 @@ export function IncidentMap({
                   cluster.incidentType === 'Crime' ? TYPE_COLORS.crime :
                     TYPE_COLORS.infrastructure);
           const radius = isHotspotMode
-            ? Math.max(50, Math.round((70 + cluster.intensity * 58 + cluster.incidentCount * 2) * heatRadiusScale))
-            : Math.max(35, Math.round((45 + cluster.intensity * 45) * heatRadiusScale));
+            ? Math.max(18, Math.round((70 + cluster.intensity * 58 + cluster.incidentCount * 2) * heatRadiusScale))
+            : Math.max(14, Math.round((45 + cluster.intensity * 45) * heatRadiusScale));
+          const hotspotBaseOpacity = 0.11 + Math.min(0.22, cluster.intensity * 0.04 + cluster.incidentCount * 0.003);
+          const standardBaseOpacity = 0.08 + Math.min(0.16, cluster.intensity * 0.03 + cluster.incidentCount * 0.002);
 
           return (
             <Circle
@@ -330,8 +336,8 @@ export function IncidentMap({
                 color,
                 fillColor: color,
                 fillOpacity: isHotspotMode
-                  ? Math.min(0.46, (0.18 + cluster.intensity * 0.07) * heatOpacityScale)
-                  : Math.min(0.34, (0.1 + cluster.intensity * 0.05) * heatOpacityScale),
+                  ? Math.max(0.04, Math.min(0.72, hotspotBaseOpacity * heatOpacityScale))
+                  : Math.max(0.03, Math.min(0.56, standardBaseOpacity * heatOpacityScale)),
                 weight: isHotspotMode ? 2 : 1,
                 opacity: isHotspotMode ? 0.7 : 0.5,
               }}
