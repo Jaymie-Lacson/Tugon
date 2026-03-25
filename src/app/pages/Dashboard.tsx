@@ -35,6 +35,27 @@ const typeIcons: Record<string, React.ReactNode> = {
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
 };
 
+function formatDurationFromMinutes(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return '0m';
+  }
+
+  const roundedMinutes = Math.round(totalMinutes);
+  const days = Math.floor(roundedMinutes / (24 * 60));
+  const hours = Math.floor((roundedMinutes % (24 * 60)) / 60);
+  const minutes = roundedMinutes % 60;
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  }
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+
+  return `${minutes}m`;
+}
+
 interface KPICardProps {
   title: string; value: string | number; subtitle: string;
   icon: React.ReactNode; accent: string; trend?: { dir: 'up' | 'down' | 'flat'; val: string };
@@ -536,7 +557,7 @@ export default function Dashboard() {
         />
         <KPICard
           title="Avg. Response"
-          value={avgResponseMinutes !== null ? `${avgResponseMinutes} min` : 'N/A'}
+          value={avgResponseMinutes !== null ? formatDurationFromMinutes(avgResponseMinutes) : 'N/A'}
           subtitle={avgResponseMinutes !== null ? 'Based on responded reports' : 'Waiting for response timestamps'}
           icon={<Clock size={20} />}
           accent="#B4730A"

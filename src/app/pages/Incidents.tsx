@@ -518,8 +518,6 @@ export default function Incidents() {
     const routeState = location.state as { reportId?: unknown } | null;
     return typeof routeState?.reportId === 'string' ? routeState.reportId : null;
   });
-  const perPage = 8;
-
   useEffect(() => {
     const routeState = location.state as { reportId?: unknown } | null;
     const reportId = typeof routeState?.reportId === 'string' ? routeState.reportId : null;
@@ -574,6 +572,8 @@ export default function Incidents() {
       setSelectedIncident(target);
     }
   }, [incidents, loading, location.search]);
+
+  useEffect(() => {
     if (!pendingReportId || loading) {
       return;
     }
