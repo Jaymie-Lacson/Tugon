@@ -65,6 +65,10 @@ function hasDatabaseUrlConfigured() {
 }
 
 function shouldAttemptDbRateLimiter() {
+  if ((process.env.NODE_ENV ?? "development") === "test") {
+    return false;
+  }
+
   return hasDatabaseUrlConfigured() && !dbRateLimiterUnavailable;
 }
 
