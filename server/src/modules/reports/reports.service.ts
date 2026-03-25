@@ -1742,15 +1742,19 @@ export const reportsService = {
   },
 
   parseError(error: unknown) {
+    const shouldLogInternals = env.nodeEnv !== "test";
+
     if (error instanceof ReportsError) {
       return { status: error.status, message: error.message };
     }
 
     if (error instanceof Prisma.PrismaClientInitializationError) {
-      console.error("[reports] Prisma initialization error", {
-        name: error.name,
-        message: error.message,
-      });
+      if (shouldLogInternals) {
+        console.error("[reports] Prisma initialization error", {
+          name: error.name,
+          message: error.message,
+        });
+      }
       return {
         status: 503,
         message: "Unable to process report request right now.",
@@ -1758,10 +1762,12 @@ export const reportsService = {
     }
 
     if (error instanceof Prisma.PrismaClientValidationError) {
-      console.error("[reports] Prisma validation error", {
-        name: error.name,
-        message: error.message,
-      });
+      if (shouldLogInternals) {
+        console.error("[reports] Prisma validation error", {
+          name: error.name,
+          message: error.message,
+        });
+      }
       return {
         status: 500,
         message: "Unable to process report request right now.",
@@ -1769,10 +1775,12 @@ export const reportsService = {
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      console.error("[reports] Prisma known request error", {
-        code: error.code,
-        meta: error.meta,
-      });
+      if (shouldLogInternals) {
+        console.error("[reports] Prisma known request error", {
+          code: error.code,
+          meta: error.meta,
+        });
+      }
 
       if (error.code === "P2021" || error.code === "P2022") {
         return {
@@ -1830,14 +1838,18 @@ export const reportsService = {
     }
 
     if (error instanceof Error) {
-      console.error("[reports] Unexpected service error", {
-        name: error.name,
-        message: error.message,
-      });
+      if (shouldLogInternals) {
+        console.error("[reports] Unexpected service error", {
+          name: error.name,
+          message: error.message,
+        });
+      }
       return { status: 500, message: "Unable to process report request right now." };
     }
 
-    console.error("[reports] Unexpected non-error failure", { error });
+    if (shouldLogInternals) {
+      console.error("[reports] Unexpected non-error failure", { error });
+    }
     return { status: 500, message: "Unable to process report request right now." };
   },
 };
