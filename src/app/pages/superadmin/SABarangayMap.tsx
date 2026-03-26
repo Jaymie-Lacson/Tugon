@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import {
-  MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Users, Navigation, RefreshCw, Save,
+  MapPin, Layers, AlertTriangle, Clock, CheckCircle2, Navigation, RefreshCw, Save,
   Filter, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
 } from 'lucide-react';
 import CardSkeleton from '../../components/ui/CardSkeleton';
@@ -168,9 +168,9 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
 };
 
 const BARANGAY_CENTER_BY_CODE: Record<string, [number, number]> = {
-  '251': [14.61495, 120.97795],
-  '252': [14.6162, 120.9788],
-  '256': [14.6138, 120.9768],
+  '251': [14.6146, 120.9776],
+  '252': [14.6144, 120.9770],
+  '256': [14.6159, 120.9786],
 };
 
 // Canonical boundaries aligned with citizen/admin IncidentMap and server geofencing defaults.
@@ -227,10 +227,10 @@ const CANONICAL_BOUNDARY_BY_CODE: Record<string, [number, number][]> = {
   ],
 };
 
-const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; captain: string; area: string }> = {
-  '251': { color: '#1D4ED8', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
-  '252': { color: '#0F766E', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
-  '256': { color: '#B4730A', district: 'Tondo, Manila', captain: 'Assigned Barangay Captain', area: 'N/A' },
+const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; captain: string; area: string; population: number }> = {
+  '251': { color: '#1D4ED8', district: 'District II', captain: 'Reynaldo Angat', area: 'N/A', population: 1181 },
+  '252': { color: '#0F766E', district: 'District II', captain: 'Leana Marie Angat', area: 'N/A', population: 910 },
+  '256': { color: '#B4730A', district: 'District II', captain: 'Honorario Lopez', area: 'N/A', population: 1030 },
 };
 const BARANGAY_FILTER_CODES = ['251', '252', '256'] as const;
 const HEAT_RADIUS_MAX_SCALE = 0.6;
@@ -251,7 +251,6 @@ type BarangayMapView = {
   resolvedThisMonth: number;
   responseRate: number;
   avgResponseMin: number;
-  responders: number;
   registeredUsers: number;
   alertLevel: 'normal' | 'elevated' | 'critical';
   boundaryGeojson: string | null;
@@ -446,9 +445,10 @@ export default function SABarangayMap() {
       const mapped = payload.barangays.map((apiBarangay) => {
         const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
           color: '#1E3A8A',
-          district: 'Tondo, Manila',
+          district: 'District II',
           captain: 'Assigned Barangay Captain',
           area: 'N/A',
+          population: 0,
         };
         const canonicalBoundary = CANONICAL_BOUNDARY_BY_CODE[apiBarangay.code];
         const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
@@ -465,9 +465,9 @@ export default function SABarangayMap() {
           name: apiBarangay.name || `Barangay ${apiBarangay.code}`,
           district: meta.district,
           captain: meta.captain,
-          population: 0,
+          population: meta.population,
           area: meta.area,
-          center: boundary[0] ?? BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? TONDO_TRI_BRGY_CENTER,
+          center: BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? boundary[0] ?? TONDO_TRI_BRGY_CENTER,
           boundary,
           color: meta.color,
           activeIncidents,
@@ -475,7 +475,6 @@ export default function SABarangayMap() {
           resolvedThisMonth,
           responseRate,
           avgResponseMin: 0,
-          responders: apiBarangay.officialCount,
           registeredUsers: apiBarangay.citizenCount,
           alertLevel: alertLevelFromActive(activeIncidents),
           boundaryGeojson: apiBarangay.boundaryGeojson,
@@ -1173,7 +1172,6 @@ export default function SABarangayMap() {
                     { label: 'Active Inc.', value: selectedBrgy.activeIncidents },
                     { label: 'Resp. Rate', value: `${selectedBrgy.responseRate}%` },
                     { label: 'Avg Response', value: `${selectedBrgy.avgResponseMin}m` },
-                    { label: 'Responders', value: selectedBrgy.responders },
                   ].map(s => (
                     <div key={s.label} style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px' }}>
                       <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>{s.value}</div>

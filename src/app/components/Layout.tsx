@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 
@@ -50,6 +51,7 @@ function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
+  const roleHomePath = resolveDefaultAppPath(session);
   const userFullName = session?.user.fullName?.trim() || 'Barangay Official';
   const userInitials = userFullName
     .split(' ')
@@ -236,8 +238,8 @@ function Layout() {
         {/* Logo */}
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <NavLink
-            to="/app"
-            aria-label="Go to TUGON dashboard"
+            to={roleHomePath}
+            aria-label="Go to TUGON home"
             style={{ display: 'inline-flex', marginBottom: 8 }}
           >
             <img
@@ -359,8 +361,8 @@ function Layout() {
           {/* Mobile logo */}
           <div className="mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
             <NavLink
-              to="/app"
-              aria-label="Go to TUGON dashboard"
+              to={roleHomePath}
+              aria-label="Go to TUGON home"
               style={{ display: 'inline-flex' }}
             >
               <img

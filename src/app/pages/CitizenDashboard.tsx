@@ -11,6 +11,7 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import { RoleHomeLogo } from '../components/RoleHomeLogo';
 import { IncidentMap } from '../components/IncidentMap';
 import { StatusBadge } from '../components/StatusBadge';
 import CardSkeleton from '../components/ui/CardSkeleton';
@@ -710,11 +711,7 @@ export default function CitizenDashboard() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Citizen Portal"
-                style={{ height: 38, width: 'auto', display: 'block' }}
-              />
+              <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
