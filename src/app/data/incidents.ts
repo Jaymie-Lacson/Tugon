@@ -24,7 +24,7 @@ export interface Incident {
 }
 
 export function isIncidentVisibleOnMap(incident: Pick<Incident, 'status'>): boolean {
-  return incident.status !== 'resolved';
+  return incident.status === 'active' || incident.status === 'responding';
 }
 
 export const incidentTypeConfig: Record<IncidentType, { label: string; color: string; bgColor: string }> = {

@@ -12,6 +12,7 @@ import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
 import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from '../components/CitizenNotifications';
+import { RoleHomeLogo } from '../components/RoleHomeLogo';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import {
   citizenReportsApi,
@@ -1377,17 +1378,7 @@ export default function CitizenMyReports() {
                 position: 'relative',
               }}
             >
-              <button
-                onClick={() => navigate('/citizen')}
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                aria-label="Go to citizen home"
-              >
-                <img
-                  src="/tugon-header-logo.svg"
-                  alt="TUGON Citizen Portal"
-                  style={{ height: 38, width: 'auto', display: 'block' }}
-                />
-              </button>
+              <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CitizenMobileMenu

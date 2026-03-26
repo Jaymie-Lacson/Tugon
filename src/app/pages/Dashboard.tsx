@@ -110,57 +110,87 @@ const AlertBanner = ({
   if (critical.length === 0) return null;
   return (
     <div style={{
-      background: '#FEF2F2',
-      border: '1px solid #FECACA',
-      borderLeft: '4px solid #B91C1C',
-      borderRadius: 8,
-      padding: '10px 16px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 16,
+      background: 'linear-gradient(180deg, #FFF7F7 0%, #FFF1F1 100%)',
+      border: '1px solid #F2C8C8',
+      borderRadius: 10,
+      padding: '12px 14px',
+      display: 'grid',
+      gap: 8,
+      marginBottom: 12,
     }}>
-      <Radio size={16} color="#B91C1C" style={{ flexShrink: 0, animation: 'pulse 2s infinite' }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ color: '#B91C1C', fontWeight: 700, fontSize: 12 }}>ACTIVE ALERT: </span>
-        <span style={{ color: '#7F1D1D', fontSize: 12 }}>
-          {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response —{' '}
-          {critical.map((incident, index) => (
-            <React.Fragment key={incident.id}>
-              <button
-                type="button"
-                onClick={() => onOpenIncident(incident.id)}
-                style={{
-                  border: 'none',
-                  padding: 0,
-                  margin: 0,
-                  background: 'transparent',
-                  color: '#7F1D1D',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                }}
-              >
-                {incident.id}
-              </button>
-              {index < critical.length - 1 ? ' · ' : null}
-            </React.Fragment>
-          ))}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <div style={{
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        border: '1px solid #E8B4B4',
+        background: '#FDE8E8',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+            <Radio size={13} color="#B91C1C" />
+          </div>
+          <div style={{ color: '#B91C1C', fontWeight: 700, fontSize: 12, letterSpacing: '0.03em' }}>
+            ACTIVE ALERT
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpenIncident(critical[0].id)}
+          style={{
+            background: '#B91C1C',
+            color: 'white',
+            fontSize: 10,
+            fontWeight: 700,
+            padding: '4px 8px',
+            borderRadius: 6,
+            letterSpacing: '0.05em',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          CRITICAL
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => onOpenIncident(critical[0].id)}
-        style={{
-        background: '#B91C1C', color: 'white', fontSize: 9, fontWeight: 700, padding: '3px 8px',
-        borderRadius: 4, letterSpacing: '0.06em', whiteSpace: 'nowrap', flexShrink: 0,
-        border: 'none',
-        cursor: 'pointer',
-      }}
-      >
-        CRITICAL
-      </button>
+
+      <div style={{ color: '#7F1D1D', fontSize: 12, lineHeight: 1.45 }}>
+        {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response.
+      </div>
+
+      <div style={{ display: 'grid', gap: 6 }}>
+        <span style={{ color: '#991B1B', fontSize: 11, fontWeight: 700 }}>INCIDENTS:</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, width: '100%' }}>
+          {critical.map((incident) => (
+            <button
+              key={incident.id}
+              type="button"
+              onClick={() => onOpenIncident(incident.id)}
+              style={{
+                border: '1px solid #E8B4B4',
+                borderRadius: 6,
+                padding: '6px 8px',
+                margin: 0,
+                background: '#FFF',
+                color: '#7F1D1D',
+                fontSize: 11,
+                fontWeight: 700,
+                textAlign: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'max-content',
+                flex: '1 1 0',
+                cursor: 'pointer',
+              }}
+            >
+              {incident.id}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
