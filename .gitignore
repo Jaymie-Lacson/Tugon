@@ -14,3 +14,6 @@ barangay-source/*.cpg
 barangay-source/*.shp.*
 .vercel
 .env*.local
+
+# Local database dump artifacts for offline demo prep
+server/backups/

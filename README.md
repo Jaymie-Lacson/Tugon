@@ -28,6 +28,32 @@ Web-based incident management and geospatial decision-support system for Baranga
 - Apply migrations (deploy/prod): `npm --prefix server run prisma:migrate:deploy`
 - Migration status: `npm --prefix server run prisma:status`
 
+## Offline Demo Database (Clone Online -> Local)
+
+Use this workflow before your defense day while internet is available, then run locally without internet.
+
+Prerequisite:
+- Install PostgreSQL client tools so `pg_dump`, `pg_restore`, and `psql` are available in your terminal `PATH`.
+
+1. Set these variables in `server/.env`:
+   - `ONLINE_DATABASE_URL=<your current online/supabase database URL>`
+   - `LOCAL_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tugon_demo`
+2. Create a dump from online DB:
+   - `npm --prefix server run db:dump:online`
+3. Restore dump to local DB:
+   - `npm --prefix server run db:restore:local`
+4. Point backend runtime to local DB for the demo:
+   - set `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tugon_demo`
+   - set `DIRECT_URL=postgresql://postgres:postgres@localhost:5432/tugon_demo`
+5. Start app locally:
+   - backend: `npm --prefix server run dev`
+   - frontend: `npm run dev`
+
+Notes:
+- Dumps are saved under `server/backups/` as `.dump` files.
+- Restore script refuses non-local targets by default for safety.
+- To restore a specific dump file: `npm --prefix server run db:restore:local -- --file=server/backups/<file>.dump`
+
 ## Production Checks
 
 - End-to-end production check command:
@@ -116,4 +142,4 @@ What it checks:
 - Prisma schema validation passes
 - Prisma client generation passes
 - migration status is reachable when `RUN_DB_MIGRATIONS=1`
-  
+
