@@ -395,37 +395,17 @@ export default function CitizenVerification() {
       hideVerificationPrompt
       header={
         <header
-          className="citizen-web-header"
-          style={{
-            background: '#1E3A8A',
-            display: 'flex',
-            alignItems: 'center',
-            height: 60,
-            flexShrink: 0,
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
-          }}
+          className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
         >
           <div
-            className="citizen-web-header-inner"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '0 var(--citizen-content-gutter)',
-              height: '100%',
-              position: 'relative',
-              boxSizing: 'border-box',
-            }}
+            className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
+            style={{ padding: '0 var(--citizen-content-gutter)' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="flex items-center gap-[10px]">
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="flex items-center gap-[10px]">
               <CitizenMobileMenu
                 activeKey="profile"
                 open={mobileMenuOpen}
@@ -451,7 +431,7 @@ export default function CitizenVerification() {
                   setMobileMenuOpen(false);
                 }}
               />
-              <div style={{ position: 'relative' }}>
+              <div className="relative">
                 <button
                   type="button"
                   onClick={() => {
@@ -462,20 +442,7 @@ export default function CitizenVerification() {
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
                   aria-expanded={profileMenuOpen}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    border: 'none',
-                    background: '#B4730A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    cursor: 'pointer',
-                  }}
+                  className="w-9 h-9 rounded-[10px] border-0 bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
                 >
                   {initials}
                 </button>
@@ -484,18 +451,7 @@ export default function CitizenVerification() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    style={{
-                      position: 'absolute',
-                      top: 44,
-                      right: 0,
-                      width: 190,
-                      background: '#fff',
-                      borderRadius: 12,
-                      boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
-                      border: '1px solid #E2E8F0',
-                      overflow: 'hidden',
-                      zIndex: 110,
-                    }}
+                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-slate-200 overflow-hidden z-[110]"
                   >
                     <button
                       type="button"
@@ -504,18 +460,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         navigate('/citizen?tab=profile');
                       }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '11px 12px',
-                        background: '#fff',
-                        border: 'none',
-                        borderBottom: '1px solid #F1F5F9',
-                        color: '#1E293B',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-slate-100 text-slate-800 text-[13px] font-semibold cursor-pointer"
                     >
                       Open profile page
                     </button>
@@ -526,17 +471,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '11px 12px',
-                        background: '#fff',
-                        border: 'none',
-                        color: '#B91C1C',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-[#B91C1C] text-[13px] font-bold cursor-pointer"
                     >
                       Sign out
                     </button>
@@ -575,45 +510,36 @@ export default function CitizenVerification() {
       desktopMainPaddingBottom={16}
       desktopMainMaxWidth={1320}
     >
-      <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 24 }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gap: 12 }}>
-          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+      <div className="citizen-content-shell pt-4 pb-6">
+        <div className="max-w-[960px] mx-auto grid gap-3">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between gap-[10px] flex-wrap">
               <div>
-                <h1 style={{ margin: 0, fontSize: 22, color: '#1E293B' }}>Resident ID Verification</h1>
-                <p style={{ marginTop: 6, marginBottom: 0, color: '#64748B', fontSize: 13 }}>
+                <h1 className="m-0 text-[22px] text-slate-800">Resident ID Verification</h1>
+                <p className="mt-1.5 mb-0 text-slate-500 text-[13px]">
                   Submit one valid ID photo for barangay review. You can still report incidents while your account is pending.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                style={{
-                  border: '1px solid #BFDBFE',
-                  borderRadius: 10,
-                  background: '#EFF6FF',
-                  color: '#1E3A8A',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '8px 10px',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                }}
+                className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
               >
                 Back to Profile <ChevronRight size={12} />
               </button>
             </div>
           </section>
 
-          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, border: `1px solid ${meta.color}33`, background: meta.bg, color: meta.color, fontWeight: 700, fontSize: 12 }}>
+          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div
+              className="inline-flex items-center gap-2 px-[10px] py-[6px] rounded-lg font-bold text-xs"
+              style={{ border: `1px solid ${meta.color}33`, background: meta.bg, color: meta.color }}
+            >
               {meta.icon} {meta.label}
             </div>
 
             {loading ? (
-              <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+              <div className="mt-3 grid gap-[10px]">
                 <TextSkeleton rows={2} title={false} className="rounded-lg" />
                 <CardSkeleton
                   count={2}
@@ -623,56 +549,40 @@ export default function CitizenVerification() {
                 />
               </div>
             ) : (
-              <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                <div style={{ fontSize: 12, color: '#64748B' }}>{meta.helper}</div>
+              <div className="mt-3 grid gap-[10px]">
+                <div className="text-xs text-slate-500">{meta.helper}</div>
 
                 {status?.rejectionReason ? (
-                  <div style={{ background: '#FFEDD5', border: '1px solid #FDBA74', borderRadius: 10, padding: '9px 11px', color: '#9A3412', fontSize: 12 }}>
+                  <div className="bg-[#FFEDD5] border border-[#FDBA74] rounded-[10px] px-[11px] py-[9px] text-[#9A3412] text-xs">
                     Rejection reason: {status.rejectionReason}
                   </div>
                 ) : null}
 
                 {status?.bannedReason ? (
-                  <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 10, padding: '9px 11px', color: '#991B1B', fontSize: 12 }}>
+                  <div className="bg-[#FEE2E2] border border-[#FCA5A5] rounded-[10px] px-[11px] py-[9px] text-[#991B1B] text-xs">
                     Account restriction reason: {status.bannedReason}
                   </div>
                 ) : null}
 
                 {latestUploadedPreviewUrl ? (
-                  <div
-                    style={{
-                      border: '1px solid #E2E8F0',
-                      borderRadius: 12,
-                      padding: 10,
-                      background: '#F8FAFC',
-                      display: 'grid',
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Latest Uploaded ID Preview</div>
+                  <div className="border border-slate-200 rounded-xl p-[10px] bg-slate-50 grid gap-2">
+                    <div className="text-xs font-bold text-slate-700">Latest Uploaded ID Preview</div>
                     <img
                       src={latestUploadedPreviewUrl}
                       alt="Latest uploaded resident ID"
-                      style={{
-                        width: '100%',
-                        maxWidth: 360,
-                        borderRadius: 10,
-                        border: '1px solid #E2E8F0',
-                        objectFit: 'cover',
-                        background: '#fff',
-                      }}
+                      className="w-full max-w-[360px] rounded-[10px] border border-slate-200 object-cover bg-white"
                     />
                     <a
                       href={latestUploadedPreviewUrl}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ width: 'fit-content', textDecoration: 'none', color: '#1E3A8A', fontSize: 12, fontWeight: 700 }}
+                      className="w-fit no-underline text-[#1E3A8A] text-xs font-bold"
                     >
                       Open full image in new tab
                     </a>
                   </div>
                 ) : status?.idImageUrl ? (
-                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '9px 11px', color: '#92400E', fontSize: 12, lineHeight: 1.55 }}>
+                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[10px] px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
                     Preview is currently unavailable for this uploaded ID on your environment.
                     Configure private storage preview signing (see steps below) or use a public ID bucket to enable image preview.
                   </div>
@@ -681,40 +591,22 @@ export default function CitizenVerification() {
             )}
           </section>
 
-          <section
-            style={{
-              background: '#fff',
-              borderRadius: 14,
-              border: '1px solid #E2E8F0',
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', marginBottom: 10 }}>
+          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-bold text-slate-800 mb-[10px]">
               Accepted Valid IDs in the Philippines
             </div>
-            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 10, lineHeight: 1.55 }}>
+            <div className="text-xs text-slate-500 mb-[10px] leading-[1.55]">
               For faster review, upload one clear and readable government-issued ID. Make sure the photo and full name are visible.
             </div>
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: 10,
-                marginBottom: 10,
-              }}
+              className="grid gap-[10px] mb-[10px]"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}
             >
-              <div
-                style={{
-                  border: '1px solid #BBF7D0',
-                  borderRadius: 12,
-                  padding: 10,
-                  background: '#F0FDF4',
-                }}
-              >
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#166534', marginBottom: 8 }}>
+              <div className="border border-[#BBF7D0] rounded-xl p-[10px] bg-[#F0FDF4]">
+                <div className="text-xs font-bold text-[#166534] mb-2">
                   Accepted IDs
                 </div>
-                <div style={{ display: 'grid', gap: 6 }}>
+                <div className="grid gap-[6px]">
                   {[
                     'Philippine National ID (PhilSys)',
                     'Philippine Passport',
@@ -728,18 +620,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      style={{
-                        border: '1px solid #DCFCE7',
-                        borderRadius: 10,
-                        padding: '7px 9px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#334155',
-                        background: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                      }}
+                      className="border border-[#DCFCE7] rounded-[10px] px-[9px] py-[7px] text-xs font-semibold text-slate-700 bg-white flex items-center gap-[7px]"
                     >
                       <CheckCircle2 size={14} color="#16A34A" /> {idLabel}
                     </div>
@@ -747,18 +628,11 @@ export default function CitizenVerification() {
                 </div>
               </div>
 
-              <div
-                style={{
-                  border: '1px solid #FECACA',
-                  borderRadius: 12,
-                  padding: 10,
-                  background: '#FEF2F2',
-                }}
-              >
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#991B1B', marginBottom: 8 }}>
+              <div className="border border-[#FECACA] rounded-xl p-[10px] bg-[#FEF2F2]">
+                <div className="text-xs font-bold text-[#991B1B] mb-2">
                   Not Accepted IDs
                 </div>
-                <div style={{ display: 'grid', gap: 6 }}>
+                <div className="grid gap-[6px]">
                   {[
                     'School ID',
                     'Company / Work ID',
@@ -769,18 +643,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      style={{
-                        border: '1px solid #FEE2E2',
-                        borderRadius: 10,
-                        padding: '7px 9px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#334155',
-                        background: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                      }}
+                      className="border border-[#FEE2E2] rounded-[10px] px-[9px] py-[7px] text-xs font-semibold text-slate-700 bg-white flex items-center gap-[7px]"
                     >
                       <XCircle size={14} color="#DC2626" /> {idLabel}
                     </div>
@@ -788,14 +651,14 @@ export default function CitizenVerification() {
                 </div>
               </div>
             </div>
-            <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.55 }}>
+            <div className="text-xs text-slate-500 leading-[1.55]">
               Do not upload blurred, cropped, or edited images. Submissions with unreadable details may be rejected and require re-upload.
             </div>
           </section>
 
-          <section style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 16 }}>
-            <div style={{ display: 'grid', gap: 12 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
+          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div className="grid gap-3">
+              <label className="text-xs font-bold text-slate-700">
                 Upload Valid ID (Front and Back)
               </label>
 
@@ -806,7 +669,7 @@ export default function CitizenVerification() {
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                 disabled={!canUploadVerification || submitting}
                 onChange={(event) => onSelectFile('front', event.target.files?.[0] ?? null)}
-                style={{ display: 'none' }}
+                className="hidden"
               />
 
               <input
@@ -816,58 +679,28 @@ export default function CitizenVerification() {
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                 disabled={!canUploadVerification || submitting}
                 onChange={(event) => onSelectFile('back', event.target.files?.[0] ?? null)}
-                style={{ display: 'none' }}
+                className="hidden"
               />
 
-              <div
-                style={{
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 12,
-                  padding: 12,
-                  background: '#F8FAFC',
-                  display: 'grid',
-                  gap: 10,
-                }}
-              >
-                <div style={{ display: 'grid', gap: 10 }}>
-                  <div style={{ display: 'grid', gap: 6 }}>
+              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 grid gap-[10px]">
+                <div className="grid gap-[10px]">
+                  <div className="grid gap-[6px]">
                     {!frontIdFile ? (
                       <button
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => frontFileInputRef.current?.click()}
+                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
                         style={{
-                          border: '1px solid #BFDBFE',
-                          borderRadius: 10,
-                          background: '#EFF6FF',
-                          color: '#1E3A8A',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          padding: '9px 12px',
                           cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
                           opacity: !canUploadVerification || submitting ? 0.65 : 1,
-                          width: 'fit-content',
                         }}
                       >
                         <Paperclip size={14} /> Select Front ID Image
                       </button>
                     ) : (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                          border: '1px solid #E2E8F0',
-                          borderRadius: 10,
-                          background: '#fff',
-                          padding: '8px 10px',
-                        }}
-                      >
-                        <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 600 }}>
+                      <div className="flex items-center justify-between gap-2 border border-slate-200 rounded-[10px] bg-white px-[10px] py-2">
+                        <div className="text-xs text-slate-800 font-semibold">
                           Front: {shortFileName(frontIdFile.name)}
                         </div>
                         <button
@@ -878,19 +711,7 @@ export default function CitizenVerification() {
                               frontFileInputRef.current.value = '';
                             }
                           }}
-                          style={{
-                            border: 'none',
-                            borderRadius: 8,
-                            background: '#E2E8F0',
-                            color: '#334155',
-                            width: 24,
-                            height: 24,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
+                          className="border-0 rounded-lg bg-slate-200 text-slate-700 w-6 h-6 inline-flex items-center justify-center cursor-pointer shrink-0"
                           aria-label="Clear front ID file"
                         >
                           <X size={13} />
@@ -899,50 +720,29 @@ export default function CitizenVerification() {
                     )}
 
                     {!frontIdFile ? (
-                      <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500 }}>
+                      <div className="text-xs text-slate-500 font-medium">
                         Front image not selected
                       </div>
                     ) : null}
                   </div>
 
-                  <div style={{ display: 'grid', gap: 6 }}>
+                  <div className="grid gap-[6px]">
                     {!backIdFile ? (
                       <button
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => backFileInputRef.current?.click()}
+                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
                         style={{
-                          border: '1px solid #BFDBFE',
-                          borderRadius: 10,
-                          background: '#EFF6FF',
-                          color: '#1E3A8A',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          padding: '9px 12px',
                           cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
                           opacity: !canUploadVerification || submitting ? 0.65 : 1,
-                          width: 'fit-content',
                         }}
                       >
                         <Paperclip size={14} /> Select Back ID Image
                       </button>
                     ) : (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                          border: '1px solid #E2E8F0',
-                          borderRadius: 10,
-                          background: '#fff',
-                          padding: '8px 10px',
-                        }}
-                      >
-                        <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 600 }}>
+                      <div className="flex items-center justify-between gap-2 border border-slate-200 rounded-[10px] bg-white px-[10px] py-2">
+                        <div className="text-xs text-slate-800 font-semibold">
                           Back: {shortFileName(backIdFile.name)}
                         </div>
                         <button
@@ -953,19 +753,7 @@ export default function CitizenVerification() {
                               backFileInputRef.current.value = '';
                             }
                           }}
-                          style={{
-                            border: 'none',
-                            borderRadius: 8,
-                            background: '#E2E8F0',
-                            color: '#334155',
-                            width: 24,
-                            height: 24,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
+                          className="border-0 rounded-lg bg-slate-200 text-slate-700 w-6 h-6 inline-flex items-center justify-center cursor-pointer shrink-0"
                           aria-label="Clear back ID file"
                         >
                           <X size={13} />
@@ -974,65 +762,47 @@ export default function CitizenVerification() {
                     )}
 
                     {!backIdFile ? (
-                      <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500 }}>
+                      <div className="text-xs text-slate-500 font-medium">
                         Back image not selected
                       </div>
                     ) : null}
                   </div>
                 </div>
 
-                <div style={{ fontSize: 12, color: '#64748B' }}>
+                <div className="text-xs text-slate-500">
                   Accepted: JPG, PNG, WEBP, HEIC, HEIF. Max size: {MAX_FILE_SIZE_MB}MB each. Both front and back images are required.
                 </div>
 
                 {!canUploadVerification && currentVerificationStatus !== 'REJECTED' && currentVerificationStatus !== 'REUPLOAD_REQUESTED' ? (
-                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '9px 11px', color: '#92400E', fontSize: 12, lineHeight: 1.55 }}>
+                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[10px] px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
                     You already submitted your ID verification. Upload is disabled until officials reject or request a re-upload.
                   </div>
                 ) : null}
 
                 {frontIdPreviewUrl || backIdPreviewUrl ? (
-                  <div
-                    style={{
-                      border: '1px solid #E2E8F0',
-                      borderRadius: 12,
-                      padding: 10,
-                      background: '#fff',
-                      display: 'grid',
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Selected Image Previews</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                  <div className="border border-slate-200 rounded-xl p-[10px] bg-white grid gap-2">
+                    <div className="text-xs font-bold text-slate-700">Selected Image Previews</div>
+                    <div
+                      className="grid gap-[10px]"
+                      style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
+                    >
                       {frontIdPreviewUrl ? (
-                        <div style={{ display: 'grid', gap: 6 }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Front ID</div>
+                        <div className="grid gap-[6px]">
+                          <div className="text-[11px] font-bold text-slate-600">Front ID</div>
                           <img
                             src={frontIdPreviewUrl}
                             alt="Selected front ID image preview"
-                            style={{
-                              width: '100%',
-                              borderRadius: 10,
-                              border: '1px solid #E2E8F0',
-                              objectFit: 'cover',
-                              background: '#fff',
-                            }}
+                            className="w-full rounded-[10px] border border-slate-200 object-cover bg-white"
                           />
                         </div>
                       ) : null}
                       {backIdPreviewUrl ? (
-                        <div style={{ display: 'grid', gap: 6 }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Back ID</div>
+                        <div className="grid gap-[6px]">
+                          <div className="text-[11px] font-bold text-slate-600">Back ID</div>
                           <img
                             src={backIdPreviewUrl}
                             alt="Selected back ID image preview"
-                            style={{
-                              width: '100%',
-                              borderRadius: 10,
-                              border: '1px solid #E2E8F0',
-                              objectFit: 'cover',
-                              background: '#fff',
-                            }}
+                            className="w-full rounded-[10px] border border-slate-200 object-cover bg-white"
                           />
                         </div>
                       ) : null}
@@ -1042,13 +812,13 @@ export default function CitizenVerification() {
               </div>
 
               {error ? (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '9px 11px', color: '#B91C1C', fontSize: 12 }}>
+                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[11px] py-[9px] text-[#B91C1C] text-xs">
                   {error}
                 </div>
               ) : null}
 
               {message ? (
-                <div style={{ background: '#ECFDF3', border: '1px solid #A7F3D0', borderRadius: 10, padding: '9px 11px', color: '#065F46', fontSize: 12 }}>
+                <div className="bg-[#ECFDF3] border border-[#A7F3D0] rounded-[10px] px-[11px] py-[9px] text-[#065F46] text-xs">
                   {message}
                 </div>
               ) : null}
@@ -1057,18 +827,8 @@ export default function CitizenVerification() {
                 type="button"
                 onClick={() => void submit()}
                 disabled={!frontIdFile || !backIdFile || !canUploadVerification || submitting}
+                className="border-0 rounded-[10px] bg-[#1E3A8A] text-white text-[13px] font-bold px-[14px] py-[10px] w-fit inline-flex items-center gap-[6px]"
                 style={{
-                  border: 'none',
-                  borderRadius: 10,
-                  background: '#1E3A8A',
-                  color: '#fff',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  padding: '10px 14px',
-                  width: 'fit-content',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
                   cursor: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
                   opacity: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 0.65 : 1,
                 }}

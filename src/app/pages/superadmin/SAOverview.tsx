@@ -36,10 +36,6 @@ type BarangayOverviewCard = {
   alertLevel: 'normal' | 'elevated' | 'critical';
 };
 
-const incidentTypeIcons: Record<string, React.ReactNode> = {
-  flood: <Droplets size={12} />, accident: <Car size={12} />,
-  medical: <Heart size={12} />, crime: <Shield size={12} />, infrastructure: <Zap size={12} />,
-};
 
 interface KPIProps {
   label: string; value: string | number; sub?: string;
@@ -49,33 +45,29 @@ interface KPIProps {
 function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps) {
   const isUp = (trend ?? 0) >= 0;
   return (
-    <div style={{
-      background: '#FFFFFF', borderRadius: 12, padding: '18px 20px',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      flex: '1 1 220px', minWidth: 180,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: 10,
-          background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+    <div className="bg-white rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex-[1_1_220px] min-w-[180px]">
+      <div className="flex items-start justify-between mb-[10px]">
+        <div
+          className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center"
+          style={{ background: `${color}18` }}
+        >
           {React.cloneElement(icon as React.ReactElement, { color, size: 18 })}
         </div>
         {trend !== undefined && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 3,
-            color: isUp ? '#B91C1C' : '#059669', fontSize: 11, fontWeight: 600,
-          }}>
+          <div
+            className="flex items-center gap-[3px] text-[11px] font-semibold"
+            style={{ color: isUp ? '#B91C1C' : '#059669' }}
+          >
             {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(trend)}%
           </div>
         )}
       </div>
-      <div style={{ color: '#0F172A', fontSize: 26, fontWeight: 700, lineHeight: 1.1, marginBottom: 3 }}>{value}</div>
-      <div style={{ color: '#6B7280', fontSize: 12 }}>{label}</div>
-      {sub && <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{sub}</div>}
+      <div className="text-[#0F172A] text-[26px] font-bold leading-[1.1] mb-[3px]">{value}</div>
+      <div className="text-[#6B7280] text-xs">{label}</div>
+      {sub && <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{sub}</div>}
       {trendLabel && (
-        <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 4 }}>{trendLabel}</div>
+        <div className="text-[#9CA3AF] text-[10px] mt-1">{trendLabel}</div>
       )}
     </div>
   );
@@ -94,9 +86,6 @@ const logTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = 
   system:   { icon: <Server size={13} />,         color: '#0F766E' },
 };
 
-const logSeverityColors: Record<string, string> = {
-  error: '#B91C1C', warning: '#B4730A', info: '#1D4ED8', success: '#059669',
-};
 
 function formatLogTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -307,9 +296,9 @@ export default function SAOverview() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '20px', minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={4}
             lines={2}
@@ -317,7 +306,7 @@ export default function SAOverview() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={7} columns={4} showHeader />
         </div>
       </div>
@@ -325,24 +314,22 @@ export default function SAOverview() {
   }
 
   return (
-    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
       {/* Page header */}
-      <div className="sa-overview-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 10 }}>
+      <div className="sa-overview-header flex items-center justify-between mb-5 gap-[10px]">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <div style={{
-              background: 'rgba(30,58,138,0.1)', border: '1px solid rgba(30,58,138,0.25)',
-              borderRadius: 6, padding: '2px 8px',
-              color: PRIMARY, fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}>Super Admin</div>
-            <div style={{ color: '#6B7280', fontSize: 12 }}>Multi-Barangay Overview</div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase">
+              Super Admin
+            </div>
+            <div className="text-[#6B7280] text-xs">Multi-Barangay Overview</div>
           </div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>System Overview Dashboard</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
+          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">System Overview Dashboard</h1>
+          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
             Monitoring Barangays 251, 252 & 256 — Real-time Status
           </p>
         </div>
-        <div className="sa-overview-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="sa-overview-header-actions flex items-center gap-[10px]">
           <button
             onClick={() => {
               void loadAnalyticsSummary();
@@ -350,22 +337,14 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', color: '#374151', fontSize: 12, fontWeight: 600,
-            }}
+            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold"
           >
             <RefreshCw size={13} color="#6B7280" />
             {summaryLoading ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: PRIMARY, border: 'none', borderRadius: 8,
-              padding: '8px 16px', cursor: 'pointer', color: 'white', fontSize: 12, fontWeight: 600,
-            }}
+            className="flex items-center gap-[6px] bg-[#1E3A8A] border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold"
           >
             View Analytics
             <ArrowRight size={13} />
@@ -374,13 +353,13 @@ export default function SAOverview() {
       </div>
 
       {summaryError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-[#B91C1C] text-xs px-3 py-[10px]">
           {summaryError}
         </div>
       ) : null}
 
       {/* KPI row */}
-      <div className="sa-overview-kpi-row" style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="sa-overview-kpi-row flex gap-[14px] mb-5 flex-wrap">
         <KPICard
           label="Active Incidents (All Barangays)"
           value={total}
@@ -425,93 +404,82 @@ export default function SAOverview() {
       </div>
 
       {/* Barangay cards row */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="flex gap-[14px] mb-5 flex-wrap">
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
           return (
-            <div key={b.id} style={{
-              flex: 1, minWidth: 260,
-              background: '#FFFFFF', borderRadius: 14, overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
-            }}>
-              <div style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div key={b.id} className="flex-1 min-w-[260px] bg-white rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB]">
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                      <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{b.name}</span>
-                      <span style={{
-                        background: al.bg, color: al.color,
-                        fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, letterSpacing: '0.08em',
-                      }}>{al.label}</span>
+                    <div className="flex items-center gap-2 mb-[3px]">
+                      <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
+                      <span
+                        className="text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] tracking-[0.08em]"
+                        style={{ background: al.bg, color: al.color }}
+                      >{al.label}</span>
                     </div>
-                    <div style={{ color: '#6B7280', fontSize: 11 }}>{b.district}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{b.captain}</div>
+                    <div className="text-[#6B7280] text-[11px]">{b.district}</div>
+                    <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 10,
-                    background: `${b.color}18`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
+                  <div
+                    className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center"
+                    style={{ background: `${b.color}18` }}
+                  >
                     <MapPin size={20} color={b.color} />
                   </div>
                 </div>
 
                 {/* Stats grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                <div className="grid grid-cols-2 gap-2 mb-3">
                   {[
-                    { label: 'Active',     value: b.activeIncidents, color: '#B91C1C' },
-                    { label: 'This Month', value: b.totalThisMonth,   color: '#1D4ED8' },
+                    { label: 'Active',     value: b.activeIncidents,   color: '#B91C1C' },
+                    { label: 'This Month', value: b.totalThisMonth,    color: '#1D4ED8' },
                     { label: 'Resolved',   value: b.resolvedThisMonth, color: '#059669' },
                     { label: 'Resp. Rate', value: `${b.responseRate}%`, color: '#B4730A' },
                   ].map(s => (
-                    <div key={s.label} style={{
-                      background: '#F9FAFB', borderRadius: 8, padding: '8px 10px',
-                      border: '1px solid #F3F4F6',
-                    }}>
-                      <div style={{ color: s.color, fontSize: 17, fontWeight: 700, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{s.label}</div>
+                    <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
+                      <div className="text-[17px] font-bold leading-none" style={{ color: s.color }}>{s.value}</div>
+                      <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Response time bar */}
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ color: '#6B7280', fontSize: 11 }}>Avg Response Time</span>
-                    <span style={{
-                      color: b.responseRate < 90 ? '#B4730A' : '#059669',
-                      fontSize: 11, fontWeight: 600,
-                    }}>{b.responseRate}%</span>
+                <div className="mb-3">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[#6B7280] text-[11px]">Avg Response Time</span>
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{ color: b.responseRate < 90 ? '#B4730A' : '#059669' }}
+                    >{b.responseRate}%</span>
                   </div>
-                  <div style={{ height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${b.responseRate}%`,
-                      background: b.responseRate < 90 ? '#B4730A' : '#059669',
-                      borderRadius: 3,
-                    }} />
+                  <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
+                    <div
+                      className="h-full rounded-[3px]"
+                      style={{
+                        width: `${b.responseRate}%`,
+                        background: b.responseRate < 90 ? '#B4730A' : '#059669',
+                      }}
+                    />
                   </div>
-                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>Resolution rate</div>
+                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">Resolution rate</div>
                 </div>
 
                 {/* Footer */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ color: '#6B7280', fontSize: 10 }}>
-                      <span style={{ color: '#374151', fontWeight: 600 }}>{b.responders}</span> responders
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3">
+                    <div className="text-[#6B7280] text-[10px]">
+                      <span className="text-[#374151] font-semibold">{b.responders}</span> responders
                     </div>
-                    <div style={{ color: '#6B7280', fontSize: 10 }}>
-                      <span style={{ color: '#374151', fontWeight: 600 }}>{b.registeredUsers}</span> users
+                    <div className="text-[#6B7280] text-[10px]">
+                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> users
                     </div>
                   </div>
                   <button
                     onClick={() => navigate('/superadmin/map')}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      background: `${b.color}14`, color: b.color,
-                      border: `1px solid ${b.color}30`, borderRadius: 6,
-                      padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                    }}
+                    className="flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold"
+                    style={{ background: `${b.color}14`, color: b.color, border: `1px solid ${b.color}30` }}
                   >
                     View Map <ArrowRight size={11} />
                   </button>
@@ -523,19 +491,19 @@ export default function SAOverview() {
       </div>
 
       {/* Charts + Logs row */}
-      <div className="sa-overview-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20, alignItems: 'start' }}>
+      <div
+        className="sa-overview-grid grid gap-[14px] mb-5 items-start"
+        style={{ gridTemplateColumns: '1fr 380px' }}
+      >
         {/* Incident type distribution */}
         <div
           ref={incidentTypesCardRef}
-          style={{
-          background: '#FFFFFF', borderRadius: 14, padding: '20px',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-          }}
+          className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]"
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>Incident Types — All Barangays</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Current reporting window</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">Incident Types — All Barangays</div>
+              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">Current reporting window</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -558,49 +526,38 @@ export default function SAOverview() {
 
         {/* System activity log */}
         <div
-          className="sa-overview-activity-card"
+          className="sa-overview-activity-card bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex flex-col"
           style={{
-          background: '#FFFFFF', borderRadius: 14, padding: '20px',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-          display: 'flex', flexDirection: 'column',
-          height: incidentTypesCardHeight ?? undefined,
-          maxHeight: incidentTypesCardHeight ?? undefined,
+            height: incidentTypesCardHeight ?? undefined,
+            maxHeight: incidentTypesCardHeight ?? undefined,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div className="flex items-center justify-between mb-[14px]">
             <div>
-              <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>System Activity Log</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>Live feed — all barangays</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">System Activity Log</div>
+              <div className="text-[#9CA3AF] text-[11px]">Live feed — all barangays</div>
             </div>
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%', background: '#22C55E',
-            }} />
+            <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
             {systemLogs.map((log) => {
               const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: '#6B7280' };
-              const sev = logSeverityColors[log.severity] ?? '#6B7280';
               return (
-                <div key={log.id} style={{
-                  display: 'flex', gap: 10, padding: '8px 10px',
-                  borderRadius: 8, background: '#F9FAFB', border: '1px solid #F3F4F6',
-                }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 6,
-                    background: `${ltc.color}18`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
+                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 rounded-lg bg-[#F9FAFB] border border-[#F3F4F6]">
+                  <div
+                    className="w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0"
+                    style={{ background: `${ltc.color}18` }}
+                  >
                     {React.cloneElement(ltc.icon as React.ReactElement, { color: ltc.color })}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#1E293B', fontSize: 11, lineHeight: 1.4 }}>{log.message}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                      <span style={{ color: '#9CA3AF', fontSize: 10 }}>{formatLogTime(log.timestamp)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[#1E293B] text-[11px] leading-[1.4]">{log.message}</div>
+                    <div className="flex items-center gap-[6px] mt-[3px]">
+                      <span className="text-[#9CA3AF] text-[10px]">{formatLogTime(log.timestamp)}</span>
                       {log.barangay && (
-                        <span style={{
-                          background: '#EEF2FF', color: '#4338CA',
-                          fontSize: 9, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
-                        }}>{log.barangay}</span>
+                        <span className="bg-[#EEF2FF] text-[#4338CA] text-[9px] font-semibold px-[5px] py-[1px] rounded-[3px]">
+                          {log.barangay}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -612,33 +569,23 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview" style={{
-        background: '#FFFFFF', borderRadius: 14, overflow: 'hidden', marginBottom: 20,
-        boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      }}>
-        <div className="sa-overview-map-preview-head" style={{
-          padding: '12px 16px', borderBottom: '1px solid #F3F4F6',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="sa-overview-map-preview bg-white rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]">
+        <div className="sa-overview-map-preview-head px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
+          <div className="flex items-center gap-[10px]">
             <MapPin size={15} color={PRIMARY} />
             <div>
-              <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>Live System Map</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>Open incidents · OpenStreetMap · Municipality of Tugon</div>
+              <div className="text-[#0F172A] text-sm font-bold">Live System Map</div>
+              <div className="text-[#9CA3AF] text-[11px]">Open incidents · OpenStreetMap · Municipality of Tugon</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 5, padding: '3px 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
-              <span style={{ color: '#059669', fontSize: 9, fontWeight: 700 }}>LIVE · OSM</span>
+          <div className="flex items-center gap-2">
+            <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[5px] px-2 py-[3px] flex items-center gap-1">
+              <span className="w-[6px] h-[6px] rounded-full bg-[#22C55E] inline-block" />
+              <span className="text-[#059669] text-[9px] font-bold">LIVE · OSM</span>
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                background: PRIMARY, color: 'white', border: 'none',
-                borderRadius: 7, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-              }}
+              className="flex items-center gap-[5px] bg-[#1E3A8A] text-white border-0 rounded-[7px] px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
               Full Map <ArrowRight size={11} />
             </button>
@@ -653,7 +600,7 @@ export default function SAOverview() {
       </div>
 
       {/* Bottom quick nav */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div className="flex gap-3 flex-wrap">
         {[
           { label: 'Barangay Map & Boundaries', desc: 'View Brgy 251, 252, 256 boundary map with live incidents', path: '/superadmin/map', color: '#1D4ED8', icon: <MapPin size={18} /> },
           { label: 'System Analytics',          desc: 'Heatmaps, trend charts & response time analytics',         path: '/superadmin/analytics', color: PRIMARY, icon: <Activity size={18} /> },
@@ -662,25 +609,19 @@ export default function SAOverview() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            style={{
-              flex: 1, minWidth: 220,
-              background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 12,
-              padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
-              display: 'flex', alignItems: 'center', gap: 12,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
+            className="flex-1 min-w-[220px] bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
+            <div
+              className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
+              style={{ background: `${item.color}15` }}
+            >
               {React.cloneElement(item.icon as React.ReactElement, { color: item.color })}
             </div>
             <div>
-              <div style={{ color: '#0F172A', fontSize: 13, fontWeight: 600 }}>{item.label}</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>{item.desc}</div>
+              <div className="text-[#0F172A] text-[13px] font-semibold">{item.label}</div>
+              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
             </div>
-            <ChevronRight size={16} color="#D1D5DB" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+            <ChevronRight size={16} color="#D1D5DB" className="ml-auto shrink-0" />
           </button>
         ))}
       </div>
