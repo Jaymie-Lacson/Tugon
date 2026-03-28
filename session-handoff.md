@@ -1,50 +1,48 @@
-# Session Handoff — 2026-03-28 (UI/UX Redesign, Session 2)
+# Session Handoff — 2026-03-28 (UI/UX Redesign, Session 3)
 
 **Branch:** `redesign`
-**Build status:** PASSING (`npm run build` succeeds)
+**Build status:** NEEDS VERIFICATION — Reports.tsx was written but build was not confirmed before session ended.
 **All changes are unstaged** — nothing committed this session yet.
 
 ---
 
 ## What was accomplished this session
 
-### Phase 3: Layout Shell Unification (COMPLETE)
-Migrated all 3 layout shells + 2 citizen nav components from inline `style={{}}` to Tailwind classes. Replaced mobile hamburger dropdown menus with the `BottomNav` component for Official and SuperAdmin portals.
+### Phase 4: High-Traffic Official Pages (CONTINUED — 6 of 6 done)
 
-- **Layout.tsx** — 758→~260 lines (-66%). Removed hamburger menu, `drawerOpen` state, 3 related useEffects, embedded `<style>` block. Wired `BottomNav` with 5 items (Home, Incidents, Map, Reports, Settings). All `onMouseEnter`/`onMouseLeave` hover handlers replaced with Tailwind `hover:` classes.
-- **SuperAdminLayout.tsx** — 783→~270 lines (-65%). Same treatment. Aligned mobile breakpoint from 768px to `lg` (1024px). Wired `BottomNav` with 5 items (Overview, Map, Analytics, Users, Settings).
-- **CitizenPageLayout.tsx** — 251→~115 lines (-54%). Replaced inline verification banner with `VerificationProgressCard` component. Removed `getCitizenVerificationPrompt()` function. Kept `<style>` block for CSS-variable-driven responsive layout (depends on runtime props).
-- **CitizenDesktopNav.tsx** — 91→61 lines. Inline styles → Tailwind. Kept `citizen-only-desktop` / `citizen-web-strip` class names for parent layout compat.
-- **CitizenMobileMenu.tsx** — 107→67 lines. Inline styles → Tailwind. Kept `citizen-only-mobile` class name for parent layout compat.
-- **BottomNav.tsx** — Added `exact?: boolean` to `BottomNavItem` interface so root paths (`/app`, `/superadmin`) don't false-match child routes.
+Migrated the remaining 3 official pages from inline `style={{}}` to Tailwind classes, completing Phase 4.
 
-### Phase 4: High-Traffic Official Pages (PARTIAL — 3 of 6 done)
-Migrated inline styles to Tailwind on the first 3 official pages:
+- **Dashboard.tsx** — 1,059→~590 lines (-44%). All 144 inline styles → Tailwind. Removed `<style>` block entirely. Replaced `onMouseEnter`/`onMouseLeave` hover handlers with Tailwind `hover:` classes. KPI grid changed from flex-wrap to `grid grid-cols-2 lg:grid-cols-4`. Kept Recharts inline styles (LineChart, PieChart, Tooltip, etc.) and IncidentMap props. Kept dynamic color props (`accent`, `bgLight`, `trendColor`) as inline styles since they depend on props.
 
-- **Settings.tsx** — 140→~95 lines. All 26 inline styles → Tailwind. Removed embedded `<style>` block, replaced with Tailwind responsive `max-md:` classes.
-- **Verifications.tsx** — 506→~220 lines. All 52 inline styles → Tailwind. Image preview modal, action buttons, form elements all migrated.
-- **Analytics.tsx** — 752→~490 lines. 67 inline styles → Tailwind. Kept `isMobile` state (needed by Recharts props). Kept reduced `<style>` block for complex mobile-only overrides (period tab grid, chart toggle width). All MetricCard, chart wrapper, legend, resource utilization bar styles migrated.
+- **Incidents.tsx** — 1,301→~880 lines (-32%). All 115 inline styles → Tailwind. IncidentDetailModal fully migrated: modal overlay, header, badge bar, description, evidence (photo grid + audio), info grid, timeline, action buttons, photo preview lightbox. Main page: skeleton, header, list view toggle pills, filter bar (search + selects + clear + refresh), desktop table, context menu, mobile cards, pagination. Replaced `onMouseEnter`/`onMouseLeave` on table rows with `hover:bg-slate-50`. Kept dynamic styles for context menu position (`top`, `left`) and `incidentTypeConfig` colors.
+
+- **Reports.tsx** — 1,184→~880 lines (-26%). All 139 inline styles → Tailwind. DSSCard component: priority badge, confidence meter, expandable actions. Main page: skeleton, header, tab bar, DSS tab (gradient header, stats row, recommendations), Templates tab (card grid, download/print/generate buttons, template generation history table + mobile list), History tab (report table + mobile list). Replaced `animate-spin` for RefreshCw loading states (was inline `animation: 'spin 1s linear infinite'`). Kept `<style>` block for responsive table/mobile-list toggle (`report-history-table-wrapper` / `report-history-mobile-list`) and template action responsive overrides — these use class-name-based media queries consumed by child elements across the render tree.
 
 ---
 
 ## Current state
 
-### Working
-- Build passes (`npm run build` succeeds, no TypeScript errors)
-- All 3 layout shells render with Tailwind (sidebar, header, bottom nav, profile menus)
-- BottomNav renders on mobile for Official and SuperAdmin portals
-- VerificationProgressCard shows in CitizenPageLayout for unverified citizens
-- Settings, Verifications, Analytics pages fully migrated to Tailwind
-- All Recharts inline styles preserved (required by library)
+### Working (confirmed)
+- Dashboard.tsx build passes ✓
+- Incidents.tsx build passes ✓
+- All previously migrated files still work (layouts, Settings, Verifications, Analytics)
 
-### Incomplete
-- **Dashboard.tsx** (1,059 lines, 144 inline styles) — NOT started. Was about to write this when session ended.
-- **Incidents.tsx** (1,301 lines, 115 inline styles) — NOT started
-- **Reports.tsx** (1,184 lines, 139 inline styles) — NOT started
-- Phase 5, 6 not started
+### Needs verification
+- **Reports.tsx** — The file was written successfully but `npm run build` was interrupted before it could confirm. **First action next session: run `npm run build` to verify.** If it fails, check for typos in the Tailwind classes or missing imports.
 
-### Not broken, but worth noting
-- The `citizen-only-mobile` and `citizen-only-desktop` CSS classes are still defined in CitizenPageLayout's `<style>` block. They use 900px breakpoint (not a standard Tailwind breakpoint). CitizenDesktopNav and CitizenMobileMenu depend on them. This will be cleaned up in Phase 5 when CitizenDashboard is rewritten.
+### Complete
+- Phase 3: Layout Shell Unification ✓ (Session 2)
+- Phase 4: High-Traffic Official Pages ✓ (Sessions 2-3)
+  - Settings.tsx ✓ (Session 2)
+  - Verifications.tsx ✓ (Session 2)
+  - Analytics.tsx ✓ (Session 2)
+  - Dashboard.tsx ✓ (Session 3)
+  - Incidents.tsx ✓ (Session 3)
+  - Reports.tsx ✓ (Session 3, needs build verify)
+
+### Not started
+- Phase 5: Citizen + SuperAdmin Pages
+- Phase 6: Landing + Map CSS + Cleanup
 
 ---
 
@@ -52,45 +50,47 @@ Migrated inline styles to Tailwind on the first 3 official pages:
 
 | File | Summary |
 |------|---------|
-| `src/app/components/BottomNav.tsx` | Added `exact?: boolean` to BottomNavItem interface |
-| `src/app/components/Layout.tsx` | Full rewrite: inline styles → Tailwind, hamburger → BottomNav |
-| `src/app/pages/superadmin/SuperAdminLayout.tsx` | Full rewrite: inline styles → Tailwind, hamburger → BottomNav |
-| `src/app/components/CitizenPageLayout.tsx` | Inline styles → Tailwind, verification banner → VerificationProgressCard |
-| `src/app/components/CitizenDesktopNav.tsx` | Inline styles → Tailwind |
-| `src/app/components/CitizenMobileMenu.tsx` | Inline styles → Tailwind |
-| `src/app/pages/Settings.tsx` | All inline styles → Tailwind, removed `<style>` block |
-| `src/app/pages/Verifications.tsx` | All inline styles → Tailwind |
-| `src/app/pages/Analytics.tsx` | Most inline styles → Tailwind, kept Recharts props + reduced `<style>` |
+| `src/app/pages/Dashboard.tsx` | Full rewrite: 144 inline styles → Tailwind, removed `<style>` block, hover handlers → Tailwind |
+| `src/app/pages/Incidents.tsx` | Full rewrite: 115 inline styles → Tailwind, modal + table + cards + filters + pagination migrated |
+| `src/app/pages/Reports.tsx` | Full rewrite: 139 inline styles → Tailwind, DSSCard + tabs + templates + history migrated, kept responsive `<style>` block |
 
 ---
 
 ## Open decisions
 
-- **BottomNav item selection for Official portal**: Currently Home, Incidents, Map, Reports, Settings. Analytics and Verifications are not in the bottom nav — they're accessible from desktop sidebar and dashboard links. May want to reconsider if users complain.
-- **SuperAdmin mobile breakpoint**: Changed from 768px to `lg` (1024px) for consistency with Official portal. If SA users prefer sidebar visible on tablets, could revert to `md` (768px).
-- **Dashboard.tsx approach**: This is the most complex page (1059 lines, 144 inline styles). Has KPICard, AlertBanner, cross-border alerts, heatmap panel, map with tuning controls, live feed, trend charts, type distribution, and incidents table. Recommended approach: full rewrite like the layouts, keeping all Recharts/Leaflet inline styles.
+- **Reports.tsx `<style>` block**: Kept the responsive media query block for `report-history-table-wrapper` / `report-history-mobile-list` toggle and `report-template-actions` overrides. These could potentially be replaced with Tailwind `hidden md:block` / `md:hidden` classes, but the current class names are used across nested elements in multiple render branches. Lower priority cleanup for Phase 6.
+- **Phase 5 scope**: CitizenDashboard (2,322 lines) and IncidentReport (2,658 lines) are the two largest files in the project. These will need careful section-by-section migration. Consider splitting into sub-tasks.
+- **BottomNav for citizen portal**: Not yet wired. Phase 5 should add it to CitizenPageLayout.
+- **CitizenOnboardingModal**: Built in Phase 1, not yet wired into any layout. Phase 5 should integrate it.
 
 ---
 
 ## Traps to avoid
 
 - **Recharts/Leaflet inline styles must stay** — those libraries require them. Only migrate wrapper divs.
-- **`isMobile` state in Analytics.tsx** — still needed for Recharts responsive props (tick sizes, margins, chart heights). Don't remove it even though wrapper styles now use Tailwind responsive classes.
-- **`citizen-only-mobile` / `citizen-only-desktop`** — these CSS classes at 900px breakpoint are consumed by CitizenDashboard, CitizenDesktopNav, CitizenMobileMenu. Don't remove from CitizenPageLayout's `<style>` until Phase 5.
+- **Dynamic color props** — `accent`, `bgLight`, `trendColor` in KPICard; `rec.color`, `rec.bg` in DSSCard; `t.color`, `t.bg` in template cards; `incidentTypeConfig[inc.type].bgColor`/`.color` in feed items — these MUST remain as inline styles since Tailwind can't handle runtime-dynamic values.
+- **`report-history-table-wrapper` / `report-history-mobile-list`** — These CSS class names control table↔card responsive toggle in Reports.tsx. Don't remove the `<style>` block without replacing with Tailwind responsive classes on ALL instances (used in both Templates tab and History tab).
+- **`incidents-mobile-cards`** — This div in Incidents.tsx has `display: none` by default, shown via parent CSS media query. The `hidden` Tailwind class was used. If the parent CSS is removed, mobile cards won't show.
+- **Context menu position** — The right-click context menu in Incidents.tsx uses `style={{ top: contextMenu.y, left: contextMenu.x }}` which must stay inline (dynamic pixel values).
+- **`citizen-only-mobile` / `citizen-only-desktop`** — Still in CitizenPageLayout's `<style>` block at 900px breakpoint. Don't remove until Phase 5.
 - **Port 5173/5174 may be blocked** on this Windows setup — vite.config.ts has port change to 4173.
 - **Tests use `node:test` runner**, NOT Jest or Vitest.
-- **`AUTH_SPIN_STYLE`** is exported as empty string from AuthLayout.tsx — some files may still import it.
 
 ---
 
 ## Next steps (priority order)
 
-1. **Commit all unstaged changes** — `git add` the 9 modified source files + session-handoff.md, commit with descriptive message.
-2. **Dashboard.tsx** — Migrate 144 inline styles to Tailwind. This is the biggest remaining file. Key sub-components: KPICard, AlertBanner, cross-border alerts section, heatmap section, map toolbar, live feed, trend chart, type distribution, incidents table.
-3. **Incidents.tsx** — 115 inline styles → Tailwind.
-4. **Reports.tsx** — 139 inline styles → Tailwind.
-5. **Phase 5: Citizen + SuperAdmin Pages** — CitizenDashboard (2,322 lines), IncidentReport (2,658 lines), CitizenMyReports, CitizenVerification, 5 SA pages. Wire `BottomNav` into citizen portal, wire `CitizenOnboardingModal`.
-6. **Phase 6: Landing + Map CSS + Cleanup** — Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
+1. **Verify Reports.tsx build** — Run `npm run build`. If it fails, fix any issues.
+2. **Commit all unstaged changes** — `git add` the 3 modified source files + session-handoff.md, commit with descriptive message.
+3. **Phase 5: Citizen + SuperAdmin Pages** — This is the largest remaining phase:
+   - **CitizenDashboard.tsx** (2,322 lines) — Biggest citizen page. Has welcome card, verification prompt, report feed, quick actions, map preview, stats.
+   - **IncidentReport.tsx** (2,658 lines) — Step-by-step incident form. Type → Location → Description → Evidence → Review. Complex multi-step wizard with file uploads.
+   - **CitizenMyReports.tsx** — Report list/detail view for citizens.
+   - **CitizenVerification.tsx** — ID verification flow.
+   - Wire `BottomNav` into CitizenPageLayout for citizen mobile nav.
+   - Wire `CitizenOnboardingModal` into citizen layout.
+   - **5 SuperAdmin pages**: SAOverview, SABarangayMap, SAAnalytics, SAUsers, SASettings.
+4. **Phase 6: Landing + Map CSS + Cleanup** — Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
 
 ---
 
@@ -106,6 +106,8 @@ Migrated inline styles to Tailwind on the first 3 official pages:
 - `src/app/components/Layout.tsx` — Official layout (rewritten Phase 3)
 - `src/app/pages/superadmin/SuperAdminLayout.tsx` — SA layout (rewritten Phase 3)
 - `src/app/components/CitizenPageLayout.tsx` — Citizen layout (rewritten Phase 3)
-- `src/app/pages/Dashboard.tsx` — **NEXT TARGET** (1,059 lines, 144 inline styles)
-- `src/app/pages/Incidents.tsx` — Next after Dashboard (1,301 lines)
-- `src/app/pages/Reports.tsx` — Next after Incidents (1,184 lines)
+- `src/app/pages/Dashboard.tsx` — Migrated this session (Phase 4)
+- `src/app/pages/Incidents.tsx` — Migrated this session (Phase 4)
+- `src/app/pages/Reports.tsx` — Migrated this session (Phase 4, needs build verify)
+- `src/app/pages/citizen/CitizenDashboard.tsx` — **NEXT TARGET** (2,322 lines)
+- `src/app/pages/citizen/IncidentReport.tsx` — Next after CitizenDashboard (2,658 lines)

@@ -162,87 +162,72 @@ function IncidentDetailModal({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(15,23,42,0.68)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-        padding: 14,
-        backdropFilter: 'blur(3px)',
-      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[3px]"
+      style={{ background: 'rgba(15,23,42,0.68)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        style={{
-          background: '#F8FAFC',
-          borderRadius: 16,
-          width: '100%',
-          maxWidth: 760,
-          maxHeight: '92vh',
-          overflow: 'auto',
-          boxShadow: '0 24px 70px rgba(15,23,42,0.33)',
-        }}
-      >
-        <div style={{ background: '#1E3A8A', padding: '18px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderRadius: '16px 16px 0 0' }}>
+      <div className="w-full max-w-[760px] max-h-[92vh] overflow-auto rounded-2xl bg-slate-50 shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
+        {/* Header */}
+        <div className="flex items-start justify-between rounded-t-2xl bg-[#1E3A8A] px-5 py-[18px]">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: '#FFFFFF', color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="mb-2 flex items-center gap-2.5">
+              <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white" style={{ color: cfg.color }}>
                 {typeIcons[incident.type]}
               </div>
               <div>
-                <div style={{ color: '#BFDBFE', fontSize: 10, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase' }}>Incident Details</div>
-                <div style={{ color: 'white', fontWeight: 800, fontSize: 16 }}>{incident.id}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-200">Incident Details</div>
+                <div className="text-base font-extrabold text-white">{incident.id}</div>
               </div>
             </div>
-            <div style={{ color: '#DBEAFE', fontSize: 12 }}>{incident.location}</div>
+            <div className="text-xs text-blue-100">{incident.location}</div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close incident details"
-            className="icon-btn-square"
-            style={{ background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'white' }}
+            className="icon-btn-square rounded-lg border-none bg-white/[0.16] text-white cursor-pointer"
           >
             <X size={16} color="white" />
           </button>
         </div>
 
-        <div style={{ padding: '12px 20px', background: '#F1F5F9', borderBottom: '1px solid #E2E8F0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {/* Badge bar */}
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-100 px-5 py-3">
           <TypeBadge type={incident.type} />
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} pulse={incident.status === 'active'} />
         </div>
 
-        <div style={{ padding: '18px 20px 20px' }}>
-          <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>Description</div>
-            <div style={{ color: '#334155', fontSize: 13, lineHeight: 1.65 }}>
+        {/* Body */}
+        <div className="px-5 pt-[18px] pb-5">
+          {/* Description */}
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Description</div>
+            <div className="text-[13px] leading-[1.65] text-slate-700">
               {incident.description}
             </div>
           </div>
 
-          <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+          {/* Evidence */}
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
               Evidence Attachments
             </div>
 
             {photoEvidence.length === 0 && audioEvidence.length === 0 ? (
-              <div style={{ color: '#64748B', fontSize: 12 }}>
+              <div className="text-xs text-slate-500">
                 No evidence files are available for this report.
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div className="grid gap-3">
                 {photoEvidence.length > 0 ? (
                   <div>
-                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                    <div className="mb-2 text-[11px] font-bold text-slate-600">
                       Photos ({photoEvidence.length})
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
                       {photoEvidence.map((item) => (
                         <button
                           key={item.id}
@@ -251,23 +236,14 @@ function IncidentDetailModal({
                             setPreviewPhotoUrl(item.publicUrl);
                             setPreviewPhotoName(item.fileName);
                           }}
-                          style={{
-                            borderRadius: 10,
-                            overflow: 'hidden',
-                            border: '1px solid #E2E8F0',
-                            background: '#F8FAFC',
-                            textDecoration: 'none',
-                            padding: 0,
-                            margin: 0,
-                            cursor: 'zoom-in',
-                          }}
+                          className="cursor-[zoom-in] overflow-hidden rounded-[10px] border border-slate-200 bg-slate-50 p-0 m-0"
                         >
                           <img
                             src={item.publicUrl}
                             alt={item.fileName}
-                            style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }}
+                            className="block h-[110px] w-full object-cover"
                           />
-                          <div style={{ padding: '6px 8px', fontSize: 10, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div className="overflow-hidden text-ellipsis whitespace-nowrap px-2 py-1.5 text-[10px] text-slate-600">
                             {item.fileName}
                           </div>
                         </button>
@@ -278,14 +254,14 @@ function IncidentDetailModal({
 
                 {audioEvidence.length > 0 ? (
                   <div>
-                    <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 8 }}>
+                    <div className="mb-2 text-[11px] font-bold text-slate-600">
                       Audio ({audioEvidence.length})
                     </div>
-                    <div style={{ display: 'grid', gap: 8 }}>
+                    <div className="grid gap-2">
                       {audioEvidence.map((item) => (
-                        <div key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 8, background: '#F8FAFC' }}>
-                          <div style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{item.fileName}</div>
-                          <audio controls src={item.publicUrl} style={{ width: '100%' }} />
+                        <div key={item.id} className="rounded-[10px] border border-slate-200 bg-slate-50 p-2">
+                          <div className="mb-1.5 text-[10px] text-slate-600">{item.fileName}</div>
+                          <audio controls src={item.publicUrl} className="w-full" />
                         </div>
                       ))}
                     </div>
@@ -295,7 +271,8 @@ function IncidentDetailModal({
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 16 }}>
+          {/* Info grid */}
+          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5">
             {[
               { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
               { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
@@ -303,49 +280,37 @@ function IncidentDetailModal({
               { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
               { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} style={{ background: '#FFFFFF', borderRadius: 10, padding: '10px 12px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div key={item.label} className="rounded-[10px] border border-slate-200 bg-white px-3 py-2.5">
+                <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-slate-400">
                   {item.icon} {item.label}
                 </div>
-                <div style={{ fontSize: 12, color: '#334155', fontWeight: 500 }}>{item.value}</div>
+                <div className="text-xs font-medium text-slate-700">{item.value}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>Ticket Timeline</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Timeline */}
+          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Ticket Timeline</div>
+            <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
-                <div key={`${entry.label}-${entry.timestamp}`} style={{ borderLeft: '2px solid #DBE4EE', paddingLeft: 10, position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: -6, top: 3, width: 9, height: 9, borderRadius: 999, background: '#1E3A8A', border: '2px solid #FFFFFF' }} />
-                  <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 700 }}>{entry.label}</div>
-                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{entry.description}</div>
-                  <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{formatTime(entry.timestamp)} • {entry.actor}</div>
+                <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[#DBE4EE] pl-2.5">
+                  <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full border-2 border-white bg-[#1E3A8A]" />
+                  <div className="text-xs font-bold text-slate-800">{entry.label}</div>
+                  <div className="mt-[1px] text-[11px] text-slate-500">{entry.description}</div>
+                  <div className="mt-0.5 text-[11px] text-slate-400">{formatTime(entry.timestamp)} • {entry.actor}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div style={{ padding: '14px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {/* Action bar */}
+        <div className="flex flex-wrap gap-2.5 border-t border-slate-100 px-5 py-3.5">
           {canUpdateStatus ? (
-            <div style={{ flex: 1, minWidth: 180, display: 'grid', gap: 8, position: 'relative' }}>
+            <div className="relative grid min-w-[180px] flex-1 gap-2">
               {statusSelectorOpen ? (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: 'calc(100% + 8px)',
-                    background: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: 8,
-                    boxShadow: '0 16px 30px rgba(15,23,42,0.2)',
-                    maxHeight: 200,
-                    overflowY: 'auto',
-                    zIndex: 120,
-                  }}
-                >
+                <div className="absolute inset-x-0 bottom-[calc(100%+8px)] z-[120] max-h-[200px] overflow-y-auto rounded-lg border border-slate-300 bg-white shadow-[0_16px_30px_rgba(15,23,42,0.2)]">
                   {availableStatuses.map((status) => (
                     <button
                       key={status}
@@ -354,17 +319,9 @@ function IncidentDetailModal({
                         setNextStatus(status);
                         setStatusSelectorOpen(false);
                       }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        border: 'none',
-                        background: nextStatus === status ? '#EFF6FF' : '#FFFFFF',
-                        color: nextStatus === status ? '#1E3A8A' : '#334155',
-                        padding: '9px 12px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className={`w-full border-none px-3 py-[9px] text-left text-xs font-semibold cursor-pointer ${
+                        nextStatus === status ? 'bg-blue-50 text-[#1E3A8A]' : 'bg-white text-slate-700'
+                      }`}
                     >
                       {status}
                     </button>
@@ -376,20 +333,9 @@ function IncidentDetailModal({
                 type="button"
                 disabled={isUpdating || !canUpdateStatus}
                 onClick={() => setStatusSelectorOpen((value) => !value)}
-                style={{
-                  width: '100%',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#334155',
-                  borderRadius: 8,
-                  padding: '8px 10px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
+                className={`flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 ${
+                  isUpdating || !canUpdateStatus ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
               >
                 <span>{nextStatus || 'Select new status'}</span>
                 <ChevronUp size={14} color="#64748B" />
@@ -403,79 +349,49 @@ function IncidentDetailModal({
                   }
                   void onUpdateStatus(nextStatus);
                 }}
-                style={{
-                  width: '100%',
-                  background: '#1E3A8A',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '9px 16px',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: !nextStatus || isUpdating || !canUpdateStatus ? 'not-allowed' : 'pointer',
-                  opacity: !nextStatus || isUpdating || !canUpdateStatus ? 0.6 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
+                className={`flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-[#1E3A8A] px-4 py-[9px] text-xs font-semibold text-white ${
+                  !nextStatus || isUpdating || !canUpdateStatus ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                }`}
               >
                 <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
               </button>
             </div>
           ) : null}
 
-          <button style={{ flex: canUpdateStatus ? 1 : '1 1 100%', minWidth: 100, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <button
+            className="flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer"
+            style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
+          >
             <Printer size={13} /> Print Report
           </button>
         </div>
 
+        {/* Photo preview lightbox */}
         {previewPhotoUrl ? (
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Evidence photo preview"
             onClick={() => setPreviewPhotoUrl(null)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 140,
-              background: 'rgba(2,6,23,0.86)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 18,
-            }}
+            className="fixed inset-0 z-[140] flex items-center justify-center p-[18px]"
+            style={{ background: 'rgba(2,6,23,0.86)' }}
           >
             <button
               type="button"
               onClick={() => setPreviewPhotoUrl(null)}
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                border: '1px solid rgba(255,255,255,0.35)',
-                background: 'rgba(15,23,42,0.7)',
-                color: '#fff',
-                borderRadius: 999,
-                width: 36,
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
+              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-slate-900/70 text-white cursor-pointer"
               aria-label="Close photo preview"
             >
               <X size={16} />
             </button>
-            <div onClick={(event) => event.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'grid', gap: 10 }}>
+            <div onClick={(event) => event.stopPropagation()} className="grid max-h-full max-w-full gap-2.5">
               <img
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
-                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)', borderRadius: 12 }}
+                className="rounded-xl"
+                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)' }}
               />
-              <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600, textAlign: 'center' }}>
+              <div className="text-center text-xs font-semibold text-slate-200">
                 {previewPhotoName}
               </div>
             </div>
@@ -652,7 +568,7 @@ export default function Incidents() {
           return false;
         }
 
-        const q = search.toLowerCase(); 
+        const q = search.toLowerCase();
         if (
           search &&
           !inc.id.toLowerCase().includes(q) &&
@@ -775,9 +691,9 @@ export default function Incidents() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+      <div className="min-h-full px-4 py-3.5">
         <TableSkeleton rows={8} columns={7} showHeader />
-        <div style={{ marginTop: 14 }}>
+        <div className="mt-3.5">
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         </div>
       </div>
@@ -785,11 +701,12 @@ export default function Incidents() {
   }
 
   return (
-    <div style={{ padding: '14px 16px', minHeight: '100%' }}>
-      <div className="incidents-page-header" style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+    <div className="min-h-full px-4 py-3.5">
+      {/* Page header */}
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Incident Management</h1>
-          <p style={{ color: '#64748B', fontSize: 12 }}>
+          <h1 className="mb-0.5 text-xl font-bold text-slate-800">Incident Management</h1>
+          <p className="text-xs text-slate-500">
             {loading
               ? 'Loading reports...'
               : `${filtered.length} ${listView === 'open' ? 'active' : 'archived'} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
@@ -797,23 +714,17 @@ export default function Incidents() {
         </div>
       </div>
 
-      <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {/* List view toggle */}
+      <div className="mb-3 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => {
             setListView('open');
             setPage(1);
           }}
-          style={{
-            border: '1px solid #CBD5E1',
-            background: listView === 'open' ? '#1E3A8A' : '#FFFFFF',
-            color: listView === 'open' ? '#FFFFFF' : '#334155',
-            borderRadius: 999,
-            padding: '8px 12px',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
+          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
+            listView === 'open' ? 'bg-[#1E3A8A] text-white' : 'bg-white text-slate-700'
+          }`}
         >
           Open Incidents ({openCount})
         </button>
@@ -823,30 +734,24 @@ export default function Incidents() {
             setListView('archived');
             setPage(1);
           }}
-          style={{
-            border: '1px solid #CBD5E1',
-            background: listView === 'archived' ? '#1E3A8A' : '#FFFFFF',
-            color: listView === 'archived' ? '#FFFFFF' : '#334155',
-            borderRadius: 999,
-            padding: '8px 12px',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
+          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
+            listView === 'archived' ? 'bg-[#1E3A8A] text-white' : 'bg-white text-slate-700'
+          }`}
         >
           Archived ({archivedCount})
         </button>
       </div>
 
       {error ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 12px', fontSize: 13 }}>
+        <div className="mb-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2.5 text-[13px] text-red-700">
           {error}
         </div>
       ) : null}
 
-      <div className="incidents-filter-bar" style={{ background: 'white', borderRadius: 12, padding: '12px 14px', marginBottom: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '2 1 200px' }}>
-          <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+      {/* Filter bar */}
+      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-xl bg-white px-3.5 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="relative flex-[2_1_200px]">
+          <Search size={14} color="#94A3B8" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => {
@@ -854,7 +759,7 @@ export default function Incidents() {
               setPage(1);
             }}
             placeholder="Search reports, barangays..."
-            style={{ width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 10, paddingBottom: 10, border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 13, background: '#F8FAFC', outline: 'none', boxSizing: 'border-box', color: '#1E293B' }}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-8 text-[13px] text-slate-800 outline-none"
           />
         </div>
 
@@ -887,31 +792,13 @@ export default function Incidents() {
             options: Object.entries(statusConfig).map(([k, v]) => ({ value: k, label: v.label })),
           },
         ].map((f) => (
-          <div
-            key={f.label}
-            style={{
-              flex: '1 1 130px',
-              minWidth: 0,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
+          <div key={f.label} className="relative w-full min-w-0 flex-[1_1_130px]">
             <select
               value={f.value}
               onChange={(e) => f.setter(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 34px 10px 10px',
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                fontSize: 13,
-                background: '#F8FAFC',
-                color: f.value ? '#1E293B' : '#94A3B8',
-                outline: 'none',
-                cursor: 'pointer',
-                boxSizing: 'border-box',
-                appearance: 'none',
-              }}
+              className={`w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none ${
+                f.value ? 'text-slate-800' : 'text-slate-400'
+              }`}
             >
               <option value="">{f.label}</option>
               {f.options.map((o) => (
@@ -923,13 +810,7 @@ export default function Incidents() {
             <ChevronDown
               size={14}
               color="#94A3B8"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                right: 12,
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-              }}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
             />
           </div>
         ))}
@@ -943,7 +824,7 @@ export default function Incidents() {
               setFilterStatus('');
               setPage(1);
             }}
-            style={{ background: '#FEE2E2', color: '#B91C1C', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+            className="flex items-center gap-1 whitespace-nowrap rounded-lg border-none bg-red-100 px-3.5 py-2.5 text-[13px] font-semibold text-red-700 cursor-pointer"
           >
             <X size={14} /> Clear
           </button>
@@ -953,17 +834,18 @@ export default function Incidents() {
           onClick={() => {
             void loadReports();
           }}
-          style={{ marginLeft: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+          className="ml-auto flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer"
         >
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
-      <div className="incidents-table-wrapper" style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: 14 }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      {/* Desktop table */}
+      <div className="incidents-table-wrapper mb-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
             <thead>
-              <tr style={{ background: '#F8FAFC' }}>
+              <tr className="bg-slate-50">
                 {[
                   { key: 'id' as keyof IncidentView, label: 'Incident ID' },
                   { key: 'type' as keyof IncidentView, label: 'Type' },
@@ -976,9 +858,11 @@ export default function Incidents() {
                   <th
                     key={col.label}
                     onClick={() => col.key && handleSort(col.key)}
-                    style={{ padding: '11px 14px', textAlign: 'left', color: sortKey === col.key ? '#1E3A8A' : '#64748B', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', borderBottom: '2px solid #F1F5F9', cursor: col.key ? 'pointer' : 'default', whiteSpace: 'nowrap', userSelect: 'none' }}
+                    className={`whitespace-nowrap border-b-2 border-slate-100 px-3.5 py-[11px] text-left text-[11px] font-semibold tracking-wide select-none ${
+                      sortKey === col.key ? 'text-[#1E3A8A]' : 'text-slate-500'
+                    } ${col.key ? 'cursor-pointer' : 'cursor-default'}`}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span className="flex items-center gap-1">
                       {col.label}
                       {col.key && <SortIcon k={col.key} />}
                     </span>
@@ -989,13 +873,13 @@ export default function Incidents() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: 16 }}>
+                  <td colSpan={7} className="p-4">
                     <TableSkeleton rows={6} columns={7} showHeader={false} className="border-0 shadow-none" />
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>No reports match your filters.</td>
+                  <td colSpan={7} className="py-10 text-center text-[13px] text-slate-400">No reports match your filters.</td>
                 </tr>
               ) : paginated.map((inc) => (
                 <tr
@@ -1014,41 +898,33 @@ export default function Incidents() {
                       y: event.clientY,
                     });
                   }}
-                  style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
+                  className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50"
                 >
-                  <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 12 }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontWeight: 700, color: '#1E3A8A' }}>{inc.id}</span>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-xs">
+                    <div className="inline-flex items-center gap-1.5">
+                      <span className="font-bold text-[#1E3A8A]">{inc.id}</span>
                       {isVerifiedReporter(inc) ? (
-                        <span
-                          title="Verified Reporter"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            color: '#1E3A8A',
-                          }}
-                          aria-label="Verified Reporter"
-                        >
+                        <span title="Verified Reporter" className="inline-flex items-center text-[#1E3A8A]" aria-label="Verified Reporter">
                           <ShieldIcon size={13} />
                         </span>
                       ) : null}
                     </div>
                   </td>
-                  <td style={{ padding: '11px 14px' }}><TypeBadge type={inc.type} size="sm" /></td>
-                  <td style={{ padding: '11px 14px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <div style={{ color: '#1E293B', fontWeight: 500 }}>{inc.barangay}</div>
-                    <div style={{ color: '#94A3B8', fontSize: 10 }}>{inc.district}</div>
+                  <td className="px-3.5 py-[11px]"><TypeBadge type={inc.type} size="sm" /></td>
+                  <td className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-[11px]">
+                    <div className="font-medium text-slate-800">{inc.barangay}</div>
+                    <div className="text-[10px] text-slate-400">{inc.district}</div>
                   </td>
-                  <td style={{ padding: '11px 14px' }}><SeverityBadge severity={inc.severity} size="sm" /></td>
-                  <td style={{ padding: '11px 14px' }}><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
-                  <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
-                  <td style={{ padding: '11px 14px' }}>
+                  <td className="px-3.5 py-[11px]"><SeverityBadge severity={inc.severity} size="sm" /></td>
+                  <td className="px-3.5 py-[11px]"><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
+                  <td className="px-3.5 py-[11px]">
                     <button
                       onClick={(event) => {
                         event.stopPropagation();
                         setSelectedIncident(inc);
                       }}
-                      style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600 }}
+                      className="flex items-center gap-[3px] rounded-md border-none bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-[#1E3A8A] cursor-pointer"
                     >
                       <Edit2 size={12} /> Edit
                     </button>
@@ -1060,23 +936,14 @@ export default function Incidents() {
         </div>
       </div>
 
+      {/* Context menu */}
       {contextMenu ? (
         <div
           role="menu"
           aria-label={`Actions for ${contextMenu.incident.id}`}
           onClick={(event) => event.stopPropagation()}
-          style={{
-            position: 'fixed',
-            top: contextMenu.y,
-            left: contextMenu.x,
-            minWidth: 180,
-            background: '#FFFFFF',
-            border: '1px solid #CBD5E1',
-            borderRadius: 10,
-            boxShadow: '0 16px 30px rgba(15,23,42,0.22)',
-            padding: 6,
-            zIndex: 160,
-          }}
+          className="fixed z-[160] min-w-[180px] rounded-[10px] border border-slate-300 bg-white p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button
             type="button"
@@ -1084,21 +951,7 @@ export default function Incidents() {
               setSelectedIncident(contextMenu.incident);
               setContextMenu(null);
             }}
-            style={{
-              width: '100%',
-              border: 'none',
-              background: '#FFFFFF',
-              color: '#334155',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              padding: '9px 10px',
-              textAlign: 'left',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
+            className="flex w-full items-center gap-1.5 rounded-lg border-none bg-white px-2.5 py-[9px] text-left text-xs font-semibold text-slate-700 cursor-pointer"
           >
             <Edit2 size={13} /> Open / Edit Incident
           </button>
@@ -1113,21 +966,11 @@ export default function Incidents() {
               }
               void updateIncidentStatus(contextMenu.incident, archiveStatus);
             }}
-            style={{
-              width: '100%',
-              border: 'none',
-              background: '#FFFFFF',
-              color: !getArchiveTargetStatus(contextMenu.incident) ? '#94A3B8' : '#B45309',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              padding: '9px 10px',
-              textAlign: 'left',
-              cursor: !getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
+            className={`flex w-full items-center gap-1.5 rounded-lg border-none bg-white px-2.5 py-[9px] text-left text-xs font-semibold ${
+              !getArchiveTargetStatus(contextMenu.incident) ? 'text-slate-400' : 'text-amber-700'
+            } ${
+              !getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id ? 'cursor-not-allowed' : 'cursor-pointer'
+            }`}
           >
             <Clock size={13} />
             {updatingIncidentId === contextMenu.incident.id ? 'Archiving...' : 'Archive Incident'}
@@ -1135,29 +978,12 @@ export default function Incidents() {
         </div>
       ) : null}
 
-      <div
-        className="incidents-mobile-cards"
-        style={{
-          display: 'none',
-          flexDirection: 'column',
-          gap: 10,
-          marginBottom: 14,
-        }}
-      >
+      {/* Mobile cards (hidden by default, shown via parent CSS) */}
+      <div className="incidents-mobile-cards mb-3.5 hidden flex-col gap-2.5">
         {loading ? (
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
-          <div
-            style={{
-              background: 'white',
-              borderRadius: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-              padding: '22px 16px',
-              textAlign: 'center',
-              color: '#94A3B8',
-              fontSize: 13,
-            }}
-          >
+          <div className="rounded-xl bg-white px-4 py-[22px] text-center text-[13px] text-slate-400 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
             No reports match your filters.
           </div>
         ) : (
@@ -1165,28 +991,13 @@ export default function Incidents() {
             <article
               key={inc.id}
               onClick={() => setSelectedIncident(inc)}
-              style={{
-                background: 'white',
-                borderRadius: 12,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-                padding: '12px 12px 10px',
-                border: '1px solid #E2E8F0',
-                cursor: 'pointer',
-              }}
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 pb-2.5 pt-3 shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                <div style={{ display: 'grid', gap: 5 }}>
-                  <div style={{ color: '#1E3A8A', fontWeight: 700, fontSize: 12 }}>{inc.id}</div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="grid gap-[5px]">
+                  <div className="text-xs font-bold text-[#1E3A8A]">{inc.id}</div>
                   {isVerifiedReporter(inc) ? (
-                    <span
-                      title="Verified Reporter"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        color: '#1E3A8A',
-                      }}
-                      aria-label="Verified Reporter"
-                    >
+                    <span title="Verified Reporter" className="inline-flex items-center text-[#1E3A8A]" aria-label="Verified Reporter">
                       <ShieldIcon size={13} />
                     </span>
                   ) : null}
@@ -1194,16 +1005,16 @@ export default function Incidents() {
                 <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
               </div>
 
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+              <div className="mb-2 flex flex-wrap gap-1.5">
                 <TypeBadge type={inc.type} size="sm" />
                 <SeverityBadge severity={inc.severity} size="sm" />
               </div>
 
-              <div style={{ color: '#1E293B', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{inc.barangay}</div>
-              <div style={{ color: '#64748B', fontSize: 12, marginBottom: 6 }}>{inc.location}</div>
+              <div className="mb-1 text-xs font-semibold text-slate-800">{inc.barangay}</div>
+              <div className="mb-1.5 text-xs text-slate-500">{inc.location}</div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
-                <div style={{ color: '#94A3B8', fontSize: 11 }}>
+              <div className="mb-2.5 flex items-center justify-between gap-2">
+                <div className="text-[11px] text-slate-400">
                   {new Date(inc.reportedAt).toLocaleString('en-PH', {
                     month: 'short',
                     day: 'numeric',
@@ -1219,21 +1030,7 @@ export default function Incidents() {
                   event.stopPropagation();
                   setSelectedIncident(inc);
                 }}
-                style={{
-                  width: '100%',
-                  background: '#EFF6FF',
-                  color: '#1E3A8A',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-blue-50 px-3 py-[9px] text-xs font-semibold text-[#1E3A8A] cursor-pointer"
               >
                 <ChevronRight size={13} /> View Details
               </button>
@@ -1250,46 +1047,34 @@ export default function Incidents() {
           isUpdating={updatingIncidentId === selectedIncident.id}
         />
       ) : null}
+
+      {/* Pagination */}
       {!loading && filtered.length > 0 ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'white', border: '1px solid #E2E8F0', borderRadius: 12, padding: '10px 12px', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, color: '#64748B' }}>
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+          <div className="text-xs text-slate-500">
             Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} of {filtered.length}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              style={{
-                border: '1px solid #CBD5E1',
-                borderRadius: 8,
-                background: page === 1 ? '#F8FAFC' : '#FFFFFF',
-                color: page === 1 ? '#94A3B8' : '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                padding: '8px 12px',
-                cursor: page === 1 ? 'not-allowed' : 'pointer',
-              }}
+              className={`rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold ${
+                page === 1 ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
+              }`}
             >
               Previous
             </button>
-            <div style={{ minWidth: 72, textAlign: 'center', fontSize: 12, color: '#334155', fontWeight: 700 }}>
+            <div className="min-w-[72px] text-center text-xs font-bold text-slate-700">
               Page {page} / {totalPages}
             </div>
             <button
               type="button"
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page === totalPages}
-              style={{
-                border: '1px solid #CBD5E1',
-                borderRadius: 8,
-                background: page === totalPages ? '#F8FAFC' : '#FFFFFF',
-                color: page === totalPages ? '#94A3B8' : '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                padding: '8px 12px',
-                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-              }}
+              className={`rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold ${
+                page === totalPages ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
+              }`}
             >
               Next
             </button>

@@ -356,70 +356,78 @@ function DSSCard({
   const pStyle = priorityStyle[rec.priority as keyof typeof priorityStyle];
 
   return (
-    <div style={{
-      background: 'white',
-      borderRadius: 12,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-      overflow: 'hidden',
-      border: `1px solid ${rec.bg}`,
-      marginBottom: 12,
-    }}>
-      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+    <div
+      className="mb-3 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
+      style={{ border: `1px solid ${rec.bg}` }}
+    >
+      <div className="flex items-start gap-3 px-4 py-3.5">
         {/* Icon */}
-        <div style={{ width: 38, height: 38, borderRadius: 10, background: rec.bg, color: rec.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+        <div
+          className="mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px]"
+          style={{ background: rec.bg, color: rec.color }}
+        >
           {rec.icon}
         </div>
         {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2.5">
             <div>
-              <span style={{ background: pStyle.bg, color: pStyle.color, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.08em', marginRight: 8 }}>
+              <span
+                className="mr-2 rounded text-[9px] font-bold tracking-widest"
+                style={{ background: pStyle.bg, color: pStyle.color, padding: '2px 7px' }}
+              >
                 {pStyle.label}
               </span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{rec.title}</span>
+              <span className="text-[13px] font-bold text-slate-800">{rec.title}</span>
             </div>
             {/* Confidence meter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-              <span style={{ fontSize: 10, color: '#94A3B8' }}>Confidence</span>
-              <div style={{ width: 50, height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${rec.confidence}%`, background: rec.color, borderRadius: 3 }} />
+            <div className="flex shrink-0 items-center gap-1.5">
+              <span className="text-[10px] text-slate-400">Confidence</span>
+              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-slate-100">
+                <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
               </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: rec.color }}>{rec.confidence}%</span>
+              <span className="text-[11px] font-bold" style={{ color: rec.color }}>{rec.confidence}%</span>
             </div>
           </div>
-          <p style={{ color: '#475569', fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>{rec.description}</p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
-            <span style={{ fontSize: 10, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <p className="mb-2 text-xs leading-[1.6] text-slate-600">{rec.description}</p>
+          <div className="flex flex-wrap items-center justify-between gap-1.5">
+            <span className="flex items-center gap-1 text-[10px] text-slate-400">
               <Brain size={10} /> Source: {rec.source}
             </span>
             <button
               onClick={() => setExpanded(v => !v)}
-              style={{ background: 'none', border: 'none', color: rec.color, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer"
+              style={{ color: rec.color }}
             >
-              {expanded ? 'Hide' : 'View'} Recommended Actions <ChevronDown size={13} style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+              {expanded ? 'Hide' : 'View'} Recommended Actions <ChevronDown size={13} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
       </div>
 
       {expanded && (
-        <div style={{ borderTop: `1px solid ${rec.bg}`, padding: '12px 16px', background: rec.bg + '40' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 8, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Recommended Actions</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="px-4 py-3" style={{ borderTop: `1px solid ${rec.bg}`, background: rec.bg + '40' }}>
+          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">Recommended Actions</div>
+          <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: rec.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+              <div key={i} className="flex items-start gap-2">
+                <div
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                  style={{ background: rec.color }}
+                >
                   {i + 1}
                 </div>
-                <span style={{ fontSize: 12, color: '#334155', paddingTop: 2 }}>{action}</span>
+                <span className="pt-0.5 text-xs text-slate-700">{action}</span>
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <div className="mt-3 flex gap-2">
             <button
               onClick={() => onDismiss(rec)}
               disabled={busy}
-              style={{ width: '100%', background: 'white', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}
+              className={`w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-500 ${
+                busy ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+              }`}
             >
               {busy ? 'Submitting...' : 'Dismiss Recommendation'}
             </button>
@@ -735,17 +743,17 @@ export default function Reports() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+      <div className="min-h-full px-5 py-4">
         <CardSkeleton
           count={3}
           lines={2}
           showImage={false}
           gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
         />
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TextSkeleton rows={3} title={false} />
         </div>
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TableSkeleton rows={7} columns={4} showHeader={false} />
         </div>
       </div>
@@ -753,26 +761,27 @@ export default function Reports() {
   }
 
   return (
-    <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+    <div className="min-h-full px-5 py-4">
       {/* Header */}
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Reports & Decision Support</h1>
-        <p style={{ color: '#64748B', fontSize: 12 }}>AI-assisted decision support and standardized reporting — TUGON DSS Module</p>
+      <div className="mb-4">
+        <h1 className="mb-0.5 text-xl font-bold text-slate-800">Reports & Decision Support</h1>
+        <p className="text-xs text-slate-500">AI-assisted decision support and standardized reporting — TUGON DSS Module</p>
       </div>
 
-      {/* Tabs */}
+      {/* Status messages */}
       {actionError ? (
-        <div style={{ marginBottom: 12, border: '1px solid #FECACA', background: '#FEF2F2', color: '#B91C1C', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
           {actionError}
         </div>
       ) : null}
       {actionSuccess ? (
-        <div style={{ marginBottom: 12, border: '1px solid #BBF7D0', background: '#F0FDF4', color: '#166534', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+        <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-2.5 py-2 text-xs text-green-800">
           {actionSuccess}
         </div>
       ) : null}
 
-      <div className="reports-tabs" style={{ display: 'flex', gap: 0, marginBottom: 16, background: 'white', borderRadius: 10, padding: 4, width: 'fit-content', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #F1F5F9', maxWidth: '100%', overflowX: 'auto' }}>
+      {/* Tabs */}
+      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-[10px] border border-slate-100 bg-white p-1 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
         {[
           { key: 'dss', label: 'Decision Support', icon: <Brain size={14} /> },
           { key: 'templates', label: 'Report Templates', icon: <FileText size={14} /> },
@@ -781,21 +790,11 @@ export default function Reports() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 7,
-              border: 'none',
-              background: activeTab === tab.key ? '#1E3A8A' : 'transparent',
-              color: activeTab === tab.key ? 'white' : '#64748B',
-              fontSize: 12,
-              fontWeight: activeTab === tab.key ? 700 : 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.15s',
-              whiteSpace: 'nowrap',
-            }}
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-[7px] border-none px-4 py-2 text-xs transition-all duration-150 cursor-pointer ${
+              activeTab === tab.key
+                ? 'bg-[#1E3A8A] font-bold text-white'
+                : 'bg-transparent font-medium text-slate-500'
+            }`}
           >
             {tab.icon} {tab.label}
           </button>
@@ -806,32 +805,22 @@ export default function Reports() {
       {activeTab === 'dss' && (
         <div>
           {/* DSS Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)',
-            borderRadius: 12,
-            padding: '16px 20px',
-            marginBottom: 16,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-xl px-5 py-4" style={{ background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div className="mb-1.5 flex items-center gap-2">
                 <Sparkles size={16} color="#FDE68A" />
-                <span style={{ color: '#FDE68A', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>AI-Assisted Decision Support</span>
+                <span className="text-xs font-bold uppercase tracking-wide text-amber-200">AI-Assisted Decision Support</span>
               </div>
-              <div style={{ color: 'white', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>TUGON Intelligence Engine</div>
-              <div style={{ color: '#93C5FD', fontSize: 12 }}>
+              <div className="mb-1 text-base font-bold text-white">TUGON Intelligence Engine</div>
+              <div className="text-xs text-blue-300">
                 {analysisWindowDays > 0
                   ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data to surface actionable recommendations.`
                   : 'Waiting for incident data to generate recommendations.'}
               </div>
-              <div style={{ color: '#93C5FD', fontSize: 11, marginTop: 4 }}>
+              <div className="mt-1 text-[11px] text-blue-300">
                 Recommendation source: {dssRecommendationSource === 'ai' ? 'AI model' : 'Fallback rules engine'}
               </div>
-              <div style={{ color: '#BFDBFE', fontSize: 11, marginTop: 6 }}>
+              <div className="mt-1.5 text-[11px] text-blue-200">
                 Last refreshed:{' '}
                 {dssLastRefreshedAt
                   ? new Date(dssLastRefreshedAt).toLocaleString('en-PH', {
@@ -849,45 +838,33 @@ export default function Reports() {
             <button
               onClick={() => { void reloadReports('dss'); }}
               disabled={dssRefreshing}
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                borderRadius: 8,
-                padding: '8px 16px',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: dssRefreshing ? 'not-allowed' : 'pointer',
-                opacity: dssRefreshing ? 0.75 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                whiteSpace: 'nowrap',
-              }}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/30 bg-white/15 px-4 py-2 text-xs font-semibold text-white ${
+                dssRefreshing ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
+              }`}
             >
-              <RefreshCw size={13} style={dssRefreshing ? { animation: 'spin 1s linear infinite' } : undefined} />
+              <RefreshCw size={13} className={dssRefreshing ? 'animate-spin' : ''} />
               {dssRefreshing ? 'Refreshing...' : 'Refresh Analysis'}
             </button>
           </div>
 
           {/* Stats row */}
-          <div className="dss-stats-row" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div className="mb-4 flex flex-wrap gap-2.5">
             {[
               { label: 'Active Recommendations', value: visibleDssRecommendations.length, color: '#1E3A8A', bg: '#EFF6FF' },
               { label: 'Pending Actions', value: dssActionCount, color: '#B4730A', bg: '#FEF3C7' },
               { label: 'Resolved This Week', value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: 'Avg. Confidence Score', value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
-              <div key={s.label} style={{ flex: '1 1 120px', background: 'white', borderRadius: 10, padding: '12px 14px', boxShadow: '0 1px 5px rgba(15, 23, 42, 0.06)', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: s.color, marginBottom: 2 }}>{s.value}</div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>{s.label}</div>
+              <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+                <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
+                <div className="text-[11px] text-slate-500">{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* Recommendations */}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1E293B', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
               <Lightbulb size={15} color="#B4730A" />
               Current Recommendations
             </div>
@@ -901,7 +878,7 @@ export default function Reports() {
                 />
               ))
             ) : (
-              <div style={{ background: 'white', borderRadius: 12, border: '1px solid #E2E8F0', color: '#64748B', fontSize: 12, padding: '12px 14px' }}>
+              <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-500">
                 No live recommendation available yet. Submit or process incidents to unlock DSS insights.
               </div>
             )}
@@ -912,54 +889,61 @@ export default function Reports() {
       {/* Templates Tab */}
       {activeTab === 'templates' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(t => (
-              <div key={t.id} style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden', border: '1px solid #F1F5F9' }}>
-                <div style={{ padding: '14px 16px', borderBottom: '1px solid #F8FAFC' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: t.bg, color: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div key={t.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+                <div className="border-b border-slate-50 px-4 py-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
+                      style={{ background: t.bg, color: t.color }}
+                    >
                       {t.icon}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>{t.title}</div>
-                      <span style={{ background: t.bg, color: t.color, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <div className="flex-1">
+                      <div className="mb-1 text-[13px] font-bold text-slate-800">{t.title}</div>
+                      <span
+                        className="rounded text-[9px] font-bold uppercase tracking-wide"
+                        style={{ background: t.bg, color: t.color, padding: '2px 7px' }}
+                      >
                         {t.category}
                       </span>
                     </div>
                   </div>
-                  <p style={{ color: '#64748B', fontSize: 12, lineHeight: 1.5, marginTop: 10 }}>{t.description}</p>
+                  <p className="mt-2.5 text-xs leading-[1.5] text-slate-500">{t.description}</p>
                 </div>
-                <div style={{ padding: '10px 16px', background: '#FAFBFF' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div className="bg-[#FAFBFF] px-4 py-2.5">
+                  <div className="mb-2.5 flex items-center justify-between">
                     <div>
-                      <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 2 }}>Last Generated</div>
-                      <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{latestIncidentTime}</div>
+                      <div className="mb-0.5 text-[10px] text-slate-400">Last Generated</div>
+                      <div className="text-[11px] font-medium text-slate-600">{latestIncidentTime}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 2 }}>Frequency</div>
-                      <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{t.frequency}</div>
+                    <div className="text-right">
+                      <div className="mb-0.5 text-[10px] text-slate-400">Frequency</div>
+                      <div className="text-[11px] font-medium text-slate-600">{t.frequency}</div>
                     </div>
                   </div>
-                  <div className="report-template-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-                    <div className="report-template-secondary-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                      <button onClick={() => { void handleTemplateDownload(t.id); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 600 }}>
+                  <div className="report-template-actions flex flex-col items-stretch gap-2">
+                    <div className="report-template-secondary-actions grid grid-cols-2 gap-2">
+                      <button onClick={() => { void handleTemplateDownload(t.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
                         <Download size={14} /> Download
                       </button>
-                      <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#334155' }}>
+                      <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-700 cursor-pointer">
                         <Printer size={14} /> Print
                       </button>
                     </div>
                     <button
                       onClick={() => handleGenerate(t.id)}
                       disabled={generating === t.id}
-                      style={{
-                        flex: 1, background: generating === t.id ? '#F1F5F9' : t.color, color: generating === t.id ? '#94A3B8' : 'white',
-                        border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: generating === t.id ? 'not-allowed' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                      }}
+                      className={`flex flex-1 items-center justify-center gap-[5px] rounded-lg border-none p-2 text-xs font-semibold ${
+                        generating === t.id
+                          ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                          : 'cursor-pointer text-white'
+                      }`}
+                      style={generating !== t.id ? { background: t.color } : undefined}
                     >
                       {generating === t.id ? (
-                        <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</>
+                        <><RefreshCw size={12} className="animate-spin" /> Generating...</>
                       ) : (
                         <><FileText size={12} /> Generate New Report</>
                       )}
@@ -970,40 +954,41 @@ export default function Reports() {
             ))}
           </div>
 
-          <div style={{ marginTop: 14, background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Past Generated Template Reports</span>
-              <span style={{ color: '#64748B', fontSize: 11 }}>{templateHistory.length} record{templateHistory.length === 1 ? '' : 's'}</span>
+          {/* Template generation history */}
+          <div className="mt-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+              <span className="text-[13px] font-bold text-slate-800">Past Generated Template Reports</span>
+              <span className="text-[11px] text-slate-500">{templateHistory.length} record{templateHistory.length === 1 ? '' : 's'}</span>
             </div>
 
-            <div className="report-history-table-wrapper" style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', minWidth: 680, borderCollapse: 'collapse', fontSize: 12 }}>
+            <div className="report-history-table-wrapper overflow-x-auto">
+              <table className="w-full border-collapse text-xs" style={{ minWidth: 680 }}>
                 <thead>
-                  <tr style={{ background: '#F8FAFC' }}>
+                  <tr className="bg-slate-50">
                     {['Template', 'Generated At', 'Generated By', 'File Name', 'Quick Actions'].map((heading) => (
-                      <th key={heading} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748B', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', borderBottom: '1px solid #F1F5F9', whiteSpace: 'nowrap' }}>{heading}</th>
+                      <th key={heading} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{heading}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {templateHistory.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ padding: '12px 14px', color: '#64748B' }}>
+                      <td colSpan={5} className="px-3.5 py-3 text-slate-500">
                         No generated templates yet. Use any template card above to generate your first report.
                       </td>
                     </tr>
                   ) : templateHistory.map((historyItem) => (
-                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} style={{ borderBottom: '1px solid #F8FAFC' }}>
-                      <td style={{ padding: '11px 14px', color: '#1E293B', fontWeight: 600 }}>{historyItem.templateName}</td>
-                      <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{formatDateTime(historyItem.generatedAt)}</td>
-                      <td style={{ padding: '11px 14px', color: '#64748B' }}>{historyItem.generatedBy}</td>
-                      <td style={{ padding: '11px 14px', color: '#475569' }}>{historyItem.fileName}</td>
-                      <td style={{ padding: '11px 14px' }}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="border-b border-slate-50">
+                      <td className="px-3.5 py-[11px] font-semibold text-slate-800">{historyItem.templateName}</td>
+                      <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{formatDateTime(historyItem.generatedAt)}</td>
+                      <td className="px-3.5 py-[11px] text-slate-500">{historyItem.generatedBy}</td>
+                      <td className="px-3.5 py-[11px] text-slate-600">{historyItem.fileName}</td>
+                      <td className="px-3.5 py-[11px]">
+                        <div className="flex gap-1.5">
+                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-[#1E3A8A] cursor-pointer">
                             <Download size={11} /> Download
                           </button>
-                          <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#334155', fontSize: 11, fontWeight: 600 }}>
+                          <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] text-[11px] font-semibold text-slate-700 cursor-pointer">
                             <Printer size={11} /> Print
                           </button>
                         </div>
@@ -1014,24 +999,24 @@ export default function Reports() {
               </table>
             </div>
 
-            <div className="report-history-mobile-list" style={{ padding: 12 }}>
+            <div className="report-history-mobile-list p-3">
               {templateHistory.length === 0 ? (
-                <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '12px 14px', color: '#64748B', fontSize: 12 }}>
+                <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
                   No generated templates yet. Use any template card above to generate your first report.
                 </div>
               ) : templateHistory.map((historyItem) => (
-                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 10, background: '#FFFFFF' }}>
-                  <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{historyItem.templateName}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 4, marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, color: '#64748B' }}><strong>Generated:</strong> {formatDateTime(historyItem.generatedAt)}</div>
-                    <div style={{ fontSize: 11, color: '#64748B' }}><strong>By:</strong> {historyItem.generatedBy}</div>
-                    <div style={{ fontSize: 11, color: '#64748B', wordBreak: 'break-word' }}><strong>File:</strong> {historyItem.fileName}</div>
+                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
+                  <div className="mb-1.5 text-[13px] font-bold text-slate-800">{historyItem.templateName}</div>
+                  <div className="mb-2.5 grid gap-1">
+                    <div className="text-[11px] text-slate-500"><strong>Generated:</strong> {formatDateTime(historyItem.generatedAt)}</div>
+                    <div className="text-[11px] text-slate-500"><strong>By:</strong> {historyItem.generatedBy}</div>
+                    <div className="break-words text-[11px] text-slate-500"><strong>File:</strong> {historyItem.fileName}</div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
                       <Download size={12} /> Download
                     </button>
-                    <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} style={{ background: '#F8FAFC', color: '#334155', border: '1px solid #E2E8F0', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
                       <Printer size={12} /> Print
                     </button>
                   </div>
@@ -1044,60 +1029,58 @@ export default function Reports() {
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Generated Report History</span>
-            <button onClick={() => { void handleHistoryExportAll(); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 7, padding: '6px 12px', fontSize: 12, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div className="overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <span className="text-[13px] font-bold text-slate-800">Generated Report History</span>
+            <button onClick={() => { void handleHistoryExportAll(); }} className="flex items-center gap-[5px] rounded-[7px] border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 cursor-pointer">
               <Download size={12} /> Export All CSV
             </button>
           </div>
-          <div className="report-history-table-wrapper" style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse', fontSize: 12 }}>
+          <div className="report-history-table-wrapper overflow-x-auto">
+          <table className="w-full border-collapse text-xs" style={{ minWidth: 760 }}>
             <thead>
-              <tr style={{ background: '#F8FAFC' }}>
+              <tr className="bg-slate-50">
                 {['Report Name', 'Category', 'Generated', 'Generated By', 'Size', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748B', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', borderBottom: '1px solid #F1F5F9', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {reportsError ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '12px 14px', color: '#B91C1C' }}>{reportsError}</td>
+                  <td colSpan={6} className="px-3.5 py-3 text-red-700">{reportsError}</td>
                 </tr>
               ) : reportsLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '10px 12px' }}>
+                  <td colSpan={6} className="px-3 py-2.5">
                     <TableSkeleton rows={5} columns={6} showHeader={false} className="border-0" />
                   </td>
                 </tr>
               ) : recentReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '12px 14px', color: '#64748B' }}>No report history available.</td>
+                  <td colSpan={6} className="px-3.5 py-3 text-slate-500">No report history available.</td>
                 </tr>
               ) : recentReports.map((r, i) => (
                 <tr
                   key={i}
-                  style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.1s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#FAFBFF'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  className="border-b border-slate-50 transition-colors hover:bg-[#FAFBFF]"
                 >
-                  <td style={{ padding: '11px 14px', color: '#1E293B', fontWeight: 500 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <td className="px-3.5 py-[11px] font-medium text-slate-800">
+                    <div className="flex items-center gap-2">
                       <FileText size={14} color="#94A3B8" />
                       {r.name}
                     </div>
                   </td>
-                  <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'normal' }}>{r.type}</td>
-                  <td style={{ padding: '11px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>{r.time}</td>
-                  <td style={{ padding: '11px 14px', color: '#64748B' }}>{r.by}</td>
-                  <td style={{ padding: '11px 14px', color: '#64748B' }}>{r.size}</td>
-                  <td style={{ padding: '11px 14px' }}>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <td className="px-3.5 py-[11px] text-slate-500">{r.type}</td>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{r.time}</td>
+                  <td className="px-3.5 py-[11px] text-slate-500">{r.by}</td>
+                  <td className="px-3.5 py-[11px] text-slate-500">{r.size}</td>
+                  <td className="px-3.5 py-[11px]">
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-[#1E3A8A] cursor-pointer">
                         <Download size={11} /> Download
                       </button>
-                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '5px 8px', cursor: 'pointer' }}>
+                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer">
                         <Printer size={12} color="#64748B" />
                       </button>
                     </div>
@@ -1108,36 +1091,36 @@ export default function Reports() {
           </table>
           </div>
 
-          <div className="report-history-mobile-list" style={{ padding: 12 }}>
+          <div className="report-history-mobile-list p-3">
             {reportsError ? (
-              <div style={{ border: '1px solid #FECACA', borderRadius: 10, padding: '12px 14px', color: '#B91C1C', fontSize: 12, background: '#FEF2F2' }}>
+              <div className="rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-3 text-xs text-red-700">
                 {reportsError}
               </div>
             ) : reportsLoading ? (
-              <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px' }}>
+              <div className="rounded-[10px] border border-slate-200 px-3 py-2.5">
                 <TableSkeleton rows={4} columns={1} showHeader={false} className="border-0" />
               </div>
             ) : recentReports.length === 0 ? (
-              <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '12px 14px', color: '#64748B', fontSize: 12 }}>
+              <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
                 No report history available.
               </div>
             ) : recentReports.map((reportItem, index) => (
-              <div key={`mobile-report:${reportItem.reportId}:${index}`} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 10, background: '#FFFFFF' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
-                  <FileText size={14} color="#94A3B8" style={{ marginTop: 2, flexShrink: 0 }} />
-                  <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>{reportItem.name}</div>
+              <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
+                <div className="mb-2 flex items-start gap-2">
+                  <FileText size={14} color="#94A3B8" className="mt-0.5 shrink-0" />
+                  <div className="text-[13px] font-bold leading-[1.4] text-slate-800">{reportItem.name}</div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 4, marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Category:</strong> {reportItem.type}</div>
-                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Generated:</strong> {reportItem.time}</div>
-                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>By:</strong> {reportItem.by}</div>
-                  <div style={{ fontSize: 11, color: '#64748B' }}><strong>Evidence:</strong> {reportItem.size}</div>
+                <div className="mb-2.5 grid gap-1">
+                  <div className="text-[11px] text-slate-500"><strong>Category:</strong> {reportItem.type}</div>
+                  <div className="text-[11px] text-slate-500"><strong>Generated:</strong> {reportItem.time}</div>
+                  <div className="text-[11px] text-slate-500"><strong>By:</strong> {reportItem.by}</div>
+                  <div className="text-[11px] text-slate-500"><strong>Evidence:</strong> {reportItem.size}</div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} style={{ background: '#EFF6FF', color: '#1E3A8A', border: 'none', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
                     <Download size={12} /> Download
                   </button>
-                  <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} style={{ background: '#F8FAFC', color: '#334155', border: '1px solid #E2E8F0', borderRadius: 7, padding: '8px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
                     <Printer size={12} /> Print
                   </button>
                 </div>
@@ -1148,8 +1131,6 @@ export default function Reports() {
       )}
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
         .report-history-table-wrapper {
           display: block;
         }

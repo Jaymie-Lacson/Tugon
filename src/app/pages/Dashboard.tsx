@@ -65,31 +65,23 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
   const trendColor = accent === '#B91C1C' ? '#B91C1C' : accent === '#059669' ? '#059669' : '#B4730A';
   return (
-    <div style={{
-      background: 'white',
-      borderRadius: 12,
-      padding: '18px 20px',
-      boxShadow: '0 1px 5px rgba(15, 23, 42, 0.06)',
-      border: '1px solid #E2E8F0',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      flex: 1,
-      minWidth: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ color: '#64748B', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>{title}</div>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#1E293B', lineHeight: 1 }}>{value}</div>
+    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl bg-white px-5 py-[18px] shadow-sm border border-slate-200">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <div className="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mb-1.5">{title}</div>
+          <div className="text-[30px] font-bold text-slate-800 leading-none">{value}</div>
         </div>
-        <div style={{ width: 42, height: 42, borderRadius: 10, background: bgLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, flexShrink: 0 }}>
+        <div
+          className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0"
+          style={{ background: bgLight, color: accent }}
+        >
           {icon}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: '#94A3B8', fontSize: 11 }}>{subtitle}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-slate-400">{subtitle}</span>
         {trend && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, color: trendColor }}>
+          <span className="flex items-center gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
             <TrendIcon size={12} />
             {trend.val}
           </span>
@@ -109,82 +101,38 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div style={{
-      background: 'linear-gradient(180deg, #FFF7F7 0%, #FFF1F1 100%)',
-      border: '1px solid #F2C8C8',
-      borderRadius: 10,
-      padding: '12px 14px',
-      display: 'grid',
-      gap: 8,
-      marginBottom: 12,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <div style={{
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        border: '1px solid #E8B4B4',
-        background: '#FDE8E8',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}>
+    <div className="grid gap-2 rounded-[10px] border border-[#F2C8C8] bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1] px-3.5 py-3 mb-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-md border border-[#E8B4B4] bg-[#FDE8E8] flex items-center justify-center shrink-0">
             <Radio size={13} color="#B91C1C" />
           </div>
-          <div style={{ color: '#B91C1C', fontWeight: 700, fontSize: 12, letterSpacing: '0.03em' }}>
+          <div className="text-[#B91C1C] font-bold text-xs tracking-wide">
             ACTIVE ALERT
           </div>
         </div>
         <button
           type="button"
           onClick={() => onOpenIncident(critical[0].id)}
-          style={{
-            background: '#B91C1C',
-            color: 'white',
-            fontSize: 10,
-            fontWeight: 700,
-            padding: '4px 8px',
-            borderRadius: 6,
-            letterSpacing: '0.05em',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          className="bg-[#B91C1C] text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wide whitespace-nowrap shrink-0 border-none cursor-pointer"
         >
           CRITICAL
         </button>
       </div>
 
-      <div style={{ color: '#7F1D1D', fontSize: 12, lineHeight: 1.45 }}>
+      <div className="text-[#7F1D1D] text-xs leading-[1.45]">
         {critical.length} critical incident{critical.length > 1 ? 's' : ''} requiring immediate response.
       </div>
 
-      <div style={{ display: 'grid', gap: 6 }}>
-        <span style={{ color: '#991B1B', fontSize: 11, fontWeight: 700 }}>INCIDENTS:</span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, width: '100%' }}>
+      <div className="grid gap-1.5">
+        <span className="text-[#991B1B] text-[11px] font-bold">INCIDENTS:</span>
+        <div className="flex flex-wrap gap-1.5 w-full">
           {critical.map((incident) => (
             <button
               key={incident.id}
               type="button"
               onClick={() => onOpenIncident(incident.id)}
-              style={{
-                border: '1px solid #E8B4B4',
-                borderRadius: 6,
-                padding: '6px 8px',
-                margin: 0,
-                background: '#FFF',
-                color: '#7F1D1D',
-                fontSize: 11,
-                fontWeight: 700,
-                textAlign: 'center',
-                boxSizing: 'border-box',
-                minWidth: 'max-content',
-                flex: '1 1 0',
-                cursor: 'pointer',
-              }}
+              className="border border-[#E8B4B4] rounded-md px-2 py-1.5 m-0 bg-white text-[#7F1D1D] text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
             >
               {incident.id}
             </button>
@@ -431,25 +379,27 @@ export default function Dashboard() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+      <div className="px-4 py-3.5 min-h-full">
         <CardSkeleton
           count={4}
           lines={2}
           showImage={false}
           gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
         />
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TextSkeleton rows={3} title={false} />
         </div>
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TableSkeleton rows={8} columns={3} showHeader={false} />
         </div>
       </div>
     );
   }
 
+  const hotspotDisabled = heatmapLoading || heatmapClusters.length === 0;
+
   return (
-    <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+    <div className="px-4 py-3.5 min-h-full">
       {/* Alert banner */}
       <AlertBanner
         incidents={incidents}
@@ -459,26 +409,27 @@ export default function Dashboard() {
       />
 
       {incidentsError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
           {incidentsError}
         </div>
       ) : null}
 
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Cross-Border Alerts */}
+      <div className="mb-4 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center gap-2">
             <Bell size={15} color="#B4730A" />
-            <span style={{ color: '#1E293B', fontWeight: 700, fontSize: 13 }}>Cross-Border Alerts</span>
+            <span className="text-[13px] font-bold text-slate-800">Cross-Border Alerts</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 11, color: unreadAlerts > 0 ? '#B91C1C' : '#64748B', fontWeight: 700 }}>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : 'text-slate-500'}`}>
               {unreadAlerts} unread
             </span>
             <button
               onClick={() => {
                 void loadAlerts();
               }}
-              style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+              className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer"
             >
               <RefreshCw size={12} /> Refresh
             </button>
@@ -486,12 +437,12 @@ export default function Dashboard() {
         </div>
 
         {alertsError ? (
-          <div style={{ margin: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+          <div className="mx-4 my-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
             {alertsError}
           </div>
         ) : null}
 
-        <div style={{ padding: '8px 16px 14px' }}>
+        <div className="px-4 pt-2 pb-3.5">
           {alertsLoading ? (
             <TextSkeleton
               rows={2}
@@ -499,31 +450,34 @@ export default function Dashboard() {
               className="rounded-none border-0 bg-transparent p-0 shadow-none"
             />
           ) : alerts.length === 0 ? (
-            <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>No nearby cross-border alerts for your barangay right now.</div>
+            <div className="py-2 text-xs text-slate-500">No nearby cross-border alerts for your barangay right now.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="flex flex-col gap-2">
               {alerts.slice(0, 5).map((alert) => (
-                <div key={alert.id} style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 10px', background: alert.readAt ? '#F8FAFC' : '#FFFBEB', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>
+                <div
+                  key={alert.id}
+                  className={`flex items-start justify-between gap-2.5 rounded-lg border border-slate-200 px-2.5 py-[9px] ${alert.readAt ? 'bg-slate-50' : 'bg-amber-50'}`}
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-slate-800">
                       Incident {alert.report.id} near Barangay {alert.sourceBarangayCode}
                     </div>
-                    <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>
+                    <div className="mt-0.5 text-[11px] text-slate-500">
                       {alert.alertReason}
                     </div>
-                    <div style={{ color: '#94A3B8', fontSize: 10, marginTop: 4 }}>
+                    <div className="mt-1 text-[10px] text-slate-400">
                       {new Date(alert.createdAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} · {alert.report.location}
                     </div>
                   </div>
                   {alert.readAt ? (
-                    <span style={{ color: '#059669', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap' }}>Read</span>
+                    <span className="whitespace-nowrap text-[10px] font-bold text-emerald-600">Read</span>
                   ) : (
                     <button
                       onClick={() => {
                         void handleMarkAlertRead(alert.id);
                       }}
                       disabled={markingReadAlertId === alert.id}
-                      style={{ border: '1px solid #E2E8F0', background: 'white', color: '#1E3A8A', borderRadius: 6, padding: '6px 8px', fontSize: 10, fontWeight: 700, cursor: markingReadAlertId === alert.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                      className={`whitespace-nowrap rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-bold text-[#1E3A8A] ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       {markingReadAlertId === alert.id ? 'Saving...' : 'Mark Read'}
                     </button>
@@ -535,24 +489,25 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 16, overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Heatmap Hotspots */}
+      <div className="mb-4 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center gap-2">
             <TrendingUp size={15} color="#1E3A8A" />
-            <span style={{ color: '#1E293B', fontWeight: 700, fontSize: 13 }}>Heatmap Hotspots</span>
+            <span className="text-[13px] font-bold text-slate-800">Heatmap Hotspots</span>
           </div>
           <button
             onClick={() => {
               void loadHeatmap();
             }}
-            style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#475569', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+            className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer"
           >
             <RefreshCw size={12} /> Refresh
           </button>
         </div>
-        <div style={{ padding: '10px 16px 14px' }}>
+        <div className="px-4 py-2.5 pb-3.5">
           {heatmapError ? (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+            <div className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
               {heatmapError}
             </div>
           ) : heatmapLoading ? (
@@ -562,22 +517,22 @@ export default function Dashboard() {
               className="rounded-none border-0 bg-transparent p-0 shadow-none"
             />
           ) : heatmapClusters.length === 0 ? (
-            <div style={{ color: '#64748B', fontSize: 12, padding: '8px 0' }}>
+            <div className="py-2 text-xs text-slate-500">
               No hotspot cluster reached the current threshold.
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div>
-                <div style={{ color: '#1E293B', fontSize: 13, fontWeight: 700 }}>
+                <div className="text-[13px] font-bold text-slate-800">
                   {heatmapClusters.length} hotspot cluster{heatmapClusters.length > 1 ? 's' : ''} detected
                 </div>
                 {strongestHeatCluster ? (
-                  <div style={{ color: '#64748B', fontSize: 11, marginTop: 3 }}>
+                  <div className="mt-[3px] text-[11px] text-slate-500">
                     Strongest: {strongestHeatCluster.category} ({strongestHeatCluster.incidentCount} incidents)
                   </div>
                 ) : null}
               </div>
-              <div style={{ color: '#94A3B8', fontSize: 11 }}>
+              <div className="text-[11px] text-slate-400">
                 {heatmapClusters.length > 0 ? 'Hotspot focus available on map panel' : 'Switches to incident pins automatically'}
               </div>
             </div>
@@ -585,8 +540,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Cards — 2-col grid on mobile */}
-      <div className="kpi-grid" style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* KPI Cards — 2-col grid on mobile, 4-col on lg */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <KPICard
           title="Active Incidents"
           value={activeIncidents.length}
@@ -626,77 +581,43 @@ export default function Dashboard() {
       </div>
 
       {/* Map + Live Feed Row — stacks on mobile */}
-      <div className="dashboard-row" style={{ display: 'flex', gap: 14, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap gap-3.5 mb-[18px]">
         {/* Map Preview */}
-        <div style={{
-          flex: '3 1 340px',
-          background: 'white',
-          borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="flex flex-col flex-[3_1_340px] overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div className="flex items-center gap-2">
               <MapPin size={16} color="#1E3A8A" />
-              <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Incident Overview Map</span>
+              <span className="text-[13px] font-bold text-slate-800">Incident Overview Map</span>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #CBD5E1', borderRadius: 8, overflow: 'hidden', background: '#F8FAFC' }}>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
                 <button
                   onClick={() => setMapRenderMode('hotspot')}
-                  disabled={heatmapLoading || heatmapClusters.length === 0}
-                  style={{
-                    border: 'none',
-                    borderRight: '1px solid #CBD5E1',
-                    background: mapRenderMode === 'hotspot' ? '#1E3A8A' : '#F8FAFC',
-                    color: mapRenderMode === 'hotspot' ? '#FFFFFF' : '#334155',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: '5px 9px',
-                    cursor: heatmapLoading || heatmapClusters.length === 0 ? 'not-allowed' : 'pointer',
-                    opacity: heatmapLoading || heatmapClusters.length === 0 ? 0.5 : 1,
-                  }}
+                  disabled={hotspotDisabled}
+                  className={`border-none border-r border-slate-300 text-[10px] font-bold px-[9px] py-[5px] ${
+                    mapRenderMode === 'hotspot' ? 'bg-[#1E3A8A] text-white' : 'bg-slate-50 text-slate-700'
+                  } ${hotspotDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                   title={heatmapClusters.length === 0 ? 'No hotspot cluster reached the threshold' : 'Show hotspot-focused analytics view'}
                 >
                   Hotspot Focus
                 </button>
                 <button
                   onClick={() => setMapRenderMode('standard')}
-                  style={{
-                    border: 'none',
-                    background: mapRenderMode === 'standard' ? '#1E3A8A' : '#F8FAFC',
-                    color: mapRenderMode === 'standard' ? '#FFFFFF' : '#334155',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: '5px 9px',
-                    cursor: 'pointer',
-                  }}
+                  className={`border-none text-[10px] font-bold px-[9px] py-[5px] cursor-pointer ${
+                    mapRenderMode === 'standard' ? 'bg-[#1E3A8A] text-white' : 'bg-slate-50 text-slate-700'
+                  }`}
                   title="Show incident-level marker view"
                 >
                   Incident Pins
                 </button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F0FDF4', borderRadius: 5, padding: '3px 7px', border: '1px solid #BBF7D0' }}>
+              <div className="flex items-center gap-1 rounded-[5px] border border-green-200 bg-green-50 px-[7px] py-[3px]">
                 <Navigation2 size={9} color="#059669" />
-                <span style={{ fontSize: 9, color: '#059669', fontWeight: 600 }}>OpenStreetMap</span>
+                <span className="text-[9px] font-semibold text-emerald-600">OpenStreetMap</span>
               </div>
               <button
                 onClick={() => navigate('/app/map')}
-                style={{
-                  background: '#EFF6FF',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 11,
-                  color: '#1E3A8A',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
+                className="flex items-center gap-1 rounded-md bg-blue-50 border-none px-2.5 py-1 text-[11px] font-semibold text-[#1E3A8A] cursor-pointer"
               >
                 Full Map <ArrowRight size={11} />
               </button>
@@ -705,39 +626,18 @@ export default function Dashboard() {
                   setShowHeatmapTuning((current) => !current);
                   setMapRenderMode('hotspot');
                 }}
-                style={{
-                  background: showHeatmapTuning ? '#1E3A8A' : '#EFF6FF',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 11,
-                  color: showHeatmapTuning ? '#FFFFFF' : '#1E3A8A',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
+                className={`flex items-center gap-1 rounded-md border-none px-2.5 py-1 text-[11px] font-semibold cursor-pointer ${
+                  showHeatmapTuning ? 'bg-[#1E3A8A] text-white' : 'bg-blue-50 text-[#1E3A8A]'
+                }`}
               >
                 <SlidersHorizontal size={11} /> Tune
               </button>
             </div>
           </div>
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div className="relative flex-1">
             {showHeatmapTuning ? (
               <div
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  zIndex: 1200,
-                  width: 220,
-                  background: 'rgba(255,255,255,0.98)',
-                  border: '1px solid #DBEAFE',
-                  borderRadius: 12,
-                  boxShadow: '0 6px 24px rgba(15,23,42,.16)',
-                  padding: 10,
-                }}
+                className="absolute top-2 right-2 z-[1200] w-[220px] rounded-xl border border-blue-100 bg-white/[0.98] p-2.5 shadow-[0_6px_24px_rgba(15,23,42,.16)]"
                 onMouseDown={(event) => event.stopPropagation()}
                 onMouseMove={(event) => event.stopPropagation()}
                 onTouchStart={(event) => event.stopPropagation()}
@@ -746,29 +646,20 @@ export default function Dashboard() {
                 onPointerMove={(event) => event.stopPropagation()}
                 onWheel={(event) => event.stopPropagation()}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
-                  <span style={{ color: '#1E293B', fontSize: 11, fontWeight: 700 }}>Heatmap Settings</span>
+                <div className="mb-[7px] flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-800">Heatmap Settings</span>
                   <button
                     onClick={handleResetHeatmapTuning}
-                    style={{
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      borderRadius: 6,
-                      fontSize: 9,
-                      fontWeight: 700,
-                      padding: '3px 6px',
-                      cursor: 'pointer',
-                    }}
+                    className="rounded-md border border-slate-300 bg-white px-1.5 py-[3px] text-[9px] font-bold text-slate-600 cursor-pointer"
                   >
                     Reset
                   </button>
                 </div>
 
-                <div style={{ marginBottom: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Radius</span>
-                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                <div className="mb-2">
+                  <div className="mb-[3px] flex justify-between">
+                    <span className="text-[9px] font-semibold text-slate-500">Radius</span>
+                    <span className="text-[9px] font-bold text-slate-800">{heatRadiusPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -783,14 +674,14 @@ export default function Dashboard() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
-                    style={{ width: '100%' }}
+                    className="w-full"
                   />
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ color: '#64748B', fontSize: 9, fontWeight: 600 }}>Opacity</span>
-                    <span style={{ color: '#1E293B', fontSize: 9, fontWeight: 700 }}>{heatOpacityPercent}%</span>
+                  <div className="mb-[3px] flex justify-between">
+                    <span className="text-[9px] font-semibold text-slate-500">Opacity</span>
+                    <span className="text-[9px] font-bold text-slate-800">{heatOpacityPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -805,7 +696,7 @@ export default function Dashboard() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
-                    style={{ width: '100%' }}
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -826,24 +717,16 @@ export default function Dashboard() {
             />
           </div>
           {selectedIncident && (
-            <div style={{
-              padding: '10px 14px',
-              borderTop: '1px solid #F1F5F9',
-              background: '#F8FAFC',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              flexWrap: 'wrap',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{selectedIncident.id} — {selectedIncident.barangay}</div>
-                <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedIncident.description}</div>
-                <div style={{ fontSize: 9, color: '#94A3B8', marginTop: 2, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className="flex flex-wrap items-center gap-2.5 border-t border-slate-100 bg-slate-50 px-3.5 py-2.5">
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] font-bold text-slate-800">{selectedIncident.id} — {selectedIncident.barangay}</div>
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-500">{selectedIncident.description}</div>
+                <div className="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-slate-400">
                   <Navigation2 size={9} color="#9CA3AF" />
                   {selectedIncident.lat.toFixed(5)}°N, {selectedIncident.lng.toFixed(5)}°E
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div className="flex gap-1.5">
                 <TypeBadge type={selectedIncident.type} size="sm" />
                 <SeverityBadge severity={selectedIncident.severity} size="sm" />
               </div>
@@ -852,29 +735,17 @@ export default function Dashboard() {
         </div>
 
         {/* Live Feed */}
-        <div style={{
-          flex: '2 1 260px',
-          background: 'white',
-          borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: '#22C55E', display: 'inline-block',
-                boxShadow: '0 0 0 3px rgba(34,197,94,0.2)',
-              }} />
-              <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Live Incident Feed</span>
+        <div className="flex flex-[2_1_260px] flex-col overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.2)]" />
+              <span className="text-[13px] font-bold text-slate-800">Live Incident Feed</span>
             </div>
-            <RefreshCw size={13} color="#94A3B8" style={{ cursor: 'pointer' }} />
+            <RefreshCw size={13} className="text-slate-400 cursor-pointer" />
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
+          <div className="flex-1 overflow-y-auto max-h-80">
             {incidentsLoading ? (
-              <div style={{ padding: '10px 14px' }}>
+              <div className="px-3.5 py-2.5">
                 <TableSkeleton rows={6} columns={3} showHeader={false} className="border-0 shadow-none" />
               </div>
             ) : (
@@ -882,33 +753,24 @@ export default function Dashboard() {
                 <div
                   key={inc.id}
                   onClick={() => navigate('/app/incidents')}
-                  style={{
-                    padding: '10px 14px',
-                    borderBottom: '1px solid #F8FAFC',
-                    cursor: 'pointer',
-                    transition: 'background 0.1s',
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'flex-start',
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  className="flex items-start gap-2.5 border-b border-slate-50 px-3.5 py-2.5 cursor-pointer transition-colors hover:bg-slate-50"
                 >
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                    background: incidentTypeConfig[inc.type].bgColor,
-                    color: incidentTypeConfig[inc.type].color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                    style={{
+                      background: incidentTypeConfig[inc.type].bgColor,
+                      color: incidentTypeConfig[inc.type].color,
+                    }}
+                  >
                     {typeIcons[inc.type]}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{inc.id}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-800">{inc.id}</span>
                       <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
                     </div>
-                    <div style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</div>
-                    <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-600">{inc.barangay}</div>
+                    <div className="mt-0.5 text-[10px] text-slate-400">
                       {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </div>
                   </div>
@@ -917,13 +779,10 @@ export default function Dashboard() {
               ))
             )}
           </div>
-          <div style={{ padding: '10px 14px', borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
+          <div className="border-t border-slate-100 px-3.5 py-2.5 text-center">
             <button
               onClick={() => navigate('/app/incidents')}
-              style={{
-                background: 'none', border: 'none', color: '#1E3A8A', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, margin: '0 auto',
-              }}
+              className="mx-auto flex items-center gap-1 border-none bg-transparent text-xs font-semibold text-[#1E3A8A] cursor-pointer"
             >
               View All Incidents <ArrowRight size={13} />
             </button>
@@ -932,22 +791,22 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Row — stacks on mobile */}
-      <div className="charts-row" style={{ display: 'flex', gap: 14, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap gap-3.5 mb-[18px]">
         {/* Trend Chart */}
-        <div style={{ flex: '3 1 300px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div className="flex-[3_1_300px] rounded-xl bg-white px-4 py-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="mb-3.5 flex items-center justify-between">
             <div>
-              <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>{trendData.length}-Day Incident Trend</div>
-              <div style={{ color: '#94A3B8', fontSize: 11 }}>{trendWindowLabel}</div>
+              <div className="text-[13px] font-bold text-slate-800">{trendData.length}-Day Incident Trend</div>
+              <div className="text-[11px] text-slate-400">{trendWindowLabel}</div>
             </div>
-            <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 10, height: 3, background: '#1E3A8A', display: 'inline-block', borderRadius: 2 }} />
-                <span style={{ color: '#64748B' }}>Reported</span>
+            <div className="flex gap-3 text-[11px]">
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-[3px] w-2.5 rounded-sm bg-[#1E3A8A]" />
+                <span className="text-slate-500">Reported</span>
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 10, height: 3, background: '#059669', display: 'inline-block', borderRadius: 2 }} />
-                <span style={{ color: '#64748B' }}>Resolved</span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-[3px] w-2.5 rounded-sm bg-emerald-600" />
+                <span className="text-slate-500">Resolved</span>
               </span>
             </div>
           </div>
@@ -966,25 +825,25 @@ export default function Dashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div style={{ flex: '2 1 220px', background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 13, marginBottom: 4 }}>Incident by Category</div>
-          <div style={{ color: '#94A3B8', fontSize: 11, marginBottom: 10 }}>Current category distribution</div>
-          <div className="type-dist-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <PieChart className="type-dist-pie" width={120} height={120}>
+        <div className="flex-[2_1_220px] rounded-xl bg-white px-4 py-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="mb-1 text-[13px] font-bold text-slate-800">Incident by Category</div>
+          <div className="mb-2.5 text-[11px] text-slate-400">Current category distribution</div>
+          <div className="flex items-center gap-2.5 max-md:flex-col max-md:items-stretch max-md:gap-2">
+            <PieChart className="max-md:self-center" width={120} height={120}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
                 {typeDist.map((entry, index) => (
                   <Cell key={`cell-${index}-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
             </PieChart>
-            <div className="type-dist-list" style={{ flex: 1 }}>
+            <div className="flex-1 max-md:w-full">
               {typeDist.map(item => (
-                <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, color: '#475569' }}>{item.name}</span>
+                <div key={item.name} className="mb-[5px] flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: item.color }} />
+                    <span className="text-[11px] text-slate-600">{item.name}</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#1E293B' }}>{item.value}</span>
+                  <span className="text-[11px] font-bold text-slate-800">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -992,41 +851,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .type-dist-wrap {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 8px;
-          }
-
-          .type-dist-pie {
-            align-self: center;
-          }
-
-          .type-dist-list {
-            width: 100%;
-          }
-        }
-      `}</style>
-
       {/* Recent Incidents Table */}
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: 8 }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 13 }}>Recent Incidents - Live Data</span>
+      <div className="mb-2 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <span className="text-[13px] font-bold text-slate-800">Recent Incidents - Live Data</span>
           <button
             onClick={() => navigate('/app/incidents')}
-            style={{ background: '#EFF6FF', border: 'none', borderRadius: 8, color: '#1E3A8A', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 40 }}
+            className="flex items-center gap-1 rounded-lg border-none bg-blue-50 px-3 py-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer min-h-[40px]"
           >
             View All <ChevronRight size={13} />
           </button>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 580 }}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs" style={{ minWidth: 580 }}>
             <thead>
-              <tr style={{ background: '#F8FAFC' }}>
+              <tr className="bg-slate-50">
                 {['Incident ID', 'Type', 'Location', 'Severity', 'Status', 'Reported', 'Responders'].map(col => (
-                  <th key={col} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748B', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', whiteSpace: 'nowrap', borderBottom: '1px solid #F1F5F9' }}>{col}</th>
+                  <th key={col} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{col}</th>
                 ))}
               </tr>
             </thead>
@@ -1034,20 +875,18 @@ export default function Dashboard() {
               {incidents.slice(0, 8).map((inc) => (
                 <tr
                   key={inc.id}
-                  style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer', transition: 'background 0.1s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F8FAFC'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50"
                   onClick={() => navigate('/app/incidents')}
                 >
-                  <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1E3A8A', whiteSpace: 'nowrap' }}>{inc.id}</td>
-                  <td style={{ padding: '10px 14px' }}><TypeBadge type={inc.type} size="sm" /></td>
-                  <td style={{ padding: '10px 14px', color: '#475569', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.barangay}</td>
-                  <td style={{ padding: '10px 14px' }}><SeverityBadge severity={inc.severity} size="sm" /></td>
-                  <td style={{ padding: '10px 14px' }}><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
-                  <td style={{ padding: '10px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>
+                  <td className="whitespace-nowrap px-3.5 py-2.5 font-semibold text-[#1E3A8A]">{inc.id}</td>
+                  <td className="px-3.5 py-2.5"><TypeBadge type={inc.type} size="sm" /></td>
+                  <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-2.5 text-slate-600">{inc.barangay}</td>
+                  <td className="px-3.5 py-2.5"><SeverityBadge severity={inc.severity} size="sm" /></td>
+                  <td className="px-3.5 py-2.5"><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
+                  <td className="whitespace-nowrap px-3.5 py-2.5 text-slate-500">
                     {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
                   </td>
-                  <td style={{ padding: '10px 14px', color: '#1E293B', fontWeight: 500 }}>{inc.responders} units</td>
+                  <td className="px-3.5 py-2.5 font-medium text-slate-800">{inc.responders} units</td>
                 </tr>
               ))}
             </tbody>
