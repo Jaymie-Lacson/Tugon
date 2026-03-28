@@ -158,6 +158,12 @@ Planned (not yet implemented): CORS hardening · security headers · rate limiti
 
 ---
 
+## Session management
+
+Run `/turnover` when context reaches 60%. Always read `session-handoff.md` at the start of a new session if it exists.
+
+---
+
 ## Full detail
 
 See [AGENTS.md](AGENTS.md) for rule summary and [ARCHITECTURE.md](ARCHITECTURE.md) for schema, API endpoints, folder structure, flows, and implementation phases.
