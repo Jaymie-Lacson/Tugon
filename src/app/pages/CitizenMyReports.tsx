@@ -177,14 +177,14 @@ const typeConfig: Record<CitizenReportType, {
   other:         { label: 'Other',          color: '#475569', bg: '#F1F5F9', icon: MoreHorizontal },
 };
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-  API LOADED REPORTS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+/* ────────────────────────────────────────────────────────────────────
+   API LOADED REPORTS
+──────────────────────────────────────────────────────────────────── */
 const MY_REPORTS: CitizenReport[] = [];
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    HELPERS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-PH', {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -218,9 +218,9 @@ function extractReportSequence(reportId: string) {
   return Number.isFinite(seq) ? seq : 0;
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    CITIZEN STATUS BADGE - 6 statuses
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStatus; size?: 'sm' | 'md' | 'lg' }) {
   const cfg = citizenStatusConfig[status];
   const Icon = cfg.icon;
@@ -244,9 +244,9 @@ function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStat
   );
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    WORKFLOW PROGRESS DOTS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 const WORKFLOW_STEPS: { key: CitizenReportStatus | 'created'; label: string }[] = [
   { key: 'submitted',    label: 'Submitted' },
   { key: 'under_review', label: 'Review' },
@@ -263,7 +263,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const terminalBg   = isFailed ? '#FEF2F2'  : '#ECFDF5';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 0, width: '100%' }}>
+    <div className="flex items-center w-full" style={{ gap: 0 }}>
       {WORKFLOW_STEPS.map((s, i) => {
         const stepNum = i + 1;
         const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
@@ -277,7 +277,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
 
         return (
           <div key={s.key} style={{ display: 'contents' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1 }}>
+            <div className="flex flex-col items-center flex-1" style={{ gap: 3 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                 background: stepBg, border: `2px solid ${stepBorder}`,
@@ -313,9 +313,9 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   );
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    REPORT CARD
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () => void }) {
   const tc = typeConfig[report.type];
   const sc = citizenStatusConfig[report.status];
@@ -323,32 +323,26 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
   return (
     <button
-      className="citizen-report-card citizen-report-card-modern"
+      className="citizen-report-card citizen-report-card-modern w-full bg-white border border-slate-200 rounded-xl p-0 cursor-pointer text-left overflow-hidden relative"
       onClick={onClick}
       style={{
-        width: '100%', background: '#fff', border: '1px solid #E2E8F0',
-        borderRadius: 12, padding: 0, cursor: 'pointer', textAlign: 'left',
         boxShadow: '0 4px 12px rgba(15,23,42,0.08)', marginBottom: 12,
-        overflow: 'hidden', transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
-        position: 'relative',
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
       }}
     >
-      <div style={{ padding: '14px 14px 0 14px' }}>
+      <div className="p-[14px] pb-0">
         {/* Top row: ID + Status */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: tc.bg, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: tc.color, flexShrink: 0,
-            }}>
+        <div className="flex items-center justify-between mb-[10px]">
+          <div className="flex items-center gap-2">
+            <div className="w-[34px] h-[34px] rounded-[10px] shrink-0 flex items-center justify-center"
+              style={{ background: tc.bg, color: tc.color }}>
               <Icon size={17} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: '#1E293B', lineHeight: 1.1 }}>
+              <div className="font-extrabold text-[13px] text-slate-900 leading-[1.1]">
                 {report.id}
               </div>
-              <div style={{ fontSize: 10, color: '#64748B', marginTop: 1, fontWeight: 500 }}>
+              <div className="text-[10px] text-slate-500 mt-[1px] font-medium">
                 {tc.label}
               </div>
             </div>
@@ -357,46 +351,45 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         </div>
 
         {/* Location */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 7 }}>
-          <MapPin size={11} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontSize: 12, color: '#475569', lineHeight: 1.45, flex: 1 }}>
+        <div className="flex items-start gap-[5px] mb-[7px]">
+          <MapPin size={11} color="#94A3B8" className="shrink-0 mt-[1px]" />
+          <span className="text-xs text-slate-600 leading-[1.45] flex-1">
             {report.location}, {report.barangay}
           </span>
         </div>
 
         {/* Description excerpt */}
-        <div style={{
-          fontSize: 12, color: '#64748B', lineHeight: 1.5,
-          overflow: 'hidden', display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
-          marginBottom: 10,
-        }}>
+        <div className="text-xs text-slate-500 leading-[1.5] mb-[10px]"
+          style={{
+            overflow: 'hidden', display: '-webkit-box',
+            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+          }}>
           {report.description}
         </div>
 
         {/* Date + evidence chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <div className="flex items-center gap-1">
             <Calendar size={10} color="#94A3B8" />
-            <span style={{ fontSize: 10, color: '#94A3B8' }}>{formatDate(report.submittedAt)}</span>
+            <span className="text-[10px] text-slate-400">{formatDate(report.submittedAt)}</span>
           </div>
-          <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-          <span style={{ fontSize: 10, color: '#94A3B8' }}>{timeAgo(report.submittedAt)}</span>
+          <span className="text-slate-300 text-[10px]"> - </span>
+          <span className="text-[10px] text-slate-400">{timeAgo(report.submittedAt)}</span>
           {report.hasPhotos && (
             <span style={{ display: 'contents' }}>
-              <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
+              <span className="text-slate-300 text-[10px]"> - </span>
+              <div className="flex items-center gap-[3px] bg-slate-100 rounded-[6px] px-[6px] py-[2px]">
                 <Camera size={9} color="#64748B" />
-                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>{report.photoCount}</span>
+                <span className="text-[9px] text-slate-500 font-semibold">{report.photoCount}</span>
               </div>
             </span>
           )}
           {report.hasAudio && (
             <span style={{ display: 'contents' }}>
-              <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
+              <span className="text-slate-300 text-[10px]"> - </span>
+              <div className="flex items-center gap-[3px] bg-slate-100 rounded-[6px] px-[6px] py-[2px]">
                 <Mic size={9} color="#64748B" />
-                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Audio</span>
+                <span className="text-[9px] text-slate-500 font-semibold">Audio</span>
               </div>
             </span>
           )}
@@ -404,22 +397,21 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       </div>
 
       {/* Workflow progress strip */}
-      <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
+      <div className="bg-slate-50 border-t border-slate-100 px-4 pt-[10px] pb-3">
         <WorkflowProgress status={report.status} />
       </div>
 
       {/* View details footer */}
-      <div style={{
-        background: `${citizenStatusConfig[report.status].bg}`,
-        borderTop: `1px solid ${citizenStatusConfig[report.status].border}`,
-        padding: '10px 14px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <span style={{ fontSize: 11, color: citizenStatusConfig[report.status].color, fontWeight: 600 }}>
+      <div className="flex items-center justify-between px-[14px] py-[10px]"
+        style={{
+          background: citizenStatusConfig[report.status].bg,
+          borderTop: `1px solid ${citizenStatusConfig[report.status].border}`,
+        }}>
+        <span className="text-[11px] font-semibold" style={{ color: citizenStatusConfig[report.status].color }}>
           {citizenStatusConfig[report.status].description}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: citizenStatusConfig[report.status].color }}>
-          <span style={{ fontSize: 11, fontWeight: 700 }}>Details</span>
+        <div className="flex items-center gap-[3px]" style={{ color: citizenStatusConfig[report.status].color }}>
+          <span className="text-[11px] font-bold">Details</span>
           <ChevronRight size={13} />
         </div>
       </div>
@@ -506,71 +498,56 @@ function DetailView({
   }, [canCancel]);
 
   return (
-    <div className="citizen-report-modal" style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <div className="citizen-report-modal fixed inset-0 z-[200] flex flex-col">
       <div
         onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)' }}
+        className="absolute inset-0"
+        style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)' }}
       />
 
-      <article style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        maxHeight: '92vh', display: 'flex', flexDirection: 'column',
-        background: '#F8FAFC', borderRadius: '14px 14px 0 0',
-        overflow: 'hidden',
-        animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
-        maxWidth: 960, margin: '0 auto',
-      }}>
-        <header style={{
-          background: '#fff', paddingTop: 10, paddingBottom: 0,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          borderBottom: '1px solid #F1F5F9', flexShrink: 0,
+      <article className="absolute bottom-0 left-0 right-0 flex flex-col overflow-hidden"
+        style={{
+          maxHeight: '92vh',
+          background: '#F8FAFC',
+          borderRadius: '14px 14px 0 0',
+          animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
+          maxWidth: 960,
+          margin: '0 auto',
         }}>
-          <div style={{ width: 38, height: 4, borderRadius: 2, background: '#E2E8F0', marginBottom: 12 }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 16px 14px' }}>
+        <header className="bg-white pt-[10px] pb-0 flex flex-col items-center border-b border-slate-100 shrink-0">
+          <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
+          <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: '#1E293B' }}>Report Details</div>
-              <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{report.id}</div>
+              <div className="font-extrabold text-base text-slate-900">Report Details</div>
+              <div className="text-[11px] text-slate-400 mt-[1px]">{report.id}</div>
             </div>
             <button
               onClick={onClose}
-              style={{
-                width: 34, height: 34, borderRadius: 10,
-                background: '#F1F5F9', border: '1px solid #E2E8F0',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#475569',
-              }}
+              className="w-[34px] h-[34px] rounded-[10px] bg-slate-100 border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600"
             >
               <X size={16} />
             </button>
           </div>
         </header>
 
-        <main style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-          <section style={{
-            border: '1.5px solid #E2E8F0', marginBottom: 16,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
-          }}>
+        <main className="flex-1 overflow-y-auto p-4">
+          <section className="border-[1.5px] border-slate-200 mb-4"
+            style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.07)' }}>
             {/* Colored header */}
-            <div style={{
-              borderBottom: `3px solid ${tc.color}`,
-              padding: '18px 18px 14px',
-              display: 'flex', alignItems: 'flex-start', gap: 14,
-            }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 15, background: tc.bg, flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: tc.color,
-                boxShadow: `0 2px 10px ${tc.color}28`,
-              }}>
+            <div className="flex items-start gap-[14px] px-[18px] pt-[18px] pb-[14px]"
+              style={{ borderBottom: `3px solid ${tc.color}` }}>
+              <div className="w-[52px] h-[52px] rounded-[15px] shrink-0 flex items-center justify-center"
+                style={{
+                  background: tc.bg, color: tc.color,
+                  boxShadow: `0 2px 10px ${tc.color}28`,
+                }}>
                 <TypeIcon size={26} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 800, fontSize: 18, color: '#1E293B', lineHeight: 1.15, marginBottom: 4 }}>
+              <div className="flex-1">
+                <div className="font-extrabold text-[18px] text-slate-900 leading-[1.15] mb-1">
                   {tc.label} Incident
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <div className="flex items-center gap-[6px] flex-wrap">
                   <CitizenStatusBadge status={report.status} size="md" />
                   <span style={{
                     fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
@@ -584,7 +561,8 @@ function DetailView({
               </div>
             </div>
 
-            <dl style={{ margin: 0, padding: '4px 18px 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <dl className="m-0 px-[18px] pt-1 pb-[14px]"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               {[
                 { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
                 { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
@@ -593,38 +571,30 @@ function DetailView({
                 ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
                 ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
               ].map(({ icon, label, value }) => (
-                <div key={label} style={{ border: '1px solid #E2E8F0', borderRadius: 12, background: '#F8FAFC', padding: '10px 12px' }}>
-                  <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 10, color: '#64748B', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <div key={label} className="border border-slate-200 rounded-xl bg-slate-50 px-3 py-[10px]">
+                  <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-slate-500 font-bold tracking-[0.04em] uppercase">
                     <span style={{ color: tc.color }}>{icon}</span>
                     {label}
                   </dt>
-                  <dd style={{ margin: 0, fontSize: 13, color: '#0F172A', lineHeight: 1.5, fontWeight: 500 }}>{value}</dd>
+                  <dd className="m-0 text-[13px] text-[#0F172A] leading-[1.5] font-medium">{value}</dd>
                 </div>
               ))}
             </dl>
           </section>
 
-          <section style={{
-            background: '#fff', borderRadius: 12, padding: '16px',
-            border: '1px solid #E2E8F0', marginBottom: 16,
-            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+          <section className="bg-white rounded-xl p-4 border border-slate-200 mb-4"
+            style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
+            <div className="flex items-center gap-[6px] mb-[10px]">
               <MessageSquare size={14} color={tc.color} />
-              <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>Description</span>
+              <span className="font-bold text-[13px] text-slate-900">Description</span>
             </div>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>{report.description}</p>
+            <p className="text-[13px] text-slate-600 leading-[1.7] m-0">{report.description}</p>
           </section>
 
           {canCancel && (
-            <section style={{
-              background: '#FFFBEB',
-              borderRadius: 14,
-              padding: '12px 14px',
-              border: '1px solid #FDE68A',
-              marginBottom: 16,
-            }}>
-              <p style={{ margin: 0, fontSize: 12, color: '#78350F', lineHeight: 1.6 }}>
+            <section className="rounded-[14px] px-[14px] py-3 border border-[#FDE68A] mb-4"
+              style={{ background: '#FFFBEB' }}>
+              <p className="m-0 text-xs text-[#78350F] leading-[1.6]">
                 You may cancel this report only while its status is <strong>Submitted</strong>.
               </p>
               <button
@@ -636,65 +606,57 @@ function DetailView({
                   }
                   setConfirmCancelOpen(true);
                 }}
+                className="mt-[10px] border-none rounded-[10px] px-[14px] py-[9px] text-white text-xs font-bold"
                 style={{
-                  marginTop: 10,
                   background: cancelling ? '#94A3B8' : '#B91C1C',
-                  border: 'none',
-                  borderRadius: 10,
-                  padding: '9px 14px',
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
                 {cancelling ? 'Cancelling...' : 'Cancel Report'}
               </button>
               {cancelError && (
-                <p style={{ margin: '8px 0 0', fontSize: 11, color: '#B91C1C', lineHeight: 1.5 }}>{cancelError}</p>
+                <p className="mt-2 mb-0 text-[11px] text-red-700 leading-[1.5]">{cancelError}</p>
               )}
             </section>
           )}
 
           {(report.hasPhotos || report.hasAudio) && (
-            <section style={{
-              background: '#fff', borderRadius: 12, padding: '16px',
-              border: '1px solid #E2E8F0', marginBottom: 16,
-              boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-            }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 12 }}>
+            <section className="bg-white rounded-xl p-4 border border-slate-200 mb-4"
+              style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
+              <div className="font-bold text-[13px] text-slate-900 mb-3">
                 Evidence Attached
               </div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: hasPreviewableEvidence ? 12 : 0, flexWrap: 'wrap' }}>
+              <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EFF6FF', borderRadius: 10, padding: '8px 12px', border: '1px solid #BFDBFE' }}>
+                  <div className="flex items-center gap-[6px] bg-blue-50 rounded-[10px] px-3 py-2 border border-[#BFDBFE]">
                     <Camera size={14} color="#1E3A8A" />
-                    <span style={{ fontSize: 12, color: '#1E3A8A', fontWeight: 700 }}>{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
+                    <span className="text-xs text-[#1E3A8A] font-bold">{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EDE9FE', borderRadius: 10, padding: '8px 12px', border: '1px solid #DDD6FE' }}>
+                  <div className="flex items-center gap-[6px] bg-[#EDE9FE] rounded-[10px] px-3 py-2 border border-[#DDD6FE]">
                     <Mic size={14} color="#7C3AED" />
-                    <span style={{ fontSize: 12, color: '#7C3AED', fontWeight: 700 }}>Voice Recording</span>
+                    <span className="text-xs text-[#7C3AED] font-bold">Voice Recording</span>
                   </div>
                 ) : null}
               </div>
 
               {photoEvidence.length > 0 && (
-                <section style={{ marginBottom: audioEvidence.length > 0 ? 12 : 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Photos</div>
+                <section className={audioEvidence.length > 0 ? 'mb-3' : ''}>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">Photos</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 8 }}>
                     {photoEvidence.map((item, index) => (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => setPreviewPhotoIndex(index)}
-                        style={{ border: '1px solid #DBEAFE', borderRadius: 10, padding: 0, overflow: 'hidden', background: '#EFF6FF', cursor: 'pointer' }}
+                        className="border border-[#DBEAFE] rounded-[10px] p-0 overflow-hidden bg-blue-50 cursor-pointer"
                       >
                         <img
                           src={item.publicUrl}
                           alt={item.fileName}
-                          style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                          className="w-full block object-cover"
+                          style={{ height: 90 }}
                         />
                       </button>
                     ))}
@@ -704,12 +666,12 @@ function DetailView({
 
               {audioEvidence.length > 0 && (
                 <section>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Audio</div>
-                  <div style={{ display: 'grid', gap: 8 }}>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">Audio</div>
+                  <div className="grid gap-2">
                     {audioEvidence.map((item) => (
-                      <article key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px', background: '#F8FAFC' }}>
-                        <div style={{ fontSize: 11, color: '#475569', marginBottom: 6, fontWeight: 600 }}>{item.fileName}</div>
-                        <audio controls preload="metadata" src={item.publicUrl} style={{ width: '100%' }} />
+                      <article key={item.id} className="border border-slate-200 rounded-[10px] px-3 py-[10px] bg-slate-50">
+                        <div className="text-[11px] text-slate-600 mb-[6px] font-semibold">{item.fileName}</div>
+                        <audio controls preload="metadata" src={item.publicUrl} className="w-full" />
                       </article>
                     ))}
                   </div>
@@ -717,7 +679,7 @@ function DetailView({
               )}
 
               {!hasPreviewableEvidence && (
-                <p style={{ margin: 0, fontSize: 12, color: '#94A3B8', lineHeight: 1.6 }}>
+                <p className="m-0 text-xs text-slate-400 leading-[1.6]">
                   Evidence metadata is available, but preview links are not currently accessible for this report.
                 </p>
               )}
@@ -725,102 +687,83 @@ function DetailView({
           )}
 
           {report.resolutionNote && (
-            <section style={{
-              background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
-              borderRadius: 12, padding: '16px',
-              border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
-              marginBottom: 16,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+            <section className="rounded-xl p-4 mb-4"
+              style={{
+                background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
+                border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
+              }}>
+              <div className="flex items-center gap-[7px] mb-2">
                 {report.status === 'unresolvable'
                   ? <Ban size={14} color="#B91C1C" />
                   : <CheckCircle2 size={14} color="#059669" />
                 }
-                <span style={{ fontWeight: 700, fontSize: 13, color: report.status === 'unresolvable' ? '#B91C1C' : '#059669' }}>
+                <span className="font-bold text-[13px]" style={{ color: report.status === 'unresolvable' ? '#B91C1C' : '#059669' }}>
                   {report.status === 'unresolvable' ? 'Why This Was Unresolvable' : 'Resolution Summary'}
                 </span>
               </div>
-              <p style={{ fontSize: 13, color: report.status === 'unresolvable' ? '#7F1D1D' : '#065F46', lineHeight: 1.65, margin: 0 }}>
+              <p className="text-[13px] leading-[1.65] m-0" style={{ color: report.status === 'unresolvable' ? '#7F1D1D' : '#065F46' }}>
                 {report.resolutionNote}
               </p>
               {report.status === 'unresolvable' && (
-                <button style={{
-                  marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
-                  background: '#B91C1C', border: 'none', borderRadius: 8,
-                  padding: '8px 14px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                }}>
+                <button className="mt-3 flex items-center gap-[6px] border-none rounded-lg px-[14px] py-2 text-white text-xs font-bold cursor-pointer"
+                  style={{ background: '#B91C1C' }}>
                   <Phone size={12} /> Call City Veterinary Office
                 </button>
               )}
             </section>
           )}
 
-          <section style={{
-            background: '#fff', borderRadius: 12, padding: '18px',
-            border: '1px solid #E2E8F0', marginBottom: 8,
-            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-          }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <section className="bg-white rounded-xl p-[18px] border border-slate-200 mb-2"
+            style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
+            <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
               <Clock size={14} color="#1E3A8A" /> Status Timeline
             </div>
 
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            <ul className="m-0 p-0 list-none">
             {report.timeline.map((event, idx) => {
               const isLast = idx === report.timeline.length - 1;
               const colors = timelineColorMap[event.status] ?? timelineColorMap['submitted'];
               return (
-                <li key={`${event.timestamp}-${idx}`} style={{ display: 'flex', gap: 12, position: 'relative' }}>
+                <li key={`${event.timestamp}-${idx}`} className="flex gap-3 relative">
                   {!isLast && (
-                    <div style={{
-                      position: 'absolute', left: 15, top: 30, bottom: -4,
-                      width: 2, background: '#E2E8F0', zIndex: 0,
-                    }} />
+                    <div className="absolute left-[15px] top-[30px] w-[2px] bg-slate-200 z-0"
+                      style={{ bottom: -4 }} />
                   )}
 
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                    background: colors.bg, border: `2px solid ${colors.color}30`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: colors.color, zIndex: 1, position: 'relative',
-                  }}>
+                  <div className="w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center z-[1] relative"
+                    style={{
+                      background: colors.bg,
+                      border: `2px solid ${colors.color}30`,
+                      color: colors.color,
+                    }}>
                     {timelineIconMap[event.status] ?? <FileText size={13} />}
                   </div>
 
-                  <div style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', lineHeight: 1.2 }}>
+                  <div className="flex-1" style={{ paddingBottom: isLast ? 0 : 20 }}>
+                    <div className="flex items-start justify-between gap-2 mb-[2px]">
+                      <div className="font-bold text-[13px] text-slate-900 leading-[1.2]">
                         {event.label}
                       </div>
                       {isLast && (
-                        <span style={{
-                          background: colors.bg, color: colors.color,
-                          borderRadius: 7, padding: '2px 8px', fontSize: 9,
-                          fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
-                          flexShrink: 0,
-                        }}>Latest</span>
+                        <span className="shrink-0 rounded-[7px] px-2 py-[2px] text-[9px] font-extrabold tracking-[0.06em] uppercase"
+                          style={{ background: colors.bg, color: colors.color }}>Latest</span>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4, lineHeight: 1.5 }}>
+                    <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
                       {event.description}
                     </div>
                     {event.note && event.note !== event.description && (
-                      <div style={{
-                        background: '#FFFBEB', border: '1px solid #FDE68A',
-                        borderRadius: 8, padding: '7px 10px', fontSize: 11,
-                        color: '#78350F', lineHeight: 1.5, marginBottom: 4,
-                      }}>
+                      <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-lg px-[10px] py-[7px] text-[11px] text-[#78350F] leading-[1.5] mb-1">
                         Note: {event.note}
                       </div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <time style={{ fontSize: 10, color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>
+                    <div className="flex items-center gap-2">
+                      <time className="text-[10px] text-slate-400" style={{ fontVariantNumeric: 'tabular-nums' }}>
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span style={{ color: '#E2E8F0', fontSize: 10 }}> - </span>
-                      <span style={{
-                        fontSize: 10, color: colors.color, fontWeight: 600,
-                        background: colors.bg, borderRadius: 4, padding: '1px 6px',
-                      }}>
+                      <span className="text-slate-200 text-[10px]"> - </span>
+                      <span className="text-[10px] font-semibold rounded-[4px] px-[6px] py-[1px]"
+                        style={{ color: colors.color, background: colors.bg }}>
                         {event.actor} - {event.actorRole}
                       </span>
                     </div>
@@ -831,12 +774,9 @@ function DetailView({
             </ul>
           </section>
 
-          <section style={{
-            background: '#FEF2F2', borderRadius: 14, padding: '12px 14px',
-            border: '1px solid #FECACA', display: 'flex', gap: 8, alignItems: 'flex-start',
-          }}>
-            <Info size={14} color="#B91C1C" style={{ flexShrink: 0, marginTop: 1 }} />
-            <p style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.6, margin: 0 }}>
+          <section className="bg-[#FEF2F2] rounded-[14px] px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
+            <Info size={14} color="#B91C1C" className="shrink-0 mt-[1px]" />
+            <p className="text-xs text-[#7F1D1D] leading-[1.6] m-0">
               <strong>Immediate danger?</strong> Don't wait for a response - call <strong>911</strong> right away.
             </p>
           </section>
@@ -848,15 +788,7 @@ function DetailView({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm report cancellation"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 230,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
+          className="fixed inset-0 z-[230] flex items-center justify-center p-4"
         >
           <div
             onClick={() => {
@@ -864,33 +796,21 @@ function DetailView({
                 setConfirmCancelOpen(false);
               }
             }}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.65)' }}
+            className="absolute inset-0"
+            style={{ background: 'rgba(15,23,42,0.65)' }}
           />
 
           <article
+            className="relative overflow-hidden rounded-2xl bg-white"
             style={{
-              position: 'relative',
               width: 'min(460px, 100%)',
-              background: '#FFFFFF',
-              borderRadius: 16,
               boxShadow: '0 18px 44px rgba(15,23,42,0.28)',
-              overflow: 'hidden',
             }}
           >
-            <header
-              style={{
-                background: '#1E3A8A',
-                color: '#FFFFFF',
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <header className="bg-[#1E3A8A] text-white px-4 py-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <AlertTriangle size={16} color="#FDE68A" />
-                <span style={{ fontSize: 14, fontWeight: 700 }}>Confirm Cancellation</span>
+                <span className="text-sm font-bold">Confirm Cancellation</span>
               </div>
               <button
                 type="button"
@@ -900,16 +820,10 @@ function DetailView({
                   }
                 }}
                 disabled={cancelling}
+                className="w-[30px] h-[30px] rounded-lg inline-flex items-center justify-center text-white"
                 style={{
-                  width: 30,
-                  height: 30,
                   border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: 8,
                   background: 'rgba(255,255,255,0.12)',
-                  color: '#FFFFFF',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
                 aria-label="Close confirmation dialog"
@@ -918,35 +832,19 @@ function DetailView({
               </button>
             </header>
 
-            <div style={{ padding: '14px 16px 10px' }}>
-              <p style={{ margin: 0, fontSize: 13, color: '#334155', lineHeight: 1.65 }}>
+            <div className="px-4 pt-[14px] pb-[10px]">
+              <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
                 Cancel this submitted report? This action is only available while the ticket is still in <strong>Submitted</strong> status.
               </p>
             </div>
 
-            <footer
-              style={{
-                padding: '0 16px 14px',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 8,
-              }}
-            >
+            <footer className="px-4 pb-[14px] flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setConfirmCancelOpen(false)}
                 disabled={cancelling}
-                style={{
-                  height: 38,
-                  border: '1px solid #CBD5E1',
-                  borderRadius: 10,
-                  background: '#F8FAFC',
-                  color: '#475569',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '0 14px',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                }}
+                className="h-[38px] border border-slate-300 rounded-[10px] bg-slate-50 text-slate-600 text-xs font-bold px-[14px]"
+                style={{ cursor: cancelling ? 'not-allowed' : 'pointer' }}
               >
                 Keep Ticket
               </button>
@@ -960,15 +858,9 @@ function DetailView({
                   setConfirmCancelOpen(false);
                 }}
                 disabled={cancelling}
+                className="h-[38px] border-none rounded-[10px] text-white text-xs font-bold px-[14px]"
                 style={{
-                  height: 38,
-                  border: 'none',
-                  borderRadius: 10,
                   background: cancelling ? '#94A3B8' : '#B91C1C',
-                  color: '#FFFFFF',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '0 14px',
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -981,45 +873,34 @@ function DetailView({
 
       {selectedPhoto && (
         <div
-          className="citizen-photo-preview-overlay"
+          className="citizen-photo-preview-overlay fixed inset-0 z-[220] flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Photo preview"
           onClick={() => setPreviewPhotoIndex(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 220,
-            background: 'rgba(2,6,23,0.82)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
+          style={{ background: 'rgba(2,6,23,0.82)' }}
         >
           <div
-            className="citizen-photo-preview-stage"
+            className="citizen-photo-preview-stage flex flex-col gap-2"
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(980px, 100%)',
-              maxHeight: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
+            style={{ width: 'min(980px, 100%)', maxHeight: '100%' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#E2E8F0', fontSize: 12 }}>
+            <div className="flex justify-between items-center text-slate-200 text-xs">
               <strong>{selectedPhoto.fileName}</strong>
               <button
                 type="button"
-                className="citizen-photo-preview-close"
+                className="citizen-photo-preview-close bg-[#0F172A] border border-[#334155] text-slate-200 rounded-lg px-[10px] py-1 cursor-pointer"
                 onClick={() => setPreviewPhotoIndex(null)}
-                style={{ background: '#0F172A', border: '1px solid #334155', color: '#E2E8F0', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
               >
                 Close
               </button>
             </div>
-            <img className="citizen-photo-preview-image" src={selectedPhoto.publicUrl} alt={selectedPhoto.fileName} style={{ maxHeight: '80vh', width: '100%', objectFit: 'contain', borderRadius: 12, background: '#020617' }} />
+            <img
+              className="citizen-photo-preview-image w-full rounded-xl object-contain"
+              src={selectedPhoto.publicUrl}
+              alt={selectedPhoto.fileName}
+              style={{ maxHeight: '80vh', background: '#020617' }}
+            />
           </div>
         </div>
       )}
@@ -1036,23 +917,14 @@ function DetailView({
 
 function EmptyState({ filter, query }: { filter: string; query: string }) {
   return (
-    <div style={{
-      gridColumn: '1 / -1',
-      width: '100%',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', minHeight: 320, padding: '60px 32px', textAlign: 'center',
-    }}>
-      <div style={{
-        width: 80, height: 80, borderRadius: '50%', background: '#F1F5F9',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 18, color: '#CBD5E1',
-      }}>
+    <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
+      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
         <FileText size={36} />
       </div>
-      <div style={{ fontWeight: 800, fontSize: 17, color: '#1E293B', marginBottom: 8 }}>
+      <div className="font-extrabold text-[17px] text-slate-900 mb-2">
         {query ? 'No results found' : `No ${filter !== 'all' ? filter : ''} reports`}
       </div>
-      <div style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, maxWidth: 260 }}>
+      <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
         {query
           ? `No reports match "${query}". Try a different search term.`
           : filter === 'active'
@@ -1067,40 +939,34 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
 
 function TicketPageLoadingState() {
   return (
-    <div className="citizen-content-shell" style={{ paddingTop: 28, paddingBottom: 28 }}>
+    <div className="citizen-content-shell pt-7 pb-7">
       <section
+        className="grid place-items-center text-center px-5 py-6"
         style={{
           minHeight: 320,
           borderRadius: 18,
           border: '1px solid #DBEAFE',
           background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 56%, #F8FAFC 100%)',
           boxShadow: '0 12px 28px rgba(30,58,138,0.08)',
-          display: 'grid',
-          placeItems: 'center',
-          padding: '24px 20px',
-          textAlign: 'center',
         }}
       >
-        <div style={{ display: 'grid', justifyItems: 'center', gap: 12 }}>
+        <div className="grid justify-items-center gap-3">
           <div
             role="status"
             aria-label="Loading my reports"
+            className="relative flex items-center justify-center"
             style={{
               width: 104,
               height: 104,
               borderRadius: 9999,
               background: 'rgba(255, 255, 255, 0.96)',
               boxShadow: '0 18px 40px rgba(15, 23, 42, 0.18)',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
             <span
               aria-hidden="true"
+              className="absolute"
               style={{
-                position: 'absolute',
                 inset: -6,
                 borderRadius: 9999,
                 border: '4px solid rgba(30, 58, 138, 0.16)',
@@ -1112,18 +978,18 @@ function TicketPageLoadingState() {
             <img
               src="/favicon.svg"
               alt="TUGON"
+              className="block"
               style={{
                 width: 40,
                 height: 40,
-                display: 'block',
                 filter: 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15))',
               }}
             />
           </div>
-          <p style={{ margin: 0, color: '#1E3A8A', fontSize: 14, fontWeight: 800 }}>
+          <p className="m-0 text-[#1E3A8A] text-sm font-extrabold">
             Loading your ticket records...
           </p>
-          <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
+          <p className="m-0 text-slate-500 text-xs leading-[1.55]">
             Pulling incident status updates from your barangay queue.
           </p>
         </div>
@@ -1340,7 +1206,7 @@ export default function CitizenMyReports() {
   ];
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       {selected && (
         <DetailView
           report={selected}
@@ -1354,33 +1220,16 @@ export default function CitizenMyReports() {
       <CitizenPageLayout
         header={
           <header
-            className="citizen-web-header"
-            style={{
-            background: '#1E3A8A',
-            display: 'flex',
-            alignItems: 'center',
-            height: 60,
-            flexShrink: 0,
-            position: 'sticky', top: 0, zIndex: 50,
-            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
-          }}
+            className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50"
+            style={{ boxShadow: '0 2px 8px rgba(15,23,42,0.14)' }}
           >
             <div
-              className="citizen-web-header-inner"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '0 var(--citizen-content-gutter)',
-                height: '100%',
-                boxSizing: 'border-box',
-                position: 'relative',
-              }}
+              className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative"
+              style={{ padding: '0 var(--citizen-content-gutter)' }}
             >
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="flex items-center gap-[10px]">
                 <CitizenMobileMenu
                   activeKey="myreports"
                   open={mobileMenuOpen}
@@ -1408,7 +1257,7 @@ export default function CitizenMyReports() {
                     setMobileMenuOpen(false);
                   }}
                 />
-                <div style={{ position: 'relative' }}>
+                <div className="relative">
                   <button
                     type="button"
                     onClick={() => {
@@ -1420,20 +1269,7 @@ export default function CitizenMyReports() {
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
                     aria-expanded={profileMenuOpen}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: '#B4730A',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      fontWeight: 800,
-                      fontSize: 14,
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
+                    className="w-9 h-9 rounded-[10px] bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm border-none cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -1442,18 +1278,8 @@ export default function CitizenMyReports() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      style={{
-                        position: 'absolute',
-                        top: 44,
-                        right: 0,
-                        width: 190,
-                        background: '#fff',
-                        borderRadius: 12,
-                        boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
-                        border: '1px solid #E2E8F0',
-                        overflow: 'hidden',
-                        zIndex: 110,
-                      }}
+                      className="absolute top-11 right-0 w-[190px] bg-white rounded-xl border border-slate-200 overflow-hidden z-[110]"
+                      style={{ boxShadow: '0 8px 18px rgba(15,23,42,0.12)' }}
                     >
                       <button
                         type="button"
@@ -1462,18 +1288,7 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           navigate('/citizen?tab=profile');
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          borderBottom: '1px solid #F1F5F9',
-                          color: '#1E293B',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
                       >
                         Open profile page
                       </button>
@@ -1484,17 +1299,7 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          color: '#B91C1C',
-                          fontSize: 13,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none text-red-700 text-[13px] font-bold cursor-pointer"
                       >
                         Sign out
                       </button>
@@ -1543,37 +1348,35 @@ export default function CitizenMyReports() {
           <TicketPageLoadingState />
         ) : (
           <>
-            <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
+            <div className="citizen-content-shell pt-4 pb-0">
               <section
+                className="rounded-2xl px-4 pt-4 pb-[14px] mb-[10px] border border-[#DBEAFE]"
                 style={{
-                  borderRadius: 16,
-                  padding: '16px 16px 14px',
-                  marginBottom: 10,
-                  border: '1px solid #DBEAFE',
                   background: 'linear-gradient(140deg, #EFF6FF 0%, #F8FAFC 46%, #FFFFFF 100%)',
                   boxShadow: '0 8px 24px rgba(30,58,138,0.08)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                  <div style={{ minWidth: 220 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: '#1E3A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-[220px]">
+                    <p className="m-0 text-[11px] font-extrabold text-[#1E3A8A] tracking-[0.08em] uppercase">
                       Ticket Monitoring
                     </p>
-                    <h2 style={{ margin: '6px 0 4px', color: '#1E293B', fontSize: 'clamp(18px,2.4vw,22px)', fontWeight: 800, lineHeight: 1.2 }}>
+                    <h2 className="mt-[6px] mb-1 text-slate-900 font-extrabold leading-[1.2]"
+                      style={{ fontSize: 'clamp(18px,2.4vw,22px)' }}>
                       My Incident Reports
                     </h2>
-                    <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
+                    <p className="m-0 text-slate-500 text-xs leading-[1.55]">
                       Track your submitted reports, review timeline updates, and open ticket details anytime.
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ background: '#FFFFFF', border: '1px solid #BFDBFE', color: '#1E3A8A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                  <div className="flex gap-2 flex-wrap">
+                    <span className="bg-white border border-[#BFDBFE] text-[#1E3A8A] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
                       Total: {allCount}
                     </span>
-                    <span style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#B4730A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                    <span className="bg-[#FFFBEB] border border-[#FDE68A] text-[#B4730A] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
                       Active: {activeCount}
                     </span>
-                    <span style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
+                    <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
                       Resolved: {resolvedCount}
                     </span>
                   </div>
@@ -1581,69 +1384,48 @@ export default function CitizenMyReports() {
               </section>
 
               <section
-                style={{
-                  background: '#fff',
-                  border: '1px solid #DBEAFE',
-                  borderRadius: 16,
-                  boxShadow: '0 10px 24px rgba(15,23,42,0.07)',
-                  padding: 12,
-                }}
+                className="bg-white border border-[#DBEAFE] rounded-2xl p-3"
+                style={{ boxShadow: '0 10px 24px rgba(15,23,42,0.07)' }}
               >
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <div style={{
-                  flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
-                  border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
-                  minWidth: 240,
-                }}>
-                  <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
+              <div className="flex gap-2 flex-wrap">
+                <div className="flex-1 flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-[10px] border-[1.5px] border-slate-200 min-w-[240px]"
+                  style={{ transition: 'border-color 0.2s' }}>
+                  <Search size={14} color="#94A3B8" className="shrink-0" />
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder="Search by ID, type, location..."
-                    style={{
-                      flex: 1, border: 'none', background: 'transparent',
-                      fontSize: 13, color: '#1E293B', outline: 'none',
-                      fontFamily: "'Roboto', sans-serif",
-                    }}
+                    className="flex-1 border-none bg-transparent text-[13px] text-slate-900 outline-none"
+                    style={{ fontFamily: "'Roboto', sans-serif" }}
                   />
                   {query && (
-                    <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', padding: 0 }}>
+                    <button onClick={() => setQuery('')} className="bg-transparent border-none cursor-pointer text-slate-400 flex p-0">
                       <X size={13} />
                     </button>
                   )}
                 </div>
 
-                <div className="citizen-sort-panel" style={{ position: 'relative' }}>
+                <div className="citizen-sort-panel relative">
                   <button
                     onClick={() => setSortOpen(v => !v)}
-                    style={{
-                      height: 42, background: '#F8FAFC', border: '1.5px solid #E2E8F0',
-                      borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
-                      gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
-                      whiteSpace: 'nowrap',
-                    }}
+                    className="h-[42px] bg-slate-50 border-[1.5px] border-slate-200 rounded-xl px-3 flex items-center gap-[5px] cursor-pointer text-slate-600 font-semibold text-xs whitespace-nowrap"
                   >
                     <SlidersHorizontal size={13} />
                     {sortBy === 'newest' ? 'Newest' : 'Oldest'}
                     <ChevronDown size={12} />
                   </button>
                   {sortOpen && (
-                    <div className="citizen-sort-panel" style={{
-                      position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-                      background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                      border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
-                    }}>
+                    <div className="citizen-sort-panel absolute top-[calc(100%+4px)] right-0 bg-white rounded-xl border border-slate-200 overflow-hidden z-[60] min-w-[130px]"
+                      style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
                       {(['newest', 'oldest'] as const).map(opt => (
                         <button
                           key={opt}
                           onClick={() => { setSortBy(opt); setSortOpen(false); }}
+                          className="block w-full text-left px-[14px] py-[10px] border-none cursor-pointer text-[13px]"
                           style={{
-                            display: 'block', width: '100%', textAlign: 'left',
-                            padding: '10px 14px', border: 'none', cursor: 'pointer',
                             background: sortBy === opt ? '#EFF6FF' : '#fff',
                             color: sortBy === opt ? '#1E3A8A' : '#475569',
-                            fontSize: 13, fontWeight: sortBy === opt ? 700 : 400,
+                            fontWeight: sortBy === opt ? 700 : 400,
                             fontFamily: "'Roboto', sans-serif",
                           }}
                         >
@@ -1655,40 +1437,33 @@ export default function CitizenMyReports() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', padding: '10px 2px 0', gap: 0, borderBottom: 'none' }}>
+              <div className="flex pt-[10px] px-[2px] pb-0 gap-0">
                 {FILTER_TABS.map(tab => {
                   const isActive = filter === tab.key;
                   return (
                     <button
                       key={tab.key}
                       onClick={() => setFilter(tab.key)}
-                      style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '8px 4px 10px', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', gap: 2, position: 'relative',
-                        transition: 'all 0.2s',
-                      }}
+                      className="flex-1 bg-transparent border-none cursor-pointer px-1 pt-2 pb-[10px] flex flex-col items-center gap-[2px] relative"
+                      style={{ transition: 'all 0.2s' }}
                     >
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        fontWeight: isActive ? 800 : 500,
-                        fontSize: 13,
-                        color: isActive ? '#1E3A8A' : '#94A3B8',
-                      }}>
-                        {tab.label}
-                        <span style={{
-                          background: isActive ? '#1E3A8A' : '#F1F5F9',
-                          color: isActive ? '#fff' : '#94A3B8',
-                          borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
+                      <span className="flex items-center gap-[5px] text-[13px]"
+                        style={{
+                          fontWeight: isActive ? 800 : 500,
+                          color: isActive ? '#1E3A8A' : '#94A3B8',
                         }}>
+                        {tab.label}
+                        <span className="rounded-[20px] px-[7px] py-[1px] text-[10px] font-bold"
+                          style={{
+                            background: isActive ? '#1E3A8A' : '#F1F5F9',
+                            color: isActive ? '#fff' : '#94A3B8',
+                          }}>
                           {tab.count}
                         </span>
                       </span>
                       {isActive && (
-                        <div style={{
-                          position: 'absolute', bottom: 0, left: '15%', right: '15%',
-                          height: 3, background: '#1E3A8A', borderRadius: '3px 3px 0 0',
-                        }} />
+                        <div className="absolute bottom-0 h-[3px] bg-[#1E3A8A] rounded-t-[3px]"
+                          style={{ left: '15%', right: '15%' }} />
                       )}
                     </button>
                   );
@@ -1698,19 +1473,19 @@ export default function CitizenMyReports() {
             </div>
 
             <div onClick={() => sortOpen && setSortOpen(false)}>
-              <div className="citizen-content-shell citizen-reports-summary-row" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="citizen-reports-summary-text" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
-                  Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
+              <div className="citizen-content-shell citizen-reports-summary-row pt-[10px] pb-2 flex items-center justify-between">
+                <span className="citizen-reports-summary-text text-xs text-slate-400 font-medium">
+                  Showing <strong className="text-slate-900">{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
                   {query && ` for "${query}"`}
                 </span>
                 {filtered.length > 0 && (
-                  <span className="citizen-reports-summary-hint" style={{ fontSize: 11, color: '#94A3B8' }}>
+                  <span className="citizen-reports-summary-hint text-[11px] text-slate-400">
                     Open a card to view details
                   </span>
                 )}
               </div>
 
-              <div className="citizen-content-shell citizen-reports-grid" style={{ paddingTop: 0, paddingBottom: 24, display: 'grid', gap: 12 }}>
+              <div className="citizen-content-shell citizen-reports-grid pt-0 pb-6 grid gap-3">
                 {filtered.length === 0 ? (
                   <EmptyState filter={filter} query={query} />
                 ) : (
@@ -1725,9 +1500,9 @@ export default function CitizenMyReports() {
               </div>
 
               {filtered.length > 0 && (
-                <div className="citizen-content-shell citizen-reports-footnote-wrap" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <p className="citizen-reports-footnote" style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+                <div className="citizen-content-shell citizen-reports-footnote-wrap pt-0 pb-8 flex items-start gap-2">
+                  <Info size={13} color="#94A3B8" className="shrink-0 mt-[1px]" />
+                  <p className="citizen-reports-footnote text-[11px] text-slate-400 leading-[1.6] m-0">
                     Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
                   </p>
                 </div>
