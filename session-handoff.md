@@ -1,39 +1,43 @@
-# Session Handoff — 2026-03-29 (UI/UX Redesign, Session 5)
+# Session Handoff — 2026-03-29 (UI/UX Redesign, Session 6)
 
 **Branch:** `redesign`
-**Build status:** PASSING ✓ — all changes verified before session end.
-**All changes committed** — no unstaged source file changes (only `dist/index.html` is unstaged, which is gitignored).
+**Build status:** PASSING ✓ — verified after SABarangayMap migration.
+**All changes committed** — no unstaged source file changes.
 
 ---
 
 ## What was accomplished this session
 
-### Phase 5: Citizen + SuperAdmin Pages (continued — 7 of 9 done)
+### Phase 5: SABarangayMap.tsx migration (complete)
 
-Migrated 5 more files from inline `style={{}}` to Tailwind:
+Migrated `SABarangayMap.tsx` from inline `style={{}}` to Tailwind:
+- **149 inline styles → 33 remaining** (all 33 are legitimately kept inline: map overlay positions, Leaflet-required `MapContainer style={}`, `gridTemplateColumns: '1fr 296px'`, and all dynamic runtime colors/values)
+- `ZoomController` buttons → Tailwind
+- All toolbar, filter pills, barangay filter labels → Tailwind
+- Error banners, page header, action buttons → Tailwind
+- Heatmap settings panel inner content → Tailwind (kept `position/top/right/zIndex/width` inline)
+- Map legend overlay inner content → Tailwind (kept `position/bottom/left/zIndex` inline)
+- OSM attribution → Tailwind (kept `position/bottom/right/zIndex` inline)
+- Side panel, barangay detail card, incidents list, quick buttons → Tailwind
+- Comparison table (header, rows, cells) → Tailwind
+- `<style>` block preserved (`@keyframes sa-ping` + `sa-map-*` media queries)
+- `makeIcon()` DivIcon HTML string untouched
+- All `pathOptions` on Polygon/Circle untouched
 
-- **CitizenMyReports.tsx** — Background agent from previous session completed this migration (729→~480 lines, 183 inline styles eliminated). Committed along with `authApi.ts` improvement (better error messages + startup race guard for CSRF).
+### IncidentReport.tsx — fully read, NOT yet migrated
 
-- **CitizenVerification.tsx** — 1,085 lines → ~850. 74 inline styles → ~6 remaining (all dynamic: `meta.bg/color`, `border: 1px solid ${meta.color}33`, `cursor`/`opacity` on disabled buttons, `gridTemplateColumns: 'repeat(auto-fit, ...)'`). Header follows same pattern as CitizenDashboard.
-
-- **SAOverview.tsx** — 746 lines → ~560. 85 inline styles → ~12 remaining (all dynamic: `${color}18` icon backgrounds, `${b.color}14/15/30` barangay card colors, conditional bar fill colors, dynamic `height/maxHeight` for activity log card). Removed unused `logSeverityColors` and `incidentTypeIcons` constants. Kept `<style>` block for responsive media query overrides (`sa-overview-*` class names).
-
-- **SAUsers.tsx** — 925 lines → ~740. 101 inline styles → ~10 remaining (all dynamic: `avatarColor`, `rc.bg/color`, `sc.bg/color`, `stat.color`, `formData.status === s ? sc.color : ...`, conditional pagination border/bg). Kept `<style>` block for `sa-users-*` responsive media query overrides. Kept modal keyframe animation inline (`animation: 'modal-in 0.2s ease'`).
+Read all 2,658 lines in 5 passes. Fully understood structure. Ready to migrate next session without re-reading.
 
 ---
 
 ## Current state
 
-### Working (confirmed with `npm run build` after each migration)
-- CitizenMyReports.tsx ✓
-- CitizenVerification.tsx ✓
-- SAOverview.tsx ✓
-- SAUsers.tsx ✓
+### Working (confirmed with `npm run build`)
+- `SABarangayMap.tsx` ✓
 - All previously migrated files still working (Phases 1–4, Phase 5 partial)
 
-### Not started yet (Phase 5 remaining — 2 files)
-- `SABarangayMap.tsx` — 149 inline styles, 1,543 lines. **FULLY READ this session** (all 4 sections read). Ready to migrate next session without re-reading.
-- `IncidentReport.tsx` — 210 inline styles, 2,658 lines (largest remaining)
+### Not started yet (Phase 5 remaining — 1 file)
+- `IncidentReport.tsx` — 210 inline styles, 2,658 lines. **FULLY READ this session.** Ready to migrate next session.
 
 ---
 
@@ -41,66 +45,101 @@ Migrated 5 more files from inline `style={{}}` to Tailwind:
 
 | File | Summary |
 |------|---------|
-| `src/app/pages/CitizenMyReports.tsx` | Background agent migration: 183 inline styles → Tailwind |
-| `src/app/services/authApi.ts` | Better API error messages + startup race guard for CSRF |
-| `src/app/pages/CitizenVerification.tsx` | 74 inline styles → Tailwind; kept dynamic meta.bg/color inline |
-| `src/app/pages/superadmin/SAOverview.tsx` | 85 inline styles → Tailwind; removed unused constants; kept `<style>` responsive block |
-| `src/app/pages/superadmin/SAUsers.tsx` | 101 inline styles → Tailwind; kept modal keyframe + dynamic colors inline; kept `<style>` responsive block |
+| `src/app/pages/superadmin/SABarangayMap.tsx` | 149 inline styles → 33 remaining; full Tailwind migration |
 
 ---
 
 ## Open decisions
 
-- **`gridTemplateColumns: 'repeat(auto-fit, minmax(...))'`** — Always kept inline throughout (no Tailwind equivalent). This is the right call.
-- **Modal `animation: 'modal-in 0.2s ease'`** in SAUsers kept inline since it references a locally-defined `@keyframes` in the same component's `<style>` tag.
-- **Phase 5 scope**: 2 files remain. SABarangayMap is fully read — migrate next. IncidentReport is the biggest.
+- `gridTemplateColumns: '1fr 296px'` in SABarangayMap — kept inline (no Tailwind equivalent). Correct call.
+- `gridTemplateColumns: '1fr 1fr'` in IncidentReport Step1 category grid → **can** replace with `grid-cols-2` Tailwind class (it's static).
+- `gridTemplateColumns: 'repeat(4, 1fr)'` in Step1 severity + Step3 affected count → **can** replace with `grid-cols-4`.
+- `onFocus`/`onBlur` direct DOM style mutations (`e.target.style.borderColor = ...`) in Step2 address input and Step3 textarea — these are NOT React `style={}` props. **Do NOT remove these handlers.** The textarea/input borders are statically set in the style prop and the handlers override them on interaction.
 
 ---
 
 ## Traps to avoid
 
-- **SABarangayMap.tsx — Leaflet/map inline styles MUST stay**: `MapContainer style={{ width: '100%', height: '100%', minHeight: 500 }}` — Leaflet requires this. All `pathOptions` on Polygon/Circle/Marker are Leaflet props, not HTML styles — leave untouched.
-- **SABarangayMap.tsx — DivIcon HTML** (in `makeIcon()` function): The `html` string uses inline styles inside a template literal for SVG marker rendering — these are NOT React inline styles, they're raw HTML strings. Do NOT touch them.
-- **SABarangayMap.tsx — ZoomController** (lines 87–105): Position `absolute` top/right on the controller div and button styles — these are map overlay controls, safe to migrate.
-- **SABarangayMap.tsx — Heatmap settings panel** (lines 867–951): Position `absolute` div inside the map container — keep `position: 'absolute'`, `top`, `right`, `zIndex` inline since they're map overlays. The rest can be Tailwind.
-- **SABarangayMap.tsx — Map legend overlay** (lines 1081–1123): Same — `position: 'absolute'`, `bottom`, `left`, `zIndex` must stay inline.
-- **SABarangayMap.tsx — OSM attribution note** (lines 1126–1131): `position: 'absolute'` must stay inline.
-- **SABarangayMap.tsx — `<style>` block**: Contains `@keyframes sa-ping` (used inside `makeIcon` DivIcon HTML) AND responsive `sa-map-*` media query overrides. MUST keep both.
-- **SABarangayMap.tsx — Tooltip JSX inside Leaflet**: The `<div style={{ fontSize: 12 }}>` etc. inside `<Tooltip>` and `<Tooltip direction="top">` are Leaflet Tooltip content — safe to migrate to Tailwind className.
-- **SABarangayMap.tsx — dynamic colors**: `b.color`, `al.bg/color`, `isSel ? ${color}12 : ...`, `${b.color}14/50`, `sevBg[inc.severity]`, `sevCol[inc.severity]` — ALL must remain inline (runtime-dynamic).
-- **`sa-overview-activity-card` height/maxHeight**: Keep inline — they're computed from a `ResizeObserver` ref value.
-- **`sa-users-header`, `sa-users-filter-bar`** class names: Referenced in `<style>` block for responsive overrides. Do NOT remove.
-- **`sa-overview-*`, `sa-map-*`** class names: Same — referenced in `<style>` blocks.
-- **Tests use `node:test` runner**, NOT Jest or Vitest.
-- **Port 5173/5174 may be blocked** — vite.config.ts has port changed to 4173.
+### IncidentReport.tsx — critical items to keep untouched or inline:
+
+**Leaflet — keep absolutely untouched:**
+- `MapContainer style={{ display: 'block', height, width: '100%' }}` (line ~646) — Leaflet required, `height` is a variable passed from caller
+- `pathOptions` on `Polygon` and `CircleMarker` — Leaflet props, not HTML styles
+
+**`<style>` blocks — keep ALL of them:**
+- Step4: `@keyframes wave-bar` and `@keyframes blink` (used by waveform bars and recording dot)
+- Step3: `@media (max-width: 520px) { .incident-affected-grid }` responsive override
+- SuccessScreen: `@keyframes successPop`
+- SubmissionLoadingOverlay: `@keyframes incidentSubmitSpin`
+- Main export footer: `@media` queries for `.citizen-report-footer` (fixed vs sticky positioning)
+- Main export content: `.citizen-report-content-wrap` max-width override
+
+**Keep inline (position overlays):**
+- Step2 expanded map modal: `position: 'fixed', inset: 0, zIndex: 250` + flex column
+- Step2 "Expand Map" button: `position: 'absolute', top: 10, right: 10, zIndex: 11`
+- Step2 map hint: `position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)'`
+- Step4 photo preview overlay: `position: 'fixed', inset: 0, zIndex: 260`
+- Step5 photo preview overlay (identical): `position: 'fixed', inset: 0, zIndex: 260`
+- Step4 photo remove button: `position: 'absolute', top: 4, right: 4`
+- Step4 photo number badge: `position: 'absolute', bottom: 4, left: 4`
+- Step5 photo thumbnail gradient overlay: `position: 'absolute', inset: 0`
+- Step5 photo thumbnail number badge: `position: 'absolute', bottom: 3, right: 3`
+- SuccessScreen outer: `position: 'fixed', inset: 0, zIndex: 300`
+- SuccessScreen bg decoration divs: `position: 'absolute'` with top/right/bottom/left
+- SuccessScreen inner content: `position: 'relative', zIndex: 1`
+- SubmissionLoadingOverlay: `position: 'fixed', inset: 0, zIndex: 290`
+- Spinner span: `position: 'absolute', inset: -6`
+- StepIndicator outer div: `position: 'sticky', top: 60, zIndex: 40` — keep these inline, rest can be Tailwind
+- Header: `position: 'sticky', top: 0, zIndex: 50` — keep inline
+- Header inner: `position: 'relative'` — keep inline
+- Profile menu dropdown: `position: 'absolute', top: 44, right: 0, zIndex: 110`
+
+**Keep inline (dynamic runtime values):**
+- Category card buttons: `background: sel ? color : '#fff'`, `border: 2px solid ${sel ? color : '#E8EEF4'}` — `color` comes from CATEGORIES array at runtime
+- Category card unselected bg pattern div: `background: bg` (from CATEGORIES)
+- Category card icon div: `background: sel ? 'rgba(255,255,255,0.22)' : bg`, `color: sel ? '#fff' : color`
+- Category card label/desc: conditional `sel` colors
+- Severity buttons: `border: 2px solid ${sel ? s.color : s.border}`, `background: sel ? s.bg : '#fff'`, `boxShadow: sel ? 0 2px 10px ${s.color}30 : none`
+- Quick tag buttons: `border: 1.5px solid ${added ? '#1E3A8A' : '#E2E8F0'}`, `background/color` conditional
+- Affected count buttons: `border: 2px solid ${sel ? '#1E3A8A' : '#E2E8F0'}`, `background: sel ? ...`, label/sublabel colors conditional
+- Textarea dynamic border: set via `onFocus`/`onBlur` imperative handlers — do NOT remove handlers
+- Address input: same — `onFocus`/`onBlur` imperative handlers
+- Step2 map shell: `border: 2px solid ${form.pin ? '#3B82F6' : '#E2E8F0'}`, `boxShadow` dynamic
+- Step2 "Use My Registered Location" button: `opacity: !hasBarangayProfile ? 0.6 : 1`
+- Step3 char counter span: `color: charColor` (computed from description length)
+- Waveform bars (Step4): `height` (Math formula), `animation` with computed duration, `animationDelay`, `opacity` (Math formula) — ALL keep inline
+- Recording dot: `animation: blink 1s step-start infinite` inline (references @keyframes)
+- Step5 summary card header: `background: linear-gradient(135deg, ${cat.color}14, ...)`, `borderBottom: 3px solid ${cat?.color}`
+- Step5 icon box: `background: cat?.bg`, `color: cat?.color`, `boxShadow: 0 2px 8px ${cat?.color}20`
+- Step5 severity pill: all bg/color values dynamic based on `form.severity`
+- Step5 detail row icon div: `background: ${accent}14`, `color: accent`
+- Step5 detail row: `borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none'`
+- Footer "Continue/Submit" button: `background`, `color`, `cursor`, `flex`, `boxShadow` all dynamic
+
+**Photo add button onMouseOver/onMouseOut (Step4, lines ~1337-1344):**
+- These are imperative DOM mutations on `e.currentTarget.style` — keep both handlers. Do not remove.
 
 ---
 
 ## Next steps (priority order)
 
-1. **SABarangayMap.tsx** — 149 inline styles, 1,543 lines. **File fully read — start migrating immediately.**
-   - Key sections to migrate:
-     - `ZoomController` sub-component (lines ~87–105): button styles → Tailwind
-     - Loading state div (lines ~667–674)
-     - Page header + action buttons (lines ~677–729)
-     - Error banners (lines ~731–741)
-     - Main grid wrapper: `sa-map-main-grid` (line ~743): keep class name, add `grid gap-[14px]` + keep `gridTemplateColumns: '1fr 296px'` inline
-     - Toolbar (lines ~751–863): filter buttons, compact selects
-     - Map container wrapper: `position: 'relative'` + `flex: 1 minHeight: 500` (line ~866) — keep inline
-     - Heatmap settings panel: keep `position/top/right/zIndex` inline, migrate inner content
-     - Map legend overlay: keep `position/bottom/left/zIndex` inline, migrate inner content
-     - Side panel (lines ~1136–1443): barangay detail card, incidents list, quick buttons
-     - Comparison table (lines ~1447–1508)
-   - **Keep absolutely untouched**: `MapContainer style={}`, Leaflet `pathOptions`, `makeIcon()` DivIcon HTML string, `<style>` block
-   - **Keep inline**: all `position: 'absolute'` map overlays, all dynamic color props
+1. **IncidentReport.tsx** — migrate 210 inline styles → Tailwind. **File fully read — start immediately without re-reading.**
+   - Work section by section top to bottom:
+     1. `StepIndicator` sub-component (lines ~288–347)
+     2. `Step1` — category cards (dynamic inline), severity row (dynamic inline), subcategory section (lines ~352–520)
+     3. `Step1WithValidation` error banner (lines ~522–551)
+     4. `Step2` — header text, map shell dynamic border inline, expanded map overlay inline, pin chip, address label, error banners (lines ~686–954)
+     5. `Step3` — tip box, textarea wrapper (dynamic border via handlers), quick tags (dynamic inline), affected count grid (lines ~989–1136)
+     6. `Step4` — photo card, voice recorder, playback UI, waveform bars (all dynamic inline), photo preview overlay (lines ~1232–1597)
+     7. `Step5` — summary card (dynamic header/icon inline), photo thumbnails, legal disclaimer, photo preview overlay (lines ~1678–1875)
+     8. `SuccessScreen` (lines ~1900–2016)
+     9. `SubmissionLoadingOverlay` (lines ~2018–2083)
+     10. Main `IncidentReport` export — header, profile button (static, can migrate), profile menu, footer nav buttons (dynamic inline) (lines ~2359–2657)
+   - **Use full file rewrite** (same approach as SABarangayMap)
 
-2. **IncidentReport.tsx** — 210 inline styles, 2,658 lines. Largest file.
-   - Key sections: step wizard header, type picker, location step (Leaflet map), description step, evidence upload, review step.
-   - Read section by section before migrating.
-
-3. **Wire BottomNav** into `CitizenPageLayout` for citizen mobile nav.
-4. **Wire CitizenOnboardingModal** into citizen layout.
-5. **Phase 6**: Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
+2. **Wire BottomNav** into `CitizenPageLayout` for citizen mobile nav.
+3. **Wire CitizenOnboardingModal** into citizen layout.
+4. **Phase 6**: Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
 
 ---
 
@@ -113,9 +152,5 @@ Migrated 5 more files from inline `style={{}}` to Tailwind:
 - `src/app/components/CitizenPageLayout.tsx` — Citizen layout; `<style>` block defines `citizen-*` classes
 - `src/app/components/BottomNav.tsx` — Shared bottom nav (Phase 1, updated Phase 3) — not yet wired
 - `src/app/components/CitizenOnboardingModal.tsx` — Built in Phase 1, not yet wired
-- `src/app/pages/CitizenVerification.tsx` — Migrated this session ✓
-- `src/app/pages/CitizenMyReports.tsx` — Migrated this session ✓
-- `src/app/pages/superadmin/SAOverview.tsx` — Migrated this session ✓
-- `src/app/pages/superadmin/SAUsers.tsx` — Migrated this session ✓
-- `src/app/pages/superadmin/SABarangayMap.tsx` — **NEXT TARGET** (149 inline styles, 1,543 lines, fully read)
-- `src/app/pages/IncidentReport.tsx` — After SABarangayMap (210 inline styles, 2,658 lines)
+- `src/app/pages/superadmin/SABarangayMap.tsx` — Migrated this session ✓
+- `src/app/pages/IncidentReport.tsx` — **NEXT TARGET** (210 inline styles, 2,658 lines, fully read)
