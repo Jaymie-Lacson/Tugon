@@ -1,90 +1,106 @@
-# Session Handoff — 2026-03-28 (UI/UX Redesign, Session 4)
+# Session Handoff — 2026-03-29 (UI/UX Redesign, Session 5)
 
 **Branch:** `redesign`
 **Build status:** PASSING ✓ — all changes verified before session end.
-**All changes are unstaged** — commit before starting Phase 5 work.
+**All changes committed** — no unstaged source file changes (only `dist/index.html` is unstaged, which is gitignored).
 
 ---
 
 ## What was accomplished this session
 
-### Phase 5: Citizen + SuperAdmin Pages (STARTED — 3 of 9 done)
+### Phase 5: Citizen + SuperAdmin Pages (continued — 7 of 9 done)
 
-Started Phase 5. Migrated 3 files from inline `style={{}}` to Tailwind:
+Migrated 5 more files from inline `style={{}}` to Tailwind:
 
-- **CitizenDashboard.tsx** — 2,322→~1,450 lines. 181 inline styles → 34 remaining (all dynamic: `accent`, `cfg.bgColor/color`, `verificationSummary.bg/color`, `contact.bg/color`, computed map heights, CSS vars). Removed `onMouseEnter`/`onMouseLeave` handlers on `QuickActionCard`, replaced with `hover:-translate-y-0.5`. Kept `gridTemplateColumns` with `auto-fit minmax()` inline (no Tailwind equivalent).
+- **CitizenMyReports.tsx** — Background agent from previous session completed this migration (729→~480 lines, 183 inline styles eliminated). Committed along with `authApi.ts` improvement (better error messages + startup race guard for CSRF).
 
-- **SAAnalytics.tsx** — 260→~190 lines. 25→5 inline styles. Kept `<style>` block for responsive media queries (`sa-analytics-stats`, `sa-analytics-grid`, `sa-analytics-header` class overrides). Recharts props (`tick`, `fill`, etc.) kept as-is.
+- **CitizenVerification.tsx** — 1,085 lines → ~850. 74 inline styles → ~6 remaining (all dynamic: `meta.bg/color`, `border: 1px solid ${meta.color}33`, `cursor`/`opacity` on disabled buttons, `gridTemplateColumns: 'repeat(auto-fit, ...)'`). Header follows same pattern as CitizenDashboard.
 
-- **SAAuditLogs.tsx** — 547→~400 lines. 69→5 inline styles. Kept `<style>` block for responsive media queries (`sa-audit-header`, `sa-audit-filter-bar`, `sa-audit-pagination`). `cursor`/`opacity` for disabled export buttons kept inline (conditional on state).
+- **SAOverview.tsx** — 746 lines → ~560. 85 inline styles → ~12 remaining (all dynamic: `${color}18` icon backgrounds, `${b.color}14/15/30` barangay card colors, conditional bar fill colors, dynamic `height/maxHeight` for activity log card). Removed unused `logSeverityColors` and `incidentTypeIcons` constants. Kept `<style>` block for responsive media query overrides (`sa-overview-*` class names).
+
+- **SAUsers.tsx** — 925 lines → ~740. 101 inline styles → ~10 remaining (all dynamic: `avatarColor`, `rc.bg/color`, `sc.bg/color`, `stat.color`, `formData.status === s ? sc.color : ...`, conditional pagination border/bg). Kept `<style>` block for `sa-users-*` responsive media query overrides. Kept modal keyframe animation inline (`animation: 'modal-in 0.2s ease'`).
 
 ---
 
 ## Current state
 
-### Working (confirmed with `npm run build`)
-- CitizenDashboard.tsx ✓
-- SAAnalytics.tsx ✓
-- SAAuditLogs.tsx ✓
-- All previously migrated files still working (Phases 1–4)
+### Working (confirmed with `npm run build` after each migration)
+- CitizenMyReports.tsx ✓
+- CitizenVerification.tsx ✓
+- SAOverview.tsx ✓
+- SAUsers.tsx ✓
+- All previously migrated files still working (Phases 1–4, Phase 5 partial)
 
-### Background agent (may still be running)
-- **CitizenMyReports.tsx** — A background agent was launched to migrate this file. It was mid-read when the session ended. **Check if `CitizenMyReports.tsx` was modified** before starting work on it. If not modified, migrate it manually.
-
-### Not started yet (Phase 5 remaining)
-- `CitizenVerification.tsx` — 74 inline styles, 1,085 lines. Header was read (lines 1–570).
-- `SAOverview.tsx` — 85 inline styles, 746 lines
-- `SABarangayMap.tsx` — 149 inline styles, 1,543 lines
-- `SAUsers.tsx` — 101 inline styles, 925 lines
+### Not started yet (Phase 5 remaining — 2 files)
+- `SABarangayMap.tsx` — 149 inline styles, 1,543 lines. **FULLY READ this session** (all 4 sections read). Ready to migrate next session without re-reading.
 - `IncidentReport.tsx` — 210 inline styles, 2,658 lines (largest remaining)
 
 ---
 
-## Files modified (unstaged)
+## Files modified
 
 | File | Summary |
 |------|---------|
-| `src/app/pages/CitizenDashboard.tsx` | Full rewrite: 181→34 inline styles → Tailwind; removed hover JS handlers; kept dynamic color props inline |
-| `src/app/pages/superadmin/SAAnalytics.tsx` | 25→5 inline styles → Tailwind; kept `<style>` responsive block |
-| `src/app/pages/superadmin/SAAuditLogs.tsx` | 69→5 inline styles → Tailwind; kept `<style>` responsive block; kept disabled button opacity/cursor inline |
+| `src/app/pages/CitizenMyReports.tsx` | Background agent migration: 183 inline styles → Tailwind |
+| `src/app/services/authApi.ts` | Better API error messages + startup race guard for CSRF |
+| `src/app/pages/CitizenVerification.tsx` | 74 inline styles → Tailwind; kept dynamic meta.bg/color inline |
+| `src/app/pages/superadmin/SAOverview.tsx` | 85 inline styles → Tailwind; removed unused constants; kept `<style>` responsive block |
+| `src/app/pages/superadmin/SAUsers.tsx` | 101 inline styles → Tailwind; kept modal keyframe + dynamic colors inline; kept `<style>` responsive block |
 
 ---
 
 ## Open decisions
 
-- **CitizenMyReports.tsx background agent**: Check if the agent completed and modified the file. If it did, run `npm run build` to verify. If it didn't, migrate manually (183 inline styles, 1,767 lines).
-- **`gridTemplateColumns: 'repeat(auto-fit, minmax(...))'`** — Kept inline throughout since Tailwind has no equivalent. This is the right call.
-- **Phase 5 scope**: `IncidentReport.tsx` (2,658 lines, 210 inline styles) is the largest remaining file. Consider reading it section by section. Key sections: step wizard header, type picker, location step, description step, evidence upload, review step.
+- **`gridTemplateColumns: 'repeat(auto-fit, minmax(...))'`** — Always kept inline throughout (no Tailwind equivalent). This is the right call.
+- **Modal `animation: 'modal-in 0.2s ease'`** in SAUsers kept inline since it references a locally-defined `@keyframes` in the same component's `<style>` tag.
+- **Phase 5 scope**: 2 files remain. SABarangayMap is fully read — migrate next. IncidentReport is the biggest.
 
 ---
 
 ## Traps to avoid
 
-- **Recharts/Leaflet inline styles must stay** — those libraries require them. Only migrate wrapper divs.
-- **Dynamic color props** — `accent`, `cfg.bgColor/color`, `verificationSummary.bg/color`, `contact.bg/color`, `tc.color`, `s.color/bg` — all MUST remain inline (runtime-dynamic).
-- **`sa-analytics-*`, `sa-audit-*` class names** — These are referenced inside `<style>` blocks for media query overrides. Do NOT remove those CSS class names from elements.
-- **`citizen-web-header`, `citizen-web-header-inner`, `citizen-map-filter-bar`** — Keep these class names; they're referenced by CitizenPageLayout's `<style>` block or used in JS `.closest()` calls.
-- **`citizen-content-shell`** — Keep this class name, it's styled by CitizenPageLayout's `<style>` block.
-- **CitizenVerification.tsx header** is identical to CitizenDashboard.tsx header pattern. Use the same Tailwind approach.
-- **`padding: '0 var(--citizen-content-gutter)'`** — Always keep this inline; it's a CSS variable from CitizenPageLayout.
-- **Background agent may have partially modified CitizenMyReports.tsx** — always check with `git diff src/app/pages/CitizenMyReports.tsx` before starting work on it.
-- **Port 5173/5174 may be blocked** — vite.config.ts has port changed to 4173.
+- **SABarangayMap.tsx — Leaflet/map inline styles MUST stay**: `MapContainer style={{ width: '100%', height: '100%', minHeight: 500 }}` — Leaflet requires this. All `pathOptions` on Polygon/Circle/Marker are Leaflet props, not HTML styles — leave untouched.
+- **SABarangayMap.tsx — DivIcon HTML** (in `makeIcon()` function): The `html` string uses inline styles inside a template literal for SVG marker rendering — these are NOT React inline styles, they're raw HTML strings. Do NOT touch them.
+- **SABarangayMap.tsx — ZoomController** (lines 87–105): Position `absolute` top/right on the controller div and button styles — these are map overlay controls, safe to migrate.
+- **SABarangayMap.tsx — Heatmap settings panel** (lines 867–951): Position `absolute` div inside the map container — keep `position: 'absolute'`, `top`, `right`, `zIndex` inline since they're map overlays. The rest can be Tailwind.
+- **SABarangayMap.tsx — Map legend overlay** (lines 1081–1123): Same — `position: 'absolute'`, `bottom`, `left`, `zIndex` must stay inline.
+- **SABarangayMap.tsx — OSM attribution note** (lines 1126–1131): `position: 'absolute'` must stay inline.
+- **SABarangayMap.tsx — `<style>` block**: Contains `@keyframes sa-ping` (used inside `makeIcon` DivIcon HTML) AND responsive `sa-map-*` media query overrides. MUST keep both.
+- **SABarangayMap.tsx — Tooltip JSX inside Leaflet**: The `<div style={{ fontSize: 12 }}>` etc. inside `<Tooltip>` and `<Tooltip direction="top">` are Leaflet Tooltip content — safe to migrate to Tailwind className.
+- **SABarangayMap.tsx — dynamic colors**: `b.color`, `al.bg/color`, `isSel ? ${color}12 : ...`, `${b.color}14/50`, `sevBg[inc.severity]`, `sevCol[inc.severity]` — ALL must remain inline (runtime-dynamic).
+- **`sa-overview-activity-card` height/maxHeight**: Keep inline — they're computed from a `ResizeObserver` ref value.
+- **`sa-users-header`, `sa-users-filter-bar`** class names: Referenced in `<style>` block for responsive overrides. Do NOT remove.
+- **`sa-overview-*`, `sa-map-*`** class names: Same — referenced in `<style>` blocks.
 - **Tests use `node:test` runner**, NOT Jest or Vitest.
+- **Port 5173/5174 may be blocked** — vite.config.ts has port changed to 4173.
 
 ---
 
 ## Next steps (priority order)
 
-1. **Commit unstaged changes** — `git add src/app/pages/CitizenDashboard.tsx src/app/pages/superadmin/SAAnalytics.tsx src/app/pages/superadmin/SAAuditLogs.tsx && git commit -m "Migrate CitizenDashboard, SAAnalytics, SAAuditLogs to Tailwind (Phase 5 partial)"`
-2. **Check CitizenMyReports.tsx** — Run `git diff src/app/pages/CitizenMyReports.tsx` to see if the background agent completed. If yes, run `npm run build` and commit. If no, migrate manually (183 inline styles, 1,767 lines).
-3. **CitizenVerification.tsx** — 74 inline styles, 1,085 lines. Header is same pattern as CitizenDashboard. Main content: loading skeleton, status banner (dynamic `meta.bg/color`), ID upload dropzones (front + back), submission section.
-4. **SAOverview.tsx** — 85 inline styles, 746 lines. Smaller SA page.
-5. **SAUsers.tsx** — 101 inline styles, 925 lines.
-6. **SABarangayMap.tsx** — 149 inline styles, 1,543 lines. Has Leaflet map — keep all map-related inline styles.
-7. **IncidentReport.tsx** — 210 inline styles, 2,658 lines. Largest file. Step wizard with type picker, location (Leaflet map), description, evidence uploads, review.
-8. **Wire BottomNav into CitizenPageLayout** for citizen mobile nav.
-9. **Wire CitizenOnboardingModal** into citizen layout.
-10. **Phase 6**: Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
+1. **SABarangayMap.tsx** — 149 inline styles, 1,543 lines. **File fully read — start migrating immediately.**
+   - Key sections to migrate:
+     - `ZoomController` sub-component (lines ~87–105): button styles → Tailwind
+     - Loading state div (lines ~667–674)
+     - Page header + action buttons (lines ~677–729)
+     - Error banners (lines ~731–741)
+     - Main grid wrapper: `sa-map-main-grid` (line ~743): keep class name, add `grid gap-[14px]` + keep `gridTemplateColumns: '1fr 296px'` inline
+     - Toolbar (lines ~751–863): filter buttons, compact selects
+     - Map container wrapper: `position: 'relative'` + `flex: 1 minHeight: 500` (line ~866) — keep inline
+     - Heatmap settings panel: keep `position/top/right/zIndex` inline, migrate inner content
+     - Map legend overlay: keep `position/bottom/left/zIndex` inline, migrate inner content
+     - Side panel (lines ~1136–1443): barangay detail card, incidents list, quick buttons
+     - Comparison table (lines ~1447–1508)
+   - **Keep absolutely untouched**: `MapContainer style={}`, Leaflet `pathOptions`, `makeIcon()` DivIcon HTML string, `<style>` block
+   - **Keep inline**: all `position: 'absolute'` map overlays, all dynamic color props
+
+2. **IncidentReport.tsx** — 210 inline styles, 2,658 lines. Largest file.
+   - Key sections: step wizard header, type picker, location step (Leaflet map), description step, evidence upload, review step.
+   - Read section by section before migrating.
+
+3. **Wire BottomNav** into `CitizenPageLayout` for citizen mobile nav.
+4. **Wire CitizenOnboardingModal** into citizen layout.
+5. **Phase 6**: Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
 
 ---
 
@@ -97,12 +113,9 @@ Started Phase 5. Migrated 3 files from inline `style={{}}` to Tailwind:
 - `src/app/components/CitizenPageLayout.tsx` — Citizen layout; `<style>` block defines `citizen-*` classes
 - `src/app/components/BottomNav.tsx` — Shared bottom nav (Phase 1, updated Phase 3) — not yet wired
 - `src/app/components/CitizenOnboardingModal.tsx` — Built in Phase 1, not yet wired
-- `src/app/pages/CitizenDashboard.tsx` — Migrated this session ✓
-- `src/app/pages/CitizenMyReports.tsx` — **CHECK FIRST** (background agent may have modified)
-- `src/app/pages/CitizenVerification.tsx` — **NEXT TARGET** (74 inline styles, 1,085 lines)
-- `src/app/pages/IncidentReport.tsx` — Largest remaining (210 inline styles, 2,658 lines)
-- `src/app/pages/superadmin/SAAnalytics.tsx` — Migrated this session ✓
-- `src/app/pages/superadmin/SAAuditLogs.tsx` — Migrated this session ✓
-- `src/app/pages/superadmin/SAOverview.tsx` — Not started (85 inline styles, 746 lines)
-- `src/app/pages/superadmin/SABarangayMap.tsx` — Not started (149 inline styles, 1,543 lines)
-- `src/app/pages/superadmin/SAUsers.tsx` — Not started (101 inline styles, 925 lines)
+- `src/app/pages/CitizenVerification.tsx` — Migrated this session ✓
+- `src/app/pages/CitizenMyReports.tsx` — Migrated this session ✓
+- `src/app/pages/superadmin/SAOverview.tsx` — Migrated this session ✓
+- `src/app/pages/superadmin/SAUsers.tsx` — Migrated this session ✓
+- `src/app/pages/superadmin/SABarangayMap.tsx` — **NEXT TARGET** (149 inline styles, 1,543 lines, fully read)
+- `src/app/pages/IncidentReport.tsx` — After SABarangayMap (210 inline styles, 2,658 lines)
