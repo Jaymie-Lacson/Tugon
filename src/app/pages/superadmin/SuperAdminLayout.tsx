@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   Activity,
@@ -7,14 +7,13 @@ import {
   LayoutDashboard,
   LogOut,
   Map,
-  Menu,
   Settings,
   Users,
-  X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
+import { BottomNav, type BottomNavItem } from '../../components/BottomNav';
 
 const NAV_ITEMS = [
   { path: '/superadmin', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -25,6 +24,14 @@ const NAV_ITEMS = [
   { path: '/superadmin/settings', label: 'Settings', icon: Settings },
 ];
 
+const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
+  { key: 'overview',  icon: <LayoutDashboard size={20} />, label: 'Overview',   path: '/superadmin',           exact: true },
+  { key: 'map',       icon: <Map size={20} />,             label: 'Map',        path: '/superadmin/map' },
+  { key: 'analytics', icon: <BarChart2 size={20} />,       label: 'Analytics',  path: '/superadmin/analytics' },
+  { key: 'users',     icon: <Users size={20} />,           label: 'Users',      path: '/superadmin/users' },
+  { key: 'settings',  icon: <Settings size={20} />,        label: 'Settings',   path: '/superadmin/settings' },
+];
+
 function LiveClock() {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
@@ -32,13 +39,11 @@ function LiveClock() {
     return () => clearInterval(t);
   }, []);
   return (
-    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+    <span className="tabular-nums">
       {time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
     </span>
   );
 }
-
-const SIDEBAR_BG = '#1E3A8A';
 
 type MonitoringItem = {
   code: string;
@@ -48,17 +53,12 @@ type MonitoringItem = {
 };
 
 function getMonitoringColor(incidents: number): string {
-  if (incidents >= 10) {
-    return '#B91C1C';
-  }
-  if (incidents >= 5) {
-    return '#F59E0B';
-  }
+  if (incidents >= 10) return '#B91C1C';
+  if (incidents >= 5) return '#F59E0B';
   return '#22C55E';
 }
 
 export default function SuperAdminLayout() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -69,7 +69,6 @@ export default function SuperAdminLayout() {
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
     { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
   ]);
-  const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -87,9 +86,7 @@ export default function SuperAdminLayout() {
     const loadMonitoring = async () => {
       try {
         const payload = await superAdminApi.getBarangays();
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
         const next = payload.barangays
           .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
@@ -101,57 +98,36 @@ export default function SuperAdminLayout() {
             color: getMonitoringColor(barangay.activeReports),
           }));
 
-        if (next.length > 0) {
-          setMonitoringItems(next);
-        }
+        if (next.length > 0) setMonitoringItems(next);
       } catch {
         // Keep zeroed fallback values if monitoring fetch fails.
       }
     };
 
     void loadMonitoring();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
     let mounted = true;
 
     const loadNotifications = async () => {
-      if (mounted) {
-        setNotificationsLoading(true);
-      }
-
+      if (mounted) setNotificationsLoading(true);
       try {
         const payload = await superAdminApi.getNotifications({ limit: 15 });
-        if (!mounted) {
-          return;
-        }
-
+        if (!mounted) return;
         setNotifications(payload.notifications);
         setUnreadCount(payload.unreadCount);
       } catch {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
       } finally {
-        if (mounted) {
-          setNotificationsLoading(false);
-        }
+        if (mounted) setNotificationsLoading(false);
       }
     };
 
     void loadNotifications();
-    const interval = window.setInterval(() => {
-      void loadNotifications();
-    }, 30000);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(interval);
-    };
+    const interval = window.setInterval(() => { void loadNotifications(); }, 30000);
+    return () => { mounted = false; window.clearInterval(interval); };
   }, []);
 
   const currentPage = NAV_ITEMS.find((n) =>
@@ -160,7 +136,6 @@ export default function SuperAdminLayout() {
 
   const handleSignOut = () => {
     clearAuthSession();
-    setDrawerOpen(false);
     setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
@@ -172,52 +147,13 @@ export default function SuperAdminLayout() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
-        return;
-      }
-
-      if (profileMenuOpen) {
-        setProfileMenuOpen(false);
-      }
-
-      if (notificationsOpen) {
-        setNotificationsOpen(false);
-      }
-
-      if (drawerOpen) {
-        setDrawerOpen(false);
-      }
+      if (event.key !== 'Escape') return;
+      if (profileMenuOpen) setProfileMenuOpen(false);
+      if (notificationsOpen) setNotificationsOpen(false);
     };
-
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [drawerOpen, notificationsOpen, profileMenuOpen]);
-
-  useEffect(() => {
-    if (!drawerOpen) {
-      return;
-    }
-
-    const closeMenuOnScroll = () => {
-      setDrawerOpen(false);
-    };
-
-    const closeMenuOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && mobileHeaderRef.current?.contains(target)) {
-        return;
-      }
-      setDrawerOpen(false);
-    };
-
-    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
-    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
-
-    return () => {
-      window.removeEventListener('scroll', closeMenuOnScroll);
-      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
-    };
-  }, [drawerOpen]);
+  }, [notificationsOpen, profileMenuOpen]);
 
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
@@ -225,12 +161,7 @@ export default function SuperAdminLayout() {
         await superAdminApi.markNotificationRead(item.id);
         setNotifications((current) =>
           current.map((entry) =>
-            entry.id === item.id
-              ? {
-                  ...entry,
-                  readAt: new Date().toISOString(),
-                }
-              : entry,
+            entry.id === item.id ? { ...entry, readAt: new Date().toISOString() } : entry,
           ),
         );
         setUnreadCount((current) => Math.max(0, current - 1));
@@ -238,7 +169,6 @@ export default function SuperAdminLayout() {
         // Keep UI usable even if mark-read fails.
       }
     }
-
     setNotificationsOpen(false);
     if (item.reportId) {
       navigate('/superadmin', { state: { focusReportId: item.reportId } });
@@ -246,18 +176,12 @@ export default function SuperAdminLayout() {
   };
 
   const handleMarkAllRead = async () => {
-    if (unreadCount <= 0) {
-      return;
-    }
-
+    if (unreadCount <= 0) return;
     try {
       await superAdminApi.markAllNotificationsRead();
       const nowIso = new Date().toISOString();
       setNotifications((current) =>
-        current.map((item) => ({
-          ...item,
-          readAt: item.readAt ?? nowIso,
-        })),
+        current.map((item) => ({ ...item, readAt: item.readAt ?? nowIso })),
       );
       setUnreadCount(0);
     } catch {
@@ -273,60 +197,50 @@ export default function SuperAdminLayout() {
     readAt: item.readAt,
   }));
 
-  return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
+  const closeOverlays = () => {
+    if (profileMenuOpen) setProfileMenuOpen(false);
+    if (notificationsOpen) setNotificationsOpen(false);
+  };
 
-      {/* Desktop Sidebar */}
-      <aside
-        className="sa-sidebar-desktop"
-        style={{
-          width: 248,
-          background: SIDEBAR_BG,
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          zIndex: 10,
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-        }}
-      >
+  return (
+    <div className="flex h-dvh overflow-hidden bg-app-bg">
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden lg:flex w-[248px] flex-col shrink-0 z-10 border-r border-white/10 bg-primary">
         {/* Logo */}
-        <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <NavLink
-            to="/superadmin"
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Go to TUGON super admin overview"
-            style={{ display: 'inline-flex' }}
-          >
+        <div className="px-[18px] pt-[18px] pb-3.5 border-b border-white/10">
+          <NavLink to="/superadmin" aria-label="Go to TUGON super admin overview" className="inline-flex">
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
-              style={{ width: 166, maxWidth: '100%', height: 'auto' }}
+              className="w-[166px] max-w-full h-auto"
             />
           </NavLink>
         </div>
 
         {/* Barangay quick status */}
-        <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Monitoring</div>
+        <div className="px-3.5 py-2.5 border-b border-white/[0.08]">
+          <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">Monitoring</div>
           {monitoringItems.map((b) => (
-            <div key={b.code} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '4px 6px', borderRadius: 5, marginBottom: 2,
-              background: 'rgba(255,255,255,0.05)',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: b.color, display: 'inline-block', flexShrink: 0, boxShadow: `0 0 5px ${b.color}` }} />
-              <span style={{ color: '#BFDBFE', fontSize: 11, flex: 1 }}>{b.name}</span>
-              <span style={{
-                background: `${b.color}22`, color: b.color,
-                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
-              }}>{b.incidents} active</span>
+            <div key={b.code} className="flex items-center gap-2 px-1.5 py-1 rounded-[5px] mb-0.5 bg-white/5">
+              <span
+                className="size-1.5 rounded-full inline-block shrink-0"
+                style={{ background: b.color, boxShadow: `0 0 5px ${b.color}` }}
+              />
+              <span className="text-blue-200 text-[11px] flex-1">{b.name}</span>
+              <span
+                className="text-[9px] font-bold px-[5px] py-px rounded-[3px]"
+                style={{ background: `${b.color}22`, color: b.color }}
+              >
+                {b.incidents} active
+              </span>
             </div>
           ))}
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '10px 12px', overflowY: 'auto' }}>
-          <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 4 }}>
+        <nav className="flex-1 p-3 overflow-y-auto">
+          <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
             Navigation
           </div>
           {NAV_ITEMS.map((item) => {
@@ -340,126 +254,84 @@ export default function SuperAdminLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                onClick={() => setDrawerOpen(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', borderRadius: 8, textDecoration: 'none', marginBottom: 2,
-                  background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  borderLeft: '3px solid transparent',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] border-transparent transition-colors duration-150 ${
+                  isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.08]'
+                }`}
               >
-                <item.icon size={16} color={isActive ? '#BFDBFE' : '#93C5FD'} />
-                <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 13, fontWeight: 400, flex: 1 }}>
+                <item.icon size={16} className={isActive ? 'text-blue-200' : 'text-blue-300'} />
+                <span className={`text-[13px] flex-1 ${isActive ? 'text-blue-100' : 'text-blue-200'}`}>
                   {item.label}
                 </span>
               </NavLink>
             );
           })}
-
         </nav>
 
         {/* User profile */}
-        <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.15)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, fontWeight: 700, color: 'white', fontSize: 13,
-            }}>
+        <div className="px-4 py-3 border-t border-white/10 bg-black/15">
+          <div className="flex items-center gap-2.5">
+            <div className="size-[34px] rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
               {userInitials}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {userFullName}
-              </div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>Super Admin</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
+              <div className="text-blue-300 text-[10px]">Super Admin</div>
             </div>
             <button
               type="button"
               onClick={handleSignOut}
               aria-label="Sign out"
               title="Sign out"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
+              className="border-none bg-transparent p-0 cursor-pointer inline-flex items-center justify-center shrink-0"
             >
-              <LogOut size={15} color="#93C5FD" />
+              <LogOut size={15} className="text-blue-300" />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        <div ref={mobileHeaderRef} style={{ position: 'relative', zIndex: 2600 }}>
+      {/* ── Main area ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
         {/* Header */}
-        <header style={{
-          background: SIDEBAR_BG,
-          padding: '0 20px', height: 56,
-          display: 'flex', alignItems: 'center', gap: 12,
-          flexShrink: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
-          position: 'relative',
-          zIndex: 2600,
-        }}>
-          <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
-            <NavLink
-              to="/superadmin"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Go to TUGON super admin overview"
-              style={{ display: 'inline-flex' }}
-            >
+        <header className="bg-primary px-5 h-14 flex items-center gap-3 shrink-0 border-b border-white/10 shadow-[0_2px_8px_rgba(30,58,138,0.3)] relative z-[2600]">
+          {/* Mobile logo */}
+          <div className="flex items-center lg:hidden">
+            <NavLink to="/superadmin" aria-label="Go to TUGON super admin overview" className="inline-flex">
               <img
                 src="/tugon-header-logo.svg"
                 alt="TUGON Tondo Emergency Response"
-                style={{ width: 124, maxWidth: '100%', height: 'auto' }}
+                className="w-[124px] max-w-full h-auto"
               />
             </NavLink>
           </div>
 
           {/* Desktop breadcrumb */}
-          <div className="sa-header-breadcrumb" style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 4, padding: '1px 7px',
-                color: '#BFDBFE', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-              }}>
+          <div className="hidden lg:block flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="bg-white/15 border border-white/20 rounded px-[7px] py-px text-blue-200 text-[9px] font-bold tracking-widest uppercase">
                 SUPER ADMIN
               </span>
-              <ChevronRight size={12} color="#93C5FD" />
-              <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>{currentPage?.label}</span>
+              <ChevronRight size={12} className="text-blue-300" />
+              <span className="text-white text-[13px] font-semibold">{currentPage?.label}</span>
             </div>
-            <div style={{ color: '#93C5FD', fontSize: 10 }}>
+            <div className="text-blue-300 text-[10px]">
               Tondo Tri-Barangay Super Admin Console
             </div>
           </div>
 
           {/* Mobile page label */}
-          <div className="sa-mobile-page-label" style={{ display: 'none', flex: 1, minWidth: 0 }}>
-            <span style={{ color: '#FFFFFF', fontSize: 17, fontWeight: 700, lineHeight: '56px', display: 'block' }}>
+          <div className="flex flex-1 min-w-0 items-center lg:hidden">
+            <span className="text-white text-[17px] font-bold leading-[56px]">
               {currentPage?.label}
             </span>
           </div>
 
           {/* Right */}
-          <div className="sa-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
-            <div className="sa-header-datetime" style={{ textAlign: 'right' }}>
-              <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}><LiveClock /></div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="hidden lg:block text-right">
+              <div className="text-white text-[13px] font-semibold"><LiveClock /></div>
+              <div className="text-blue-300 text-[10px]">
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
@@ -478,306 +350,69 @@ export default function SuperAdminLayout() {
                 setNotificationsOpen((prev) => !prev);
                 setProfileMenuOpen(false);
               }}
-              onMarkAllRead={() => {
-                void handleMarkAllRead();
-              }}
+              onMarkAllRead={() => { void handleMarkAllRead(); }}
               onItemClick={(item) => {
                 const target = notifications.find((entry) => entry.id === item.id);
-                if (target) {
-                  void handleNotificationClick(target);
-                }
+                if (target) { void handleNotificationClick(target); }
               }}
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                setDrawerOpen((prev) => !prev);
-                setProfileMenuOpen(false);
-                setNotificationsOpen(false);
-              }}
-              aria-label={drawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={drawerOpen}
-              aria-controls="superadmin-mobile-nav"
-              className={drawerOpen ? 'sa-mobile-menu-btn icon-btn-square is-open' : 'sa-mobile-menu-btn icon-btn-square'}
-              style={{
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'pointer', display: 'none',
-              }}
-            >
-              <span className={drawerOpen ? 'sa-mobile-menu-icon is-open' : 'sa-mobile-menu-icon'}>
-                {drawerOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
-              </span>
-            </button>
-
-            <div className="sa-header-avatar-wrap" style={{ position: 'relative', zIndex: 2200 }}>
+            {/* User avatar — desktop only */}
+            <div className="hidden lg:block relative z-[2200]">
               <button
                 type="button"
-                className="sa-header-avatar"
                 onClick={() => {
                   setProfileMenuOpen((prev) => !prev);
-                  setDrawerOpen(false);
                   setNotificationsOpen(false);
                 }}
                 aria-label="Open profile actions"
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  color: 'white',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  border: 'none',
-                }}
+                className="size-9 rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center font-bold text-white text-xs cursor-pointer shrink-0 border-none"
               >
                 {userInitials}
               </button>
 
-              {profileMenuOpen ? (
+              {profileMenuOpen && (
                 <div
                   role="menu"
                   aria-label="Profile actions"
-                  style={{
-                    position: 'absolute',
-                    top: 44,
-                    right: 0,
-                    width: 200,
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-                    border: '1px solid #E2E8F0',
-                    overflow: 'hidden',
-                    zIndex: 2300,
-                  }}
+                  className="absolute top-11 right-0 w-[200px] bg-white rounded-xl shadow-elevated border border-slate-200 overflow-hidden z-[2300] divide-y divide-slate-100"
                 >
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      navigate('/superadmin/settings');
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '11px 12px',
-                      background: '#fff',
-                      border: 'none',
-                      borderBottom: '1px solid #F1F5F9',
-                      color: '#1E293B',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
+                    onClick={() => { setProfileMenuOpen(false); navigate('/superadmin/settings'); }}
+                    className="w-full text-left px-3 py-[11px] bg-white border-none text-slate-800 text-[13px] font-semibold cursor-pointer hover:bg-slate-50"
                   >
                     Open settings
                   </button>
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '11px 12px',
-                      background: '#fff',
-                      border: 'none',
-                      color: '#B91C1C',
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
+                    className="w-full text-left px-3 py-[11px] bg-white border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
                   >
                     Sign out
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         </header>
 
-        <div
-          id="superadmin-mobile-nav"
-          className={drawerOpen ? 'sa-mobile-dropdown-panel is-open' : 'sa-mobile-dropdown-panel'}
-          aria-hidden={!drawerOpen}
-          style={{
-            background: 'rgba(30,58,138,0.98)',
-            borderTop: '1px solid rgba(255,255,255,0.12)',
-            padding: drawerOpen ? '12px 14px 16px' : '0 14px',
-            maxHeight: drawerOpen ? 450 : 0,
-            opacity: drawerOpen ? 1 : 0,
-            transform: drawerOpen ? 'translateY(0)' : 'translateY(-10px)',
-            pointerEvents: drawerOpen ? 'auto' : 'none',
-            overflow: 'hidden',
-            transition: 'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-          }}
-        >
-          <div
-            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-              opacity: drawerOpen ? 1 : 0,
-              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 180ms ease, transform 180ms ease',
-            }}
-          >
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 11, flexShrink: 0 }}>
-              {userInitials}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userFullName}</div>
-              <div style={{ color: '#BFDBFE', fontSize: 10 }}>Super Admin</div>
-            </div>
-          </div>
-
-          {NAV_ITEMS.map((item) => {
-            const active = item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path) && !item.exact;
-            const exactActive = location.pathname === '/superadmin';
-            const isActive = item.exact ? exactActive : active;
-
-            return (
-              <NavLink
-                key={`sa-mobile-dropdown-${item.path}`}
-                to={item.path}
-                onClick={() => setDrawerOpen(false)}
-                className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  textDecoration: 'none',
-                  padding: '11px 0',
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
-                  color: isActive ? '#DBEAFE' : '#BFDBFE',
-                  fontSize: 14,
-                  fontWeight: isActive ? 700 : 500,
-                  opacity: drawerOpen ? 1 : 0,
-                  transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                  transition: 'opacity 180ms ease, transform 180ms ease',
-                }}
-              >
-                <item.icon size={16} color={isActive ? '#DBEAFE' : '#93C5FD'} />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
-
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              textAlign: 'left',
-              padding: '11px 0 4px',
-              background: 'none',
-              border: 'none',
-              color: '#FCA5A5',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 700,
-              opacity: drawerOpen ? 1 : 0,
-              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 180ms ease, transform 180ms ease',
-            }}
-          >
-            <LogOut size={16} color="#FCA5A5" />
-            <span>Sign out</span>
-          </button>
-        </div>
-        </div>
-
+        {/* Page content */}
         <main
-          style={{ flex: 1, overflowY: 'auto', paddingBottom: 0 }}
-          onClick={() => {
-            if (profileMenuOpen) {
-              setProfileMenuOpen(false);
-            }
-            if (notificationsOpen) {
-              setNotificationsOpen(false);
-            }
-          }}
-          onScroll={() => {
-            if (profileMenuOpen) {
-              setProfileMenuOpen(false);
-            }
-            if (notificationsOpen) {
-              setNotificationsOpen(false);
-            }
-          }}
+          className="flex-1 overflow-y-auto pb-16 lg:pb-0"
+          onClick={closeOverlays}
+          onScroll={closeOverlays}
         >
           <Outlet />
         </main>
+
+        {/* Mobile bottom nav */}
+        <BottomNav items={BOTTOM_NAV_ITEMS} />
       </div>
-
-      <style>{`
-        .sa-mobile-menu-icon {
-          display: inline-flex;
-          transition: transform 180ms ease;
-        }
-
-        .sa-mobile-menu-icon.is-open {
-          transform: rotate(90deg);
-        }
-
-        @media (max-width: 768px) {
-          .sa-sidebar-desktop   { display: none !important; }
-          .sa-mobile-menu-btn   { display: flex !important; }
-          .sa-mobile-menu-btn.is-open {
-            transform: scale(0.97);
-            background: rgba(255,255,255,0.2) !important;
-          }
-          .sa-mobile-logo       { display: flex !important; }
-          .sa-header-actions    { margin-left: auto !important; }
-          .sa-header-breadcrumb { display: none !important; }
-          .sa-header-datetime   { display: none !important; }
-          .sa-header-avatar     { display: none !important; }
-          .sa-header-avatar-wrap { display: none !important; }
-          .sa-mobile-page-label { display: none !important; }
-
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(1) { transition-delay: 40ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(2) { transition-delay: 80ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(3) { transition-delay: 120ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(4) { transition-delay: 160ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(5) { transition-delay: 200ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(6) { transition-delay: 240ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(7) { transition-delay: 280ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(8) { transition-delay: 320ms; }
-        }
-        @media (min-width: 769px) {
-          .sa-mobile-menu-btn { display: none !important; }
-          .sa-mobile-page-label { display: none !important; }
-          .sa-mobile-dropdown-panel { display: none !important; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .sa-mobile-menu-icon,
-          .sa-mobile-dropdown-panel,
-          .sa-mobile-dropdown-item,
-          .sa-mobile-menu-btn {
-            transition: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

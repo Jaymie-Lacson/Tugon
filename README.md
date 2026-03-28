@@ -116,4 +116,4 @@ What it checks:
 - Prisma schema validation passes
 - Prisma client generation passes
 - migration status is reachable when `RUN_DB_MIGRATIONS=1`
-  
+

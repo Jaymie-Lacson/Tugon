@@ -6,6 +6,7 @@ export interface BottomNavItem {
   icon: React.ReactNode;
   label: string;
   path: string;
+  exact?: boolean;
 }
 
 interface BottomNavProps {
@@ -21,7 +22,9 @@ export function BottomNav({ items, activePath }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-white lg:hidden">
       {items.map((item) => {
-        const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
+        const isActive = item.exact
+          ? currentPath === item.path
+          : currentPath === item.path || currentPath.startsWith(item.path + '/');
         return (
           <button
             key={item.key}

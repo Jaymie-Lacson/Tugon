@@ -4,15 +4,12 @@ import { getAuthSession } from '../utils/authSession';
 
 function SettingRow({ label, description, value }: { label: string; description?: string; value: string }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 0', borderBottom: '1px solid #F1F5F9', gap: 16,
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{label}</div>
-        {description && <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{description}</div>}
+    <div className="flex items-center justify-between gap-4 py-3.5 border-b border-slate-100">
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold text-slate-800">{label}</div>
+        {description && <div className="text-[11px] text-slate-400 mt-0.5">{description}</div>}
       </div>
-      <div style={{ fontSize: 12, color: '#334155', fontWeight: 600, textAlign: 'right' }}>{value}</div>
+      <div className="text-xs text-slate-700 font-semibold text-right">{value}</div>
     </div>
   );
 }
@@ -48,59 +45,42 @@ export default function Settings() {
     .join('') || 'TU';
 
   return (
-    <div style={{ padding: '16px 20px', minHeight: '100%' }}>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <SettingsIcon size={20} color="#1E3A8A" />
-          <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700 }}>Settings</h1>
+    <div className="p-4 px-5 min-h-full">
+      <div className="mb-5">
+        <div className="flex items-center gap-2.5 mb-1">
+          <SettingsIcon size={20} className="text-primary" />
+          <h1 className="text-slate-800 text-xl font-bold">Settings</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 12 }}>{settingsSubtitle}</p>
+        <p className="text-slate-500 text-xs">{settingsSubtitle}</p>
       </div>
 
-      <div className="settings-layout" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div className="settings-sidebar" style={{
-          width: 220,
-          flexShrink: 0,
-          background: 'white',
-          borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-          overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid #F8FAFC' }}>
-            <User size={15} color="#1E3A8A" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#1E3A8A' }}>Account</span>
+      <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">
+        <div className="w-[220px] shrink-0 bg-white rounded-xl shadow-card overflow-hidden max-md:w-full">
+          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+            <User size={15} className="text-primary" />
+            <span className="text-[13px] font-bold text-primary">Account</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid #F8FAFC' }}>
-            <Shield size={15} color="#1E3A8A" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#1E3A8A' }}>Access Status</span>
+          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+            <Shield size={15} className="text-primary" />
+            <span className="text-[13px] font-bold text-primary">Access Status</span>
           </div>
         </div>
 
-        <div className="settings-content" style={{ flex: 1, minWidth: 280, background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '20px 24px' }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', marginBottom: 16 }}>User Profile</div>
-          <div style={{ marginBottom: 14, fontSize: 11, color: '#64748B' }}>
+        <div className="flex-1 min-w-[280px] bg-white rounded-xl shadow-card px-6 py-5 max-md:min-w-0 max-md:w-full">
+          <div className="text-[15px] font-bold text-slate-800 mb-4">User Profile</div>
+          <div className="mb-3.5 text-[11px] text-slate-500">
             This page only shows account details backed by your authenticated session.
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: '14px 16px', background: '#F8FAFC', borderRadius: 10 }}>
-            <div style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              color: 'white',
-              fontSize: 20,
-              flexShrink: 0,
-            }}>{initials}</div>
+          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 bg-slate-50 rounded-[10px]">
+            <div className="size-14 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center font-bold text-white text-xl shrink-0">
+              {initials}
+            </div>
             <div>
-              <div style={{ fontWeight: 700, color: '#1E293B', fontSize: 15 }}>{fullName}</div>
-              <div style={{ color: '#64748B', fontSize: 12 }}>{roleLabel} · {areaLabel}</div>
-              <div style={{ marginTop: 4 }}>
-                <span style={{ background: '#DBEAFE', color: '#1E3A8A', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
+              <div className="font-bold text-slate-800 text-[15px]">{fullName}</div>
+              <div className="text-slate-500 text-xs">{roleLabel} · {areaLabel}</div>
+              <div className="mt-1">
+                <span className="bg-blue-100 text-primary text-[10px] font-semibold px-2 py-0.5 rounded">
                   {role}
                 </span>
               </div>
@@ -112,7 +92,7 @@ export default function Settings() {
           <SettingRow label="Contact Number" value={phoneLabel} />
           <SettingRow label="Assigned Area" value={areaLabel} />
 
-          <div style={{ marginTop: 18, marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div className="mt-[18px] mb-2 text-xs font-bold text-slate-500 uppercase tracking-[0.06em]">
             Access Status
           </div>
           <SettingRow label="Phone Verification" description="Verification requirement for account security" value={phoneVerifiedLabel} />
@@ -120,21 +100,6 @@ export default function Settings() {
           <SettingRow label="Account" description="Enforcement state from access control" value={accountStatusLabel} />
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .settings-layout {
-            flex-direction: column;
-            gap: 12px;
-          }
-
-          .settings-sidebar,
-          .settings-content {
-            width: 100% !important;
-            min-width: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

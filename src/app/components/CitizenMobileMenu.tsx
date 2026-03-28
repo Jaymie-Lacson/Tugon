@@ -24,19 +24,7 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
       <div className="citizen-only-mobile">
         <button
           onClick={onToggle}
-          style={{
-            background: 'rgba(255,255,255,0.16)',
-            border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: 9,
-            width: 38,
-            height: 38,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#fff',
-            padding: 0,
-          }}
+          className="flex size-[38px] items-center justify-center rounded-[9px] border border-white/30 bg-white/[0.16] p-0 text-white cursor-pointer"
           aria-label="Open navigation menu"
         >
           <Menu size={18} />
@@ -44,32 +32,8 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
       </div>
 
       {open && (
-        <div
-          className="citizen-only-mobile"
-          style={{
-            position: 'absolute',
-            top: 66,
-            left: 16,
-            right: 16,
-            background: '#fff',
-            borderRadius: 12,
-            boxShadow: '0 10px 22px rgba(15,23,42,0.14)',
-            zIndex: 101,
-            overflow: 'hidden',
-            border: '1px solid #E2E8F0',
-          }}
-        >
-          <div
-            style={{
-              padding: '10px 14px',
-              borderBottom: '1px solid #F1F5F9',
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#64748B',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
+        <div className="citizen-only-mobile absolute top-[66px] left-4 right-4 bg-white rounded-xl shadow-[0_10px_22px_rgba(15,23,42,0.14)] z-[101] overflow-hidden border border-slate-200">
+          <div className="px-3.5 py-2.5 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-[0.05em]">
             Navigation
           </div>
           {navItems.map((item) => {
@@ -79,21 +43,13 @@ export function CitizenMobileMenu({ activeKey, open, onToggle, onNavigate }: Cit
               <button
                 key={`mobile-menu-${item.key}`}
                 onClick={() => onNavigate(item.key)}
-                style={{
-                  width: '100%',
-                  background: isActive ? '#F8FBFF' : '#fff',
-                  border: 'none',
-                  borderBottom: '1px solid #F8FAFC',
-                  padding: '12px 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#1E293B',
-                  fontSize: 13,
-                  fontWeight: isActive ? 700 : 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
+                className={`w-full flex items-center gap-2.5 px-3.5 py-3 border-none border-b border-b-slate-50 text-[13px] cursor-pointer text-left ${
+                  isActive
+                    ? 'bg-[#F8FBFF] text-primary font-bold'
+                    : isActionRoute
+                      ? 'bg-white text-destructive font-semibold'
+                      : 'bg-white text-slate-800 font-semibold'
+                }`}
               >
                 {item.icon}
                 {item.label}

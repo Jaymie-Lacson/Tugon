@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAuthSession } from '../utils/authSession';
+import { VerificationProgressCard } from './VerificationProgressCard';
 
 interface CitizenPageLayoutProps {
   header: React.ReactNode;
@@ -18,52 +18,6 @@ interface CitizenPageLayoutProps {
   contentGutter?: number;
 }
 
-function getCitizenVerificationPrompt() {
-  const session = getAuthSession();
-  if (!session || session.user.role !== 'CITIZEN') {
-    return null;
-  }
-
-  if (session.user.isVerified || session.user.isBanned) {
-    return null;
-  }
-
-  const status = session.user.verificationStatus;
-  if (status === 'PENDING') {
-    return {
-      title: 'Verification submitted',
-      description: 'Your resident ID is under review. You can track your status anytime in your profile.',
-      bg: '#FFFBEB',
-      border: '#FDE68A',
-      color: '#92400E',
-      ctaLabel: 'View verification status',
-    };
-  }
-
-  if (status === 'REJECTED' || status === 'REUPLOAD_REQUESTED') {
-    const reason = session.user.verificationRejectionReason
-      ? ` Reason: ${session.user.verificationRejectionReason}`
-      : '';
-    return {
-      title: 'Action needed: re-upload your ID',
-      description: `Your verification requires an updated ID image.${reason}`,
-      bg: '#FEF2F2',
-      border: '#FECACA',
-      color: '#B91C1C',
-      ctaLabel: 'Re-upload ID now',
-    };
-  }
-
-  return {
-    title: 'Verify your account',
-    description: 'Submit one valid ID photo so officials can verify your account.',
-    bg: '#EFF6FF',
-    border: '#BFDBFE',
-    color: '#1E3A8A',
-    ctaLabel: 'Start ID verification',
-  };
-}
-
 export function CitizenPageLayout({
   header,
   beforeMain,
@@ -80,7 +34,6 @@ export function CitizenPageLayout({
   desktopMainPaddingBottom = 28,
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
-  const verificationPrompt = getCitizenVerificationPrompt();
   const cssVars = {
     '--citizen-mobile-shell-max': `${mobileShellMaxWidth}px`,
     '--citizen-desktop-main-max': `${desktopMainMaxWidth}px`,
@@ -93,77 +46,18 @@ export function CitizenPageLayout({
 
   return (
     <div
-      className="citizen-page-layout"
-      style={{
-        minHeight: '100vh',
-        background: '#F4F7FC',
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        fontFamily: "'Roboto', sans-serif",
-        position: 'relative',
-        ...cssVars,
-      }}
+      className="citizen-page-layout min-h-dvh bg-citizen-bg flex flex-col w-full font-['Roboto',sans-serif] relative tracking-[-0.004em]"
+      style={cssVars}
     >
       {header}
       {beforeMain}
-      {verificationPrompt && !hideVerificationPrompt ? (
-        <section
-          style={{
-            background: verificationPrompt.bg,
-            borderBottom: `1px solid ${verificationPrompt.border}`,
-            padding: '10px var(--citizen-content-gutter)',
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: 'var(--citizen-desktop-main-max)',
-              margin: '0 auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: verificationPrompt.color }}>
-                {verificationPrompt.title}
-              </div>
-              <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
-                {verificationPrompt.description}
-              </div>
-            </div>
-            <a
-              href="/citizen/verification"
-              style={{
-                textDecoration: 'none',
-                color: verificationPrompt.color,
-                fontWeight: 700,
-                fontSize: 12,
-                whiteSpace: 'nowrap',
-                border: `1px solid ${verificationPrompt.border}`,
-                borderRadius: 8,
-                padding: '6px 10px',
-                background: '#FFFFFFA6',
-              }}
-            >
-              {verificationPrompt.ctaLabel}
-            </a>
-          </div>
-        </section>
-      ) : null}
+      {!hideVerificationPrompt && (
+        <div className="citizen-content-shell w-full mx-auto py-3" style={{ maxWidth: 'var(--citizen-desktop-main-max)' }}>
+          <VerificationProgressCard />
+        </div>
+      )}
       <main
-        className="citizen-page-layout-main"
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          width: '100%',
-          boxSizing: 'border-box',
-          position: 'relative',
-          zIndex: 1,
-        }}
+        className="citizen-page-layout-main flex-1 overflow-y-auto w-full relative z-[1]"
         onClick={mainOnClick}
         onScroll={mainOnScroll}
       >
@@ -236,14 +130,6 @@ export function CitizenPageLayout({
           padding-left: var(--citizen-content-gutter);
           padding-right: var(--citizen-content-gutter);
           box-sizing: border-box;
-        }
-
-        .citizen-page-layout,
-        .citizen-page-layout button,
-        .citizen-page-layout input,
-        .citizen-page-layout select,
-        .citizen-page-layout textarea {
-          letter-spacing: -0.004em;
         }
       `}</style>
     </div>
