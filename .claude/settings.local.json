@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:tugon-rho.vercel.app)",
+      "Bash(jq --version)",
+      "Read(//c/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon/$HOME/.claude/mcp-servers/**)",
+      "Bash(npm install:*)",
+      "Skill(keybindings-help)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(grep -r \"tailwind\\\\|@theme\\\\|@config\" /c/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon --include=*.config.* --include=*.json --include=*.ts --include=*.js)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

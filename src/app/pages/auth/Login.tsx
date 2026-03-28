@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House, ArrowLeft } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { validateLoginForm } from '../../utils/authValidation';
@@ -63,103 +63,95 @@ export default function Login() {
   };
 
   return (
-    <>
-      <style>{AUTH_SPIN_STYLE}</style>
-      <AuthLayout
-        title="Welcome Back"
-        subtitle="Sign in to your TUGON account to access the incident management dashboard."
-        topAction={(
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="auth-home-link-btn"
-          >
-            <ArrowLeft size={14} />
-            <House size={14} />
-            Back to Homepage
-          </button>
-        )}
-      >
-        {/* General error */}
-        {errors.general && (
-          <div className="auth-login-error-banner">
-            <ShieldAlert size={16} color="#B91C1C" className="auth-login-error-icon" />
-            <span className="auth-login-error-text">{errors.general}</span>
-          </div>
-        )}
+    <AuthLayout
+      title="Welcome Back"
+      subtitle="Sign in to your TUGON account to access the incident management dashboard."
+      topAction={
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary"
+        >
+          <ArrowLeft size={14} />
+          <House size={14} />
+          Back to Homepage
+        </button>
+      }
+    >
+      {errors.general && (
+        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          <ShieldAlert size={16} className="mt-0.5 shrink-0 text-red-600" />
+          <span>{errors.general}</span>
+        </div>
+      )}
 
-        <form onSubmit={e => { e.preventDefault(); handleLogin(); }}>
-          {/* Phone */}
-          <InputField
-            label="Phone Number"
-            type="tel"
-            placeholder="0917-xxx-xxxx"
-            value={phone}
-            onChange={v => setPhone(formatPhone(v))}
-            icon={<Phone size={17} />}
-            error={errors.phone}
-            hint="Use your registered Philippine mobile number."
-            inputMode="tel"
-            autoComplete="tel"
-            autoFocus
-          />
+      <form onSubmit={e => { e.preventDefault(); handleLogin(); }}>
+        <InputField
+          label="Phone Number"
+          type="tel"
+          placeholder="0917-xxx-xxxx"
+          value={phone}
+          onChange={v => setPhone(formatPhone(v))}
+          icon={<Phone size={17} />}
+          error={errors.phone}
+          hint="Use your registered Philippine mobile number."
+          inputMode="tel"
+          autoComplete="tel"
+          autoFocus
+        />
 
-          {/* Password */}
-          <InputField
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
-            value={password}
-            onChange={setPassword}
-            icon={<Lock size={17} />}
-            error={errors.password}
-            autoComplete="current-password"
-            rightElement={password.length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="auth-login-password-toggle"
-              >
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            ) : null}
-          />
-
-          {/* Forgot password */}
-          <div className="auth-login-forgot-wrap">
+        <InputField
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Enter your password"
+          value={password}
+          onChange={setPassword}
+          icon={<Lock size={17} />}
+          error={errors.password}
+          autoComplete="current-password"
+          rightElement={password.length > 0 ? (
             <button
               type="button"
-              onClick={() => navigate('/auth/forgot-password')}
-              className="auth-login-link-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              className="flex items-center border-none bg-transparent p-1 text-slate-400 hover:text-slate-600"
             >
-              Forgot Password?
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
-          </div>
+          ) : null}
+        />
 
-          <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
-            {!loading && <><ArrowRight size={16} /> Sign In</>}
-          </PrimaryButton>
-        </form>
-
-        {/* Divider */}
-        <div className="auth-login-divider">
-          <div className="auth-login-divider-line" />
-          <span className="auth-login-divider-text">New to TUGON?</span>
-          <div className="auth-login-divider-line" />
+        <div className="-mt-2 mb-5 text-right">
+          <button
+            type="button"
+            onClick={() => navigate('/auth/forgot-password')}
+            className="border-none bg-transparent text-xs font-semibold text-primary hover:underline"
+          >
+            Forgot Password?
+          </button>
         </div>
 
-        {/* Register link */}
-        <button
-          onClick={() => navigate('/auth/register')}
-          className="auth-login-register-btn"
-        >
-          Register a New Account
-        </button>
+        <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
+          {!loading && <><ArrowRight size={16} /> Sign In</>}
+        </PrimaryButton>
+      </form>
 
-        <p className="auth-login-terms-copy">
-          By signing in, you agree to TUGON's terms and confirm you are a resident or official of Barangays 251, 252, or 256.
-        </p>
-      </AuthLayout>
-    </>
+      {/* Divider */}
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-xs text-slate-400">New to TUGON?</span>
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <button
+        onClick={() => navigate('/auth/register')}
+        className="w-full rounded-[var(--radius-lg)] border-[1.5px] border-primary/20 bg-blue-50/50 py-3 text-sm font-bold text-primary transition-colors hover:bg-blue-50"
+      >
+        Register a New Account
+      </button>
+
+      <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-400">
+        By signing in, you agree to TUGON's terms and confirm you are a resident or official of Barangays 251, 252, or 256.
+      </p>
+    </AuthLayout>
   );
 }
