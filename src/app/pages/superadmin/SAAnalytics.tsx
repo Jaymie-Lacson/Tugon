@@ -22,20 +22,12 @@ const TYPE_COLORS: Record<string, string> = {
 
 function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
-    <div
-      style={{
-        background: '#FFFFFF',
-        borderRadius: 10,
-        padding: '14px 16px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-        border: '1px solid #E5E7EB',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{value}</div>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+    <div className="bg-white rounded-[10px] px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.07)] border border-gray-200">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-slate-950 text-[22px] font-bold leading-none">{value}</div>
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
       </div>
-      <div style={{ color: '#6B7280', fontSize: 11, marginTop: 4 }}>{label}</div>
+      <div className="text-gray-500 text-[11px] mt-1">{label}</div>
     </div>
   );
 }
@@ -133,9 +125,9 @@ export default function SAAnalytics() {
 
   if (showInitialLoader) {
     return (
-      <div style={{ padding: '20px', minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={4}
             lines={2}
@@ -143,7 +135,7 @@ export default function SAAnalytics() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={6} columns={3} showHeader />
         </div>
       </div>
@@ -151,11 +143,11 @@ export default function SAAnalytics() {
   }
 
   return (
-    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
-      <div className="sa-analytics-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
+      <div className="sa-analytics-header flex items-center justify-between mb-4 gap-2.5">
         <div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>System-Wide Analytics</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
+          <h1 className="text-slate-950 text-[22px] font-bold m-0">System-Wide Analytics</h1>
+          <p className="text-gray-500 text-xs m-0 mt-0.5">
             Database-backed incident reporting metrics
           </p>
         </div>
@@ -163,32 +155,28 @@ export default function SAAnalytics() {
           onClick={() => {
             void loadIncidents();
           }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
-            padding: '8px 14px', cursor: 'pointer', color: '#374151', fontSize: 12, fontWeight: 600,
-          }}
+          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
         >
           <RefreshCw size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
       {error ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+        <div className="mb-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs px-2.5 py-2">
           {error}
         </div>
       ) : null}
 
-      <div className="sa-analytics-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
+      <div className="sa-analytics-stats grid mb-4" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
         <StatCard label="Total Reports" value={kpis.total} color="#1E3A8A" />
         <StatCard label="Open Reports" value={kpis.active} color="#B91C1C" />
         <StatCard label="Resolved Reports" value={kpis.resolved} color="#059669" />
         <StatCard label="Avg Response" value={kpis.avgResponseLabel} color="#B4730A" />
       </div>
 
-      <div className="sa-analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 14 }}>
-        <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB' }}>
-          <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Reports by Barangay</div>
+      <div className="sa-analytics-grid grid" style={{ gridTemplateColumns: '1fr 340px', gap: 14 }}>
+        <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">Reports by Barangay</div>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barangayData} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
@@ -200,8 +188,8 @@ export default function SAAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB' }}>
-          <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Report Category Mix</div>
+        <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">Report Category Mix</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75}>
@@ -215,12 +203,12 @@ export default function SAAnalytics() {
         </div>
       </div>
 
-      <div style={{ marginTop: 14, background: '#FFFFFF', borderRadius: 14, padding: '14px 18px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#1E293B', fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+      <div className="mt-3.5 bg-white rounded-[14px] px-[18px] py-3.5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+        <div className="flex items-center gap-2 text-slate-900 text-[13px] font-bold mb-2">
           <AlertTriangle size={14} color="#B4730A" />
           Reporting Health
         </div>
-        <div style={{ color: '#64748B', fontSize: 12, lineHeight: 1.5 }}>
+        <div className="text-slate-500 text-xs leading-[1.5]">
           <Clock size={12} style={{ verticalAlign: 'middle' }} /> Average response time is based on report submission to first official action.
           {' '}
           <CheckCircle2 size={12} style={{ verticalAlign: 'middle' }} /> All metrics in this page are sourced from live API report data.

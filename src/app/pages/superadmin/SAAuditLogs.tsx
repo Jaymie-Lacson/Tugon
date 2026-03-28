@@ -174,9 +174,9 @@ export default function SAAuditLogs() {
 
   if (loading && logs.length === 0) {
     return (
-      <div style={{ padding: 20, minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={2}
             lines={2}
@@ -184,7 +184,7 @@ export default function SAAuditLogs() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={8} columns={5} showHeader />
         </div>
       </div>
@@ -192,11 +192,11 @@ export default function SAAuditLogs() {
   }
 
   return (
-    <div style={{ padding: 20, background: '#F0F4FF', minHeight: '100%' }}>
-      <div className="sa-audit-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
+      <div className="sa-audit-header flex items-center justify-between mb-3.5 gap-2.5">
         <div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Admin Audit Logs</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
+          <h1 className="text-slate-950 text-[22px] font-bold m-0">Admin Audit Logs</h1>
+          <p className="text-gray-500 text-xs m-0 mt-0.5">
             Immutable action history for Super Admin operations
           </p>
         </div>
@@ -204,58 +204,36 @@ export default function SAAuditLogs() {
           onClick={() => {
             void loadLogs();
           }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '8px 14px',
-            cursor: 'pointer',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
-          }}
+          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
         >
           <RefreshCw size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
       {error ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', borderRadius: 10, padding: '10px 12px', fontSize: 12 }}>
+        <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-[10px] px-3 py-2.5 text-xs">
           {error}
         </div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-        <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ color: '#9CA3AF', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Total Entries</div>
-          <div style={{ color: '#0F172A', fontSize: 24, fontWeight: 700, marginTop: 2 }}>{logs.length}</div>
+      <div className="grid grid-cols-2 gap-2.5 mb-3">
+        <div className="bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
+          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">Total Entries</div>
+          <div className="text-slate-950 text-2xl font-bold mt-0.5">{logs.length}</div>
         </div>
-        <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ color: '#9CA3AF', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Actions Seen</div>
-          <div style={{ color: '#0F172A', fontSize: 24, fontWeight: 700, marginTop: 2 }}>{Object.keys(actionCounts).length}</div>
+        <div className="bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
+          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">Actions Seen</div>
+          <div className="text-slate-950 text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
         </div>
       </div>
 
-      <div className="sa-audit-filter-bar" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-        flexWrap: 'wrap',
-        background: 'white',
-        border: '1px solid #E5E7EB',
-        borderRadius: 10,
-        padding: '10px 12px',
-      }}>
+      <div className="sa-audit-filter-bar flex items-center gap-2 mb-3 flex-wrap bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
         <Filter size={13} color="#6B7280" />
         <select
           title="Filter by action"
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         >
           {ACTIONS.map((action) => (
             <option key={action} value={action}>{action}</option>
@@ -265,7 +243,7 @@ export default function SAAuditLogs() {
           title="Filter by target type"
           value={targetFilter}
           onChange={(event) => setTargetFilter(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         >
           {TARGET_TYPES.map((target) => (
             <option key={target} value={target}>{target}</option>
@@ -276,36 +254,36 @@ export default function SAAuditLogs() {
           type="date"
           value={fromDate}
           onChange={(event) => setFromDate(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         />
         <input
           title="Filter to date"
           type="date"
           value={toDate}
           onChange={(event) => setToDate(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         />
         <button
           onClick={() => applyDatePreset(1)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           Today
         </button>
         <button
           onClick={() => applyDatePreset(7)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           Last 7 Days
         </button>
         <button
           onClick={() => applyDatePreset(30)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           Last 30 Days
         </button>
         <button
           onClick={clearDatePreset}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           Clear Dates
         </button>
@@ -314,15 +292,8 @@ export default function SAAuditLogs() {
             void handleExportJson();
           }}
           disabled={!canExport || exportingJson || exportingCsv}
+          className="ml-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold"
           style={{
-            marginLeft: 'auto',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '7px 10px',
-            background: 'white',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
             cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
             opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
           }}
@@ -334,14 +305,8 @@ export default function SAAuditLogs() {
             void handleExportCsv();
           }}
           disabled={!canExport || exportingJson || exportingCsv}
+          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold"
           style={{
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '7px 10px',
-            background: 'white',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
             cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
             opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
           }}
@@ -350,15 +315,15 @@ export default function SAAuditLogs() {
         </button>
       </div>
 
-      <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
             <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB' }}>
+              <tr className="bg-slate-50 border-b border-gray-200">
                 {['Timestamp', 'Action', 'Target', 'Target Label', 'Actor User ID', 'Details'].map((header) => (
                   <th
                     key={header}
-                    style={{ padding: '10px 12px', textAlign: 'left', color: '#6B7280', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}
+                    className="px-3 py-2.5 text-left text-gray-500 text-[10px] font-bold tracking-[0.06em] uppercase whitespace-nowrap"
                   >
                     {header}
                   </th>
@@ -368,7 +333,7 @@ export default function SAAuditLogs() {
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#9CA3AF' }}>
+                  <td colSpan={6} className="p-6 text-center text-gray-400">
                     {loading ? 'Loading audit logs...' : 'No audit logs found for current filters.'}
                   </td>
                 </tr>
@@ -376,19 +341,20 @@ export default function SAAuditLogs() {
                 <tr
                   key={log.id}
                   onClick={() => setSelectedLog(log)}
-                  style={{ borderBottom: index < logs.length - 1 ? '1px solid #F3F4F6' : 'none', cursor: 'pointer' }}
+                  className="cursor-pointer hover:bg-slate-50"
+                  style={{ borderBottom: index < logs.length - 1 ? '1px solid #F3F4F6' : 'none' }}
                 >
-                  <td style={{ padding: '10px 12px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDateTime(log.createdAt)}</td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 14, background: '#DBEAFE', color: '#1E3A8A', fontWeight: 700, fontSize: 10 }}>
+                  <td className="px-3 py-2.5 text-slate-700 whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-[14px] bg-blue-100 text-[#1E3A8A] font-bold text-[10px]">
                       <Activity size={10} /> {log.action}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 12px', color: '#334155', fontWeight: 600 }}>{log.targetType}</td>
-                  <td style={{ padding: '10px 12px', color: '#334155' }}>{log.targetLabel ?? 'N/A'}</td>
-                  <td style={{ padding: '10px 12px', color: '#64748B', fontFamily: 'monospace', fontSize: 11 }}>{log.actorUserId}</td>
-                  <td style={{ padding: '10px 12px', color: '#475569', fontFamily: 'monospace', fontSize: 10, maxWidth: 420 }}>
-                    <div style={{ maxHeight: 88, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  <td className="px-3 py-2.5 text-slate-700 font-semibold">{log.targetType}</td>
+                  <td className="px-3 py-2.5 text-slate-700">{log.targetLabel ?? 'N/A'}</td>
+                  <td className="px-3 py-2.5 text-slate-500 font-mono text-[11px]">{log.actorUserId}</td>
+                  <td className="px-3 py-2.5 text-slate-600 font-mono text-[10px] max-w-[420px]">
+                    <div className="max-h-[88px] overflow-auto whitespace-pre-wrap break-words">
                       {log.details ? JSON.stringify(log.details, null, 2) : 'N/A'}
                     </div>
                   </td>
@@ -397,51 +363,25 @@ export default function SAAuditLogs() {
             </tbody>
           </table>
         </div>
-        <div className="sa-audit-pagination" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 12px',
-          borderTop: '1px solid #F3F4F6',
-          background: '#FAFAFA',
-          fontSize: 12,
-        }}>
-          <span style={{ color: '#64748B' }}>
+        <div className="sa-audit-pagination flex items-center justify-between px-3 py-2.5 border-t border-gray-100 bg-[#FAFAFA] text-xs">
+          <span className="text-slate-500">
             Showing {pageStart} to {pageEnd} of {total} logs
           </span>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <button
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              style={{
-                border: '1px solid #E5E7EB',
-                borderRadius: 7,
-                padding: '6px 10px',
-                background: 'white',
-                color: '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                opacity: page === 1 ? 0.6 : 1,
-              }}
+              className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
+              style={{ cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.6 : 1 }}
             >
               Prev
             </button>
-            <span style={{ color: '#475569', alignSelf: 'center' }}>Page {page} / {totalPages}</span>
+            <span className="text-slate-600 self-center">Page {page} / {totalPages}</span>
             <button
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
-              style={{
-                border: '1px solid #E5E7EB',
-                borderRadius: 7,
-                padding: '6px 10px',
-                background: 'white',
-                color: '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-                opacity: page >= totalPages ? 0.6 : 1,
-              }}
+              className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
+              style={{ cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.6 : 1 }}
             >
               Next
             </button>
@@ -452,56 +392,42 @@ export default function SAAuditLogs() {
       {selectedLog ? (
         <div
           onClick={() => setSelectedLog(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.45)',
-            zIndex: 120,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
+          className="fixed inset-0 bg-slate-900/45 z-[120] flex justify-end"
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(560px, 100vw)',
-              height: '100%',
-              background: 'white',
-              boxShadow: '-8px 0 24px rgba(15, 23, 42, 0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="w-[min(560px,100vw)] h-full bg-white shadow-[-8px_0_24px_rgba(15,23,42,0.2)] flex flex-col"
           >
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="px-4 py-3.5 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>Audit Event Details</div>
-                <div style={{ color: '#64748B', fontSize: 11 }}>{formatDateTime(selectedLog.createdAt)}</div>
+                <div className="text-slate-950 text-base font-bold">Audit Event Details</div>
+                <div className="text-slate-500 text-[11px]">{formatDateTime(selectedLog.createdAt)}</div>
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748B' }}
+                className="border-0 bg-transparent cursor-pointer text-slate-500"
               >
                 <X size={18} />
               </button>
             </div>
-            <div style={{ padding: 16, overflowY: 'auto', display: 'grid', gap: 12 }}>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Action</div>
-                <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>{selectedLog.action}</div>
+            <div className="p-4 overflow-y-auto grid gap-3">
+              <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Action</div>
+                <div className="text-slate-950 text-sm font-bold">{selectedLog.action}</div>
               </div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Target</div>
-                <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>{selectedLog.targetType}</div>
-                <div style={{ color: '#475569', fontSize: 12, marginTop: 2 }}>Label: {selectedLog.targetLabel ?? 'N/A'}</div>
-                <div style={{ color: '#475569', fontSize: 12 }}>ID: {selectedLog.targetId ?? 'N/A'}</div>
+              <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Target</div>
+                <div className="text-slate-950 text-sm font-bold">{selectedLog.targetType}</div>
+                <div className="text-slate-600 text-xs mt-0.5">Label: {selectedLog.targetLabel ?? 'N/A'}</div>
+                <div className="text-slate-600 text-xs">ID: {selectedLog.targetId ?? 'N/A'}</div>
               </div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Actor</div>
-                <div style={{ color: '#334155', fontFamily: 'monospace', fontSize: 12 }}>{selectedLog.actorUserId}</div>
+              <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Actor</div>
+                <div className="text-slate-700 font-mono text-xs">{selectedLog.actorUserId}</div>
               </div>
-              <div style={{ background: '#0F172A', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>Details JSON</div>
-                <pre style={{ margin: 0, color: '#E2E8F0', fontFamily: 'monospace', fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <div className="bg-slate-950 rounded-[10px] px-3 py-2.5">
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase mb-2">Details JSON</div>
+                <pre className="m-0 text-slate-200 font-mono text-[11px] whitespace-pre-wrap break-words">
                   {selectedLog.details ? JSON.stringify(selectedLog.details, null, 2) : 'null'}
                 </pre>
               </div>

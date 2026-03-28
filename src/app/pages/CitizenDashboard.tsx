@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import {
   Shield, Bell, MapPin, FileText, User, Plus,
@@ -29,7 +29,7 @@ import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 
-/* â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── helpers ─────────────────────────────────────────────────────────── */
 interface CitizenMyReport {
   id: string;
   type: IncidentType;
@@ -117,7 +117,7 @@ const typeIcon: Record<IncidentType, React.ReactNode> = {
   typhoon: <CloudRain size={14} />,
 };
 
-/* â”€â”€ sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── sub-components ──────────────────────────────────────────────────── */
 function AlertBanner({ incidents }: { incidents: Incident[] }) {
   const [dismissed, setDismissed] = useState(false);
   const criticalCount = incidents.filter(
@@ -125,41 +125,19 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
   ).length;
   if (dismissed || criticalCount === 0) return null;
   return (
-    <div
-      style={{
-        background: '#B91C1C',
-        borderBottom: '1px solid #991B1B',
-        color: '#fff',
-        padding: '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        fontSize: 13,
-      }}
-    >
-      <span
-        style={{
-          background: 'rgba(255,255,255,0.2)',
-          borderRadius: 8,
-          width: 28,
-          height: 28,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
+    <div className="bg-red-700 border-b border-red-800 text-white px-4 py-2.5 flex items-center gap-2.5 text-[13px]">
+      <span className="bg-white/20 rounded-lg w-7 h-7 flex items-center justify-center shrink-0">
         <AlertTriangle size={15} />
       </span>
-      <span style={{ flex: 1 }}>
-        <span style={{ fontWeight: 700 }}>
+      <span className="flex-1">
+        <span className="font-bold">
           {criticalCount} Critical Report{criticalCount > 1 ? 's' : ''}
         </span>{' '}
         in your submissions still needs attention.
       </span>
       <button
         onClick={() => setDismissed(true)}
-        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}
+        className="bg-transparent border-0 text-white/70 cursor-pointer text-lg leading-none p-0"
       >
         x
       </button>
@@ -180,38 +158,17 @@ function StatCard({
 }) {
   return (
     <div
-      style={{
-        background: '#fff',
-        borderRadius: 12,
-        padding: '12px 14px',
-        minWidth: 0,
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        border: `1.5px solid ${accent}22`,
-      }}
+      className="bg-white rounded-xl p-3 min-w-0 w-full flex flex-col gap-1 shadow-sm"
+      style={{ border: `1.5px solid ${accent}22` }}
     >
       <div
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 8,
-          background: `${accent}18`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: accent,
-          marginBottom: 2,
-        }}
+        className="w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5"
+        style={{ background: `${accent}18`, color: accent }}
       >
         {icon}
       </div>
-      <div style={{ fontWeight: 800, color: '#1E293B', fontSize: 20, lineHeight: 1 }}>
-        {value}
-      </div>
-      <div style={{ color: '#64748B', fontSize: 11, fontWeight: 500 }}>{label}</div>
+      <div className="font-extrabold text-slate-900 text-xl leading-none">{value}</div>
+      <div className="text-slate-500 text-[11px] font-medium">{label}</div>
     </div>
   );
 }
@@ -234,39 +191,18 @@ function QuickActionCard({
   return (
     <button
       onClick={onClick}
+      className="rounded-xl cursor-pointer flex flex-col items-start gap-2 w-full text-left hover:-translate-y-0.5 transition-transform duration-150"
       style={{
-        background: featured ? accent : '#fff',
-        border: featured ? 'none' : `1.5px solid #E2E8F0`,
-        borderRadius: 12,
         padding: '18px 16px',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 8,
-        width: '100%',
-        textAlign: 'left',
-        boxShadow: featured
-          ? '0 8px 16px rgba(15,23,42,0.14)'
-          : '0 1px 4px rgba(0,0,0,0.06)',
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        background: featured ? accent : '#fff',
+        border: featured ? 'none' : '1.5px solid #E2E8F0',
+        boxShadow: featured ? '0 8px 16px rgba(15,23,42,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
       }}
-      onMouseOver={(e) =>
-        ((e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)')
-      }
-      onMouseOut={(e) =>
-        ((e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)')
-      }
     >
       <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center"
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
           background: featured ? 'rgba(255,255,255,0.25)' : `${accent}18`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           color: featured ? '#fff' : accent,
         }}
       >
@@ -274,35 +210,21 @@ function QuickActionCard({
       </div>
       <div>
         <div
-          style={{
-            fontWeight: 700,
-            fontSize: 14,
-            color: featured ? '#fff' : '#1E293B',
-            marginBottom: 2,
-          }}
+          className="font-bold text-sm mb-0.5"
+          style={{ color: featured ? '#fff' : '#1E293B' }}
         >
           {label}
         </div>
         <div
-          style={{
-            fontSize: 11,
-            color: featured ? 'rgba(255,255,255,0.75)' : '#64748B',
-            lineHeight: 1.4,
-          }}
+          className="text-[11px] leading-snug"
+          style={{ color: featured ? 'rgba(255,255,255,0.75)' : '#64748B' }}
         >
           {sublabel}
         </div>
       </div>
       <div
-        style={{
-          marginTop: 'auto',
-          color: featured ? 'rgba(255,255,255,0.8)' : accent,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 3,
-          fontSize: 11,
-          fontWeight: 600,
-        }}
+        className="mt-auto flex items-center gap-[3px] text-[11px] font-semibold"
+        style={{ color: featured ? 'rgba(255,255,255,0.8)' : accent }}
       >
         Tap to open <ArrowRight size={11} />
       </div>
@@ -313,44 +235,18 @@ function QuickActionCard({
 function RecentIncidentRow({ report }: { report: CitizenMyReport }) {
   const cfg = incidentTypeConfig[report.type];
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '11px 0',
-        borderBottom: '1px solid #F1F5F9',
-      }}
-    >
+    <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
       <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: cfg.bgColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: cfg.color,
-          flexShrink: 0,
-        }}
+        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+        style={{ background: cfg.bgColor, color: cfg.color }}
       >
         {typeIcon[report.type]}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: 13,
-            color: '#1E293B',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-[13px] text-slate-900 truncate">
           {cfg.label} - {report.id}
         </div>
-        <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+        <div className="text-[11px] text-slate-400 mt-0.5">
           {timeAgo(report.reportedAt)} - {report.location}
         </div>
       </div>
@@ -366,44 +262,18 @@ function MyReportRow({
 }) {
   const cfg = incidentTypeConfig[report.type];
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '11px 0',
-        borderBottom: '1px solid #F1F5F9',
-      }}
-    >
+    <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
       <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: cfg.bgColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: cfg.color,
-          flexShrink: 0,
-        }}
+        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+        style={{ background: cfg.bgColor, color: cfg.color }}
       >
         {typeIcon[report.type]}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: 13,
-            color: '#1E293B',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-[13px] text-slate-900 truncate">
           {report.description}
         </div>
-        <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+        <div className="text-[11px] text-slate-400 mt-0.5">
           {report.id} - {timeAgo(report.reportedAt)}
         </div>
       </div>
@@ -427,7 +297,7 @@ type CitizenNotificationItem = {
   reportId?: string;
 };
 
-/* â”€â”€ main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── main page ──────────────────────────────────────────────────────────────── */
 export default function CitizenDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -683,38 +553,16 @@ export default function CitizenDashboard() {
   return (
     <CitizenPageLayout
       header={
-        <header
-          className="citizen-web-header"
-          style={{
-            background: '#1E3A8A',
-            display: 'flex',
-            alignItems: 'center',
-            height: 60,
-            flexShrink: 0,
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
-          }}
-        >
+        <header className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
           <div
-            className="citizen-web-header-inner"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '0 var(--citizen-content-gutter)',
-              height: '100%',
-              position: 'relative',
-              boxSizing: 'border-box',
-            }}
+            className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
+            style={{ padding: '0 var(--citizen-content-gutter)' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="flex items-center gap-2.5">
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="flex items-center gap-2.5">
               <CitizenMobileMenu
                 activeKey={activeTab}
                 open={mobileMenuOpen}
@@ -740,7 +588,7 @@ export default function CitizenDashboard() {
                   setMobileMenuOpen(false);
                 }}
               />
-              <div style={{ position: 'relative' }}>
+              <div className="relative">
                 <button
                   type="button"
                   aria-label="Open profile actions"
@@ -751,20 +599,7 @@ export default function CitizenDashboard() {
                     setNotifOpen(false);
                     setMobileMenuOpen(false);
                   }}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    background: '#B4730A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    cursor: 'pointer',
-                    border: 'none',
-                  }}
+                  className="w-9 h-9 rounded-[10px] bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
                 >
                   {initials}
                 </button>
@@ -773,18 +608,7 @@ export default function CitizenDashboard() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    style={{
-                      position: 'absolute',
-                      top: 44,
-                      right: 0,
-                      width: 190,
-                      background: '#fff',
-                      borderRadius: 12,
-                      boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
-                      border: '1px solid #E2E8F0',
-                      overflow: 'hidden',
-                      zIndex: 110,
-                    }}
+                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-slate-200 overflow-hidden z-[110]"
                   >
                     <button
                       type="button"
@@ -793,18 +617,7 @@ export default function CitizenDashboard() {
                         setActiveTab('profile');
                         setProfileMenuOpen(false);
                       }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '11px 12px',
-                        background: '#fff',
-                        border: 'none',
-                        borderBottom: '1px solid #F1F5F9',
-                        color: '#1E293B',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
                     >
                       Open profile page
                     </button>
@@ -815,17 +628,7 @@ export default function CitizenDashboard() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '11px 12px',
-                        background: '#fff',
-                        border: 'none',
-                        color: '#B91C1C',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-red-700 text-[13px] font-bold cursor-pointer"
                     >
                       Sign out
                     </button>
@@ -891,9 +694,9 @@ export default function CitizenDashboard() {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    HOME TAB
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════ */
 function HomeTab({
   incidents,
   myReports,
@@ -926,7 +729,7 @@ function HomeTab({
 
   if (isLoading) {
     return (
-      <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-3.5">
         <TextSkeleton rows={3} title={false} className="rounded-xl" />
         <CardSkeleton
           count={3}
@@ -940,46 +743,29 @@ function HomeTab({
   }
 
   return (
-    <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <section
-        style={{
-          background: '#1E3A8A',
-          borderRadius: 12,
-          padding: '16px 16px 14px',
-          color: '#fff',
-          boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
-        }}
-      >
-        <div style={{ fontSize: 13, color: '#BFDBFE' }}>{greetingLabel}, {firstName}.</div>
-        <div style={{ fontWeight: 800, fontSize: 28, lineHeight: 1.15, marginTop: 4 }}>Citizen Dashboard</div>
-        <div style={{ fontSize: 13, color: '#C7D2FE', marginTop: 2 }}>
+    <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-4">
+      {/* Welcome banner */}
+      <section className="bg-[#1E3A8A] rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
+        <div className="text-[13px] text-blue-200">{greetingLabel}, {firstName}.</div>
+        <div className="font-extrabold text-[28px] leading-[1.15] mt-1">Citizen Dashboard</div>
+        <div className="text-[13px] text-indigo-200 mt-0.5">
           Track your submitted reports and stay updated on response progress.
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 8, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
             {barangayLabel}
           </span>
-          <span style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: 8, padding: '5px 10px', fontSize: 11, fontWeight: 600 }}>
+          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
             {todayLabel}
           </span>
         </div>
       </section>
 
-      <section
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          border: '1px solid #E2E8F0',
-          padding: 12,
-          boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-        }}
-      >
+      {/* Stats */}
+      <section className="bg-white rounded-2xl border border-slate-200 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
         <div
-          style={{
-            display: 'grid',
-            gap: 10,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          }}
+          className="grid gap-2.5"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}
         >
           <StatCard
             icon={<AlertTriangle size={16} />}
@@ -1002,39 +788,28 @@ function HomeTab({
         </div>
       </section>
 
+      {/* Verification prompt */}
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <section
+          className="rounded-2xl p-3.5 shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
           style={{
             background: verificationSummary.bg,
-            borderRadius: 16,
             border: `1px solid ${verificationSummary.color}33`,
-            boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-            padding: 14,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: verificationSummary.color }}>
+              <div className="font-bold text-[15px]" style={{ color: verificationSummary.color }}>
                 {verificationSummary.title}
               </div>
-              <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
+              <div className="text-xs text-slate-600 mt-1">
                 {verificationSummary.detail}
               </div>
             </div>
             <button
               type="button"
               onClick={() => navigate('/citizen/verification')}
-              style={{
-                border: 'none',
-                borderRadius: 10,
-                background: '#1E3A8A',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                padding: '10px 12px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
+              className="border-0 rounded-[10px] bg-[#1E3A8A] text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
             >
               Open Verification
             </button>
@@ -1042,112 +817,68 @@ function HomeTab({
         </section>
       ) : null}
 
-      <section
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-          padding: 12,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+      {/* Map preview */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 16 }}>My Report Map</div>
-            <div style={{ fontSize: 12, color: '#64748B' }}>Pins and activity based on your submitted reports only.</div>
+            <div className="font-bold text-slate-950 text-base">My Report Map</div>
+            <div className="text-xs text-slate-500">Pins and activity based on your submitted reports only.</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
-            style={{
-              background: '#EFF6FF',
-              border: '1px solid #BFDBFE',
-              borderRadius: 8,
-              padding: '7px 10px',
-              color: '#1E3A8A',
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-            }}
+            className="bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-[7px] text-[#1E3A8A] font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
           >
             Open Full Map <ArrowRight size={12} />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          <aside
-            style={{
-              flex: '1 1 320px',
-              maxWidth: '100%',
-              minWidth: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>Map Summary</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
+        <div className="flex flex-wrap gap-3">
+          <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
+            <div className="bg-slate-50 border border-slate-200 rounded-[10px] px-3 py-2.5">
+              <div className="text-[11px] font-semibold text-slate-600">Map Summary</div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <div style={{ fontSize: 10, color: '#64748B' }}>Total Pins</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#1E3A8A' }}>{incidents.length}</div>
+                  <div className="text-[10px] text-slate-500">Total Pins</div>
+                  <div className="text-lg font-extrabold text-[#1E3A8A]">{incidents.length}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: '#64748B' }}>Needs Attention</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#B4730A' }}>{criticalCount}</div>
+                  <div className="text-[10px] text-slate-500">Needs Attention</div>
+                  <div className="text-lg font-extrabold text-[#B4730A]">{criticalCount}</div>
                 </div>
               </div>
             </div>
 
             {selectedIncident ? (
-              <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#1E3A8A', fontWeight: 700, marginBottom: 6 }}>Selected Pin</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="bg-blue-50 border border-blue-200 rounded-[10px] px-3 py-2.5">
+                <div className="text-[11px] text-[#1E3A8A] font-bold mb-1.5">Selected Pin</div>
+                <div className="flex items-center gap-2">
                   <div
+                    className="w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0"
                     style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 8,
                       background: incidentTypeConfig[selectedIncident.type].bgColor,
                       color: incidentTypeConfig[selectedIncident.type].color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
                     }}
                   >
                     {typeIcon[selectedIncident.type]}
                   </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 12, color: '#1E293B', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedIncident.id}</div>
-                    <div style={{ fontSize: 10, color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedIncident.location}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-slate-900 font-bold truncate">{selectedIncident.id}</div>
+                    <div className="text-[10px] text-slate-500 truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
-                <div style={{ marginTop: 6 }}>
+                <div className="mt-1.5">
                   <StatusBadge status={selectedIncident.status} size="sm" pulse />
                 </div>
               </div>
             ) : (
-              <div style={{ background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#64748B' }}>
+              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[10px] px-3 py-2.5 text-[11px] text-slate-500">
                 Tap any map pin to see details.
               </div>
             )}
           </aside>
 
-          <div style={{ flex: '1 1 420px', minWidth: 320 }}>
-            <div
-              style={{
-                borderRadius: 12,
-                overflow: 'hidden',
-                border: '1px solid #E2E8F0',
-                background: '#fff',
-                display: 'block',
-                width: '100%',
-                minHeight: 360,
-              }}
-            >
+          <div className="flex-[1_1_420px] min-w-[320px]">
+            <div className="rounded-xl overflow-hidden border border-slate-200 bg-white block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}
                 height={360}
@@ -1162,22 +893,12 @@ function HomeTab({
         </div>
       </section>
 
-      <section
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-          padding: 12,
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 16, color: '#1E293B', marginBottom: 10 }}>Quick Actions</div>
+      {/* Quick Actions */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-slate-900 mb-2.5">Quick Actions</div>
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 10,
-          }}
+          className="grid gap-2.5"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
         >
           <QuickActionCard
             icon={<Plus size={22} />}
@@ -1211,57 +932,33 @@ function HomeTab({
         </div>
       </section>
 
-      <section
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-          padding: 12,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>Recent Report Activity</div>
+      {/* Recent activity */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="font-bold text-base text-slate-900">Recent Report Activity</div>
           <button
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#1E3A8A',
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
+            className="bg-transparent border-0 text-[#1E3A8A] text-xs font-bold cursor-pointer inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
           >
             View all <ChevronRight size={13} />
           </button>
         </div>
-        <div style={{ border: '1px solid #F1F5F9', borderRadius: 12, padding: '4px 12px' }}>
+        <div className="border border-slate-100 rounded-xl px-3 py-1">
           {myReports.slice(0, 3).map((report) => (
             <RecentIncidentRow key={report.id} report={report} />
           ))}
           {myReports.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: '#94A3B8', fontSize: 13 }}>
+            <div className="text-center py-5 text-slate-400 text-[13px]">
               No submitted reports yet.
             </div>
           )}
         </div>
       </section>
 
-      <section
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
-          padding: 12,
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 16, color: '#1E293B', marginBottom: 10 }}>Emergency Contacts</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Emergency contacts */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-slate-900 mb-2.5">Emergency Contacts</div>
+        <div className="flex flex-col gap-2">
           {[
             { label: 'Emergency Hotline', number: '911', color: '#B91C1C', bg: '#FEE2E2' },
             { label: 'MDRRMO Office', number: '(02) 123-4567', color: '#1E3A8A', bg: '#DBEAFE' },
@@ -1270,39 +967,17 @@ function HomeTab({
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
-              style={{
-                background: '#fff',
-                borderRadius: 12,
-                padding: '12px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                textDecoration: 'none',
-                border: '1px solid #E2E8F0',
-              }}
+              className="bg-white rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-slate-200"
             >
               <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: contact.bg,
-                  color: contact.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
+                className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0"
+                style={{ background: contact.bg, color: contact.color }}
               >
                 <Phone size={17} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>
-                  {contact.label}
-                </div>
-                <div style={{ fontSize: 12, color: contact.color, fontWeight: 700, marginTop: 1 }}>
-                  {contact.number}
-                </div>
+              <div className="flex-1">
+                <div className="font-semibold text-[13px] text-slate-900">{contact.label}</div>
+                <div className="text-xs font-bold mt-px" style={{ color: contact.color }}>{contact.number}</div>
               </div>
               <ChevronRight size={16} color="#94A3B8" />
             </a>
@@ -1313,9 +988,9 @@ function HomeTab({
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    REPORT TAB
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════ */
 const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }[] = [
   { type: 'flood', label: 'Flood', icon: <Droplets size={20} /> },
   { type: 'accident', label: 'Accident', icon: <Car size={20} /> },
@@ -1348,90 +1023,43 @@ function ReportTab() {
 
   if (submitted) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 400,
-          padding: 32,
-          textAlign: 'center',
-          gap: 16,
-        }}
-      >
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: '#D1FAE5',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#059669',
-          }}
-        >
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center gap-4">
+        <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
           <CheckCircle2 size={40} />
         </div>
-        <div style={{ fontWeight: 800, fontSize: 20, color: '#1E293B' }}>
-          Report Submitted!
-        </div>
-        <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <div className="font-extrabold text-xl text-slate-900">Report Submitted!</div>
+        <div className="text-[13px] text-slate-500 leading-relaxed">
           Your incident report has been received. Our responders have been notified and will act accordingly. Track your report under "My Reports".
         </div>
-        <div
-          style={{
-            background: '#EFF6FF',
-            borderRadius: 12,
-            padding: '10px 20px',
-            color: '#1E3A8A',
-            fontWeight: 700,
-            fontSize: 14,
-            textAlign: 'center',
-          }}
-        >
+        <div className="bg-blue-50 rounded-xl px-5 py-2.5 text-[#1E3A8A] font-bold text-sm text-center">
           Reference number will appear in My Reports after processing.
         </div>
-        <div style={{ fontSize: 11, color: '#94A3B8' }}>Redirecting you back shortly...</div>
+        <div className="text-[11px] text-slate-400">Redirecting you back shortly...</div>
       </div>
     );
   }
 
   return (
-    <div className="citizen-content-shell" style={{ paddingTop: 20, paddingBottom: 20 }}>
+    <div className="citizen-content-shell pt-5 pb-5">
       {/* Header */}
       <div
-        style={{
-          background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
-          borderRadius: 16,
-          padding: '16px',
-          marginBottom: 20,
-          color: '#fff',
-        }}
+        className="rounded-2xl p-4 mb-5 text-white"
+        style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)' }}
       >
-        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>
-          Submit Incident Report
-        </div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
+        <div className="font-extrabold text-lg mb-1">Submit Incident Report</div>
+        <div className="text-xs text-white/75">
           Help keep your community safe by reporting incidents promptly.
         </div>
-        {/* Progress */}
-        <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+        <div className="flex gap-1.5 mt-3.5">
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              style={{
-                flex: 1,
-                height: 4,
-                borderRadius: 2,
-                background: s <= step ? '#fff' : 'rgba(255,255,255,0.3)',
-                transition: 'background 0.3s',
-              }}
+              className="flex-1 h-1 rounded-sm transition-[background] duration-300"
+              style={{ background: s <= step ? '#fff' : 'rgba(255,255,255,0.3)' }}
             />
           ))}
         </div>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
+        <div className="text-[10px] text-white/65 mt-1.5">
           Step {step} of 3 - {step === 1 ? 'Incident Type' : step === 2 ? 'Details' : 'Review & Submit'}
         </div>
       </div>
@@ -1439,10 +1067,10 @@ function ReportTab() {
       {/* Step 1: type */}
       {step === 1 && (
         <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 12 }}>
+          <div className="font-bold text-sm text-slate-900 mb-3">
             What type of incident?
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div className="grid grid-cols-2 gap-2.5">
             {REPORT_TYPES.map(({ type, label, icon }) => {
               const cfg = incidentTypeConfig[type];
               const isSelected = selectedType === type;
@@ -1450,40 +1078,26 @@ function ReportTab() {
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
+                  className="rounded-[14px] cursor-pointer flex items-center gap-2.5 transition-all duration-200"
                   style={{
+                    padding: '14px 12px',
                     background: isSelected ? cfg.color : '#fff',
                     border: `2px solid ${isSelected ? cfg.color : '#E2E8F0'}`,
-                    borderRadius: 14,
-                    padding: '14px 12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    transition: 'all 0.2s',
                     boxShadow: isSelected ? `0 4px 12px ${cfg.color}44` : '0 1px 4px rgba(0,0,0,0.07)',
                   }}
                 >
                   <div
+                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
                       background: isSelected ? 'rgba(255,255,255,0.25)' : cfg.bgColor,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
                       color: isSelected ? '#fff' : cfg.color,
-                      flexShrink: 0,
                     }}
                   >
                     {icon}
                   </div>
                   <span
-                    style={{
-                      fontWeight: 600,
-                      fontSize: 13,
-                      color: isSelected ? '#fff' : '#1E293B',
-                    }}
+                    className="font-semibold text-[13px]"
+                    style={{ color: isSelected ? '#fff' : '#1E293B' }}
                   >
                     {label}
                   </span>
@@ -1494,18 +1108,11 @@ function ReportTab() {
           <button
             onClick={() => selectedType && setStep(2)}
             disabled={!selectedType}
+            className="mt-5 w-full border-0 rounded-xl py-3.5 font-bold text-sm transition-colors duration-200"
             style={{
-              marginTop: 20,
-              width: '100%',
               background: selectedType ? '#1E3A8A' : '#E2E8F0',
               color: selectedType ? '#fff' : '#94A3B8',
-              border: 'none',
-              borderRadius: 12,
-              padding: '14px',
-              fontWeight: 700,
-              fontSize: 14,
               cursor: selectedType ? 'pointer' : 'not-allowed',
-              transition: 'background 0.2s',
             }}
           >
             {'Continue ->'}
@@ -1515,35 +1122,24 @@ function ReportTab() {
 
       {/* Step 2: details */}
       {step === 2 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 2 }}>
-            Describe the incident
-          </div>
+        <div className="flex flex-col gap-3.5">
+          <div className="font-bold text-sm text-slate-900 mb-0.5">Describe the incident</div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>
+            <label className="text-xs font-semibold text-slate-600 block mb-1.5">
               Location / Address *
             </label>
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Purok 3, Brgy. San Antonio"
-              style={{
-                width: '100%',
-                padding: '11px 13px',
-                borderRadius: 10,
-                border: '1.5px solid #E2E8F0',
-                fontSize: 13,
-                fontFamily: 'Roboto, sans-serif',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
+              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-slate-200 text-[13px] outline-none box-border font-['Roboto',sans-serif]"
             />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>
+            <label className="text-xs font-semibold text-slate-600 block mb-1.5">
               Severity Level *
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            <div className="grid grid-cols-4 gap-2">
               {[
                 { key: 'low', label: 'Low', color: '#059669', bg: '#D1FAE5' },
                 { key: 'medium', label: 'Medium', color: '#B4730A', bg: '#FEF3C7' },
@@ -1553,16 +1149,11 @@ function ReportTab() {
                 <button
                   key={s.key}
                   onClick={() => setSeverity(s.key)}
+                  className="py-2 px-1 rounded-lg font-bold text-[11px] cursor-pointer transition-all duration-150"
                   style={{
-                    padding: '8px 4px',
-                    borderRadius: 8,
                     border: `2px solid ${severity === s.key ? s.color : '#E2E8F0'}`,
                     background: severity === s.key ? s.bg : '#fff',
                     color: severity === s.key ? s.color : '#94A3B8',
-                    fontWeight: 700,
-                    fontSize: 11,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
                   }}
                 >
                   {s.label}
@@ -1571,7 +1162,7 @@ function ReportTab() {
             </div>
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>
+            <label className="text-xs font-semibold text-slate-600 block mb-1.5">
               Description *
             </label>
             <textarea
@@ -1579,48 +1170,23 @@ function ReportTab() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Briefly describe what is happening..."
               rows={4}
-              style={{
-                width: '100%',
-                padding: '11px 13px',
-                borderRadius: 10,
-                border: '1.5px solid #E2E8F0',
-                fontSize: 13,
-                fontFamily: 'Roboto, sans-serif',
-                outline: 'none',
-                resize: 'none',
-                boxSizing: 'border-box',
-              }}
+              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-slate-200 text-[13px] outline-none resize-none box-border font-['Roboto',sans-serif]"
             />
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="flex gap-2.5">
             <button
               onClick={() => setStep(1)}
-              style={{
-                flex: 1,
-                background: '#F1F5F9',
-                color: '#475569',
-                border: 'none',
-                borderRadius: 12,
-                padding: '14px',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
+              className="flex-1 bg-slate-100 text-slate-600 border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
             >
               {'<- Back'}
             </button>
             <button
               onClick={() => description && location && severity && setStep(3)}
               disabled={!description || !location || !severity}
+              className="flex-[2] border-0 rounded-xl py-3.5 font-bold text-sm"
               style={{
-                flex: 2,
                 background: description && location && severity ? '#1E3A8A' : '#E2E8F0',
                 color: description && location && severity ? '#fff' : '#94A3B8',
-                border: 'none',
-                borderRadius: 12,
-                padding: '14px',
-                fontWeight: 700,
-                fontSize: 14,
                 cursor: description && location && severity ? 'pointer' : 'not-allowed',
               }}
             >
@@ -1633,21 +1199,8 @@ function ReportTab() {
       {/* Step 3: review */}
       {step === 3 && selectedType && (
         <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 14 }}>
-            Review your report
-          </div>
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 14,
-              padding: '16px',
-              border: '1.5px solid #E2E8F0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              marginBottom: 16,
-            }}
-          >
+          <div className="font-bold text-sm text-slate-900 mb-3.5">Review your report</div>
+          <div className="bg-white rounded-[14px] p-4 border-[1.5px] border-slate-200 flex flex-col gap-3 mb-4">
             {[
               { label: 'Incident Type', value: incidentTypeConfig[selectedType].label },
               { label: 'Severity', value: severity.charAt(0).toUpperCase() + severity.slice(1) },
@@ -1656,62 +1209,29 @@ function ReportTab() {
               { label: 'Reported By', value: 'Juan Dela Cruz' },
               { label: 'Date & Time', value: new Date().toLocaleString('en-PH') },
             ].map(({ label, value }) => (
-              <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div key={label} className="flex flex-col gap-0.5">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.06em]">
                   {label}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{value}</div>
+                <div className="text-[13px] font-semibold text-slate-900">{value}</div>
               </div>
             ))}
           </div>
-          <div
-            style={{
-              background: '#FFFBEB',
-              borderRadius: 10,
-              padding: '10px 14px',
-              border: '1px solid #FDE68A',
-              marginBottom: 16,
-              fontSize: 12,
-              color: '#92400E',
-              display: 'flex',
-              gap: 8,
-              alignItems: 'flex-start',
-            }}
-          >
+          <div className="bg-amber-50 rounded-[10px] px-3.5 py-2.5 border border-amber-200 mb-4 text-xs text-amber-800 flex gap-2 items-start">
             <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
             False reporting is punishable by law. Only submit genuine emergencies or concerns.
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="flex gap-2.5">
             <button
               onClick={() => setStep(2)}
-              style={{
-                flex: 1,
-                background: '#F1F5F9',
-                color: '#475569',
-                border: 'none',
-                borderRadius: 12,
-                padding: '14px',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
+              className="flex-1 bg-slate-100 text-slate-600 border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
             >
               {'<- Edit'}
             </button>
             <button
               onClick={handleSubmit}
-              style={{
-                flex: 2,
-                background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 12,
-                padding: '14px',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(185,28,28,0.4)',
-              }}
+              className="flex-[2] text-white border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer shadow-[0_4px_12px_rgba(185,28,28,0.4)]"
+              style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)' }}
             >
               Submit Report
             </button>
@@ -1722,9 +1242,9 @@ function ReportTab() {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    MAP TAB
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════ */
 function MapTab({
   incidents,
   selectedIncident,
@@ -1792,58 +1312,29 @@ function MapTab({
   }, [filtered, selectedIncident, setSelectedIncident]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: mapShellMinHeight }}>
+    <div className="flex flex-col" style={{ minHeight: mapShellMinHeight }}>
       {/* Filters */}
-      <div
-        className="citizen-map-filter-bar"
-        style={{
-          padding: '12px 16px',
-          background: '#fff',
-          borderBottom: '1px solid #F1F5F9',
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', flex: 1 }}>
-          My Report Map
-        </div>
+      <div className="citizen-map-filter-bar px-4 py-3 bg-white border-b border-slate-100 flex gap-2 items-center flex-wrap">
+        <div className="font-bold text-sm text-slate-900 flex-1">My Report Map</div>
         <button
           type="button"
           onClick={onBack}
-          style={{
-            padding: isMobileViewport ? '8px 12px' : '6px 10px',
-            borderRadius: 10,
-            border: '1px solid #BFDBFE',
-            background: '#EFF6FF',
-            color: '#1E3A8A',
-            fontWeight: 700,
-            fontSize: 11,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
+          className="rounded-[10px] border border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[11px] cursor-pointer inline-flex items-center gap-1.5"
+          style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
         >
           <ArrowLeft size={12} />
           Back to Dashboard
         </button>
         {(['all', 'active', 'responding'] as const).map((f) => (
           <button
-            className="citizen-map-filter-chip"
+            className="citizen-map-filter-chip border-0 rounded-full font-semibold capitalize cursor-pointer"
             key={f}
             onClick={() => setFilter(f)}
             style={{
               padding: isMobileViewport ? '8px 14px' : '5px 12px',
-              borderRadius: 20,
-              border: 'none',
               background: filter === f ? '#1E3A8A' : '#F1F5F9',
               color: filter === f ? '#fff' : '#64748B',
-              fontWeight: 600,
               fontSize: isMobileViewport ? 12 : 11,
-              cursor: 'pointer',
-              textTransform: 'capitalize',
             }}
           >
             {f}
@@ -1851,20 +1342,10 @@ function MapTab({
         ))}
         {selectedIncident ? (
           <button
-            className="citizen-map-clear-btn"
+            className="citizen-map-clear-btn ml-auto border border-slate-200 bg-white text-slate-600 font-bold text-[11px] rounded-[10px] cursor-pointer"
             type="button"
             onClick={() => setSelectedIncident(null)}
-            style={{
-              marginLeft: 'auto',
-              padding: isMobileViewport ? '8px 12px' : '6px 10px',
-              borderRadius: 10,
-              border: '1px solid #E2E8F0',
-              background: '#fff',
-              color: '#475569',
-              fontWeight: 700,
-              fontSize: 11,
-              cursor: 'pointer',
-            }}
+            style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
           >
             Clear Selection
           </button>
@@ -1872,7 +1353,7 @@ function MapTab({
       </div>
 
       {/* Map */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 320 }}>
+      <div className="flex-1 relative min-h-[320px]">
         <IncidentMap
           incidents={filtered}
           height={mapHeight}
@@ -1883,45 +1364,15 @@ function MapTab({
           showSelectedPopup
         />
         {!hasPinsForFilter ? (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.42))',
-            }}
-          >
-            <div
-              className="citizen-map-empty-card"
-              style={{
-                pointerEvents: 'auto',
-                background: 'rgba(255,255,255,0.96)',
-                border: '1px solid #E2E8F0',
-                borderRadius: 12,
-                padding: '10px 12px',
-                textAlign: 'center',
-                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 4 }}>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-gradient-to-b from-white/[0.16] to-white/[0.42]">
+            <div className="citizen-map-empty-card pointer-events-auto bg-white/[0.96] border border-slate-200 rounded-xl px-3 py-2.5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
+              <div className="text-xs font-bold text-slate-900 mb-1">
                 No map pins for this filter
               </div>
               <button
                 type="button"
                 onClick={() => setFilter('all')}
-                style={{
-                  border: '1px solid #BFDBFE',
-                  background: '#EFF6FF',
-                  color: '#1E3A8A',
-                  borderRadius: 8,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  padding: '6px 10px',
-                  cursor: 'pointer',
-                }}
+                className="border border-blue-200 bg-blue-50 text-[#1E3A8A] rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
               >
                 Show all pins
               </button>
@@ -1935,80 +1386,52 @@ function MapTab({
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    MY REPORTS TAB
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════ */
 function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
   return (
-    <div style={{ padding: '16px' }}>
+    <div className="p-4">
       {/* Header */}
-      <div
-        style={{
-          background: '#1E3A8A',
-          borderRadius: 16,
-          padding: '16px',
-          marginBottom: 18,
-          color: '#fff',
-        }}
-      >
-        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>My Reports</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
+      <div className="bg-[#1E3A8A] rounded-2xl p-4 mb-[18px] text-white">
+        <div className="font-extrabold text-lg mb-1">My Reports</div>
+        <div className="text-xs text-white/75">
           You have submitted {myReports.length} incident reports.
         </div>
-        <div style={{ display: 'flex', gap: 14, marginTop: 12 }}>
+        <div className="flex gap-3.5 mt-3">
           {[
             { label: 'Submitted', value: myReports.length, color: '#BFDBFE' },
             { label: 'Responding', value: myReports.filter(r => r.status === 'responding').length, color: '#FDE68A' },
             { label: 'Resolved', value: myReports.filter(r => r.status === 'resolved').length, color: '#A7F3D0' },
           ].map((s) => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 800, fontSize: 22, color: '#fff' }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>{s.label}</div>
+            <div key={s.label} className="text-center">
+              <div className="font-extrabold text-[22px] text-white">{s.value}</div>
+              <div className="text-[10px] text-white/65 font-semibold">{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Report list */}
-      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
-        Submitted Reports
-      </div>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 14,
-          padding: '4px 14px',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-          border: '1px solid #F1F5F9',
-          marginBottom: 16,
-        }}
-      >
+      <div className="font-bold text-sm text-slate-900 mb-2.5">Submitted Reports</div>
+      <div className="bg-white rounded-[14px] px-3.5 py-1 shadow-[0_1px_4px_rgba(0,0,0,0.07)] border border-slate-100 mb-4">
         {myReports.map((report) => (
           <MyReportRow key={report.id} report={report} />
         ))}
       </div>
 
       {/* Status guide */}
-      <div
-        style={{
-          background: '#F8FAFC',
-          borderRadius: 12,
-          padding: '14px',
-          border: '1px solid #E2E8F0',
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 10 }}>
-          Report Status Guide
-        </div>
+      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+        <div className="font-bold text-[13px] text-slate-900 mb-2.5">Report Status Guide</div>
         {[
           { status: 'active' as const, desc: 'Received, awaiting assignment' },
           { status: 'responding' as const, desc: 'Responders have been deployed' },
           { status: 'contained' as const, desc: 'Situation is under control' },
           { status: 'resolved' as const, desc: 'Incident fully resolved' },
         ].map(({ status, desc }) => (
-          <div key={status} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <div key={status} className="flex items-center gap-2.5 mb-2">
             <StatusBadge status={status} size="sm" />
-            <span style={{ fontSize: 12, color: '#64748B' }}>{desc}</span>
+            <span className="text-xs text-slate-500">{desc}</span>
           </div>
         ))}
       </div>
@@ -2016,9 +1439,9 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    PROFILE TAB
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════ */
 function ProfileTab({
   myReports,
   verificationPreview,
@@ -2077,67 +1500,24 @@ function ProfileTab({
   };
 
   return (
-    <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 16 }}>
+    <div className="citizen-content-shell pt-4 pb-4">
       {/* Profile card */}
-      <div
-        style={{
-          background: '#1E3A8A',
-          borderRadius: 20,
-          padding: '24px 20px',
-          color: '#fff',
-          marginBottom: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 10,
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: '50%',
-            background: '#B4730A',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 28,
-            fontWeight: 800,
-            color: '#fff',
-            border: '3px solid rgba(255,255,255,0.3)',
-          }}
-        >
+      <div className="bg-[#1E3A8A] rounded-[20px] px-5 py-6 text-white mb-5 flex flex-col items-center gap-2.5 text-center">
+        <div className="w-[72px] h-[72px] rounded-full bg-[#B4730A] flex items-center justify-center text-[28px] font-extrabold text-white border-[3px] border-white/30">
           {initials}
         </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 20 }}>{fullName}</div>
-          <div style={{ fontSize: 12, color: '#BFDBFE', marginTop: 2 }}>
-            {phoneNumber}
-          </div>
-          <div style={{ fontSize: 11, color: '#93C5FD', marginTop: 4 }}>
-            {barangayLabel} - Tondo, Manila
-          </div>
+          <div className="font-extrabold text-xl">{fullName}</div>
+          <div className="text-xs text-blue-200 mt-0.5">{phoneNumber}</div>
+          <div className="text-[11px] text-blue-300 mt-1">{barangayLabel} - Tondo, Manila</div>
         </div>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.15)',
-            borderRadius: 20,
-            padding: '5px 14px',
-            fontSize: 11,
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        >
+        <div className="bg-white/15 rounded-full py-[5px] px-3.5 text-[11px] font-bold flex items-center gap-[5px] border border-white/20">
           <Shield size={12} /> {verificationSummary.statusLabel}
         </div>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+      <div className="flex gap-2.5 mb-5">
         {[
           { label: 'Reports Filed', value: myReports.length, icon: <FileText size={16} />, accent: '#1E3A8A' },
           { label: 'Resolved', value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
@@ -2147,56 +1527,34 @@ function ProfileTab({
         ))}
       </div>
 
-      {/* Read-only profile information */}
-      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
-        Verification Preview
-      </div>
+      {/* Verification preview */}
+      <div className="font-bold text-sm text-slate-900 mb-2.5">Verification Preview</div>
       <div
+        className="rounded-[14px] px-3.5 py-3 mb-4"
         style={{
           background: verificationSummary.bg,
-          borderRadius: 14,
           border: `1px solid ${verificationSummary.color}33`,
-          padding: '12px 14px',
-          marginBottom: 16,
         }}
       >
-        <div style={{ fontWeight: 700, fontSize: 13, color: verificationSummary.color }}>
+        <div className="font-bold text-[13px]" style={{ color: verificationSummary.color }}>
           {verificationSummary.title}
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginTop: 4, lineHeight: 1.5 }}>
-          {verificationSummary.detail}
-        </div>
+        <div className="text-xs text-slate-600 mt-1 leading-[1.5]">{verificationSummary.detail}</div>
         {verificationPreview.idImageUrl ? (
           <a
             href={verificationPreview.idImageUrl}
             target="_blank"
             rel="noreferrer"
-            style={{
-              display: 'inline-flex',
-              marginTop: 8,
-              textDecoration: 'none',
-              color: '#1E3A8A',
-              fontSize: 12,
-              fontWeight: 700,
-            }}
+            className="inline-flex mt-2 no-underline text-[#1E3A8A] text-xs font-bold"
           >
             View latest uploaded ID
           </a>
         ) : null}
       </div>
 
-      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B', marginBottom: 10 }}>
-        Account Information
-      </div>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 14,
-          overflow: 'hidden',
-          border: '1px solid #F1F5F9',
-          marginBottom: 16,
-        }}
-      >
+      {/* Account info */}
+      <div className="font-bold text-sm text-slate-900 mb-2.5">Account Information</div>
+      <div className="bg-white rounded-[14px] overflow-hidden border border-slate-100 mb-4">
         {[
           { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
@@ -2206,71 +1564,28 @@ function ProfileTab({
         ].map((item, idx, arr) => (
           <div
             key={item.label}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '14px 16px',
-              cursor: 'default',
-              textAlign: 'left',
-              background: '#fff',
-              borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
-            }}
+            className="w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white"
+            style={{ borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none' }}
           >
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: '#EFF6FF',
-                color: '#1E3A8A',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
+            <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-[#1E3A8A] flex items-center justify-center shrink-0">
               {item.icon}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>{item.label}</div>
-              <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{item.sub}</div>
+            <div className="flex-1">
+              <div className="font-semibold text-[13px] text-slate-900">{item.label}</div>
+              <div className="text-[11px] text-slate-400 mt-px">{item.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div
-        style={{
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
-          borderRadius: 12,
-          padding: '10px 12px',
-          marginBottom: 14,
-          color: '#475569',
-          fontSize: 12,
-          lineHeight: 1.5,
-        }}
-      >
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 mb-3.5 text-slate-600 text-xs leading-[1.5]">
         Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
       </div>
 
       {!session?.user.isPhoneVerified ? (
         <button
           onClick={() => navigate('/auth/register')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: 12,
-            border: '1.5px solid #BFDBFE',
-            background: '#EFF6FF',
-            color: '#1E3A8A',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-            marginBottom: 12,
-          }}
+          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[13px] cursor-pointer mb-3"
         >
           Verify Phone Number
         </button>
@@ -2279,18 +1594,7 @@ function ProfileTab({
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <button
           onClick={() => navigate('/citizen/verification')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: 12,
-            border: '1.5px solid #BFDBFE',
-            background: '#EFF6FF',
-            color: '#1E3A8A',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-            marginBottom: 12,
-          }}
+          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[13px] cursor-pointer mb-3"
         >
           Open Verification Status
         </button>
@@ -2302,21 +1606,10 @@ function ProfileTab({
           clearAuthSession();
           navigate('/auth/login', { replace: true });
         }}
-        style={{
-          width: '100%',
-          padding: '14px',
-          borderRadius: 12,
-          border: '1.5px solid #FEE2E2',
-          background: '#FFF5F5',
-          color: '#B91C1C',
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: 'pointer',
-        }}
+        className="w-full py-3.5 rounded-xl border-[1.5px] border-red-100 bg-red-50 text-red-700 font-bold text-sm cursor-pointer"
       >
         Sign Out
       </button>
     </div>
   );
 }
-
