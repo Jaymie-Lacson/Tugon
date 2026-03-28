@@ -52,7 +52,7 @@ Prerequisite:
 Notes:
 - Dumps are saved under `server/backups/` as `.dump` files.
 - Restore script refuses non-local targets by default for safety.
-- To restore a specific dump file: `npm --prefix server run db:restore:local -- --file=server/backups/<file>.dump`
+- To restore a specific dump file: `npm --prefix server run db:restore:local -- --file=backups/<file>.dump`
 
 ## Production Checks
 
