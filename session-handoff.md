@@ -1,88 +1,111 @@
-# Session Handoff — 2026-03-28 (UI/UX Redesign)
+# Session Handoff — 2026-03-28 (UI/UX Redesign, Session 2)
 
-**Branch:** `feature/mobile-responsiveness`
-**Plan file:** `.claude/plans/fluttering-cuddling-reef.md`
+**Branch:** `redesign`
 **Build status:** PASSING (`npm run build` succeeds)
+**All changes are unstaged** — nothing committed this session yet.
 
 ---
 
-## What was done this session
+## What was accomplished this session
 
-### Phase 0: Design Token Foundation (COMPLETE)
-**File modified:** `src/styles/theme.css`
-- Changed `--primary` from `#030213` to `#1E3A8A` (navy blue) — affects all `bg-primary`, `text-primary` usages
-- Changed `--sidebar-primary`, `--secondary-foreground`, `--accent-foreground` from `#030213` to `#1E3A8A`
-- Changed `--radius` from `0.625rem` (10px) to `0.75rem` (12px) — cascades to sm/md/lg/xl via calc()
-- Added semantic tokens: `--app-bg`, `--citizen-bg`, `--severity-critical/medium/low` (+ bg variants), `--shadow-card`, `--shadow-elevated`
-- Registered all new tokens in `@theme inline` block for Tailwind access
+### Phase 3: Layout Shell Unification (COMPLETE)
+Migrated all 3 layout shells + 2 citizen nav components from inline `style={{}}` to Tailwind classes. Replaced mobile hamburger dropdown menus with the `BottomNav` component for Official and SuperAdmin portals.
 
-### Phase 1: Shared Components (COMPLETE)
-**New files created:**
-- `src/app/components/BottomNav.tsx` — Unified fixed bottom nav for mobile (all portals), accepts `items` array
-- `src/app/components/VerificationProgressCard.tsx` — Replaces passive verification banner with progress card (3 states: not_started, pending, rejected)
-- `src/app/components/CitizenOnboardingModal.tsx` — 3-step onboarding dialog for new citizens, uses localStorage flag
+- **Layout.tsx** — 758→~260 lines (-66%). Removed hamburger menu, `drawerOpen` state, 3 related useEffects, embedded `<style>` block. Wired `BottomNav` with 5 items (Home, Incidents, Map, Reports, Settings). All `onMouseEnter`/`onMouseLeave` hover handlers replaced with Tailwind `hover:` classes.
+- **SuperAdminLayout.tsx** — 783→~270 lines (-65%). Same treatment. Aligned mobile breakpoint from 768px to `lg` (1024px). Wired `BottomNav` with 5 items (Overview, Map, Analytics, Users, Settings).
+- **CitizenPageLayout.tsx** — 251→~115 lines (-54%). Replaced inline verification banner with `VerificationProgressCard` component. Removed `getCitizenVerificationPrompt()` function. Kept `<style>` block for CSS-variable-driven responsive layout (depends on runtime props).
+- **CitizenDesktopNav.tsx** — 91→61 lines. Inline styles → Tailwind. Kept `citizen-only-desktop` / `citizen-web-strip` class names for parent layout compat.
+- **CitizenMobileMenu.tsx** — 107→67 lines. Inline styles → Tailwind. Kept `citizen-only-mobile` class name for parent layout compat.
+- **BottomNav.tsx** — Added `exact?: boolean` to `BottomNavItem` interface so root paths (`/app`, `/superadmin`) don't false-match child routes.
 
-**Modified:**
-- `src/app/components/StatusBadge.tsx` — Added lucide-react severity icons (AlertTriangle, AlertCircle, Info, CheckCircle) to `SeverityBadge`. Migrated all inline styles to Tailwind classes.
+### Phase 4: High-Traffic Official Pages (PARTIAL — 3 of 6 done)
+Migrated inline styles to Tailwind on the first 3 official pages:
 
-### Phase 2: Auth Pages Migration (COMPLETE)
-**Rewritten with Tailwind (all inline styles + CSS class refs removed):**
-- `src/app/components/AuthLayout.tsx` — Complete rewrite. Layout uses Tailwind flex, responsive aside. InputField and PrimaryButton now use Tailwind. `AUTH_SPIN_STYLE` exported as empty string for backward compat.
-- `src/app/pages/auth/Login.tsx`
-- `src/app/pages/auth/Register.tsx`
-- `src/app/pages/auth/Verify.tsx`
-- `src/app/pages/auth/CreatePassword.tsx`
-- `src/app/pages/auth/ForgotPassword.tsx`
-
-**Deleted:**
-- `src/styles/auth-layout.css` (633 lines removed)
+- **Settings.tsx** — 140→~95 lines. All 26 inline styles → Tailwind. Removed embedded `<style>` block, replaced with Tailwind responsive `max-md:` classes.
+- **Verifications.tsx** — 506→~220 lines. All 52 inline styles → Tailwind. Image preview modal, action buttons, form elements all migrated.
+- **Analytics.tsx** — 752→~490 lines. 67 inline styles → Tailwind. Kept `isMobile` state (needed by Recharts props). Kept reduced `<style>` block for complex mobile-only overrides (period tab grid, chart toggle width). All MetricCard, chart wrapper, legend, resource utilization bar styles migrated.
 
 ---
 
-## What comes next
+## Current state
 
-### Phase 3: Layout Shell Unification (NEXT)
-Migrate the 3 layout shells from inline styles to Tailwind and wire in the new `BottomNav` component:
-- `src/app/components/Layout.tsx` (~758 lines, 53 inline styles) — Official portal
-- `src/app/pages/superadmin/SuperAdminLayout.tsx` (~782 lines, 55 inline styles) — SuperAdmin portal
-- `src/app/components/CitizenPageLayout.tsx` (~251 lines) — Citizen portal
-- `src/app/components/CitizenDesktopNav.tsx` (~91 lines)
-- `src/app/components/CitizenMobileMenu.tsx` (~107 lines)
+### Working
+- Build passes (`npm run build` succeeds, no TypeScript errors)
+- All 3 layout shells render with Tailwind (sidebar, header, bottom nav, profile menus)
+- BottomNav renders on mobile for Official and SuperAdmin portals
+- VerificationProgressCard shows in CitizenPageLayout for unverified citizens
+- Settings, Verifications, Analytics pages fully migrated to Tailwind
+- All Recharts inline styles preserved (required by library)
 
-Key actions:
-- Replace inline `style={{}}` with Tailwind classes
-- Use `bg-primary` for sidebar (now correctly #1E3A8A)
-- Replace hamburger dropdowns with `BottomNav` for mobile
-- Replace verification banner in CitizenPageLayout with `VerificationProgressCard`
-- Remove embedded `<style>` tags, move to Tailwind responsive classes
+### Incomplete
+- **Dashboard.tsx** (1,059 lines, 144 inline styles) — NOT started. Was about to write this when session ended.
+- **Incidents.tsx** (1,301 lines, 115 inline styles) — NOT started
+- **Reports.tsx** (1,184 lines, 139 inline styles) — NOT started
+- Phase 5, 6 not started
 
-### Phase 4: High-Traffic Official Pages
-Settings → Analytics → Dashboard → Incidents → Reports → Verifications (inline styles → Tailwind)
-
-### Phase 5: Citizen + SuperAdmin Pages
-CitizenDashboard (2,322 lines) → IncidentReport (2,658 lines) → CitizenMyReports → CitizenVerification → 5 SA pages. Wire in `CitizenOnboardingModal`.
-
-### Phase 6: Landing + Map CSS + Cleanup
-Landing.tsx → map-view.css token unification → mobile.css dead selector cleanup → final audit
+### Not broken, but worth noting
+- The `citizen-only-mobile` and `citizen-only-desktop` CSS classes are still defined in CitizenPageLayout's `<style>` block. They use 900px breakpoint (not a standard Tailwind breakpoint). CitizenDesktopNav and CitizenMobileMenu depend on them. This will be cleaned up in Phase 5 when CitizenDashboard is rewritten.
 
 ---
 
-## Important notes
-- `AUTH_SPIN_STYLE` is exported as empty string from AuthLayout.tsx — some files may still import it but it's a no-op
-- The new shared components (BottomNav, VerificationProgressCard, CitizenOnboardingModal) are **built but not yet wired** into any page — that happens in Phase 3 (layouts) and Phase 5 (CitizenDashboard)
-- Recharts and Leaflet inline styles must NOT be migrated — those libraries require them
-- `map-view.css` stays as a CSS file but its hardcoded tokens should be unified in Phase 6
+## Files modified (unstaged)
+
+| File | Summary |
+|------|---------|
+| `src/app/components/BottomNav.tsx` | Added `exact?: boolean` to BottomNavItem interface |
+| `src/app/components/Layout.tsx` | Full rewrite: inline styles → Tailwind, hamburger → BottomNav |
+| `src/app/pages/superadmin/SuperAdminLayout.tsx` | Full rewrite: inline styles → Tailwind, hamburger → BottomNav |
+| `src/app/components/CitizenPageLayout.tsx` | Inline styles → Tailwind, verification banner → VerificationProgressCard |
+| `src/app/components/CitizenDesktopNav.tsx` | Inline styles → Tailwind |
+| `src/app/components/CitizenMobileMenu.tsx` | Inline styles → Tailwind |
+| `src/app/pages/Settings.tsx` | All inline styles → Tailwind, removed `<style>` block |
+| `src/app/pages/Verifications.tsx` | All inline styles → Tailwind |
+| `src/app/pages/Analytics.tsx` | Most inline styles → Tailwind, kept Recharts props + reduced `<style>` |
+
+---
+
+## Open decisions
+
+- **BottomNav item selection for Official portal**: Currently Home, Incidents, Map, Reports, Settings. Analytics and Verifications are not in the bottom nav — they're accessible from desktop sidebar and dashboard links. May want to reconsider if users complain.
+- **SuperAdmin mobile breakpoint**: Changed from 768px to `lg` (1024px) for consistency with Official portal. If SA users prefer sidebar visible on tablets, could revert to `md` (768px).
+- **Dashboard.tsx approach**: This is the most complex page (1059 lines, 144 inline styles). Has KPICard, AlertBanner, cross-border alerts, heatmap panel, map with tuning controls, live feed, trend charts, type distribution, and incidents table. Recommended approach: full rewrite like the layouts, keeping all Recharts/Leaflet inline styles.
+
+---
 
 ## Traps to avoid
-- Port 5173/5174 may be blocked on this Windows setup — vite.config.ts has a port change to 4173 (unstaged)
-- Tests use `node:test` runner, NOT Jest or Vitest
-- Always read CLAUDE.md / AGENTS.md / ARCHITECTURE.md before making changes
-- The `design-analysis-plan.md` file has the full page-by-page breakdown and component inventory
+
+- **Recharts/Leaflet inline styles must stay** — those libraries require them. Only migrate wrapper divs.
+- **`isMobile` state in Analytics.tsx** — still needed for Recharts responsive props (tick sizes, margins, chart heights). Don't remove it even though wrapper styles now use Tailwind responsive classes.
+- **`citizen-only-mobile` / `citizen-only-desktop`** — these CSS classes at 900px breakpoint are consumed by CitizenDashboard, CitizenDesktopNav, CitizenMobileMenu. Don't remove from CitizenPageLayout's `<style>` until Phase 5.
+- **Port 5173/5174 may be blocked** on this Windows setup — vite.config.ts has port change to 4173.
+- **Tests use `node:test` runner**, NOT Jest or Vitest.
+- **`AUTH_SPIN_STYLE`** is exported as empty string from AuthLayout.tsx — some files may still import it.
+
+---
+
+## Next steps (priority order)
+
+1. **Commit all unstaged changes** — `git add` the 9 modified source files + session-handoff.md, commit with descriptive message.
+2. **Dashboard.tsx** — Migrate 144 inline styles to Tailwind. This is the biggest remaining file. Key sub-components: KPICard, AlertBanner, cross-border alerts section, heatmap section, map toolbar, live feed, trend chart, type distribution, incidents table.
+3. **Incidents.tsx** — 115 inline styles → Tailwind.
+4. **Reports.tsx** — 139 inline styles → Tailwind.
+5. **Phase 5: Citizen + SuperAdmin Pages** — CitizenDashboard (2,322 lines), IncidentReport (2,658 lines), CitizenMyReports, CitizenVerification, 5 SA pages. Wire `BottomNav` into citizen portal, wire `CitizenOnboardingModal`.
+6. **Phase 6: Landing + Map CSS + Cleanup** — Landing.tsx, map-view.css token unification, mobile.css dead selector cleanup, final audit.
+
+---
 
 ## Relevant file paths
+
 - `CLAUDE.md` — Project rules and constraints
-- `.claude/plans/fluttering-cuddling-reef.md` — The full 7-phase redesign plan
-- `design-analysis-plan.md` — Design analysis with page breakdowns, component inventory, issues list
+- `AGENTS.md` / `ARCHITECTURE.md` — Detailed architecture reference
+- `design-analysis-plan.md` — Full page-by-page breakdown and component inventory
 - `src/styles/theme.css` — Design tokens (updated in Phase 0)
-- `src/app/components/` — All shared components including new Phase 1 components
-- `src/app/pages/auth/` — All 5 auth pages (rewritten in Phase 2)
+- `src/app/components/BottomNav.tsx` — Shared bottom nav (Phase 1, updated Phase 3)
+- `src/app/components/VerificationProgressCard.tsx` — Shared verification card (Phase 1, wired Phase 3)
+- `src/app/components/CitizenOnboardingModal.tsx` — Built in Phase 1, not yet wired
+- `src/app/components/Layout.tsx` — Official layout (rewritten Phase 3)
+- `src/app/pages/superadmin/SuperAdminLayout.tsx` — SA layout (rewritten Phase 3)
+- `src/app/components/CitizenPageLayout.tsx` — Citizen layout (rewritten Phase 3)
+- `src/app/pages/Dashboard.tsx` — **NEXT TARGET** (1,059 lines, 144 inline styles)
+- `src/app/pages/Incidents.tsx` — Next after Dashboard (1,301 lines)
+- `src/app/pages/Reports.tsx` — Next after Incidents (1,184 lines)
