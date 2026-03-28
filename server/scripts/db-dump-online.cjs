@@ -139,10 +139,11 @@ function main() {
   runOrExit("pg_dump", args);
 
   const resolved = path.resolve(outFile);
-  fs.writeFileSync(path.join(projectRoot, "backups", "latest-dump-path.txt"), `${resolved}\n`, "utf8");
+  const markerPath = path.join(path.dirname(resolved), "latest-dump-path.txt");
+  fs.writeFileSync(markerPath, `${resolved}\n`, "utf8");
 
   console.log("[db:dump:online] Dump completed successfully.");
-  console.log(`[db:dump:online] Saved path marker: ${path.join(projectRoot, "backups", "latest-dump-path.txt")}`);
+  console.log(`[db:dump:online] Saved path marker: ${markerPath}`);
 }
 
 main();
