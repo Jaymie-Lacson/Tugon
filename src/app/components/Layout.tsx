@@ -197,12 +197,12 @@ function Layout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] border-transparent transition-colors duration-150 ${
-                  active ? 'bg-white/[0.06]' : 'hover:bg-white/[0.08]'
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
+                  active ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
                 }`}
               >
-                <item.icon size={17} className={active ? 'text-blue-200' : 'text-blue-300'} />
-                <span className={`text-[13px] flex-1 ${active ? 'text-blue-100' : 'text-blue-200'}`}>
+                <item.icon size={17} className={active ? 'text-white' : 'text-blue-300'} />
+                <span className={`text-[13px] flex-1 ${active ? 'font-semibold text-white' : 'text-blue-200'}`}>
                   {item.label}
                 </span>
               </NavLink>
@@ -215,12 +215,12 @@ function Layout() {
             </div>
             <NavLink
               to="/app/settings"
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg no-underline mb-0.5 border-l-[3px] border-transparent transition-colors duration-150 ${
-                settingsActive ? 'bg-white/[0.06]' : 'hover:bg-white/[0.08]'
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
+                settingsActive ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
               }`}
             >
-              <Settings size={16} className="text-blue-300" />
-              <span className={`text-[13px] ${settingsActive ? 'text-blue-100' : 'text-blue-200'}`}>Settings</span>
+              <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
+              <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>Settings</span>
             </NavLink>
           </div>
         </nav>
