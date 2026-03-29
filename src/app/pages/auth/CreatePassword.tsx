@@ -22,8 +22,8 @@ const RULES: StrengthRule[] = [
 function getStrength(pw: string): { level: number; label: string; color: string } {
   const passed = RULES.filter(r => r.test(pw)).length;
   if (pw.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-  if (passed <= 1) return { level: 1, label: 'Weak', color: '#B91C1C' };
-  if (passed === 2) return { level: 2, label: 'Fair', color: '#B4730A' };
+  if (passed <= 1) return { level: 1, label: 'Weak', color: 'var(--severity-critical)' };
+  if (passed === 2) return { level: 2, label: 'Fair', color: 'var(--severity-medium)' };
   if (passed === 3) return { level: 3, label: 'Good', color: '#0891B2' };
   return { level: 4, label: 'Strong', color: '#059669' };
 }

@@ -17,7 +17,7 @@ export default function SkeletonDemo() {
         <button
           type="button"
           onClick={() => setIsLoading((prev) => !prev)}
-          className="mt-4 rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3277]"
+          className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3277]"
         >
           Toggle loading: {isLoading ? 'ON' : 'OFF'}
         </button>
