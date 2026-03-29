@@ -78,7 +78,7 @@
 }
 
 .map-filter-button.is-active .map-filter-button-text {
-  color: #1e3a8a;
+  color: var(--primary);
 }
 
 .map-panel-close-btn {
@@ -178,11 +178,11 @@
 }
 
 .map-stat-alert {
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-stat-primary {
-  color: #1e3a8a;
+  color: var(--primary);
 }
 
 .map-stat-label {
@@ -208,7 +208,7 @@
 }
 
 .map-osm-badge-text {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 9px;
   font-weight: 600;
 }
@@ -227,7 +227,7 @@
 }
 
 .map-list-state-error {
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-incident-card {
@@ -241,7 +241,7 @@
 }
 
 .map-incident-card.is-selected {
-  border-color: #1e3a8a;
+  border-color: var(--primary);
   background: #eff6ff;
 }
 
@@ -264,7 +264,7 @@
 
 .map-incident-type-fire {
   background: #fee2e2;
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-incident-type-flood {
@@ -274,7 +274,7 @@
 
 .map-incident-type-accident {
   background: #fef3c7;
-  color: #b4730a;
+  color: var(--severity-medium);
 }
 
 .map-incident-type-medical {
@@ -442,7 +442,7 @@
 
 .map-panel-toggle-text {
   font-size: 12px;
-  color: #1e3a8a;
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -478,7 +478,7 @@
 }
 
 .map-mode-button.is-active {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
 }
 
@@ -522,7 +522,7 @@
 }
 
 .map-live-coords-text {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 10px;
   font-family: monospace;
   font-weight: 600;
@@ -543,7 +543,7 @@
   max-width: min(96%, 560px);
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #b91c1c;
+  color: var(--severity-critical);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 12px;
@@ -573,7 +573,7 @@
 }
 
 .map-public-login-modal-title {
-  color: #1e3a8a;
+  color: var(--primary);
   font-size: 14px;
   font-weight: 800;
   margin-bottom: 6px;
@@ -604,9 +604,9 @@
 }
 
 .map-public-login-modal-primary {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
-  border: 1px solid #1e3a8a;
+  border: 1px solid var(--primary);
 }
 
 .map-public-login-modal-secondary {
@@ -634,7 +634,7 @@
 }
 
 .map-selected-header {
-  background: #1e3a8a;
+  background: var(--primary);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -716,7 +716,7 @@
 }
 
 .map-selected-coords-main {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 10px;
   font-family: monospace;
   font-weight: 600;
@@ -760,7 +760,7 @@
 }
 
 .map-selected-action-primary {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
   border: none;
 }

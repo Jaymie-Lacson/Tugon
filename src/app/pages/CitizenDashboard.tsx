@@ -85,7 +85,7 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
         ? `Reason: ${verification.rejectionReason}`
         : 'Your previous ID upload needs to be replaced with a clearer valid ID.',
       statusLabel: 'Re-upload Required',
-      color: '#B91C1C',
+      color: 'var(--severity-critical)',
       bg: '#FEE2E2',
     };
   }
@@ -94,7 +94,7 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
     title: 'ID Verification Required',
     detail: 'Submit one valid ID photo so your account can be verified.',
     statusLabel: 'Not Submitted',
-    color: '#1E3A8A',
+    color: 'var(--primary)',
     bg: '#DBEAFE',
   };
 }
@@ -343,7 +343,7 @@ export default function CitizenDashboard() {
       .slice(0, 2)
       .map((item) => ({
         icon: <AlertTriangle size={14} />,
-        color: '#B91C1C',
+        color: 'var(--severity-critical)',
         bg: '#FEE2E2',
         title: 'Critical Report Alert',
         desc: `${incidentTypeConfig[item.type].label} in ${item.barangay}`,
@@ -379,7 +379,7 @@ export default function CitizenDashboard() {
 
     return [{
       icon: <Info size={14} />,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       title: 'No new alerts',
       desc: 'You are all caught up for now.',
@@ -553,7 +553,7 @@ export default function CitizenDashboard() {
   return (
     <CitizenPageLayout
       header={
-        <header className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
+        <header className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
           <div
             className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
             style={{ padding: '0 var(--citizen-content-gutter)' }}
@@ -599,7 +599,7 @@ export default function CitizenDashboard() {
                     setNotifOpen(false);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-9 h-9 rounded-[10px] bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
+                  className="w-9 h-9 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
                 >
                   {initials}
                 </button>
@@ -745,7 +745,7 @@ function HomeTab({
   return (
     <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-4">
       {/* Welcome banner */}
-      <section className="bg-[#1E3A8A] rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
+      <section className="bg-primary rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
         <div className="text-[13px] text-blue-200">{greetingLabel}, {firstName}.</div>
         <div className="font-extrabold text-[28px] leading-[1.15] mt-1">Citizen Dashboard</div>
         <div className="text-[13px] text-indigo-200 mt-0.5">
@@ -771,19 +771,19 @@ function HomeTab({
             icon={<AlertTriangle size={16} />}
             value={activeIncidents.length}
             label="Active Reports"
-            accent="#B91C1C"
+            accent="var(--severity-critical)"
           />
           <StatCard
             icon={<Clock size={16} />}
             value={criticalCount}
             label="Critical"
-            accent="#B4730A"
+            accent="var(--severity-medium)"
           />
           <StatCard
             icon={<CheckCircle2 size={16} />}
             value={myReports.length}
             label="Total My Reports"
-            accent="#1E3A8A"
+            accent="var(--primary)"
           />
         </div>
       </section>
@@ -809,7 +809,7 @@ function HomeTab({
             <button
               type="button"
               onClick={() => navigate('/citizen/verification')}
-              className="border-0 rounded-[10px] bg-[#1E3A8A] text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
+              className="border-0 rounded-[10px] bg-primary text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
             >
               Open Verification
             </button>
@@ -826,7 +826,7 @@ function HomeTab({
           </div>
           <button
             onClick={() => setActiveTab('map')}
-            className="bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-[7px] text-[#1E3A8A] font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
+            className="bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
           >
             Open Full Map <ArrowRight size={12} />
           </button>
@@ -839,18 +839,18 @@ function HomeTab({
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
                   <div className="text-[10px] text-slate-500">Total Pins</div>
-                  <div className="text-lg font-extrabold text-[#1E3A8A]">{incidents.length}</div>
+                  <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
                 </div>
                 <div>
                   <div className="text-[10px] text-slate-500">Needs Attention</div>
-                  <div className="text-lg font-extrabold text-[#B4730A]">{criticalCount}</div>
+                  <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
                 </div>
               </div>
             </div>
 
             {selectedIncident ? (
               <div className="bg-blue-50 border border-blue-200 rounded-[10px] px-3 py-2.5">
-                <div className="text-[11px] text-[#1E3A8A] font-bold mb-1.5">Selected Pin</div>
+                <div className="text-[11px] text-primary font-bold mb-1.5">Selected Pin</div>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0"
@@ -904,7 +904,7 @@ function HomeTab({
             icon={<Plus size={22} />}
             label="Submit Incident Report"
             sublabel="Create a new report with map pin and evidence"
-            accent="#B91C1C"
+            accent="var(--severity-critical)"
             featured
             onClick={() => navigate('/citizen/report')}
           />
@@ -912,7 +912,7 @@ function HomeTab({
             icon={<FileText size={22} />}
             label="My Reports"
             sublabel="View and track your report statuses"
-            accent="#1E3A8A"
+            accent="var(--primary)"
             onClick={() => navigate('/citizen/my-reports')}
           />
           <QuickActionCard
@@ -926,7 +926,7 @@ function HomeTab({
             icon={<User size={22} />}
             label="Profile Settings"
             sublabel="Update your account information"
-            accent="#B4730A"
+            accent="var(--severity-medium)"
             onClick={() => setActiveTab('profile')}
           />
         </div>
@@ -937,7 +937,7 @@ function HomeTab({
         <div className="flex items-center justify-between mb-1.5">
           <div className="font-bold text-base text-slate-900">Recent Report Activity</div>
           <button
-            className="bg-transparent border-0 text-[#1E3A8A] text-xs font-bold cursor-pointer inline-flex items-center gap-1"
+            className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
           >
             View all <ChevronRight size={13} />
@@ -960,8 +960,8 @@ function HomeTab({
         <div className="font-bold text-base text-slate-900 mb-2.5">Emergency Contacts</div>
         <div className="flex flex-col gap-2">
           {[
-            { label: 'Emergency Hotline', number: '911', color: '#B91C1C', bg: '#FEE2E2' },
-            { label: 'MDRRMO Office', number: '(02) 123-4567', color: '#1E3A8A', bg: '#DBEAFE' },
+            { label: 'Emergency Hotline', number: '911', color: 'var(--severity-critical)', bg: '#FEE2E2' },
+            { label: 'MDRRMO Office', number: '(02) 123-4567', color: 'var(--primary)', bg: '#DBEAFE' },
             { label: 'Barangay Hotline', number: '(02) 765-4321', color: '#059669', bg: '#D1FAE5' },
           ].map((contact) => (
             <a
@@ -1031,7 +1031,7 @@ function ReportTab() {
         <div className="text-[13px] text-slate-500 leading-relaxed">
           Your incident report has been received. Our responders have been notified and will act accordingly. Track your report under "My Reports".
         </div>
-        <div className="bg-blue-50 rounded-xl px-5 py-2.5 text-[#1E3A8A] font-bold text-sm text-center">
+        <div className="bg-blue-50 rounded-xl px-5 py-2.5 text-primary font-bold text-sm text-center">
           Reference number will appear in My Reports after processing.
         </div>
         <div className="text-[11px] text-slate-400">Redirecting you back shortly...</div>
@@ -1110,7 +1110,7 @@ function ReportTab() {
             disabled={!selectedType}
             className="mt-5 w-full border-0 rounded-xl py-3.5 font-bold text-sm transition-colors duration-200"
             style={{
-              background: selectedType ? '#1E3A8A' : '#E2E8F0',
+              background: selectedType ? 'var(--primary)' : '#E2E8F0',
               color: selectedType ? '#fff' : '#94A3B8',
               cursor: selectedType ? 'pointer' : 'not-allowed',
             }}
@@ -1142,9 +1142,9 @@ function ReportTab() {
             <div className="grid grid-cols-4 gap-2">
               {[
                 { key: 'low', label: 'Low', color: '#059669', bg: '#D1FAE5' },
-                { key: 'medium', label: 'Medium', color: '#B4730A', bg: '#FEF3C7' },
+                { key: 'medium', label: 'Medium', color: 'var(--severity-medium)', bg: '#FEF3C7' },
                 { key: 'high', label: 'High', color: '#C2410C', bg: '#FFEDD5' },
-                { key: 'critical', label: 'Critical', color: '#B91C1C', bg: '#FEE2E2' },
+                { key: 'critical', label: 'Critical', color: 'var(--severity-critical)', bg: '#FEE2E2' },
               ].map((s) => (
                 <button
                   key={s.key}
@@ -1185,7 +1185,7 @@ function ReportTab() {
               disabled={!description || !location || !severity}
               className="flex-[2] border-0 rounded-xl py-3.5 font-bold text-sm"
               style={{
-                background: description && location && severity ? '#1E3A8A' : '#E2E8F0',
+                background: description && location && severity ? 'var(--primary)' : '#E2E8F0',
                 color: description && location && severity ? '#fff' : '#94A3B8',
                 cursor: description && location && severity ? 'pointer' : 'not-allowed',
               }}
@@ -1319,7 +1319,7 @@ function MapTab({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-[10px] border border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[11px] cursor-pointer inline-flex items-center gap-1.5"
+          className="rounded-[10px] border border-blue-200 bg-blue-50 text-primary font-bold text-[11px] cursor-pointer inline-flex items-center gap-1.5"
           style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
         >
           <ArrowLeft size={12} />
@@ -1332,7 +1332,7 @@ function MapTab({
             onClick={() => setFilter(f)}
             style={{
               padding: isMobileViewport ? '8px 14px' : '5px 12px',
-              background: filter === f ? '#1E3A8A' : '#F1F5F9',
+              background: filter === f ? 'var(--primary)' : '#F1F5F9',
               color: filter === f ? '#fff' : '#64748B',
               fontSize: isMobileViewport ? 12 : 11,
             }}
@@ -1372,7 +1372,7 @@ function MapTab({
               <button
                 type="button"
                 onClick={() => setFilter('all')}
-                className="border border-blue-200 bg-blue-50 text-[#1E3A8A] rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
+                className="border border-blue-200 bg-blue-50 text-primary rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
               >
                 Show all pins
               </button>
@@ -1393,7 +1393,7 @@ function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
   return (
     <div className="p-4">
       {/* Header */}
-      <div className="bg-[#1E3A8A] rounded-2xl p-4 mb-[18px] text-white">
+      <div className="bg-primary rounded-2xl p-4 mb-[18px] text-white">
         <div className="font-extrabold text-lg mb-1">My Reports</div>
         <div className="text-xs text-white/75">
           You have submitted {myReports.length} incident reports.
@@ -1502,8 +1502,8 @@ function ProfileTab({
   return (
     <div className="citizen-content-shell pt-4 pb-4">
       {/* Profile card */}
-      <div className="bg-[#1E3A8A] rounded-[20px] px-5 py-6 text-white mb-5 flex flex-col items-center gap-2.5 text-center">
-        <div className="w-[72px] h-[72px] rounded-full bg-[#B4730A] flex items-center justify-center text-[28px] font-extrabold text-white border-[3px] border-white/30">
+      <div className="bg-primary rounded-[20px] px-5 py-6 text-white mb-5 flex flex-col items-center gap-2.5 text-center">
+        <div className="w-[72px] h-[72px] rounded-full bg-severity-medium flex items-center justify-center text-[28px] font-extrabold text-white border-[3px] border-white/30">
           {initials}
         </div>
         <div>
@@ -1519,9 +1519,9 @@ function ProfileTab({
       {/* Stats */}
       <div className="flex gap-2.5 mb-5">
         {[
-          { label: 'Reports Filed', value: myReports.length, icon: <FileText size={16} />, accent: '#1E3A8A' },
+          { label: 'Reports Filed', value: myReports.length, icon: <FileText size={16} />, accent: 'var(--primary)' },
           { label: 'Resolved', value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
-          { label: 'Pending', value: pendingCount, icon: <Clock size={16} />, accent: '#B4730A' },
+          { label: 'Pending', value: pendingCount, icon: <Clock size={16} />, accent: 'var(--severity-medium)' },
         ].map((s) => (
           <StatCard key={s.label} icon={s.icon} value={s.value} label={s.label} accent={s.accent} />
         ))}
@@ -1545,7 +1545,7 @@ function ProfileTab({
             href={verificationPreview.idImageUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex mt-2 no-underline text-[#1E3A8A] text-xs font-bold"
+            className="inline-flex mt-2 no-underline text-primary text-xs font-bold"
           >
             View latest uploaded ID
           </a>
@@ -1567,7 +1567,7 @@ function ProfileTab({
             className="w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white"
             style={{ borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none' }}
           >
-            <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-[#1E3A8A] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="flex-1">
@@ -1585,7 +1585,7 @@ function ProfileTab({
       {!session?.user.isPhoneVerified ? (
         <button
           onClick={() => navigate('/auth/register')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
           Verify Phone Number
         </button>
@@ -1594,7 +1594,7 @@ function ProfileTab({
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <button
           onClick={() => navigate('/citizen/verification')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-[#1E3A8A] font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
           Open Verification Status
         </button>

@@ -229,7 +229,7 @@ export default function CitizenVerification() {
 
     return [{
       icon: <Info size={14} />,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       title: 'No new alerts',
       desc: 'You are all caught up for now.',
@@ -395,7 +395,7 @@ export default function CitizenVerification() {
       hideVerificationPrompt
       header={
         <header
-          className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
+          className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
         >
           <div
             className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
@@ -442,7 +442,7 @@ export default function CitizenVerification() {
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
                   aria-expanded={profileMenuOpen}
-                  className="w-9 h-9 rounded-[10px] border-0 bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
+                  className="w-9 h-9 rounded-[10px] border-0 bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
                 >
                   {initials}
                 </button>
@@ -471,7 +471,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-[#B91C1C] text-[13px] font-bold cursor-pointer"
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-bold cursor-pointer"
                     >
                       Sign out
                     </button>
@@ -523,7 +523,7 @@ export default function CitizenVerification() {
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
+                className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
               >
                 Back to Profile <ChevronRight size={12} />
               </button>
@@ -576,7 +576,7 @@ export default function CitizenVerification() {
                       href={latestUploadedPreviewUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-fit no-underline text-[#1E3A8A] text-xs font-bold"
+                      className="w-fit no-underline text-primary text-xs font-bold"
                     >
                       Open full image in new tab
                     </a>
@@ -690,7 +690,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => frontFileInputRef.current?.click()}
-                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
+                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
                         style={{
                           cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
                           opacity: !canUploadVerification || submitting ? 0.65 : 1,
@@ -732,7 +732,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => backFileInputRef.current?.click()}
-                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-[#1E3A8A] text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
+                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
                         style={{
                           cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
                           opacity: !canUploadVerification || submitting ? 0.65 : 1,
@@ -812,7 +812,7 @@ export default function CitizenVerification() {
               </div>
 
               {error ? (
-                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[11px] py-[9px] text-[#B91C1C] text-xs">
+                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[11px] py-[9px] text-severity-critical text-xs">
                   {error}
                 </div>
               ) : null}
@@ -827,7 +827,7 @@ export default function CitizenVerification() {
                 type="button"
                 onClick={() => void submit()}
                 disabled={!frontIdFile || !backIdFile || !canUploadVerification || submitting}
-                className="border-0 rounded-[10px] bg-[#1E3A8A] text-white text-[13px] font-bold px-[14px] py-[10px] w-fit inline-flex items-center gap-[6px]"
+                className="border-0 rounded-[10px] bg-primary text-white text-[13px] font-bold px-[14px] py-[10px] w-fit inline-flex items-center gap-[6px]"
                 style={{
                   cursor: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
                   opacity: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 0.65 : 1,

@@ -46,7 +46,7 @@ function SectionHeading({
           display: 'inline-block',
           background: light ? 'rgba(255,255,255,0.14)' : '#E8EEF9',
           border: light ? '1px solid rgba(255,255,255,0.22)' : '1px solid #CBD5E1',
-          color: light ? '#DBEAFE' : '#1E3A8A',
+          color: light ? '#DBEAFE' : 'var(--primary)',
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: '0.06em',
@@ -287,7 +287,7 @@ function Navbar() {
             <button
               onClick={() => navigateAuthWithOverlay('/auth/register')}
               style={{
-                background: '#B91C1C',
+                background: 'var(--severity-critical)',
                 border: 'none',
                 borderRadius: 8,
                 padding: '8px 16px',
@@ -385,7 +385,7 @@ function Navbar() {
                 onClick={() => navigateAuthWithOverlay('/auth/login')}
                 style={{
                   width: '100%',
-                  background: '#B91C1C',
+                  background: 'var(--severity-critical)',
                   border: 'none',
                   borderRadius: 8,
                   padding: '10px',
@@ -579,7 +579,7 @@ function Hero() {
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
                 className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
                 style={{
-                  background: '#B91C1C',
+                  background: 'var(--severity-critical)',
                   border: 'none',
                   borderRadius: 10,
                   padding: '13px 24px',
@@ -670,7 +670,7 @@ function QuickActions() {
       title: 'Report Incident',
       desc: 'Pin location, add evidence, submit report.',
       icon: AlertTriangle,
-      color: '#B91C1C',
+      color: 'var(--severity-critical)',
       bg: '#FEE2E2',
       action: () => navigateAuthWithOverlay('/auth/register'),
     },
@@ -678,7 +678,7 @@ function QuickActions() {
       title: 'Track Status',
       desc: 'Monitor your report from start to resolution.',
       icon: FileText,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       action: () => navigateAuthWithOverlay('/auth/login'),
     },
@@ -686,7 +686,7 @@ function QuickActions() {
       title: 'View Community Map',
       desc: 'See incidents near you in real-time.',
       icon: MapIcon,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
       action: () => navigateAuthWithOverlay('/community-map'),
     },
@@ -836,7 +836,7 @@ function HowToUse() {
       title: 'Submit Report',
       detail: 'Pin location and attach photo or voice.',
       icon: FileText,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       visual: 'Citizen',
     },
@@ -844,7 +844,7 @@ function HowToUse() {
       title: 'Barangay Review',
       detail: 'Officials validate and assign response.',
       icon: Users,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
       visual: 'Official',
     },
@@ -930,7 +930,7 @@ function SupportedBarangays() {
     district: 'District II, Tondo, Manila',
     hallAddress: '1781 Almeda Street, Tondo, Manila',
     responders: ['MDRRMO', 'BFP', 'PNP'],
-    color: '#1E3A8A',
+    color: 'var(--primary)',
     light: '#EFF6FF',
   },
   {
@@ -939,7 +939,7 @@ function SupportedBarangays() {
     district: 'District II, Tondo, Manila',
     hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
     responders: ['MDRRMO', 'PNP', 'EMS'],
-    color: '#B91C1C',
+    color: 'var(--severity-critical)',
     light: '#FEE2E2',
   },
   {
@@ -948,13 +948,13 @@ function SupportedBarangays() {
     district: 'District II, Tondo, Manila',
     hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
     responders: ['MDRRMO', 'BFP', 'EMS'],
-    color: '#B4730A',
+    color: 'var(--severity-medium)',
     light: '#FEF3C7',
   },
 ];
 
   return (
-    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: '#1E3A8A' }}>
+    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: 'var(--primary)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
           label="Coverage"
@@ -1070,14 +1070,14 @@ function SafetyTips() {
     {
       title: 'Noise Control',
       icon: Users,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       actions: ['Respect quiet hours', 'Record details safely'],
     },
     {
       title: 'Road Safety',
       icon: AlertTriangle,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
       actions: ['Use marked crossings', 'Report hazards quickly'],
     },
@@ -1155,9 +1155,9 @@ function SafetyTips() {
 
 function EmergencyHotlines() {
   const hotlines = [
-    { name: 'National Emergency', number: '911', note: 'Police, fire, medical', color: '#B91C1C', bg: '#FEE2E2' },
-    { name: 'PNP Hotline', number: '117', note: 'Law enforcement', color: '#1E3A8A', bg: '#DBEAFE' },
-    { name: 'Fire Protection', number: '160', note: 'Fire and rescue', color: '#B4730A', bg: '#FEF3C7' },
+    { name: 'National Emergency', number: '911', note: 'Police, fire, medical', color: 'var(--severity-critical)', bg: '#FEE2E2' },
+    { name: 'PNP Hotline', number: '117', note: 'Law enforcement', color: 'var(--primary)', bg: '#DBEAFE' },
+    { name: 'Fire Protection', number: '160', note: 'Fire and rescue', color: 'var(--severity-medium)', bg: '#FEF3C7' },
   ];
 
   return (
@@ -1172,7 +1172,7 @@ function EmergencyHotlines() {
         <div
           data-reveal
           style={{
-            background: '#B91C1C',
+            background: 'var(--severity-critical)',
             border: '1px solid #991B1B',
             borderRadius: 12,
             padding: '20px 22px',
@@ -1193,7 +1193,7 @@ function EmergencyHotlines() {
             href="tel:911"
             style={{
               background: 'white',
-              color: '#B91C1C',
+              color: 'var(--severity-critical)',
               textDecoration: 'none',
               borderRadius: 8,
               padding: '10px 16px',
@@ -1504,7 +1504,7 @@ export default function Landing() {
           z-index: 1200;
           background: #FFFFFF;
           color: #0F172A;
-          border: 2px solid #1E3A8A;
+          border: 2px solid var(--primary);
           border-radius: 8px;
           padding: 8px 12px;
           text-decoration: none;
@@ -1569,8 +1569,8 @@ export default function Landing() {
           inset: -6px;
           border-radius: 9999px;
           border: 4px solid rgba(30, 58, 138, 0.16);
-          border-top-color: #B91C1C;
-          border-right-color: #1E3A8A;
+          border-top-color: var(--severity-critical);
+          border-right-color: var(--primary);
           animation: authRedirectSpin 0.9s linear infinite;
         }
 

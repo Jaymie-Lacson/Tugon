@@ -37,7 +37,7 @@
 }
 
 .citizen-report-header {
-  background: #1e3a8a;
+  background: var(--primary);
   display: flex;
   align-items: center;
   height: 60px;
@@ -87,7 +87,7 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #b4730a;
+  background: var(--severity-medium);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,7 +126,7 @@
 
 .citizen-report-profile-menu-item-danger {
   border-bottom: none;
-  color: #b91c1c;
+  color: var(--severity-critical);
   font-weight: 700;
 }
 
@@ -190,7 +190,7 @@
 }
 
 .citizen-report-next-btn.is-default {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #fff;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
@@ -215,7 +215,7 @@
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 12px;
-  color: #b91c1c;
+  color: var(--severity-critical);
   font-size: 12px;
   padding: 10px 12px;
 }
@@ -299,21 +299,6 @@
   select { min-height: 44px; }
   input  { min-height: 44px; }
 
-  /* ── Layout: official content no bottom bar ── */
-  .page-content { padding-bottom: 0 !important; }
-
-  /* ── Dashboard KPI grid ── */
-  .kpi-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-  .kpi-grid > * { flex: unset !important; min-width: unset !important; }
-
-  /* ── Dashboard map+feed row ── */
-  .dashboard-row { flex-direction: column !important; }
-  .dashboard-row > * { flex: unset !important; width: 100% !important; min-width: unset !important; }
-
-  /* ── Charts row ── */
-  .charts-row { flex-direction: column !important; }
-  .charts-row > * { flex: unset !important; width: 100% !important; min-width: unset !important; }
-
   /* ── Analytics metric cards ── */
   .analytics-metrics { grid-template-columns: 1fr 1fr !important; }
 
@@ -325,38 +310,14 @@
   .analytics-bottom-row { flex-direction: column !important; }
   .analytics-bottom-row > * { flex: unset !important; width: 100% !important; }
 
-  /* ── Reports DSS stats row ── */
-  .dss-stats-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .dss-stats-row > * { flex: unset !important; }
-
-  /* ── Reports tabs ── */
-  .reports-tabs { width: 100% !important; overflow-x: auto !important; }
-  .reports-tabs > button { padding: 10px 12px !important; font-size: 11px !important; }
-
   /* ── Incidents: hide table, show cards ── */
   .incidents-table-wrapper { display: none !important; }
   .incidents-mobile-cards  { display: flex   !important; }
 
-  /* ── Incidents: filter bar stacks ── */
-  .incidents-filter-bar { flex-direction: column !important; align-items: stretch !important; }
-  .incidents-filter-bar > * { flex: unset !important; width: 100% !important; box-sizing: border-box !important; }
-
-  /* ── Incidents: page header row ── */
-  .incidents-page-header { flex-direction: column !important; align-items: stretch !important; }
-  .incidents-page-header .log-btn { width: 100% !important; justify-content: center !important; min-height: 48px !important; }
-
   /* ── Map view: hide panel, show as sheet ── */
   .map-panel { display: none !important; }
   .map-panel.panel-open { display: flex !important; position: fixed !important; top: 56px !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 1250 !important; width: 100% !important; min-width: unset !important; border-right: none !important; box-shadow: none !important; }
-  .map-toggle-btn { display: flex !important; }
   .map-header-title { display: none !important; }
-
-  /* ── Super Admin: bottom nav ── */
-  .sa-bottom-nav { display: flex !important; }
-  .sa-main-content { padding-bottom: 72px !important; }
-
-  /* ── Bottom nav safe area ── */
-  .bottom-nav-bar { padding-bottom: max(8px, env(safe-area-inset-bottom)) !important; }
 
   /* ── Incident Report Step 2 map tuning ── */
   .incident-step2 { padding: 16px 12px 6px !important; }
@@ -451,6 +412,4 @@
 
 @media (min-width: 769px) {
   .incidents-mobile-cards { display: none !important; }
-  .map-toggle-btn { display: none; }
-  .sa-bottom-nav { display: none !important; }
 }

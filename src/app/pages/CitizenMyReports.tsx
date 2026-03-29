@@ -132,12 +132,12 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
   description: string;
 }> = {
   submitted: {
-    label: 'Submitted', color: '#1E3A8A', bg: '#EFF6FF', border: '#BFDBFE',
+    label: 'Submitted', color: 'var(--primary)', bg: '#EFF6FF', border: '#BFDBFE',
     dotColor: '#3B82F6', icon: FileText, step: 1, filterGroup: 'active',
     description: 'Your report has been received by the system.',
   },
   under_review: {
-    label: 'Under Review', color: '#B4730A', bg: '#FFFBEB', border: '#FDE68A',
+    label: 'Under Review', color: 'var(--severity-medium)', bg: '#FFFBEB', border: '#FDE68A',
     dotColor: '#F59E0B', icon: Eye, step: 2, filterGroup: 'active',
     description: 'Barangay officials are reviewing your report.',
   },
@@ -157,7 +157,7 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
     description: 'This case has been officially closed.',
   },
   unresolvable: {
-    label: 'Unresolvable', color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA',
+    label: 'Unresolvable', color: 'var(--severity-critical)', bg: '#FEF2F2', border: '#FECACA',
     dotColor: '#EF4444', icon: Ban, step: 4, filterGroup: 'resolved',
     description: 'This report could not be resolved at this time.',
   },
@@ -168,11 +168,11 @@ const typeConfig: Record<CitizenReportType, {
 }> = {
   pollution:     { label: 'Pollution',      color: '#0F766E', bg: '#CCFBF1', icon: Wind },
   noise:         { label: 'Noise',          color: '#7C3AED', bg: '#EDE9FE', icon: Volume2 },
-  crime:         { label: 'Crime',          color: '#1E3A8A', bg: '#DBEAFE', icon: AlertCircle },
-  road_hazard:   { label: 'Road Hazard',    color: '#B4730A', bg: '#FEF3C7', icon: AlertTriangle },
+  crime:         { label: 'Crime',          color: 'var(--primary)', bg: '#DBEAFE', icon: AlertCircle },
+  road_hazard:   { label: 'Road Hazard',    color: 'var(--severity-medium)', bg: '#FEF3C7', icon: AlertTriangle },
   flood:         { label: 'Flood',          color: '#0369A1', bg: '#E0F2FE', icon: Droplets },
   accident:      { label: 'Accident',       color: '#C2410C', bg: '#FFEDD5', icon: Car },
-  medical:       { label: 'Medical',        color: '#B91C1C', bg: '#FEE2E2', icon: Activity },
+  medical:       { label: 'Medical',        color: 'var(--severity-critical)', bg: '#FEE2E2', icon: Activity },
   infrastructure:{ label: 'Infrastructure', color: '#92400E', bg: '#FEF3C7', icon: Zap },
   other:         { label: 'Other',          color: '#475569', bg: '#F1F5F9', icon: MoreHorizontal },
 };
@@ -259,7 +259,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const currentStep = cfg.step;
   const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
   const isFailed = status === 'unresolvable';
-  const terminalColor = isFailed ? '#B91C1C' : '#059669';
+  const terminalColor = isFailed ? 'var(--severity-critical)' : '#059669';
   const terminalBg   = isFailed ? '#FEF2F2'  : '#ECFDF5';
 
   return (
@@ -269,11 +269,11 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
         const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
         const active = stepNum === currentStep && !isTerminal;
         const stepColor = isTerminal && stepNum === 4 ? terminalColor
-          : done || active ? '#1E3A8A' : '#CBD5E1';
+          : done || active ? 'var(--primary)' : '#CBD5E1';
         const stepBg = isTerminal && stepNum === 4 ? terminalBg
-          : done ? '#1E3A8A' : active ? '#EFF6FF' : '#F1F5F9';
+          : done ? 'var(--primary)' : active ? '#EFF6FF' : '#F1F5F9';
         const stepBorder = isTerminal && stepNum === 4 ? terminalColor
-          : done ? '#1E3A8A' : active ? '#3B82F6' : '#E2E8F0';
+          : done ? 'var(--primary)' : active ? '#3B82F6' : '#E2E8F0';
 
         return (
           <div key={s.key} style={{ display: 'contents' }}>
@@ -289,12 +289,12 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                     {isTerminal && stepNum === 4 ? (isFailed ? 'X' : 'OK') : 'OK'}
                   </span>
                 ) : active ? (
-                  <div style={{ width: 7, height: 7, borderRadius: 2, background: '#1E3A8A' }} />
+                  <div style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--primary)' }} />
                 ) : (
                   <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 700 }}>{stepNum}</span>
                 )}
               </div>
-              <span style={{ fontSize: 8, color: done || active ? '#1E3A8A' : '#CBD5E1', fontWeight: done || active ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>
+              <span style={{ fontSize: 8, color: done || active ? 'var(--primary)' : '#CBD5E1', fontWeight: done || active ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>
                 {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
               </span>
             </div>
@@ -302,7 +302,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
               <div style={{
                 flex: 1, height: 2, marginBottom: 14,
                 background: stepNum < currentStep || (isTerminal && stepNum < 4)
-                  ? '#1E3A8A' : '#E2E8F0',
+                  ? 'var(--primary)' : '#E2E8F0',
                 borderRadius: 1, transition: 'background 0.3s',
               }} />
             )}
@@ -479,12 +479,12 @@ function DetailView({
 
   const timelineColorMap: Record<string, { color: string; bg: string }> = {
     created:      { color: '#475569', bg: '#F1F5F9' },
-    submitted:    { color: '#1E3A8A', bg: '#EFF6FF' },
-    under_review: { color: '#B4730A', bg: '#FFFBEB' },
+    submitted:    { color: 'var(--primary)', bg: '#EFF6FF' },
+    under_review: { color: 'var(--severity-medium)', bg: '#FFFBEB' },
     in_progress:  { color: '#0F766E', bg: '#F0FDFA' },
     resolved:     { color: '#059669', bg: '#ECFDF5' },
     closed:       { color: '#475569', bg: '#F8FAFC' },
-    unresolvable: { color: '#B91C1C', bg: '#FEF2F2' },
+    unresolvable: { color: 'var(--severity-critical)', bg: '#FEF2F2' },
   };
 
   const hasPreviewableEvidence = photoEvidence.length > 0 || audioEvidence.length > 0;
@@ -552,7 +552,7 @@ function DetailView({
                   <span style={{
                     fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
                     background: report.severity === 'critical' ? '#FEE2E2' : report.severity === 'high' ? '#FFEDD5' : report.severity === 'medium' ? '#FEF3C7' : '#D1FAE5',
-                    color: report.severity === 'critical' ? '#B91C1C' : report.severity === 'high' ? '#C2410C' : report.severity === 'medium' ? '#B4730A' : '#059669',
+                    color: report.severity === 'critical' ? 'var(--severity-critical)' : report.severity === 'high' ? '#C2410C' : report.severity === 'medium' ? 'var(--severity-medium)' : '#059669',
                     borderRadius: 6, padding: '3px 8px', textTransform: 'uppercase',
                   }}>
                     {report.severity} severity
@@ -608,7 +608,7 @@ function DetailView({
                 }}
                 className="mt-[10px] border-none rounded-[10px] px-[14px] py-[9px] text-white text-xs font-bold"
                 style={{
-                  background: cancelling ? '#94A3B8' : '#B91C1C',
+                  background: cancelling ? '#94A3B8' : 'var(--severity-critical)',
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -629,8 +629,8 @@ function DetailView({
               <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
                   <div className="flex items-center gap-[6px] bg-blue-50 rounded-[10px] px-3 py-2 border border-[#BFDBFE]">
-                    <Camera size={14} color="#1E3A8A" />
-                    <span className="text-xs text-[#1E3A8A] font-bold">{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
+                    <Camera size={14} color="var(--primary)" />
+                    <span className="text-xs text-primary font-bold">{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
@@ -694,10 +694,10 @@ function DetailView({
               }}>
               <div className="flex items-center gap-[7px] mb-2">
                 {report.status === 'unresolvable'
-                  ? <Ban size={14} color="#B91C1C" />
+                  ? <Ban size={14} color="var(--severity-critical)" />
                   : <CheckCircle2 size={14} color="#059669" />
                 }
-                <span className="font-bold text-[13px]" style={{ color: report.status === 'unresolvable' ? '#B91C1C' : '#059669' }}>
+                <span className="font-bold text-[13px]" style={{ color: report.status === 'unresolvable' ? 'var(--severity-critical)' : '#059669' }}>
                   {report.status === 'unresolvable' ? 'Why This Was Unresolvable' : 'Resolution Summary'}
                 </span>
               </div>
@@ -706,7 +706,7 @@ function DetailView({
               </p>
               {report.status === 'unresolvable' && (
                 <button className="mt-3 flex items-center gap-[6px] border-none rounded-lg px-[14px] py-2 text-white text-xs font-bold cursor-pointer"
-                  style={{ background: '#B91C1C' }}>
+                  style={{ background: 'var(--severity-critical)' }}>
                   <Phone size={12} /> Call City Veterinary Office
                 </button>
               )}
@@ -716,7 +716,7 @@ function DetailView({
           <section className="bg-white rounded-xl p-[18px] border border-slate-200 mb-2"
             style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
             <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
-              <Clock size={14} color="#1E3A8A" /> Status Timeline
+              <Clock size={14} color="var(--primary)" /> Status Timeline
             </div>
 
             <ul className="m-0 p-0 list-none">
@@ -775,7 +775,7 @@ function DetailView({
           </section>
 
           <section className="bg-[#FEF2F2] rounded-[14px] px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
-            <Info size={14} color="#B91C1C" className="shrink-0 mt-[1px]" />
+            <Info size={14} color="var(--severity-critical)" className="shrink-0 mt-[1px]" />
             <p className="text-xs text-[#7F1D1D] leading-[1.6] m-0">
               <strong>Immediate danger?</strong> Don't wait for a response - call <strong>911</strong> right away.
             </p>
@@ -807,7 +807,7 @@ function DetailView({
               boxShadow: '0 18px 44px rgba(15,23,42,0.28)',
             }}
           >
-            <header className="bg-[#1E3A8A] text-white px-4 py-3 flex items-center justify-between gap-2">
+            <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <AlertTriangle size={16} color="#FDE68A" />
                 <span className="text-sm font-bold">Confirm Cancellation</span>
@@ -860,7 +860,7 @@ function DetailView({
                 disabled={cancelling}
                 className="h-[38px] border-none rounded-[10px] text-white text-xs font-bold px-[14px]"
                 style={{
-                  background: cancelling ? '#94A3B8' : '#B91C1C',
+                  background: cancelling ? '#94A3B8' : 'var(--severity-critical)',
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -970,8 +970,8 @@ function TicketPageLoadingState() {
                 inset: -6,
                 borderRadius: 9999,
                 border: '4px solid rgba(30, 58, 138, 0.16)',
-                borderTopColor: '#B91C1C',
-                borderRightColor: '#1E3A8A',
+                borderTopColor: 'var(--severity-critical)',
+                borderRightColor: 'var(--primary)',
                 animation: 'ticketPageSpin 0.9s linear infinite',
               }}
             />
@@ -986,7 +986,7 @@ function TicketPageLoadingState() {
               }}
             />
           </div>
-          <p className="m-0 text-[#1E3A8A] text-sm font-extrabold">
+          <p className="m-0 text-primary text-sm font-extrabold">
             Loading your ticket records...
           </p>
           <p className="m-0 text-slate-500 text-xs leading-[1.55]">
@@ -1220,7 +1220,7 @@ export default function CitizenMyReports() {
       <CitizenPageLayout
         header={
           <header
-            className="citizen-web-header bg-[#1E3A8A] flex items-center h-[60px] shrink-0 sticky top-0 z-50"
+            className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50"
             style={{ boxShadow: '0 2px 8px rgba(15,23,42,0.14)' }}
           >
             <div
@@ -1269,7 +1269,7 @@ export default function CitizenMyReports() {
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
                     aria-expanded={profileMenuOpen}
-                    className="w-9 h-9 rounded-[10px] bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-sm border-none cursor-pointer"
+                    className="w-9 h-9 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm border-none cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -1358,7 +1358,7 @@ export default function CitizenMyReports() {
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-[220px]">
-                    <p className="m-0 text-[11px] font-extrabold text-[#1E3A8A] tracking-[0.08em] uppercase">
+                    <p className="m-0 text-[11px] font-extrabold text-primary tracking-[0.08em] uppercase">
                       Ticket Monitoring
                     </p>
                     <h2 className="mt-[6px] mb-1 text-slate-900 font-extrabold leading-[1.2]"
@@ -1370,10 +1370,10 @@ export default function CitizenMyReports() {
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    <span className="bg-white border border-[#BFDBFE] text-[#1E3A8A] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                    <span className="bg-white border border-[#BFDBFE] text-primary rounded-full px-[10px] py-[6px] text-[11px] font-bold">
                       Total: {allCount}
                     </span>
-                    <span className="bg-[#FFFBEB] border border-[#FDE68A] text-[#B4730A] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                    <span className="bg-[#FFFBEB] border border-[#FDE68A] text-severity-medium rounded-full px-[10px] py-[6px] text-[11px] font-bold">
                       Active: {activeCount}
                     </span>
                     <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
@@ -1424,7 +1424,7 @@ export default function CitizenMyReports() {
                           className="block w-full text-left px-[14px] py-[10px] border-none cursor-pointer text-[13px]"
                           style={{
                             background: sortBy === opt ? '#EFF6FF' : '#fff',
-                            color: sortBy === opt ? '#1E3A8A' : '#475569',
+                            color: sortBy === opt ? 'var(--primary)' : '#475569',
                             fontWeight: sortBy === opt ? 700 : 400,
                             fontFamily: "'Roboto', sans-serif",
                           }}
@@ -1450,19 +1450,19 @@ export default function CitizenMyReports() {
                       <span className="flex items-center gap-[5px] text-[13px]"
                         style={{
                           fontWeight: isActive ? 800 : 500,
-                          color: isActive ? '#1E3A8A' : '#94A3B8',
+                          color: isActive ? 'var(--primary)' : '#94A3B8',
                         }}>
                         {tab.label}
                         <span className="rounded-[20px] px-[7px] py-[1px] text-[10px] font-bold"
                           style={{
-                            background: isActive ? '#1E3A8A' : '#F1F5F9',
+                            background: isActive ? 'var(--primary)' : '#F1F5F9',
                             color: isActive ? '#fff' : '#94A3B8',
                           }}>
                           {tab.count}
                         </span>
                       </span>
                       {isActive && (
-                        <div className="absolute bottom-0 h-[3px] bg-[#1E3A8A] rounded-t-[3px]"
+                        <div className="absolute bottom-0 h-[3px] bg-primary rounded-t-[3px]"
                           style={{ left: '15%', right: '15%' }} />
                       )}
                     </button>
