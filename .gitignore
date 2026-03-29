@@ -14,3 +14,12 @@ barangay-source/*.cpg
 barangay-source/*.shp.*
 .vercel
 .env*.local
+
+# Personal AI/session workflow files
+session-handoff.md
+.claude/
+CLAUDE.md
+
+.github/*
+!.github/workflows/
+!.github/workflows/**
