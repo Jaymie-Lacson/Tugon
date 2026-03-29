@@ -288,25 +288,17 @@ function Step2FitToBoundaryBounds() {
 function StepIndicator({ current }: { current: number }) {
   return (
     <div
-      className="citizen-web-strip"
-      style={{
-        background: '#fff',
-        borderBottom: '1px solid #E2E8F0',
-        position: 'sticky',
-        top: 60,
-        zIndex: 40,
-        paddingTop: 12,
-        paddingBottom: 10,
-      }}
+      className="citizen-web-strip bg-white border-b border-slate-200"
+      style={{ position: 'sticky', top: 60, zIndex: 40, paddingTop: 12, paddingBottom: 10 }}
     >
-      <div className="citizen-web-strip-inner" style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
+      <div className="citizen-web-strip-inner flex items-start">
         {STEP_LABELS.map((label, i) => {
           const s = i + 1;
           const done = s < current;
           const active = s === current;
           return (
             <React.Fragment key={s}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div className="flex flex-col items-center gap-1">
                 <div style={{
                   width: 32, height: 32, borderRadius: 9, flexShrink: 0,
                   background: done ? '#1E3A8A' : active ? '#1E3A8A' : '#F1F5F9',
@@ -326,11 +318,7 @@ function StepIndicator({ current }: { current: number }) {
                 }}>{label}</span>
               </div>
               {i < STEP_LABELS.length - 1 && (
-                <div style={{
-                  flex: 1, height: 2.5, margin: '14px 3px 0',
-                  borderRadius: 2, overflow: 'hidden',
-                  background: '#E2E8F0',
-                }}>
+                <div className="flex-1 h-[2.5px] mt-[14px] mx-[3px] rounded overflow-hidden bg-slate-200">
                   <div style={{
                     height: '100%', width: done ? '100%' : '0%',
                     background: '#1E3A8A',
@@ -360,26 +348,21 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   };
 
   return (
-    <div className="incident-step2" style={{ padding: '22px 16px 8px' }}>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: '#EFF6FF', borderRadius: 8, padding: '4px 12px',
-          color: '#1E3A8A', fontSize: 10, fontWeight: 700,
-          letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>
+    <div className="incident-step2 pt-[22px] px-4 pb-2">
+      <div className="mb-5">
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
           Step 1 of 5
         </div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
+        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
           What type of incident?
         </h2>
-        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <p className="text-[13px] text-[#64748B] leading-relaxed">
           Select the category that best describes the situation you are reporting to the barangay.
         </p>
       </div>
 
       {/* Category Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+      <div className="grid grid-cols-2 gap-[10px] mb-3.5">
         {CATEGORIES.map(({ type, label, icon: Icon, color, bg, desc, emoji }) => {
           const sel = form.category === type;
           return (
@@ -454,14 +437,11 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         transition: 'max-height 0.4s ease', opacity: form.category ? 1 : 0,
         transitionProperty: 'max-height, opacity',
       }}>
-        <div style={{
-          background: '#F8FAFC', borderRadius: 16, padding: '16px',
-          border: '1px solid #E2E8F0',
-        }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#E2E8F0]">
+          <div className="font-bold text-[13px] text-[#1E293B] mb-3 flex items-center gap-1.5">
             <AlertTriangle size={14} color="#B4730A" /> How severe is this incident?
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          <div className="grid grid-cols-4 gap-2">
             {[
               { k: 'low' as Severity,      label: 'Minor',    color: '#059669', bg: '#D1FAE5', border: '#6EE7B7' },
               { k: 'medium' as Severity,   label: 'Moderate', color: '#B4730A', bg: '#FEF3C7', border: '#FCD34D' },
@@ -495,21 +475,21 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {form.category ? (
-        <div ref={subcategorySectionRef} style={{ marginTop: 12, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 14, padding: 14 }}>
-          <label style={{ display: 'block', fontWeight: 700, fontSize: 12, color: '#1E293B', marginBottom: 8 }}>
+        <div ref={subcategorySectionRef} className="mt-3 bg-white border border-[#E2E8F0] rounded-[14px] p-3.5">
+          <label className="block font-bold text-xs text-[#1E293B] mb-2">
             Select Subcategory
           </label>
           <select
             value={form.subcategory ?? ''}
             onChange={(event) => setForm((p) => ({ ...p, subcategory: event.target.value as ReportSubcategory }))}
-            style={{ width: '100%', borderRadius: 10, border: '1px solid #CBD5E1', padding: '10px 12px', fontSize: 12, color: '#1E293B' }}
+            className="w-full rounded-[10px] border border-[#CBD5E1] p-[10px_12px] text-xs text-[#1E293B]"
           >
             {(REPORT_TAXONOMY.find((item) => item.category === form.category)?.subcategories ?? []).map((item) => (
               <option key={item} value={item}>{item}</option>
             ))}
           </select>
           {form.requiresMediation ? (
-            <div style={{ marginTop: 10, fontSize: 11, color: '#1E3A8A', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '8px 10px', lineHeight: 1.5 }}>
+            <div className="mt-2.5 text-[11px] text-[#1E3A8A] bg-[#EFF6FF] border border-[#BFDBFE] rounded-[10px] py-2 px-2.5 leading-[1.5]">
               {MEDIATION_WARNING}
             </div>
           ) : null}
@@ -532,17 +512,7 @@ function Step1WithValidation({
     <>
       <Step1 form={form} setForm={setForm} />
       {validationError ? (
-        <div
-          style={{
-            margin: '0 16px 10px',
-            borderRadius: 10,
-            border: '1px solid #FECACA',
-            background: '#FEF2F2',
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '9px 11px',
-          }}
-        >
+        <div className="mx-4 mb-2.5 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           {validationError}
         </div>
       ) : null}
@@ -684,17 +654,13 @@ function Step2({
   );
 
   return (
-    <div style={{ padding: '22px 16px 8px' }}>
-      <div style={{ marginBottom: 16 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EFF6FF',
-          borderRadius: 8, padding: '4px 12px', color: '#1E3A8A',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 2 of 5</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
+    <div className="pt-[22px] px-4 pb-2">
+      <div className="mb-4">
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 2 of 5</div>
+        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
           Where did it happen?
         </h2>
-        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <p className="text-[13px] text-[#64748B] leading-relaxed">
           Tap on OpenStreetMap to drop a pin inside the supported barangay boundaries.
         </p>
       </div>
@@ -753,37 +719,18 @@ function Step2({
             flexDirection: 'column',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '12px 14px',
-              color: '#fff',
-              borderBottom: '1px solid rgba(255,255,255,0.15)',
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Expanded Map Pinning</div>
+          <div className="flex items-center justify-between gap-3 px-[14px] py-3 text-white border-b border-white/[0.15]">
+            <div className="text-[13px] font-bold">Expanded Map Pinning</div>
             <button
               type="button"
               onClick={() => setMapExpanded(false)}
-              style={{
-                border: '1px solid rgba(255,255,255,0.25)',
-                background: 'rgba(255,255,255,0.08)',
-                color: '#fff',
-                borderRadius: 10,
-                padding: '6px 12px',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
+              className="border border-white/25 bg-white/[0.08] text-white rounded-[10px] py-1.5 px-3 text-xs font-bold cursor-pointer"
             >
               Close
             </button>
           </div>
-          <div style={{ flex: 1 }}>{renderMap('100%')}</div>
-          <div style={{ padding: '10px 14px', color: '#BFDBFE', fontSize: 12 }}>
+          <div className="flex-1">{renderMap('100%')}</div>
+          <div className="px-[14px] py-2.5 text-[#BFDBFE] text-xs">
             Tip: pinch or zoom in for precise pinning, then tap to place your incident pin.
           </div>
         </div>
@@ -791,22 +738,13 @@ function Step2({
 
       {/* Pin confirmation chip */}
       {form.pin ? (
-        <div className="incident-step2-pin-chip" style={{
-          background: '#EFF6FF',
-          borderRadius: 10, padding: '12px 14px', border: '1.5px solid #93C5FD',
-          marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10,
-          boxShadow: '0 2px 8px rgba(15,23,42,0.08)',
-        }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10, background: '#DBEAFE',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#1E3A8A', flexShrink: 0,
-          }}>
+        <div className="incident-step2-pin-chip bg-[#EFF6FF] rounded-[10px] p-[12px_14px] border-[1.5px] border-[#93C5FD] mb-3 flex items-center gap-2.5 shadow-sm">
+          <div className="w-9 h-9 rounded-[10px] bg-[#DBEAFE] flex items-center justify-center text-[#1E3A8A] shrink-0">
             <MapPin size={17} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>{form.pin.barangay}</div>
-            <div style={{ fontSize: 11, color: '#3B82F6', marginTop: 1, fontWeight: 500 }}>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-[13px] text-[#1E293B]">{form.pin.barangay}</div>
+            <div className="text-[11px] text-[#3B82F6] mt-px font-medium">
               Pin: {form.pin.district} - lat {form.pin.lat.toFixed(6)}, lng {form.pin.lng.toFixed(6)}
             </div>
           </div>
@@ -847,75 +785,38 @@ function Step2({
       )}
 
       {!hasBarangayProfile ? (
-        <div style={{
-          marginBottom: 12,
-          borderRadius: 10,
-          border: '1px solid #FCA5A5',
-          background: '#FEF2F2',
-          color: '#B91C1C',
-          fontSize: 12,
-          padding: '9px 11px',
-        }}>
+        <div className="mb-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           Your account has no assigned barangay profile. Please contact barangay staff or super admin before submitting a report.
         </div>
       ) : null}
 
       {form.pin && hasBarangayProfile && !pinInSupportedArea ? (
-        <div style={{
-          marginBottom: 12,
-          borderRadius: 10,
-          border: '1px solid #FCA5A5',
-          background: '#FEF2F2',
-          color: '#B91C1C',
-          fontSize: 12,
-          padding: '9px 11px',
-        }}>
+        <div className="mb-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           Pin is outside supported barangay boundaries. Please place the pin within Barangay 251, 252, or 256.
         </div>
       ) : null}
 
       {pinValidationInFlight ? (
-        <div style={{ marginBottom: 12, fontSize: 12, color: '#1E3A8A' }}>
+        <div className="mb-3 text-xs text-[#1E3A8A]">
           Validating selected pin against official barangay boundaries...
         </div>
       ) : null}
 
       {pinValidationError ? (
-        <div
-          style={{
-            marginBottom: 12,
-            borderRadius: 10,
-            border: '1px solid #FCA5A5',
-            background: '#FEF2F2',
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '9px 11px',
-          }}
-        >
+        <div className="mb-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           {pinValidationError}
         </div>
       ) : null}
 
       {form.pin && hasBarangayProfile && pinInSupportedArea && form.pin.isCrossBarangay ? (
-        <div style={{
-          marginBottom: 12,
-          borderRadius: 10,
-          border: '1px solid #FDE68A',
-          background: '#FFFBEB',
-          color: '#92400E',
-          fontSize: 12,
-          padding: '9px 11px',
-        }}>
+        <div className="mb-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-xs p-[9px_11px]">
           This location is outside your registered barangay. Submission is allowed and will be classified as a cross-barangay incident routed to {form.pin.barangay}.
         </div>
       ) : null}
 
       {/* Address text input */}
       <div>
-        <label style={{
-          fontSize: 11, fontWeight: 700, color: '#475569', display: 'block',
-          marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.07em',
-        }}>
+        <label className="text-[11px] font-bold text-[#475569] block mb-[7px] uppercase tracking-[0.07em]">
           Specific Address / Landmark
         </label>
         <input
@@ -935,17 +836,7 @@ function Step2({
       </div>
 
       {validationError ? (
-        <div
-          style={{
-            marginTop: 10,
-            borderRadius: 10,
-            border: '1px solid #FECACA',
-            background: '#FEF2F2',
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '9px 11px',
-          }}
-        >
+        <div className="mt-2.5 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           {validationError}
         </div>
       ) : null}
@@ -987,37 +878,29 @@ function Step3({
   };
 
   return (
-    <div style={{ padding: '22px 16px 8px' }}>
-      <div style={{ marginBottom: 18 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EFF6FF',
-          borderRadius: 20, padding: '4px 12px', color: '#1E3A8A',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 3 of 5</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
+    <div className="pt-[22px] px-4 pb-2">
+      <div className="mb-[18px]">
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 3 of 5</div>
+        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
           Describe the Incident
         </h2>
-        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <p className="text-[13px] text-[#64748B] leading-relaxed">
           Provide as much detail as possible to help responders act quickly and effectively.
         </p>
       </div>
 
       {/* Tip box */}
-      <div style={{
-        background: '#FFFBEB', borderRadius: 12, padding: '12px 14px',
-        border: '1px solid #FDE68A', marginBottom: 18,
-        display: 'flex', gap: 10, alignItems: 'flex-start',
-      }}>
+      <div className="bg-[#FFFBEB] rounded-xl p-[12px_14px] border border-[#FDE68A] mb-[18px] flex gap-2.5 items-start">
         <Info size={14} color="#B4730A" style={{ flexShrink: 0, marginTop: 1 }} />
-        <div style={{ fontSize: 12, color: '#92400E', lineHeight: 1.6 }}>
+        <div className="text-xs text-[#92400E] leading-relaxed">
           <strong>Good description:</strong> What is happening, how many people are involved, any immediate danger, and what has already been done.
         </div>
       </div>
 
       {/* Main textarea */}
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+      <div className="mb-[18px]">
+        <div className="flex justify-between mb-[7px]">
+          <label className="text-[11px] font-bold text-[#475569] uppercase tracking-[0.07em]">
             Incident Description *
           </label>
           <span style={{ fontSize: 11, color: charColor, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
@@ -1042,11 +925,11 @@ function Step3({
       </div>
 
       {/* Quick tags */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+      <div className="mb-5">
+        <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
           Quick Tags - tap to add
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        <div className="flex flex-wrap gap-[7px]">
           {QUICK_TAGS.map(tag => {
             const added = form.quickTags.includes(tag);
             return (
@@ -1069,34 +952,24 @@ function Step3({
         </div>
 
         {form.quickTags.length > 0 ? (
-          <div style={{ marginTop: 10, fontSize: 11, color: '#1E3A8A', fontWeight: 600 }}>
+          <div className="mt-2.5 text-[11px] text-[#1E3A8A] font-semibold">
             Selected tags: {form.quickTags.join(', ')}
           </div>
         ) : null}
       </div>
 
       {validationError ? (
-        <div
-          style={{
-            marginBottom: 14,
-            borderRadius: 10,
-            border: '1px solid #FECACA',
-            background: '#FEF2F2',
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '9px 11px',
-          }}
-        >
+        <div className="mb-3.5 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           {validationError}
         </div>
       ) : null}
 
       {/* Affected persons */}
       <div>
-        <label style={{ fontSize: 11, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        <label className="text-[11px] font-bold text-[#475569] block mb-2 uppercase tracking-[0.07em]">
           Estimated People Affected
         </label>
-        <div className="incident-affected-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+        <div className="incident-affected-grid grid grid-cols-4 gap-2">
           {[
             { val: '1-5', label: '1-5', sublabel: 'Few' },
             { val: '6-20', label: '6-20', sublabel: 'Several' },
@@ -1230,79 +1103,46 @@ function Step4({
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
-    <div style={{ padding: '22px 16px 8px' }}>
-      <div style={{ marginBottom: 18 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EFF6FF',
-          borderRadius: 20, padding: '4px 12px', color: '#1E3A8A',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 4 of 5 - Optional</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
+    <div className="pt-[22px] px-4 pb-2">
+      <div className="mb-[18px]">
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 4 of 5 - Optional</div>
+        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
           Add Evidence
         </h2>
-        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <p className="text-[13px] text-[#64748B] leading-relaxed">
           Photo evidence is required. Voice recording is only available for noise-related incidents.
         </p>
       </div>
 
       {validationError ? (
-        <div
-          style={{
-            marginBottom: 12,
-            borderRadius: 10,
-            border: '1px solid #FECACA',
-            background: '#FEF2F2',
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '9px 11px',
-          }}
-        >
+        <div className="mb-3 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C] text-xs p-[9px_11px]">
           {validationError}
         </div>
       ) : null}
 
-      {/* â”€ Photo Upload â”€ */}
-      <div style={{
-        background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
-        padding: '18px', marginBottom: 16,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 10, background: '#EFF6FF',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E3A8A',
-          }}>
+      {/* â"€ Photo Upload â"€ */}
+      <div className="bg-white rounded-[18px] border border-[#E2E8F0] p-[18px] mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3.5">
+          <div className="w-[34px] h-[34px] rounded-[10px] bg-[#EFF6FF] flex items-center justify-center text-[#1E3A8A]">
             <Camera size={17} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B' }}>Photo Evidence</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Up to 4 photos - JPG, PNG</div>
+            <div className="font-bold text-[14px] text-[#1E293B]">Photo Evidence</div>
+            <div className="text-[11px] text-[#94A3B8]">Up to 4 photos - JPG, PNG</div>
           </div>
         </div>
 
-        <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoSelect} />
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        <div className="flex flex-wrap gap-2.5">
           {form.photoPreviews.map((src, i) => (
-            <div key={i} style={{
-              width: 84, height: 84, borderRadius: 14, overflow: 'hidden',
-              position: 'relative', border: '2px solid #E2E8F0', flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
-            }}>
+            <div key={i} className="w-[84px] h-[84px] rounded-[14px] overflow-hidden relative border-2 border-[#E2E8F0] shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.10)]">
               <button
                 type="button"
                 onClick={() => setPreviewIndex(i)}
-                style={{
-                  padding: 0,
-                  margin: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'zoom-in',
-                }}
+                className="p-0 m-0 w-full h-full border-none bg-transparent cursor-zoom-in"
               >
-                <img src={src} alt={`evidence-${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={src} alt={`evidence-${i}`} className="w-full h-full object-cover" />
               </button>
               <button
                 onClick={() => removePhoto(i)}
@@ -1352,7 +1192,7 @@ function Step4({
         </div>
 
         {form.photoPreviews.length > 0 && (
-          <div style={{ marginTop: 10, fontSize: 11, color: '#64748B', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div className="mt-2.5 text-[11px] text-[#64748B] flex items-center gap-[5px]">
             <CheckCircle2 size={12} color="#059669" />
             {form.photoPreviews.length} photo{form.photoPreviews.length > 1 ? 's' : ''} attached
             {form.photoPreviews.length < 4 && ` - ${4 - form.photoPreviews.length} remaining`}
@@ -1361,32 +1201,23 @@ function Step4({
 
       </div>
 
-        {/* â”€ Voice Recording â”€ */}
+        {/* â"€ Voice Recording â"€ */}
         {showVoiceRecorder ? (
-        <div style={{
-          background: '#fff', borderRadius: 18, border: '1px solid #E2E8F0',
-          padding: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 10, background: '#EDE9FE',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C3AED',
-          }}>
+        <div className="bg-white rounded-[18px] border border-[#E2E8F0] p-[18px] shadow-sm">
+        <div className="flex items-center gap-2 mb-3.5">
+          <div className="w-[34px] h-[34px] rounded-[10px] bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED]">
             <Mic size={17} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#1E293B' }}>Voice Recording</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Describe the situation verbally</div>
+            <div className="font-bold text-[14px] text-[#1E293B]">Voice Recording</div>
+            <div className="text-[11px] text-[#94A3B8]">Describe the situation verbally</div>
           </div>
         </div>
 
         {micError && (
-          <div style={{
-            background: '#FEF2F2', borderRadius: 10, padding: '10px 12px',
-            marginBottom: 12, display: 'flex', gap: 8, alignItems: 'flex-start',
-          }}>
+          <div className="bg-[#FEF2F2] rounded-[10px] p-[10px_12px] mb-3 flex gap-2 items-start">
             <MicOff size={14} color="#B91C1C" style={{ flexShrink: 0, marginTop: 1 }} />
-            <span style={{ fontSize: 12, color: '#B91C1C', lineHeight: 1.5 }}>{micError}</span>
+            <span className="text-xs text-[#B91C1C] leading-[1.5]">{micError}</span>
           </div>
         )}
 
@@ -1415,15 +1246,11 @@ function Step4({
                   ))}
                 </div>
 
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontSize: 28, fontWeight: 900, color: '#B91C1C',
-                    fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em',
-                    fontFamily: 'monospace',
-                  }}>
+                <div className="text-center">
+                  <div className="text-[28px] font-black text-[#B91C1C] tabular-nums tracking-[0.04em] font-mono">
                     {fmt(recTime)}
                   </div>
-                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-[5px]">
                     <span style={{
                       width: 7, height: 7, borderRadius: '50%', background: '#B91C1C',
                       display: 'inline-block', animation: 'blink 1s step-start infinite',
@@ -1447,15 +1274,12 @@ function Step4({
               </>
             ) : (
               <>
-                <div style={{
-                  width: 60, height: 60, borderRadius: '50%', background: '#F1F5F9',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div className="w-[60px] h-[60px] rounded-full bg-[#F1F5F9] flex items-center justify-center">
                   <Mic size={26} color="#94A3B8" />
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1E293B' }}>Record a Voice Note</div>
-                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>Tap to start recording</div>
+                <div className="text-center">
+                  <div className="text-[14px] font-bold text-[#1E293B]">Record a Voice Note</div>
+                  <div className="text-xs text-[#94A3B8] mt-[3px]">Tap to start recording</div>
                 </div>
                 <button
                   onClick={startRecording}
@@ -1474,20 +1298,12 @@ function Step4({
           </div>
         ) : (
           /* Playback UI */
-          <div style={{
-            background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
-            borderRadius: 14, padding: '14px 16px',
-            border: '1.5px solid #93C5FD', display: 'flex', alignItems: 'center', gap: 12,
-          }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%', background: '#DBEAFE',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#1E3A8A', flexShrink: 0,
-            }}>
+          <div className="bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-[14px] p-[14px_16px] border-[1.5px] border-[#93C5FD] flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-[#DBEAFE] flex items-center justify-center text-[#1E3A8A] shrink-0">
               <Mic size={20} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 6 }}>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-[13px] text-[#1E293B] mb-1.5">
                 Voice Recording Attached
               </div>
               <audio
@@ -1499,11 +1315,7 @@ function Step4({
             </div>
             <button
               onClick={() => setForm(p => ({ ...p, audioBlob: null, audioUrl: null }))}
-              style={{
-                background: '#FEE2E2', border: 'none', borderRadius: 8,
-                padding: 8, cursor: 'pointer', color: '#B91C1C', flexShrink: 0,
-                display: 'flex', alignItems: 'center',
-              }}
+              className="bg-[#FEE2E2] border-none rounded-lg p-2 cursor-pointer text-[#B91C1C] shrink-0 flex items-center"
             >
               <Trash2 size={15} />
             </button>
@@ -1511,17 +1323,7 @@ function Step4({
         )}
       </div>
       ) : (
-        <div
-          style={{
-            background: '#F8FAFC',
-            borderRadius: 14,
-            border: '1px solid #E2E8F0',
-            padding: '12px 14px',
-            color: '#475569',
-            fontSize: 12,
-            lineHeight: 1.6,
-          }}
-        >
+        <div className="bg-[#F8FAFC] rounded-[14px] border border-[#E2E8F0] p-[12px_14px] text-[#475569] text-xs leading-relaxed">
           Voice recording is only available for noise-related incidents.
         </div>
       )}
@@ -1676,27 +1478,19 @@ function Step5({
   }, [previewIndex]);
 
   return (
-    <div style={{ padding: '22px 16px 8px' }}>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#FEF3C7',
-          borderRadius: 20, padding: '4px 12px', color: '#92400E',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10,
-        }}>Step 5 of 5 - Final Review</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', marginBottom: 6, lineHeight: 1.2 }}>
+    <div className="pt-[22px] px-4 pb-2">
+      <div className="mb-5">
+        <div className="inline-flex items-center gap-1.5 bg-[#FEF3C7] rounded-[20px] px-3 py-1 text-[#92400E] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 5 of 5 - Final Review</div>
+        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
           Review & Submit
         </h2>
-        <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6 }}>
+        <p className="text-[13px] text-[#64748B] leading-relaxed">
           Please verify all details before submitting. You can go back to make changes.
         </p>
       </div>
 
       {/* Summary Card */}
-      <div style={{
-        background: '#fff', borderRadius: 20, border: '1.5px solid #E2E8F0',
-        overflow: 'hidden', marginBottom: 16,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-      }}>
+      <div className="bg-white rounded-[20px] border-[1.5px] border-[#E2E8F0] overflow-hidden mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
         {/* Card header with type color accent */}
         <div style={{
           background: cat ? `linear-gradient(135deg, ${cat.color}14, ${cat.color}08)` : '#F8FAFC',
@@ -1714,10 +1508,10 @@ function Step5({
             <Icon size={24} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 17, color: '#1E293B', lineHeight: 1.2 }}>
+            <div className="font-extrabold text-[17px] text-[#1E293B] leading-tight">
               {cat?.label ?? 'Incident'} Report
             </div>
-            <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+            <div className="text-xs text-[#64748B] mt-0.5">
               Submitted by {reporterName} - {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
           </div>
@@ -1748,17 +1542,11 @@ function Step5({
             }}>
               {icon}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 10, fontWeight: 700, color: '#94A3B8',
-                textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3,
-              }}>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[3px]">
                 {label}
               </div>
-              <div style={{
-                fontSize: 13, color: '#1E293B', fontWeight: 500, lineHeight: 1.5,
-                wordBreak: 'break-word',
-              }}>
+              <div className="text-[13px] text-[#1E293B] font-medium leading-[1.5] break-words">
                 {value}
               </div>
             </div>
@@ -1768,22 +1556,19 @@ function Step5({
 
       {/* Photo thumbnails */}
       {form.photoPreviews.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        <div className="mb-4">
+          <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
             Attached Photos
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             {form.photoPreviews.map((src, i) => (
-              <div key={i} style={{
-                width: 68, height: 68, borderRadius: 12, overflow: 'hidden',
-                border: '2px solid #E2E8F0', flexShrink: 0, position: 'relative',
-              }}>
+              <div key={i} className="w-[68px] h-[68px] rounded-xl overflow-hidden border-2 border-[#E2E8F0] shrink-0 relative">
                 <button
                   type="button"
                   onClick={() => setPreviewIndex(i)}
-                  style={{ width: '100%', height: '100%', border: 'none', padding: 0, margin: 0, background: 'transparent', cursor: 'zoom-in' }}
+                  className="w-full h-full border-none p-0 m-0 bg-transparent cursor-zoom-in"
                 >
-                  <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={src} alt="" className="w-full h-full object-cover" />
                 </button>
                 <div style={{
                   position: 'absolute', inset: 0,
@@ -1804,13 +1589,9 @@ function Step5({
       )}
 
       {/* Legal disclaimer */}
-      <div style={{
-        background: '#FFFBEB', borderRadius: 14, padding: '14px',
-        border: '1px solid #FDE68A', marginBottom: 4,
-        display: 'flex', gap: 10, alignItems: 'flex-start',
-      }}>
+      <div className="bg-[#FFFBEB] rounded-[14px] p-3.5 border border-[#FDE68A] mb-1 flex gap-2.5 items-start">
         <Info size={15} color="#B4730A" style={{ flexShrink: 0, marginTop: 1 }} />
-        <p style={{ fontSize: 12, color: '#78350F', lineHeight: 1.65, margin: 0 }}>
+        <p className="text-xs text-[#78350F] leading-[1.65] m-0">
           By submitting this report, you certify that the information provided is <strong>true and accurate</strong> to the best of your knowledge. Filing a false incident report is a punishable offense under Philippine law (RA 10173, LGU ordinances).
         </p>
       </div>
@@ -1906,12 +1687,12 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
       fontFamily: "'Roboto', sans-serif",
     }}>
       {/* Background decoration */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(59,130,246,0.08)' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'rgba(185,28,28,0.08)' }} />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ position: 'relative', zIndex: 1 }} className="w-full max-w-[420px] flex flex-col items-center">
         {/* Success icon */}
         <div style={{
           width: 100, height: 100, borderRadius: '50%',
@@ -1923,42 +1704,33 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
           <CheckCircle2 size={54} color="#4ADE80" strokeWidth={1.5} />
         </div>
 
-        <div style={{ fontWeight: 900, fontSize: 28, color: '#fff', marginBottom: 8, textAlign: 'center', lineHeight: 1.15 }}>
+        <div className="font-black text-[28px] text-white mb-2 text-center leading-[1.15]">
           Report Submitted!
         </div>
-        <div style={{ fontSize: 14, color: '#93C5FD', marginBottom: 24, textAlign: 'center', lineHeight: 1.65, maxWidth: 320 }}>
+        <div className="text-[14px] text-[#93C5FD] mb-6 text-center leading-[1.65] max-w-[320px]">
           Your incident report has been received and routed to the appropriate response units in your barangay.
         </div>
 
         {/* Report ID card */}
-        <div style={{
-          width: '100%', background: 'rgba(255,255,255,0.08)',
-          border: '1.5px solid rgba(255,255,255,0.18)', borderRadius: 18,
-          padding: '18px 20px', marginBottom: 22, textAlign: 'center',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <div style={{ fontSize: 10, color: '#93C5FD', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>
+        <div className="w-full bg-white/[0.08] border-[1.5px] border-white/[0.18] rounded-[18px] p-[18px_20px] mb-[22px] text-center backdrop-blur-[10px]">
+          <div className="text-[10px] text-[#93C5FD] font-bold tracking-[0.12em] uppercase mb-1.5">
             Your Report ID
           </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '0.06em', fontVariantNumeric: 'tabular-nums' }}>
+          <div className="text-[28px] font-black text-white tracking-[0.06em] tabular-nums">
             {reportId}
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
+          <div className="text-[11px] text-white/50 mt-1.5">
             Use this ID to track your report under "My Reports"
           </div>
         </div>
 
         {/* Response timeline */}
-        <div style={{
-          width: '100%', background: 'rgba(255,255,255,0.06)',
-          borderRadius: 16, padding: '16px', marginBottom: 22,
-          border: '1px solid rgba(255,255,255,0.10)',
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#93C5FD', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+        <div className="w-full bg-white/[0.06] rounded-2xl p-4 mb-[22px] border border-white/[0.10]">
+          <div className="text-[11px] font-bold text-[#93C5FD] tracking-[0.08em] uppercase mb-3">
             Response Status
           </div>
           {steps.map((s, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: i < steps.length - 1 ? 10 : 0 }}>
+            <div key={i} className={`flex items-center gap-2.5${i < steps.length - 1 ? ' mb-2.5' : ''}`}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                 background: s.done ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.08)',
@@ -1978,14 +1750,9 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
         </div>
 
         {/* Emergency note */}
-        <div style={{
-          width: '100%', background: 'rgba(185,28,28,0.15)',
-          border: '1px solid rgba(185,28,28,0.3)', borderRadius: 12,
-          padding: '12px 14px', marginBottom: 22,
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
+        <div className="w-full bg-[rgba(185,28,28,0.15)] border border-[rgba(185,28,28,0.3)] rounded-xl p-[12px_14px] mb-[22px] flex items-center gap-2.5">
           <Phone size={16} color="#FCA5A5" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: '#FCA5A5', lineHeight: 1.5 }}>
+          <span className="text-xs text-[#FCA5A5] leading-[1.5]">
             <strong>In immediate danger?</strong> Call <strong>911</strong> now without waiting for a response.
           </span>
         </div>
@@ -1993,13 +1760,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
         {/* Done button */}
         <button
           onClick={onDone}
-          style={{
-            width: '100%', background: '#fff', border: 'none',
-            borderRadius: 16, padding: '16px',
-            color: '#1E3A8A', fontWeight: 800, fontSize: 15,
-            cursor: 'pointer', transition: 'opacity 0.15s',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-          }}
+          className="w-full bg-white border-none rounded-2xl p-4 text-[#1E3A8A] font-extrabold text-[15px] cursor-pointer transition-opacity duration-150 shadow-[0_4px_20px_rgba(0,0,0,0.25)]"
         >
           Back to Citizen Portal ({countdown}s)
         </button>
@@ -2034,21 +1795,11 @@ function SubmissionLoadingOverlay() {
       aria-busy="true"
       aria-label="Submitting report"
     >
-      <div style={{ display: 'grid', gap: 12, justifyItems: 'center', textAlign: 'center' }}>
+      <div className="grid gap-3 justify-items-center text-center">
         <div
           role="status"
           aria-label="Submitting report"
-          style={{
-            width: 108,
-            height: 108,
-            borderRadius: 9999,
-            background: 'rgba(255, 255, 255, 0.92)',
-            boxShadow: '0 18px 40px rgba(15, 23, 42, 0.24)',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-[108px] h-[108px] rounded-full bg-white/[0.92] shadow-[0_18px_40px_rgba(15,23,42,0.24)] relative flex items-center justify-center"
         >
           <span
             aria-hidden="true"
@@ -2065,15 +1816,10 @@ function SubmissionLoadingOverlay() {
           <img
             src="/favicon.svg"
             alt="TUGON"
-            style={{
-              width: 42,
-              height: 42,
-              display: 'block',
-              filter: 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15))',
-            }}
+            className="w-[42px] h-[42px] block drop-shadow-[0_2px_3px_rgba(15,23,42,0.15)]"
           />
         </div>
-        <p style={{ margin: 0, color: '#DBEAFE', fontSize: 13, fontWeight: 700, letterSpacing: '0.02em' }}>
+        <p className="m-0 text-[#DBEAFE] text-[13px] font-bold tracking-[0.02em]">
           Submitting your incident report...
         </p>
       </div>
@@ -2393,7 +2139,7 @@ export default function IncidentReport() {
             >
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="flex items-center gap-2.5">
                 <CitizenMobileMenu
                   activeKey="report"
                   open={mobileMenuOpen}
@@ -2430,20 +2176,7 @@ export default function IncidentReport() {
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
                     aria-expanded={profileMenuOpen}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: '#B4730A',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      fontWeight: 800,
-                      fontSize: 14,
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
+                    className="w-9 h-9 rounded-[10px] bg-[#B4730A] flex items-center justify-center text-white font-extrabold text-[14px] border-none cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -2472,18 +2205,7 @@ export default function IncidentReport() {
                           setProfileMenuOpen(false);
                           navigate('/citizen?tab=profile');
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          borderBottom: '1px solid #F1F5F9',
-                          color: '#1E293B',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-[#F1F5F9] text-[#1E293B] text-[13px] font-semibold cursor-pointer"
                       >
                         Open profile page
                       </button>
@@ -2494,17 +2216,7 @@ export default function IncidentReport() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          color: '#B91C1C',
-                          fontSize: 13,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none text-[#B91C1C] text-[13px] font-bold cursor-pointer"
                       >
                         Sign out
                       </button>
@@ -2538,16 +2250,11 @@ export default function IncidentReport() {
               boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
               boxSizing: 'border-box',
             }}>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div className="flex gap-2.5">
               {step > 1 && (
                 <button
                   onClick={goBack}
-                  style={{
-                    flex: 1, padding: '14px', borderRadius: 14,
-                    border: '1.5px solid #E2E8F0', background: '#F8FAFC',
-                    color: '#475569', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  }}
+                  className="flex-1 p-[14px] rounded-[14px] border-[1.5px] border-[#E2E8F0] bg-[#F8FAFC] text-[#475569] font-bold text-[14px] cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <ChevronLeft size={16} /> Back
                 </button>
@@ -2628,15 +2335,7 @@ export default function IncidentReport() {
         }}
       >
         {submitError && (
-          <div className="citizen-content-shell" style={{
-            marginTop: 12,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
-            borderRadius: 12,
-            color: '#B91C1C',
-            fontSize: 12,
-            padding: '10px 12px',
-          }}>
+          <div className="citizen-content-shell mt-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#B91C1C] text-xs p-[10px_12px]">
             {submitError}
           </div>
         )}
