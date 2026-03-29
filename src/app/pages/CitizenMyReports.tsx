@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import {
-  Search, Filter, X, ChevronRight,
+  Search, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
   Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
-  Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
+  Droplets, Car, Activity, Zap, CheckCircle2,
   MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
@@ -17,7 +17,6 @@ import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifica
 import {
   citizenReportsApi,
   type ApiCitizenReport,
-  type ApiIncidentType,
   type ApiTicketStatus,
 } from '../services/citizenReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -268,8 +267,6 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
         const stepNum = i + 1;
         const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
         const active = stepNum === currentStep && !isTerminal;
-        const stepColor = isTerminal && stepNum === 4 ? terminalColor
-          : done || active ? 'var(--primary)' : '#CBD5E1';
         const stepBg = isTerminal && stepNum === 4 ? terminalBg
           : done ? 'var(--primary)' : active ? '#EFF6FF' : '#F1F5F9';
         const stepBorder = isTerminal && stepNum === 4 ? terminalColor
@@ -318,7 +315,6 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
 ──────────────────────────────────────────────────────────────────── */
 function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () => void }) {
   const tc = typeConfig[report.type];
-  const sc = citizenStatusConfig[report.status];
   const Icon = tc.icon;
 
   return (

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FileText, Download, Printer, ChevronRight, AlertTriangle,
-  CheckCircle2, Clock, TrendingUp, Brain, ShieldAlert,
-  CloudRain, Users, MapPin, Calendar, ArrowRight, Sparkles,
-  FileBarChart, FilePieChart, FileSearch, FileClock, RefreshCw,
-  Lightbulb, Info, ChevronDown,
+  FileText, Download, Printer,
+  TrendingUp, Brain, ShieldAlert,
+  CloudRain, Users, MapPin, Sparkles,
+  FileBarChart, FilePieChart, FileClock, RefreshCw,
+  Lightbulb, ChevronDown,
 } from 'lucide-react';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
@@ -94,6 +94,8 @@ interface TemplateGenerationHistoryItem {
   generatedBy: string;
   fileName: string;
 }
+
+type ReportsTabKey = 'templates' | 'dss' | 'history';
 
 const TEMPLATE_GENERATION_HISTORY_KEY = 'tugon.official.template.generation.history';
 
@@ -439,7 +441,7 @@ function DSSCard({
 }
 
 export default function Reports() {
-  const [activeTab, setActiveTab] = useState<'templates' | 'dss' | 'history'>('dss');
+  const [activeTab, setActiveTab] = useState<ReportsTabKey>('dss');
   const [generating, setGenerating] = useState<string | null>(null);
   const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
@@ -789,7 +791,7 @@ export default function Reports() {
         ].map(tab => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as ReportsTabKey)}
             className={`flex items-center gap-1.5 whitespace-nowrap rounded-[7px] border-none px-4 py-2 text-xs transition-all duration-150 cursor-pointer ${
               activeTab === tab.key
                 ? 'bg-primary font-bold text-white'

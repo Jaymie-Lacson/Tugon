@@ -50,8 +50,9 @@ before(async () => {
   originalExecuteRaw = prismaModule.prisma.$executeRaw;
   originalQueryRaw = prismaModule.prisma.$queryRaw;
 
-  prismaModule.prisma.user.findUnique = (async (args: any) => {
-    if (args?.where?.phoneNumber === "09179990000") {
+  prismaModule.prisma.user.findUnique = (async (args: unknown) => {
+    const where = (args as { where?: { phoneNumber?: string; id?: string } } | undefined)?.where;
+    if (where?.phoneNumber === "09179990000") {
       return {
         id: "prod-user-1",
         fullName: "Production Test User",
@@ -72,7 +73,7 @@ before(async () => {
       };
     }
 
-    if (args?.where?.id === "prod-user-1") {
+    if (where?.id === "prod-user-1") {
       return {
         id: "prod-user-1",
         fullName: "Production Test User",
@@ -96,12 +97,12 @@ before(async () => {
     return null;
   }) as typeof prismaModule.prisma.user.findUnique;
 
-  prismaModule.prisma.$executeRaw = (async (...args: any[]) => {
+  prismaModule.prisma.$executeRaw = (async (...args: unknown[]) => {
     void args;
     return 1;
   }) as typeof prismaModule.prisma.$executeRaw;
 
-  prismaModule.prisma.$queryRaw = (async (...args: any[]) => {
+  prismaModule.prisma.$queryRaw = (async (...args: unknown[]) => {
     void args;
     return [];
   }) as typeof prismaModule.prisma.$queryRaw;

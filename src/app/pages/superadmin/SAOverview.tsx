@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
-  Clock, Shield, Zap, ArrowRight, MapPin, Droplets, Car, Heart,
+  Clock, ArrowRight, MapPin,
   RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { IncidentMap } from '../../components/IncidentMap';
 import CardSkeleton from '../../components/ui/CardSkeleton';

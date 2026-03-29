@@ -12,13 +12,9 @@ function buildStreamUrl(path: string) {
   return new URL(`${API_BASE}${path}`, window.location.origin).toString();
 }
 
-const missingOfficialRoute = {
-  historyExport: false,
-  reportExport: false,
-  dssActions: false,
-} as const;
+type MissingOfficialRouteKey = "historyExport" | "reportExport" | "dssActions";
 
-const missingOfficialRouteState: { [K in keyof typeof missingOfficialRoute]: boolean } = {
+const missingOfficialRouteState: Record<MissingOfficialRouteKey, boolean> = {
   historyExport: false,
   reportExport: false,
   dssActions: false,

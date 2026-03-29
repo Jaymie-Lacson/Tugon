@@ -5,22 +5,15 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Clock,
-  Eye,
   FileText,
   Map as MapIcon,
   MapPin,
   Menu,
-  Navigation,
   Phone,
   Radio,
   Shield,
-  Star,
   Users,
-  Volume2,
   X,
-  Zap,
-  Car,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';

@@ -143,10 +143,10 @@ describe("Verification upload hardening integration", () => {
       Buffer.alloc(8, 0x01),
     ]).toString("base64");
 
-    prismaModule.prisma.user.update = (async (args: any) => ({
+    prismaModule.prisma.user.update = (async (args: unknown) => ({
       id: "test-citizen-id",
       isVerified: false,
-      idImageUrl: args?.data?.idImageUrl ?? null,
+      idImageUrl: (args as { data?: { idImageUrl?: string | null } } | undefined)?.data?.idImageUrl ?? null,
       verificationStatus: "PENDING",
       verificationRejectionReason: null,
       verifiedByUserId: null,

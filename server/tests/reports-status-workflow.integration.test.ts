@@ -40,8 +40,9 @@ before(async () => {
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
   originalCitizenReportFindUnique = prismaModule.prisma.citizenReport.findUnique;
 
-  prismaModule.prisma.user.findUnique = (async (args: any) => {
-    if (args?.where?.id === "official-user-1") {
+  prismaModule.prisma.user.findUnique = (async (args: unknown) => {
+    const where = (args as { where?: { id?: string } } | undefined)?.where;
+    if (where?.id === "official-user-1") {
       return {
         id: "official-user-1",
         role: "OFFICIAL",
@@ -57,8 +58,9 @@ before(async () => {
     return null;
   }) as typeof prismaModule.prisma.user.findUnique;
 
-  prismaModule.prisma.citizenReport.findUnique = (async (args: any) => {
-    if (args?.where?.id === "MY-2026-0001") {
+  prismaModule.prisma.citizenReport.findUnique = (async (args: unknown) => {
+    const where = (args as { where?: { id?: string } } | undefined)?.where;
+    if (where?.id === "MY-2026-0001") {
       return {
         id: "MY-2026-0001",
         citizenUserId: "citizen-user-1",

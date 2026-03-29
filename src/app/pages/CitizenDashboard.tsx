@@ -4,8 +4,8 @@ import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
   Droplets, Car, Activity, Zap, AlertCircle,
-  Phone, Info, CloudRain, Eye, Search, Filter,
-  ArrowRight, ArrowLeft, TrendingUp, Map, Menu,
+  Phone, Info, CloudRain,
+  ArrowRight, ArrowLeft,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
@@ -1000,7 +1000,7 @@ const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }
   { type: 'typhoon', label: 'Typhoon', icon: <CloudRain size={20} /> },
 ];
 
-function ReportTab() {
+function _ReportTab() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedType, setSelectedType] = useState<IncidentType | null>(null);
   const [severity, setSeverity] = useState<string>('');
@@ -1389,7 +1389,7 @@ function MapTab({
 /* ══════════════════════════════════════════════════════════════════════
    MY REPORTS TAB
 ══════════════════════════════════════════════════════════════════════ */
-function MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
+function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
   return (
     <div className="p-4">
       {/* Header */}
@@ -1464,7 +1464,7 @@ function ProfileTab({
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
 
-  const handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
+  const _handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
     if (action === 'personal') {
       setEditOpen(true);
       setSettingMessage('');
