@@ -23,3 +23,5 @@ CLAUDE.md
 .github/*
 !.github/workflows/
 !.github/workflows/**
+# Local database dump artifacts for offline demo prep
+server/backups/
