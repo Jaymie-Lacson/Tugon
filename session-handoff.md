@@ -1,58 +1,78 @@
-# Session Handoff — 2026-03-29 (UI/UX Redesign, Session 11)
+# Session Handoff — 2026-03-29 (UI/UX Redesign, Session 12)
 
 **Branch:** `redesign`
-**Build status:** PASSING ✓ — verified with `npm run build` at end of session.
+**Build status:** PASSING ✓ — verified with `npm run build` and `npm run build:server` at end of session.
 
 ---
 
 ## What was accomplished this session
 
-### Phase 8 audit — discovered most items already done in prior sessions
+### Phase 0: Baseline and Safety Net — COMPLETED
+- Ran all four baseline gates:
+  - `npm run test:frontend` → 24/26 pass (2 a11y failures)
+  - `npm run test:frontend:a11y` → 7 failures
+  - `npm --prefix server run test:integration` → 40/40 pass
+  - `npm run check:prod` → build passes; `prisma:generate` EPERM is a Windows file lock issue, not a code bug
+- Produced full feature-parity inventory across all 4 portals (public/auth, citizen, official, super-admin)
+- All 21 pages confirmed present with full feature parity
 
-At the start of this session, the full priority list from `design-analysis-plan.md` was audited against the actual codebase. All high-priority and most medium-priority items had already been completed in Sessions 8–10:
+### Phase 1: Design Foundation — COMPLETED
+**Sub-task: Add mobile drawer to Layout.tsx**
+- Added `mobileDrawerOpen` state
+- Added hamburger `<Menu>` button in header with `aria-controls="layout-mobile-drawer"`, `aria-expanded`
+- Added full slide-out nav drawer with `id="layout-mobile-drawer"`, `aria-label="Close navigation drawer"` on close button
+- Drawer replicates sidebar nav items, user profile, and sign-out
+- Drawer closes on: route change, Escape key, backdrop click, nav item click
 
-| Priority | Issue | Finding |
-|----------|-------|---------|
-| Auth page unification | Replace auth-layout.css with Tailwind | Already done — no auth-layout.css exists |
-| Severity accessibility | icon + label + color in badges | Already done — `SeverityBadge` has icon + dot + label |
-| Mobile table fallback | Card view on mobile for Incidents table | Already done — `incidents-mobile-cards` / `incidents-table-wrapper` toggled via mobile.css |
-| Verification status card | Progress indicator, not just a banner | Already done — `VerificationProgressCard.tsx` with progress bar exists |
+**Sub-task: Add mobile drawer to SuperAdminLayout.tsx**
+- Same pattern as Layout.tsx but with `aria-controls="superadmin-mobile-drawer"`, `id="superadmin-mobile-drawer"`
+- Drawer includes monitoring panel (barangay status dots) replicating the desktop sidebar panel
 
-### Active nav item fix — COMPLETED
+**Sub-task: Fix a11y smoke test string matching**
+- `scripts/a11y-smoke.cjs` checked for `aria-label="Go to citizen home"` (HTML attr) in source
+- Source actually uses `ariaLabel="Go to citizen home"` (React prop on `<RoleHomeLogo>`)
+- Fixed smoke test to check `ariaLabel=` — runtime rendering is correct, static check was wrong
 
-**Problem:** Both sidebars (`Layout.tsx` for official portal, `SuperAdminLayout.tsx` for super admin portal) had active nav items with `border-transparent` on all states and a barely-visible `bg-white/[0.06]` or `bg-white/[0.08]` active background — indistinguishable from the hover state.
+**Gate results after Phase 1:**
+- `npm run test:frontend` → **26/26 pass** ✓
+- `npm run test:frontend:a11y` → **All pass** ✓
+- `npm --prefix server run test:integration` → **40/40 pass** ✓
+- `npm run build` → **Pass** ✓
 
-**Fix applied to both files:**
-- Active: `border-white/50 bg-white/[0.14]` + `font-semibold text-white` icon/label
-- Inactive: `border-transparent hover:bg-white/[0.08]` + `text-blue-300` / `text-blue-200`
-- Settings NavLink in `Layout.tsx` also fixed with same pattern
+### Phase 2: i18n Core — IN PROGRESS (infrastructure created, not yet wired in)
+
+**Created i18n infrastructure (NOT yet connected to App.tsx or any page):**
+
+| File | Purpose |
+|------|---------|
+| `src/app/i18n/types.ts` | `Locale` type, `SUPPORTED_LOCALES`, `DEFAULT_LOCALE`, `LOCALE_STORAGE_KEY`, `TranslationDictionary` |
+| `src/app/i18n/TranslationProvider.tsx` | React context provider, localStorage persistence, `t()` with interpolation, `document.lang` sync |
+| `src/app/i18n/useTranslation.ts` | `useTranslation()` hook (throws if used outside provider) |
+| `src/app/i18n/index.ts` | Public API re-exports |
+| `src/app/i18n/translations/en.ts` | ~200 English translation keys across all portals |
+| `src/app/i18n/translations/fil.ts` | ~200 Filipino translations matching all EN keys |
+| `src/app/i18n/i18n.test.ts` | 11 tests: default locale, switching, localStorage, fallback, interpolation, incident types, statuses, document.lang |
+
+**Tests were NOT run** — session was interrupted before `vitest run src/app/i18n/i18n.test.ts` could execute.
 
 ---
 
 ## Current state
 
-### Fully clean
-- Build passes (`npm run build` ✓)
-- No smart quote issues found
-- All priority items from original Phase 8 list are now resolved
+### Fully working
+- Build passes (frontend + backend)
+- 26/26 frontend tests pass
+- All a11y smoke checks pass
+- 40/40 backend integration tests pass
+- Mobile drawers functional in Layout.tsx and SuperAdminLayout.tsx
+- i18n infrastructure files created and syntactically correct
 
-### Intentionally left (not regressions)
-Same as prior session — see `design-analysis-plan.md` section 7 for full context.
-
-**Multi-color gradients** (cannot be single CSS var):
-- `CitizenDashboard.tsx` — linear-gradient headers and critical banners
-- `Reports.tsx` — DSS panel gradient
-- `mobile.css` — recorder button gradients
-- `Layout.tsx`, `SuperAdminLayout.tsx` — `from-[#B4730A] to-[#F59E0B]` avatar gradient
-
-**PrimaryButton hex lookup keys** (hex is a key, not a rendered color):
-- `AuthLayout.tsx` — `BUTTON_COLORS` map with hex keys
-- Auth pages — `color="#1E3A8A"` / `color="#B4730A"` props as lookup keys
-
-**Token definitions** in `theme.css` itself.
-
-### Inline `style={{}}` — intentionally not mass-replaced
-351 occurrences across 17 files. Audited: nearly all are for genuinely dynamic values (chart colors, progress percentages, animation delays, barangay monitoring dot colors). Mass replacement would break functionality. Not a regression.
+### Incomplete / not yet done
+- i18n tests NOT yet run — verify they pass before proceeding
+- `TranslationProvider` NOT yet wrapped in `App.tsx`
+- No page has had its hardcoded strings migrated to `t()` calls
+- Language switch UI NOT yet added to auth pages or settings
+- The background string-catalog agent completed — its output confirms ~550 strings across all pages
 
 ---
 
@@ -60,32 +80,43 @@ Same as prior session — see `design-analysis-plan.md` section 7 for full conte
 
 | File | Summary |
 |------|---------|
-| `src/app/components/Layout.tsx` | Active nav: `border-transparent` → `border-white/50` on active; text/icon brightened to white + font-semibold; Settings link same fix |
-| `src/app/pages/superadmin/SuperAdminLayout.tsx` | Same active nav fix as Layout.tsx |
+| `src/app/components/Layout.tsx` | Added `mobileDrawerOpen` state, hamburger button with `aria-controls="layout-mobile-drawer"`, slide-out drawer with nav + profile |
+| `src/app/pages/superadmin/SuperAdminLayout.tsx` | Same mobile drawer pattern as Layout.tsx with `superadmin-mobile-drawer` id, includes monitoring panel in drawer |
+| `scripts/a11y-smoke.cjs` | Fixed `aria-label=` → `ariaLabel=` prop name check for RoleHomeLogo citizen pages |
+
+## Files created this session
+
+| File | Summary |
+|------|---------|
+| `src/app/i18n/types.ts` | Locale types, constants |
+| `src/app/i18n/TranslationProvider.tsx` | React context with `t()`, `setLocale()`, localStorage persistence |
+| `src/app/i18n/useTranslation.ts` | `useTranslation()` hook |
+| `src/app/i18n/index.ts` | Public API |
+| `src/app/i18n/translations/en.ts` | Full English dictionary (~200 keys) |
+| `src/app/i18n/translations/fil.ts` | Full Filipino dictionary (~200 keys, 1:1 with EN) |
+| `src/app/i18n/i18n.test.ts` | 11 unit tests for provider, switching, fallback, interpolation |
 
 ---
 
 ## Open decisions
 
-### What comes next — feature-level work
-All visual/structural polish from `design-analysis-plan.md` sections 6 and 7.5 is now done. Remaining items in the redesign plan are feature-level improvements:
+### 1. String migration strategy
+The string catalog agent found ~550 unique user-facing strings. The pragmatic approach is to migrate by portal (auth first, then citizen, then official/SA) using `useTranslation` hook. Pages that are too large to migrate in one pass can be done incrementally — the provider falls back to EN, so partial migration is safe.
 
-1. **Landing page enhancements** (section 7.2): animated incident counter, sticky transparent-on-scroll navbar, live map teaser embed
-2. **Onboarding modal for new citizens** (section 7.2): first-login 3-step overlay — Welcome → Verify ID → How to report
-3. **Report status timeline** (section 7.3): per-report vertical timeline on citizen's My Reports page
-4. **Stat cards with trend arrows** (section 7.3): official dashboard stat cards should show % change vs. prior period
-5. **Merge branch**: `redesign` is currently ahead of `origin/redesign` — push and consider merging to main
+### 2. Language switch placement
+Plan: add a `<LanguageToggle>` component (a simple EN/FIL pill) that:
+- Appears in `AuthLayout.tsx` top-right corner on desktop, below logo on mobile
+- Appears in `Settings.tsx` as a preference section
+- Optionally appears in citizen header (low priority)
 
-### Push / merge decision
-The redesign branch has substantial accumulated work. Consider:
-- `git push origin redesign` to sync remote
-- PR to main when ready for production
+### 3. Translation completeness
+Current dictionaries cover ~200 keys (core UI strings). The string catalog agent found ~550 strings, meaning ~350 more granular strings (form validation messages, onboarding body text, ID verification page, etc.) still need to be added to EN/FIL dictionaries before full page migration.
 
 ---
 
 ## Traps to avoid
 
-### Smart quotes from Edit tool — CRITICAL (persists)
+### Smart quotes from Edit tool — CRITICAL (persists from prior sessions)
 Run after any batch Edit session:
 ```bash
 node -e "
@@ -96,42 +127,55 @@ walk('src');console.log('Done.');
 ```
 
 ### PrimaryButton color prop trap
-Do NOT replace `color="#1E3A8A"` in auth pages with CSS vars. The hex is a lookup key into `BUTTON_COLORS` in `AuthLayout.tsx`. The rendered class is already tokenized.
+Do NOT replace `color="#1E3A8A"` in auth pages with CSS vars. The hex is a lookup key into `BUTTON_COLORS` in `AuthLayout.tsx`.
 
 ### Intentional gradients — never replace
 Multi-stop gradients like `linear-gradient(135deg, #B91C1C, #991B1B)` and `from-[#B4730A] to-[#F59E0B]` must stay as hex.
 
-### incidents.ts types vs. CLAUDE.md hard rules
-`incidents.ts` has mock types (`flood`, `accident`, `medical`, `crime`, `infrastructure`, `typhoon`) that differ from the hard-rule types (`Pollution`, `Noise`, `Crime`, `Road Hazard`, `Other`). This is a pre-existing mapping layer — `mapIncidentType()` in `Incidents.tsx` bridges them. Do not "fix" this without understanding the full API mapping.
+### incidents.ts type mismatch
+`incidents.ts` has mock types (`flood`, `accident`, `medical`, etc.) that differ from CLAUDE.md hard-rule types (`Pollution`, `Noise`, `Crime`, `Road Hazard`, `Other`). `mapIncidentType()` in `Incidents.tsx` bridges them. Do NOT "fix" this.
 
-### Inline style={{}} — do not mass-replace
-351 occurrences. Almost all are genuinely dynamic. Only replace individual `style={{}}` usages where the value is truly static and a Tailwind utility exists.
+### Inline `style={{}}` — do not mass-replace
+351 occurrences. Almost all are genuinely dynamic (chart colors, progress %, animation delays). Only replace individual cases where value is truly static.
+
+### prisma:generate EPERM
+Windows file lock on `.prisma/client/query_engine-windows.dll.node` — transient OS issue. Restart terminal and retry. Not a code bug.
+
+### i18n: do NOT use i18next or react-intl
+The project uses a custom lightweight provider (no external i18n dependency). Keep it that way — simpler to defend academically and avoids bundle size bloat.
 
 ---
 
 ## Next steps (priority order)
 
-1. **Push branch to remote** — `git push origin redesign` (currently ahead of origin)
-2. **Landing page enhancements** — animated counter, sticky navbar scroll behavior, map preview teaser (section 7.2 of design plan)
-3. **Citizen onboarding modal** — first-login 3-step overlay (section 7.2 Citizen Portal) — check `CitizenOnboardingModal.tsx` first, may already exist
-4. **Report timeline on My Reports** — vertical timeline showing `Submitted → Under Review → In Progress → Resolved` per report (section 7.3)
-5. **Official dashboard stat cards** — add trend arrows / % change vs. prior period (section 7.3)
-6. **Merge consideration** — once feature work is complete, open PR from `redesign` → `main`
+1. **Run i18n tests first** — `npx vitest run src/app/i18n/i18n.test.ts` — fix any failures before continuing
+2. **Wire TranslationProvider into App.tsx** — wrap `<RouterProvider>` with `<TranslationProvider>`
+3. **Build LanguageToggle component** — `src/app/i18n/LanguageToggle.tsx` — EN/FIL pill, 2 buttons
+4. **Add LanguageToggle to AuthLayout.tsx** — top-right on desktop, below mobile logo
+5. **Add language setting to Settings.tsx** — `settings.language` / `settings.languageDesc` keys exist
+6. **Migrate auth pages** — Login, Register, Verify, CreatePassword, ForgotPassword (add `useTranslation`, replace hardcoded strings)
+7. **Migrate citizen pages** — CitizenDashboard, IncidentReport, CitizenMyReports, CitizenVerification
+8. **Migrate official pages** — Dashboard, Incidents, Reports, Analytics, Verifications, Layout nav labels
+9. **Migrate super-admin pages** — SAOverview, SAUsers, SAAnalytics, SAAuditLogs, SABarangayMap, SuperAdminLayout labels
+10. **Migrate Landing page** — hero, features, how-it-works sections
+11. **Run full gate** after each portal migration
+12. **Phase 3: UX Modernization** — after i18n is complete
 
 ---
 
 ## Relevant file paths
 
-- `CLAUDE.md` — Project rules and constraints
-- `AGENTS.md` / `ARCHITECTURE.md` — Detailed architecture reference
-- `design-analysis-plan.md` — Full page-by-page redesign breakdown (section 7.2+ = remaining work)
-- `src/styles/theme.css` — Design tokens (CSS variables + Tailwind mappings)
-- `src/app/components/Layout.tsx` — Official portal sidebar (just fixed active nav)
-- `src/app/pages/superadmin/SuperAdminLayout.tsx` — SA portal sidebar (just fixed active nav)
-- `src/app/components/StatusBadge.tsx` — `SeverityBadge`, `StatusBadge`, `TypeBadge` components
-- `src/app/components/VerificationProgressCard.tsx` — Citizen verification progress card
-- `src/app/components/CitizenOnboardingModal.tsx` — Check if onboarding modal already exists before building
-- `src/styles/mobile.css` — All mobile responsive overrides including incidents table/card toggle
-- `src/app/pages/CitizenMyReports.tsx` — Target for report timeline feature
-- `src/app/pages/Dashboard.tsx` — Target for stat card trend arrows feature
-- `src/app/pages/Landing.tsx` — Target for landing page enhancements
+- `CLAUDE.md` — Project rules and constraints (must read before coding)
+- `ARCHITECTURE.md` — Full architecture reference
+- `src/app/i18n/` — All new i18n infrastructure (types, provider, hook, translations)
+- `src/app/i18n/translations/en.ts` — English dictionary (~200 keys, needs ~350 more)
+- `src/app/i18n/translations/fil.ts` — Filipino dictionary (1:1 with EN)
+- `src/app/i18n/i18n.test.ts` — 11 tests NOT YET RUN — run first
+- `src/app/App.tsx` — Where TranslationProvider needs to be added
+- `src/app/components/AuthLayout.tsx` — Where LanguageToggle needs to be added
+- `src/app/pages/Settings.tsx` — Where language preference section needs to be added
+- `src/app/components/Layout.tsx` — Official portal layout (mobile drawer added this session)
+- `src/app/pages/superadmin/SuperAdminLayout.tsx` — SA layout (mobile drawer added this session)
+- `scripts/a11y-smoke.cjs` — A11y smoke test (fixed this session)
+- `src/styles/theme.css` — Design tokens
+- `design-analysis-plan.md` — Full redesign blueprint (sections 7.2+ still contain feature-level work)

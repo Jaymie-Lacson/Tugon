@@ -95,7 +95,7 @@ function run() {
   assertOrderedIncludes(
     incidentReport,
     [
-      'aria-label="Go to citizen home"',
+      'ariaLabel="Go to citizen home"',
       '<CitizenMobileMenu',
       '<CitizenNotificationBellTrigger',
       'aria-label="Open profile actions"',
@@ -108,7 +108,7 @@ function run() {
   assertOrderedIncludes(
     citizenMyReports,
     [
-      'aria-label="Go to citizen home"',
+      'ariaLabel="Go to citizen home"',
       '<CitizenMobileMenu',
       '<CitizenNotificationBellTrigger',
       'aria-label="Open profile actions"',

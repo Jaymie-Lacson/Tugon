@@ -6,7 +6,9 @@ import {
   Map,
   BarChart2,
   FileText,
+  Menu,
   UserCheck,
+  X,
   ChevronRight,
   Settings,
   LogOut,
@@ -48,6 +50,7 @@ function LiveClock() {
 }
 
 function Layout() {
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -79,6 +82,7 @@ function Layout() {
   };
 
   useEffect(() => {
+    setMobileDrawerOpen(false);
     setProfileMenuOpen(false);
     setNotificationsOpen(false);
   }, [location.pathname]);
@@ -86,12 +90,13 @@ function Layout() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      if (mobileDrawerOpen) setMobileDrawerOpen(false);
       if (profileMenuOpen) setProfileMenuOpen(false);
       if (notificationsOpen) setNotificationsOpen(false);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [notificationsOpen, profileMenuOpen]);
+  }, [mobileDrawerOpen, notificationsOpen, profileMenuOpen]);
 
   useEffect(() => {
     let active = true;
@@ -248,6 +253,109 @@ function Layout() {
         </div>
       </aside>
 
+      {/* ── Mobile Drawer ── */}
+      {mobileDrawerOpen && (
+        <div
+          className="fixed inset-0 z-[3000] lg:hidden"
+          aria-hidden={!mobileDrawerOpen}
+        >
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+          <nav
+            id="layout-mobile-drawer"
+            role="navigation"
+            aria-label="Main navigation"
+            className="absolute inset-y-0 left-0 w-[270px] bg-primary flex flex-col shadow-2xl"
+          >
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/10">
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                className="w-[140px] h-auto"
+              />
+              <button
+                type="button"
+                onClick={() => setMobileDrawerOpen(false)}
+                aria-label="Close navigation drawer"
+                className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-white border-none cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Drawer nav items */}
+            <div className="flex-1 overflow-y-auto p-3">
+              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+                Navigation
+              </div>
+              {NAV_ITEMS.map((item) => {
+                const isActive = item.exact
+                  ? location.pathname === item.path
+                  : location.pathname.startsWith(item.path) && item.path !== '/app';
+                const exactActive = location.pathname === '/app';
+                const active = item.exact ? exactActive : isActive;
+
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileDrawerOpen(false)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
+                      active ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    <item.icon size={17} className={active ? 'text-white' : 'text-blue-300'} />
+                    <span className={`text-[13px] flex-1 ${active ? 'font-semibold text-white' : 'text-blue-200'}`}>
+                      {item.label}
+                    </span>
+                  </NavLink>
+                );
+              })}
+
+              <div className="mt-4 pt-3 border-t border-white/10">
+                <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+                  System
+                </div>
+                <NavLink
+                  to="/app/settings"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
+                    settingsActive ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
+                  <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>Settings</span>
+                </NavLink>
+              </div>
+            </div>
+
+            {/* Drawer user profile */}
+            <div className="px-4 py-3 border-t border-white/10 bg-black/15">
+              <div className="flex items-center gap-2.5">
+                <div className="size-[34px] rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
+                  {userInitials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
+                  <div className="text-blue-300 text-[10px]">{userRoleLabel}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  aria-label="Sign out"
+                  className="border-none bg-transparent p-0 cursor-pointer inline-flex"
+                >
+                  <LogOut size={15} className="text-blue-300" />
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
+      )}
+
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
@@ -257,8 +365,22 @@ function Layout() {
             isMapRoute ? 'z-[2500]' : 'z-[90]'
           }`}
         >
-          {/* Mobile logo */}
-          <div className="flex items-center lg:hidden">
+          {/* Mobile hamburger + logo */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              aria-controls="layout-mobile-drawer"
+              aria-expanded={mobileDrawerOpen}
+              aria-label="Open navigation menu"
+              onClick={() => {
+                setMobileDrawerOpen((prev) => !prev);
+                setProfileMenuOpen(false);
+                setNotificationsOpen(false);
+              }}
+              className="flex size-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white cursor-pointer"
+            >
+              <Menu size={18} />
+            </button>
             <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="inline-flex">
               <img
                 src="/tugon-header-logo.svg"

@@ -7,8 +7,10 @@ import {
   LayoutDashboard,
   LogOut,
   Map,
+  Menu,
   Settings,
   Users,
+  X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
@@ -59,6 +61,7 @@ function getMonitoringColor(incidents: number): string {
 }
 
 export default function SuperAdminLayout() {
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -141,6 +144,7 @@ export default function SuperAdminLayout() {
   };
 
   useEffect(() => {
+    setMobileDrawerOpen(false);
     setProfileMenuOpen(false);
     setNotificationsOpen(false);
   }, [location.pathname]);
@@ -148,12 +152,13 @@ export default function SuperAdminLayout() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      if (mobileDrawerOpen) setMobileDrawerOpen(false);
       if (profileMenuOpen) setProfileMenuOpen(false);
       if (notificationsOpen) setNotificationsOpen(false);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [notificationsOpen, profileMenuOpen]);
+  }, [mobileDrawerOpen, notificationsOpen, profileMenuOpen]);
 
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
@@ -290,13 +295,134 @@ export default function SuperAdminLayout() {
         </div>
       </aside>
 
+      {/* ── Mobile Drawer ── */}
+      {mobileDrawerOpen && (
+        <div
+          className="fixed inset-0 z-[3000] lg:hidden"
+          aria-hidden={!mobileDrawerOpen}
+        >
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+          <nav
+            id="superadmin-mobile-drawer"
+            role="navigation"
+            aria-label="Super admin navigation"
+            className="absolute inset-y-0 left-0 w-[270px] bg-primary flex flex-col shadow-2xl"
+          >
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/10">
+              <img
+                src="/tugon-header-logo.svg"
+                alt="TUGON Tondo Emergency Response"
+                className="w-[140px] h-auto"
+              />
+              <button
+                type="button"
+                onClick={() => setMobileDrawerOpen(false)}
+                aria-label="Close navigation drawer"
+                className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-white border-none cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Barangay monitoring */}
+            <div className="px-3.5 py-2.5 border-b border-white/[0.08]">
+              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">Monitoring</div>
+              {monitoringItems.map((b) => (
+                <div key={b.code} className="flex items-center gap-2 px-1.5 py-1 rounded-[5px] mb-0.5 bg-white/5">
+                  <span
+                    className="size-1.5 rounded-full inline-block shrink-0"
+                    style={{ background: b.color, boxShadow: `0 0 5px ${b.color}` }}
+                  />
+                  <span className="text-blue-200 text-[11px] flex-1">{b.name}</span>
+                  <span
+                    className="text-[9px] font-bold px-[5px] py-px rounded-[3px]"
+                    style={{ background: `${b.color}22`, color: b.color }}
+                  >
+                    {b.incidents} active
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Drawer nav items */}
+            <div className="flex-1 overflow-y-auto p-3">
+              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+                Navigation
+              </div>
+              {NAV_ITEMS.map((item) => {
+                const active = item.exact
+                  ? location.pathname === item.path
+                  : location.pathname.startsWith(item.path) && !item.exact;
+                const exactActive = location.pathname === '/superadmin';
+                const isActive = item.exact ? exactActive : active;
+
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileDrawerOpen(false)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
+                      isActive ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    <item.icon size={16} className={isActive ? 'text-white' : 'text-blue-300'} />
+                    <span className={`text-[13px] flex-1 ${isActive ? 'font-semibold text-white' : 'text-blue-200'}`}>
+                      {item.label}
+                    </span>
+                  </NavLink>
+                );
+              })}
+            </div>
+
+            {/* Drawer user profile */}
+            <div className="px-4 py-3 border-t border-white/10 bg-black/15">
+              <div className="flex items-center gap-2.5">
+                <div className="size-[34px] rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
+                  {userInitials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
+                  <div className="text-blue-300 text-[10px]">Super Admin</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  aria-label="Sign out"
+                  className="border-none bg-transparent p-0 cursor-pointer inline-flex"
+                >
+                  <LogOut size={15} className="text-blue-300" />
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
+      )}
+
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Header */}
         <header className="bg-primary px-5 h-14 flex items-center gap-3 shrink-0 border-b border-white/10 shadow-[0_2px_8px_rgba(30,58,138,0.3)] relative z-[2600]">
-          {/* Mobile logo */}
-          <div className="flex items-center lg:hidden">
+          {/* Mobile hamburger + logo */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              aria-controls="superadmin-mobile-drawer"
+              aria-expanded={mobileDrawerOpen}
+              aria-label="Open navigation menu"
+              onClick={() => {
+                setMobileDrawerOpen((prev) => !prev);
+                setProfileMenuOpen(false);
+                setNotificationsOpen(false);
+              }}
+              className="flex size-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white cursor-pointer"
+            >
+              <Menu size={18} />
+            </button>
             <NavLink to="/superadmin" aria-label="Go to TUGON super admin overview" className="inline-flex">
               <img
                 src="/tugon-header-logo.svg"
