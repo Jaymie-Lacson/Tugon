@@ -326,10 +326,10 @@ export default function Analytics() {
           <CardSkeleton count={4} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" />
         ) : (
           <>
-            <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="#B91C1C" />
+            <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="var(--severity-critical)" />
             <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub={`${period} dataset`} color="#059669" />
-            <MetricCard title="Avg. Response" value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="#B4730A" />
-            <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="#1E3A8A" />
+            <MetricCard title="Avg. Response" value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="var(--severity-medium)" />
+            <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="var(--primary)" />
           </>
         )}
       </div>
@@ -417,9 +417,9 @@ export default function Analytics() {
                   <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 82 : 170} />
                   <Tooltip formatter={(value, name) => [formatDurationFromMinutes(Number(value)), name === 'avgMin' ? 'Avg. Response' : 'Target']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
                   <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
-                  <Bar dataKey="avgMin" key="bar-avgmin" fill="#1E3A8A" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
+                  <Bar dataKey="avgMin" key="bar-avgmin" fill="var(--primary)" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
                     {RESPONSE_TIME_VISIBLE.map((entry, index) => (
-                      <Cell key={`cell-rt-${index}-${entry.typeKey}`} fill={entry.avgMin <= entry.target ? '#059669' : '#B91C1C'} />
+                      <Cell key={`cell-rt-${index}-${entry.typeKey}`} fill={entry.avgMin <= entry.target ? '#059669' : 'var(--severity-critical)'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -469,7 +469,7 @@ export default function Analytics() {
               <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 11 : 8, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 5 : 3} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} formatter={(value) => [`${value} incidents`]} />
-              <Bar dataKey="count" key="bar-count" fill="#1E3A8A" radius={[3, 3, 0, 0]}>
+              <Bar dataKey="count" key="bar-count" fill="var(--primary)" radius={[3, 3, 0, 0]}>
                 {HOUR_DATA.map((entry, index) => (
                   <Cell
                     key={`cell-hr-${index}-${entry.hour}`}

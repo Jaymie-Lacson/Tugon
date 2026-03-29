@@ -24,7 +24,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
           className="absolute inset-0 h-full w-full object-cover"
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/85 via-[#1E3A8A]/75 to-[#0F172A]/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/85 via-primary/75 to-[#0F172A]/90" />
         {/* Grid lines */}
         <div
           className="absolute inset-0 opacity-[0.04]"
@@ -181,7 +181,7 @@ export function InputField({
 const BUTTON_COLORS: Record<string, string> = {
   '#1e3a8a': 'bg-primary hover:bg-[#1E40AF] shadow-[0_2px_8px_rgba(30,58,138,0.18)] hover:shadow-[0_6px_20px_rgba(30,58,138,0.28)]',
   '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_2px_8px_rgba(5,150,105,0.18)] hover:shadow-[0_6px_20px_rgba(5,150,105,0.28)]',
-  '#b4730a': 'bg-[#B4730A] hover:bg-[#A16309] shadow-[0_2px_8px_rgba(180,115,10,0.18)] hover:shadow-[0_6px_20px_rgba(180,115,10,0.28)]',
+  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_2px_8px_rgba(180,115,10,0.18)] hover:shadow-[0_6px_20px_rgba(180,115,10,0.28)]',
   '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_2px_8px_rgba(185,28,28,0.18)] hover:shadow-[0_6px_20px_rgba(185,28,28,0.28)]',
 };
 

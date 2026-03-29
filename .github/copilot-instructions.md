@@ -245,3 +245,33 @@ npm --prefix server run prisma:validate
 - Copy `.env.example` → `.env` (root, used by frontend Vite)
 - Copy `server/.env.example` → `server/.env`
 - Set a real Supabase PostgreSQL `DATABASE_URL` in the server env file.
+
+## Automatic prompt routing
+
+When the user request matches one of the intents below, automatically apply the corresponding prompt in `.github/prompts/` even if the user does not mention the prompt by name.
+
+- Security audit, compliance check, auth/RBAC/geofencing risk review:
+   - Use `.github/prompts/audit.prompt.md`
+- Build verification, production checks, compile/validate requests:
+   - Use `.github/prompts/check.prompt.md`
+- Prisma migration status/deploy/create requests:
+   - Use `.github/prompts/migrate.prompt.md`
+- Mobile/responsive/layout breakage checks for pages/components:
+   - Use `.github/prompts/responsive.prompt.md`
+- Code review or pre-commit review requests:
+   - Use `.github/prompts/review.prompt.md`
+- Backend integration test execution requests:
+   - Use `.github/prompts/test.prompt.md`
+- UI/UX planning, redesign, frontend polish requests:
+   - Use `.github/prompts/ui-ux.prompt.md`
+
+If multiple prompts apply, prioritize in this order:
+1. `migrate`
+2. `audit`
+3. `review`
+4. `check`
+5. `test`
+6. `responsive`
+7. `ui-ux`
+
+If no prompt matches, follow the base repository instructions in this file.

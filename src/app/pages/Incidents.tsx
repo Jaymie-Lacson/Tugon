@@ -170,7 +170,7 @@ function IncidentDetailModal({
     >
       <div className="w-full max-w-[760px] max-h-[92vh] overflow-auto rounded-2xl bg-slate-50 shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
-        <div className="flex items-start justify-between rounded-t-2xl bg-[#1E3A8A] px-5 py-[18px]">
+        <div className="flex items-start justify-between rounded-t-2xl bg-primary px-5 py-[18px]">
           <div>
             <div className="mb-2 flex items-center gap-2.5">
               <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white" style={{ color: cfg.color }}>
@@ -295,7 +295,7 @@ function IncidentDetailModal({
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
                 <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[#DBE4EE] pl-2.5">
-                  <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full border-2 border-white bg-[#1E3A8A]" />
+                  <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full border-2 border-white bg-primary" />
                   <div className="text-xs font-bold text-slate-800">{entry.label}</div>
                   <div className="mt-[1px] text-[11px] text-slate-500">{entry.description}</div>
                   <div className="mt-0.5 text-[11px] text-slate-400">{formatTime(entry.timestamp)} • {entry.actor}</div>
@@ -320,7 +320,7 @@ function IncidentDetailModal({
                         setStatusSelectorOpen(false);
                       }}
                       className={`w-full border-none px-3 py-[9px] text-left text-xs font-semibold cursor-pointer ${
-                        nextStatus === status ? 'bg-blue-50 text-[#1E3A8A]' : 'bg-white text-slate-700'
+                        nextStatus === status ? 'bg-blue-50 text-primary' : 'bg-white text-slate-700'
                       }`}
                     >
                       {status}
@@ -349,7 +349,7 @@ function IncidentDetailModal({
                   }
                   void onUpdateStatus(nextStatus);
                 }}
-                className={`flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-[#1E3A8A] px-4 py-[9px] text-xs font-semibold text-white ${
+                className={`flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-primary px-4 py-[9px] text-xs font-semibold text-white ${
                   !nextStatus || isUpdating || !canUpdateStatus ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                 }`}
               >
@@ -683,7 +683,7 @@ export default function Incidents() {
 
   const SortIcon = ({ k }: { k: keyof IncidentView }) => {
     if (sortKey !== k) return <ChevronsUpDown size={12} color="#CBD5E1" />;
-    return sortDir === 'asc' ? <ChevronUp size={12} color="#1E3A8A" /> : <ChevronDown size={12} color="#1E3A8A" />;
+    return sortDir === 'asc' ? <ChevronUp size={12} color="var(--primary)" /> : <ChevronDown size={12} color="var(--primary)" />;
   };
 
   const isVerifiedReporter = (incident: IncidentView) =>
@@ -723,7 +723,7 @@ export default function Incidents() {
             setPage(1);
           }}
           className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
-            listView === 'open' ? 'bg-[#1E3A8A] text-white' : 'bg-white text-slate-700'
+            listView === 'open' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
           Open Incidents ({openCount})
@@ -735,7 +735,7 @@ export default function Incidents() {
             setPage(1);
           }}
           className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
-            listView === 'archived' ? 'bg-[#1E3A8A] text-white' : 'bg-white text-slate-700'
+            listView === 'archived' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
           Archived ({archivedCount})
@@ -859,7 +859,7 @@ export default function Incidents() {
                     key={col.label}
                     onClick={() => col.key && handleSort(col.key)}
                     className={`whitespace-nowrap border-b-2 border-slate-100 px-3.5 py-[11px] text-left text-[11px] font-semibold tracking-wide select-none ${
-                      sortKey === col.key ? 'text-[#1E3A8A]' : 'text-slate-500'
+                      sortKey === col.key ? 'text-primary' : 'text-slate-500'
                     } ${col.key ? 'cursor-pointer' : 'cursor-default'}`}
                   >
                     <span className="flex items-center gap-1">
@@ -902,9 +902,9 @@ export default function Incidents() {
                 >
                   <td className="whitespace-nowrap px-3.5 py-[11px] text-xs">
                     <div className="inline-flex items-center gap-1.5">
-                      <span className="font-bold text-[#1E3A8A]">{inc.id}</span>
+                      <span className="font-bold text-primary">{inc.id}</span>
                       {isVerifiedReporter(inc) ? (
-                        <span title="Verified Reporter" className="inline-flex items-center text-[#1E3A8A]" aria-label="Verified Reporter">
+                        <span title="Verified Reporter" className="inline-flex items-center text-primary" aria-label="Verified Reporter">
                           <ShieldIcon size={13} />
                         </span>
                       ) : null}
@@ -924,7 +924,7 @@ export default function Incidents() {
                         event.stopPropagation();
                         setSelectedIncident(inc);
                       }}
-                      className="flex items-center gap-[3px] rounded-md border-none bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-[#1E3A8A] cursor-pointer"
+                      className="flex items-center gap-[3px] rounded-md border-none bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-primary cursor-pointer"
                     >
                       <Edit2 size={12} /> Edit
                     </button>
@@ -995,9 +995,9 @@ export default function Incidents() {
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="grid gap-[5px]">
-                  <div className="text-xs font-bold text-[#1E3A8A]">{inc.id}</div>
+                  <div className="text-xs font-bold text-primary">{inc.id}</div>
                   {isVerifiedReporter(inc) ? (
-                    <span title="Verified Reporter" className="inline-flex items-center text-[#1E3A8A]" aria-label="Verified Reporter">
+                    <span title="Verified Reporter" className="inline-flex items-center text-primary" aria-label="Verified Reporter">
                       <ShieldIcon size={13} />
                     </span>
                   ) : null}
@@ -1030,7 +1030,7 @@ export default function Incidents() {
                   event.stopPropagation();
                   setSelectedIncident(inc);
                 }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-blue-50 px-3 py-[9px] text-xs font-semibold text-[#1E3A8A] cursor-pointer"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-blue-50 px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer"
               >
                 <ChevronRight size={13} /> View Details
               </button>

@@ -15,7 +15,7 @@ import type { IncidentType } from '../../data/incidents';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
-  flood: '#1D4ED8', accident: '#B4730A',
+  flood: '#1D4ED8', accident: 'var(--severity-medium)',
   medical: '#0F766E', crime: '#374151', infrastructure: '#374151',
 };
 const INCIDENT_ICON_COMPONENTS: Record<IncidentType, React.ReactElement> = {
@@ -27,7 +27,7 @@ const INCIDENT_ICON_COMPONENTS: Record<IncidentType, React.ReactElement> = {
   typhoon: <Wind size={12} />,
 };
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#B91C1C', high: '#EA580C', medium: '#B4730A', low: '#059669',
+  critical: 'var(--severity-critical)', high: '#EA580C', medium: 'var(--severity-medium)', low: '#059669',
 };
 
 function getTypeIconSvg(type: string, stroke: string): string {
@@ -84,7 +84,7 @@ function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon 
 function ZoomController() {
   const map = useMap();
   return (
-    <div style={{ position: 'absolute', top: 80, right: 10, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ position: 'absolute', top: 80, right: 10, zIndex: 1000 }} className="flex flex-col gap-1">
       {[
         { label: '+', action: () => map.zoomIn() },
         { label: '−', action: () => map.zoomOut() },
@@ -93,12 +93,7 @@ function ZoomController() {
         <button
           key={btn.label}
           onClick={btn.action}
-          style={{
-            width: 32, height: 32, border: '1px solid #E5E7EB', borderRadius: 6,
-            background: 'white', cursor: 'pointer', fontSize: 15, fontWeight: 700,
-            color: '#374151', boxShadow: '0 1px 4px rgba(0,0,0,.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
+          className="w-8 h-8 border border-[#E5E7EB] rounded-md bg-white cursor-pointer text-[15px] font-bold text-[#374151] shadow-[0_1px_4px_rgba(0,0,0,.12)] flex items-center justify-center"
         >{btn.label}</button>
       ))}
     </div>
@@ -163,8 +158,8 @@ const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
   normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
-  elevated: { label: 'ELEVATED', color: '#B4730A', bg: '#FEF3C7' },
-  critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
+  elevated: { label: 'ELEVATED', color: 'var(--severity-medium)', bg: '#FEF3C7' },
+  critical: { label: 'CRITICAL', color: 'var(--severity-critical)', bg: '#FEE2E2' },
 };
 
 const BARANGAY_CENTER_BY_CODE: Record<string, [number, number]> = {
@@ -230,7 +225,7 @@ const CANONICAL_BOUNDARY_BY_CODE: Record<string, [number, number][]> = {
 const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; captain: string; area: string; population: number }> = {
   '251': { color: '#1D4ED8', district: 'District II', captain: 'Reynaldo Angat', area: 'N/A', population: 1181 },
   '252': { color: '#0F766E', district: 'District II', captain: 'Leana Marie Angat', area: 'N/A', population: 910 },
-  '256': { color: '#B4730A', district: 'District II', captain: 'Honorario Lopez', area: 'N/A', population: 1030 },
+  '256': { color: 'var(--severity-medium)', district: 'District II', captain: 'Honorario Lopez', area: 'N/A', population: 1030 },
 };
 const BARANGAY_FILTER_CODES = ['251', '252', '256'] as const;
 const HEAT_RADIUS_MAX_SCALE = 0.6;
@@ -444,7 +439,7 @@ export default function SABarangayMap() {
       const payload = await superAdminApi.getBarangays();
       const mapped = payload.barangays.map((apiBarangay) => {
         const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
-          color: '#1E3A8A',
+          color: 'var(--primary)',
           district: 'District II',
           captain: 'Assigned Barangay Captain',
           area: 'N/A',
@@ -664,9 +659,9 @@ export default function SABarangayMap() {
 
   if ((loadingBarangays || loadingIncidents) && reportIncidents.length === 0) {
     return (
-      <div style={{ padding: '20px', minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton count={3} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" />
         </div>
       </div>
@@ -674,39 +669,27 @@ export default function SABarangayMap() {
   }
 
   return (
-    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
       {/* Page header */}
-      <div className="sa-map-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
+      <div className="sa-map-header flex items-center justify-between mb-4 gap-2.5">
         <div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Barangay Boundary Map</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
+          <h1 className="text-[22px] font-bold text-[#0F172A] m-0">Barangay Boundary Map</h1>
+          <p className="text-xs text-[#6B7280] m-0 mt-0.5">
             OpenStreetMap — Barangays 251, 252 & 256 · Municipality of Tugon, Region IV-A
           </p>
         </div>
-        <div className="sa-map-header-actions" style={{ display: 'flex', gap: 8 }}>
+        <div className="sa-map-header-actions flex gap-2">
           <button
             onClick={() => {
               void loadBarangays();
             }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'white',
-              color: '#374151',
-              border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            }}
+            className="flex items-center gap-1.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >
             <RefreshCw size={13} /> {loadingBarangays ? 'Syncing...' : 'Sync Boundaries'}
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: showHeatmap ? '#1E3A8A' : 'white',
-              color: showHeatmap ? 'white' : '#374151',
-              border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            }}
+            className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
             <Layers size={13} /> {showHeatmap ? 'Hide Heatmap' : 'Show Heatmap'}
           </button>
@@ -715,13 +698,7 @@ export default function SABarangayMap() {
               setShowHeatmapSettings((open) => !open);
               setShowHeatmap(true);
             }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: showHeatmapSettings ? '#1E3A8A' : 'white',
-              color: showHeatmapSettings ? 'white' : '#374151',
-              border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            }}
+            className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
             <SlidersHorizontal size={13} /> Tune Heatmap
           </button>
@@ -729,46 +706,30 @@ export default function SABarangayMap() {
       </div>
 
       {barangaysError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
           {barangaysError}
         </div>
       ) : null}
 
       {incidentsError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
           {incidentsError}
         </div>
       ) : null}
 
-      <div className="sa-map-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 14 }}>
+      <div className="sa-map-main-grid grid gap-3.5" style={{ gridTemplateColumns: '1fr 296px' }}>
         {/* ── OSM Map ── */}
-        <div style={{
-          background: 'white', borderRadius: 16, overflow: 'hidden',
-          boxShadow: '0 2px 12px rgba(0,0,0,.08)', border: '1px solid #E5E7EB',
-          display: 'flex', flexDirection: 'column',
-        }}>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,.08)] border border-[#E5E7EB] flex flex-col">
           {/* Toolbar */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
-            borderBottom: '1px solid #F3F4F6', background: '#FAFAFA', flexWrap: 'wrap',
-          }}>
+          <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[#F3F4F6] bg-[#FAFAFA] flex-wrap">
             <Filter size={13} color="#6B7280" />
-            <span style={{ color: '#6B7280', fontSize: 12, fontWeight: 600 }}>Filters:</span>
+            <span className="text-xs font-semibold text-[#6B7280]">Filters:</span>
             {isCompactFilters ? (
               <>
                 <select
                   value={filterType}
                   onChange={(event) => setFilterType(event.target.value)}
-                  style={{
-                    border: '1px solid #CBD5E1',
-                    borderRadius: 8,
-                    background: 'white',
-                    color: '#334155',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '6px 8px',
-                    minWidth: 140,
-                  }}
+                  className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
                 >
                   <option value="all">All Categories</option>
                   <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
@@ -781,17 +742,7 @@ export default function SABarangayMap() {
                   value={selectedBarangayCodes}
                   onChange={handleCompactBarangaySelect}
                   title="Select one or more barangays"
-                  style={{
-                    border: '1px solid #CBD5E1',
-                    borderRadius: 8,
-                    background: 'white',
-                    color: '#334155',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '6px 8px',
-                    minWidth: 120,
-                    height: 72,
-                  }}
+                  className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[72px]"
                 >
                   {BARANGAY_FILTER_CODES.map((code) => (
                     <option key={code} value={code}>Barangay {code}</option>
@@ -805,42 +756,26 @@ export default function SABarangayMap() {
                     key={t}
                     onClick={() => setFilterType(t)}
                     style={{
-                      padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                      cursor: 'pointer', border: '1px solid transparent', textTransform: 'capitalize',
                       background: filterType === t ? (INCIDENT_COLORS[t] ?? '#374151') : '#F3F4F6',
                       color: filterType === t ? 'white' : '#6B7280',
                     }}
+                    className="px-2.5 py-1 rounded-[20px] text-[11px] font-semibold cursor-pointer border border-transparent capitalize"
                   >
-                    {t !== 'all' ? <span style={{ marginRight: 4, display: 'inline-flex', verticalAlign: 'middle' }}>{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
+                    {t !== 'all' ? <span className="mr-1 inline-flex align-middle">{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
                     {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
                   </button>
                 ))}
-                <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 4 }}>Barangay:</span>
+                <span className="text-[11px] text-[#94A3B8] ml-1">Barangay:</span>
                 <button
                   onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
-                  style={{
-                    padding: '4px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700,
-                    cursor: 'pointer', border: '1px solid #CBD5E1', background: '#FFFFFF', color: '#475569',
-                  }}
+                  className="px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[#CBD5E1] bg-white text-[#475569]"
                 >
                   All
                 </button>
                 {BARANGAY_FILTER_CODES.map((code) => (
                   <label
                     key={code}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 8px',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: 999,
-                      background: selectedBarangayCodes.includes(code) ? '#DBEAFE' : '#FFFFFF',
-                      color: selectedBarangayCodes.includes(code) ? '#1D4ED8' : '#475569',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className={`inline-flex items-center gap-1 px-2 py-1 border border-[#CBD5E1] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[#DBEAFE] text-[#1D4ED8]' : 'bg-white text-[#475569]'}`}
                   >
                     <input
                       type="checkbox"
@@ -852,11 +787,11 @@ export default function SABarangayMap() {
                 ))}
               </>
             )}
-            <span style={{ marginLeft: 'auto', color: '#9CA3AF', fontSize: 11 }}>
+            <span className="ml-auto text-[11px] text-[#9CA3AF]">
               {filteredIncidents.length} incidents shown
             </span>
             {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy ? (
-              <span style={{ color: '#1D4ED8', fontSize: 11, fontWeight: 600 }}>
+              <span className="text-[11px] font-semibold text-[#1D4ED8]">
                 Edit mode: click map to add boundary points for {selectedBrgy.name}
               </span>
             ) : null}
@@ -865,49 +800,37 @@ export default function SABarangayMap() {
           {/* Map */}
           <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
             {showHeatmapSettings ? (
-              <div style={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                zIndex: 1200,
-                width: 232,
-                background: 'rgba(255,255,255,0.98)',
-                border: '1px solid #DBEAFE',
-                borderRadius: 12,
-                boxShadow: '0 6px 24px rgba(15,23,42,.16)',
-                padding: 12,
-              }}
-              onMouseDown={(event) => event.stopPropagation()}
-              onMouseMove={(event) => event.stopPropagation()}
-              onTouchStart={(event) => event.stopPropagation()}
-              onTouchMove={(event) => event.stopPropagation()}
-              onPointerDown={(event) => event.stopPropagation()}
-              onPointerMove={(event) => event.stopPropagation()}
-              onWheel={(event) => event.stopPropagation()}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  zIndex: 1200,
+                  width: 232,
+                }}
+                className="bg-[rgba(255,255,255,0.98)] border border-[#DBEAFE] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
+                onMouseDown={(event) => event.stopPropagation()}
+                onMouseMove={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onWheel={(event) => event.stopPropagation()}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Heatmap Settings</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-[#1E293B]">Heatmap Settings</span>
                   <button
                     onClick={handleResetHeatmapSettings}
-                    style={{
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      borderRadius: 6,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: '3px 6px',
-                      cursor: 'pointer',
-                    }}
+                    className="border border-[#CBD5E1] bg-white text-[#475569] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
                   >
                     Reset
                   </button>
                 </div>
 
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Radius scale</span>
-                    <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                <div className="mb-2.5">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-[#64748B]">Radius scale</span>
+                    <span className="text-[10px] font-bold text-[#1E293B]">{heatRadiusPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -922,14 +845,14 @@ export default function SABarangayMap() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
-                    style={{ width: '100%' }}
+                    className="w-full"
                   />
                 </div>
 
-                <div style={{ marginBottom: 2 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Opacity scale</span>
-                    <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatOpacityScale.toFixed(2)}x</span>
+                <div className="mb-0.5">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-[#64748B]">Opacity scale</span>
+                    <span className="text-[10px] font-bold text-[#1E293B]">{heatOpacityScale.toFixed(2)}x</span>
                   </div>
                   <input
                     type="range"
@@ -944,7 +867,7 @@ export default function SABarangayMap() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
-                    style={{ width: '100%' }}
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -992,10 +915,10 @@ export default function SABarangayMap() {
                   }}
                 >
                   <Tooltip sticky direction="center" opacity={1}>
-                    <div style={{ fontSize: 12 }}>
-                      <div style={{ fontWeight: 700, color: b.color }}>{b.name}</div>
-                      <div style={{ color: '#475569' }}>Pop: {b.population.toLocaleString()}</div>
-                      <div style={{ color: '#6B7280' }}>Active: {b.activeIncidents} incidents</div>
+                    <div className="text-xs">
+                      <div className="font-bold" style={{ color: b.color }}>{b.name}</div>
+                      <div className="text-[#475569]">Pop: {b.population.toLocaleString()}</div>
+                      <div className="text-[#6B7280]">Active: {b.activeIncidents} incidents</div>
                     </div>
                   </Tooltip>
                 </Polygon>
@@ -1058,13 +981,13 @@ export default function SABarangayMap() {
                   }}
                 >
                   <Tooltip direction="top" offset={[0, -32]} opacity={1}>
-                    <div style={{ fontSize: 11, minWidth: 140 }}>
-                      <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>{inc.label}</div>
-                      <div style={{ color: '#475569' }}>{inc.barangay}</div>
-                      <div style={{
-                        color: SEVERITY_COLORS[inc.severity], fontWeight: 600,
-                        textTransform: 'capitalize', marginTop: 2,
-                      }}>
+                    <div className="text-[11px] min-w-[140px]">
+                      <div className="font-bold text-[#1E293B] mb-0.5">{inc.label}</div>
+                      <div className="text-[#475569]">{inc.barangay}</div>
+                      <div
+                        className="font-semibold capitalize mt-0.5"
+                        style={{ color: SEVERITY_COLORS[inc.severity] }}
+                      >
                         {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
                       </div>
                     </div>
@@ -1078,44 +1001,43 @@ export default function SABarangayMap() {
             </MapContainer>
 
             {/* Map legend overlay */}
-            <div style={{
-              position: 'absolute', bottom: 28, left: 10, zIndex: 1000,
-              background: 'rgba(255,255,255,0.97)', borderRadius: 10, padding: '10px 12px',
-              boxShadow: '0 2px 10px rgba(0,0,0,.15)', border: '1px solid #E5E7EB', minWidth: 140,
-            }}>
-              <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 7 }}>
+            <div
+              style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 1000 }}
+              className="bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[#E5E7EB] min-w-[140px]"
+            >
+              <div className="font-bold text-[#0F172A] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
                 Map Legend
               </div>
               {barangaysData.map(b => (
-                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: b.color, border: `2px solid ${b.color}`, opacity: 0.8 }} />
-                  <span style={{ color: '#374151', fontSize: 10 }}>{b.name}</span>
+                <div key={b.id} className="flex items-center gap-1.5 mb-1">
+                  <div className="w-3 h-3 rounded-[3px] opacity-80" style={{ background: b.color, border: `2px solid ${b.color}` }} />
+                  <span className="text-[10px] text-[#374151]">{b.name}</span>
                 </div>
               ))}
               {showHeatmap ? (
-                <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
-                  <div style={{ color: '#6B7280', fontSize: 9, marginBottom: 4, fontWeight: 700 }}>
+                <div className="border-t border-[#F3F4F6] pt-[5px] mt-[3px]">
+                  <div className="text-[9px] text-[#6B7280] mb-1 font-bold">
                     Heat Intensity
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#64748B', opacity: Math.max(0.03, Math.min(0.42, 0.08 * heatOpacityScale)) }} />
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>Low ({Math.round(60 * heatRadiusScale)}m)</span>
+                  <div className="flex items-center gap-1.5 mb-[3px]">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#64748B]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.08 * heatOpacityScale)) }} />
+                    <span className="text-[9px] text-[#6B7280]">Low ({Math.round(60 * heatRadiusScale)}m)</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#475569', opacity: Math.max(0.03, Math.min(0.42, 0.11 * heatOpacityScale)) }} />
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>High ({Math.round(85 * heatRadiusScale)}m)</span>
+                  <div className="flex items-center gap-1.5 mb-[3px]">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#475569]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.11 * heatOpacityScale)) }} />
+                    <span className="text-[9px] text-[#6B7280]">High ({Math.round(85 * heatRadiusScale)}m)</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#334155', opacity: Math.max(0.03, Math.min(0.42, 0.14 * heatOpacityScale)) }} />
-                    <span style={{ color: '#6B7280', fontSize: 9 }}>Critical ({Math.round(110 * heatRadiusScale)}m)</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#334155]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.14 * heatOpacityScale)) }} />
+                    <span className="text-[9px] text-[#6B7280]">Critical ({Math.round(110 * heatRadiusScale)}m)</span>
                   </div>
                 </div>
               ) : (
-                <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 5, marginTop: 3 }}>
+                <div className="border-t border-[#F3F4F6] pt-[5px] mt-[3px]">
                   {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
-                    <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center' }}>{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
-                      <span style={{ color: '#6B7280', fontSize: 9 }}>{getCategoryLabelForIncidentType(type)}</span>
+                    <div key={type} className="flex items-center gap-[5px] mb-0.5">
+                      <span className="inline-flex items-center">{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
+                      <span className="text-[9px] text-[#6B7280]">{getCategoryLabelForIncidentType(type)}</span>
                     </div>
                   ))}
                 </div>
@@ -1123,49 +1045,46 @@ export default function SABarangayMap() {
             </div>
 
             {/* OSM attribution note */}
-            <div style={{
-              position: 'absolute', bottom: 5, right: 10, zIndex: 1000,
-              color: '#9CA3AF', fontSize: 9,
-            }}>
+            <div
+              style={{ position: 'absolute', bottom: 5, right: 10, zIndex: 1000 }}
+              className="text-[9px] text-[#9CA3AF]"
+            >
               Map data © OpenStreetMap contributors
             </div>
           </div>
         </div>
 
         {/* ── Side panel ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="flex flex-col gap-3">
 
           {/* Barangay detail card */}
           {selectedBrgy ? (
-            <div style={{
-              background: 'white', borderRadius: 14, overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
-            }}>
+            <div className="bg-white rounded-[14px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,.07)] border border-[#E5E7EB]">
               <div style={{ height: 4, background: selectedBrgy.color }} />
-              <div style={{ padding: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                      <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{selectedBrgy.name}</span>
+                    <div className="flex items-center gap-2 mb-[3px]">
+                      <span className="text-base font-bold text-[#0F172A]">{selectedBrgy.name}</span>
                       {(() => {
                         const al = alertLevelConfig[selectedBrgy.alertLevel];
                         return (
-                          <span style={{ background: al.bg, color: al.color, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, letterSpacing: '0.06em' }}>
+                          <span style={{ background: al.bg, color: al.color }} className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em]">
                             {al.label}
                           </span>
                         );
                       })()}
                     </div>
-                    <div style={{ color: '#6B7280', fontSize: 11 }}>{selectedBrgy.district}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>Capt. {selectedBrgy.captain}</div>
+                    <div className="text-[11px] text-[#6B7280]">{selectedBrgy.district}</div>
+                    <div className="text-[10px] text-[#9CA3AF] mt-0.5">Capt. {selectedBrgy.captain}</div>
                   </div>
                   <button
                     onClick={() => setSelectedBarangay(null)}
-                    style={{ background: '#F3F4F6', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#6B7280', fontSize: 11 }}
+                    className="bg-[#F3F4F6] border-none rounded-md px-2 py-1 cursor-pointer text-[#6B7280] text-[11px]"
                   >✕</button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 12 }}>
+                <div className="grid grid-cols-2 gap-[7px] mb-3">
                   {[
                     { label: 'Population', value: selectedBrgy.population.toLocaleString() },
                     { label: 'Area', value: selectedBrgy.area },
@@ -1173,41 +1092,38 @@ export default function SABarangayMap() {
                     { label: 'Resp. Rate', value: `${selectedBrgy.responseRate}%` },
                     { label: 'Avg Response', value: `${selectedBrgy.avgResponseMin}m` },
                   ].map(s => (
-                    <div key={s.label} style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px' }}>
-                      <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>{s.value}</div>
-                      <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 1 }}>{s.label}</div>
+                    <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-2.5 py-2">
+                      <div className="text-[15px] font-bold text-[#0F172A]">{s.value}</div>
+                      <div className="text-[10px] text-[#9CA3AF] mt-px">{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Coord info */}
-                <div style={{
-                  background: '#F0F4FF', borderRadius: 8, padding: '8px 10px',
-                  border: '1px solid #DBEAFE',
-                }}>
-                  <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div className="bg-[#F0F4FF] rounded-lg px-2.5 py-2 border border-[#DBEAFE]">
+                  <div className="text-[10px] font-semibold text-[#374151] mb-1 flex items-center gap-[5px]">
                     <Navigation size={10} color="#1D4ED8" /> OSM Coordinates
                   </div>
-                  <div style={{ color: '#6B7280', fontSize: 9, fontFamily: 'monospace' }}>
+                  <div className="text-[9px] text-[#6B7280] font-mono">
                     Center: {selectedBrgy.center[0].toFixed(4)}°N, {selectedBrgy.center[1].toFixed(4)}°E
                   </div>
-                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>
+                  <div className="text-[9px] text-[#9CA3AF] mt-0.5">
                     {selectedBrgy.boundary.length}-vertex polygon boundary
                   </div>
                 </div>
 
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ color: '#374151', fontSize: 10, fontWeight: 600, marginBottom: 5 }}>
+                <div className="mt-2.5">
+                  <div className="text-[10px] font-semibold text-[#374151] mb-[5px]">
                     Boundary GeoJSON (Read-only)
                   </div>
                   {!BOUNDARY_EDIT_ENABLED ? (
-                    <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
+                    <div className="text-[9px] text-[#64748B] mb-1.5">
                       Editing is locked to protect official barangay boundaries.
                     </div>
                   ) : null}
                   {BOUNDARY_EDIT_ENABLED ? (
                     <>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 7 }}>
+                      <div className="flex flex-wrap gap-1.5 mb-[7px]">
                         <button
                           onClick={() => {
                             if (BOUNDARY_EDIT_ENABLED) {
@@ -1215,31 +1131,16 @@ export default function SABarangayMap() {
                             }
                           }}
                           disabled={!BOUNDARY_EDIT_ENABLED}
-                          style={{
-                            border: '1px solid #BFDBFE',
-                            borderRadius: 6,
-                            padding: '5px 8px',
-                            background: boundaryEditMode ? '#DBEAFE' : '#EFF6FF',
-                            color: '#1D4ED8',
-                            fontSize: 10,
-                            fontWeight: 700,
-                            cursor: !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer',
-                            opacity: !BOUNDARY_EDIT_ENABLED ? 0.6 : 1,
-                          }}
+                          className={`border border-[#BFDBFE] rounded-md px-2 py-[5px] text-[10px] font-bold text-[#1D4ED8] ${boundaryEditMode ? 'bg-[#DBEAFE]' : 'bg-[#EFF6FF]'}`}
+                          style={{ cursor: !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer', opacity: !BOUNDARY_EDIT_ENABLED ? 0.6 : 1 }}
                         >
                           {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
                         </button>
                         <button
                           onClick={handleUndoBoundaryPoint}
                           disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
+                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
                           style={{
-                            border: '1px solid #E5E7EB',
-                            borderRadius: 6,
-                            padding: '5px 8px',
-                            background: 'white',
-                            color: '#475569',
-                            fontSize: 10,
-                            fontWeight: 700,
                             cursor: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'not-allowed' : 'pointer',
                             opacity: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 0.6 : 1,
                           }}
@@ -1249,14 +1150,8 @@ export default function SABarangayMap() {
                         <button
                           onClick={handleResetBoundaryPoints}
                           disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
+                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
                           style={{
-                            border: '1px solid #E5E7EB',
-                            borderRadius: 6,
-                            padding: '5px 8px',
-                            background: 'white',
-                            color: '#475569',
-                            fontSize: 10,
-                            fontWeight: 700,
                             cursor: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'not-allowed' : 'pointer',
                             opacity: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 0.6 : 1,
                           }}
@@ -1266,14 +1161,8 @@ export default function SABarangayMap() {
                         <button
                           onClick={handleApplyPointsToDraft}
                           disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
+                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
                           style={{
-                            border: '1px solid #E5E7EB',
-                            borderRadius: 6,
-                            padding: '5px 8px',
-                            background: 'white',
-                            color: '#475569',
-                            fontSize: 10,
-                            fontWeight: 700,
                             cursor: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'not-allowed' : 'pointer',
                             opacity: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 0.6 : 1,
                           }}
@@ -1281,7 +1170,7 @@ export default function SABarangayMap() {
                           Apply Points to JSON
                         </button>
                       </div>
-                      <div style={{ color: '#64748B', fontSize: 9, marginBottom: 6 }}>
+                      <div className="text-[9px] text-[#64748B] mb-1.5">
                         {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
                       </div>
                     </>
@@ -1294,24 +1183,13 @@ export default function SABarangayMap() {
                       }
                     }}
                     readOnly={!BOUNDARY_EDIT_ENABLED}
-                    style={{
-                      width: '100%',
-                      minHeight: 120,
-                      border: '1px solid #DBEAFE',
-                      borderRadius: 8,
-                      padding: '8px 10px',
-                      fontSize: 10,
-                      fontFamily: 'monospace',
-                      color: '#334155',
-                      boxSizing: 'border-box',
-                      background: '#F8FAFF',
-                    }}
+                    className="w-full min-h-[120px] border border-[#DBEAFE] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[#334155] box-border bg-[#F8FAFF]"
                   />
                   {boundaryError ? (
-                    <div style={{ color: '#B91C1C', fontSize: 10, marginTop: 5 }}>{boundaryError}</div>
+                    <div className="text-[10px] text-severity-critical mt-[5px]">{boundaryError}</div>
                   ) : null}
                   {boundaryMessage ? (
-                    <div style={{ color: '#059669', fontSize: 10, marginTop: 5 }}>{boundaryMessage}</div>
+                    <div className="text-[10px] text-[#059669] mt-[5px]">{boundaryMessage}</div>
                   ) : null}
                   {BOUNDARY_EDIT_ENABLED ? (
                     <button
@@ -1319,18 +1197,8 @@ export default function SABarangayMap() {
                         void handleSaveBoundary();
                       }}
                       disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
+                      className="mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold"
                       style={{
-                        marginTop: 7,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        border: 'none',
-                        borderRadius: 7,
-                        padding: '7px 10px',
-                        background: '#1E3A8A',
-                        color: 'white',
-                        fontSize: 11,
-                        fontWeight: 700,
                         cursor: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer',
                         opacity: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 0.7 : 1,
                       }}
@@ -1342,62 +1210,51 @@ export default function SABarangayMap() {
               </div>
             </div>
           ) : (
-            <div style={{
-              background: 'white', borderRadius: 14, padding: 20,
-              boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minHeight: 140,
-              justifyContent: 'center',
-            }}>
+            <div className="bg-white rounded-[14px] p-5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB] flex flex-col items-center gap-2 min-h-[140px] justify-center">
               <MapPin size={28} color="#D1D5DB" />
-              <div style={{ color: '#9CA3AF', fontSize: 12, textAlign: 'center' }}>
+              <div className="text-xs text-[#9CA3AF] text-center">
                 Click a barangay boundary on the map to view details
               </div>
             </div>
           )}
 
           {/* Active incidents list */}
-          <div style={{
-            background: 'white', borderRadius: 14, padding: 16,
-            boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB', flex: 1,
-            display: 'flex', flexDirection: 'column',
-          }}>
-            <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700, marginBottom: 10 }}>
+          <div className="bg-white rounded-[14px] p-4 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB] flex-1 flex flex-col">
+            <div className="text-sm font-bold text-[#0F172A] mb-2.5">
               {selectedBrgy ? `${selectedBrgy.name} Incidents` : 'All Active Incidents'}
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7, maxHeight: 260 }}>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-[7px] max-h-[260px]">
               {filteredIncidents
                 .filter(inc => !selectedBrgy || inc.barangay === selectedBrgy.name)
                 .map(inc => {
                   const color = INCIDENT_COLORS[inc.type] ?? '#6B7280';
                   const sevBg: Record<string, string> = { critical: '#FEE2E2', high: '#FFEDD5', medium: '#FEF3C7', low: '#D1FAE5' };
-                  const sevCol: Record<string, string> = { critical: '#B91C1C', high: '#EA580C', medium: '#B4730A', low: '#059669' };
+                  const sevCol: Record<string, string> = { critical: 'var(--severity-critical)', high: '#EA580C', medium: 'var(--severity-medium)', low: '#059669' };
                   const isSel = selectedIncident?.id === inc.id;
                   return (
                     <div
                       key={inc.id}
                       onClick={() => setSelectedIncident(isSel ? null : inc)}
+                      className="flex items-center gap-[9px] px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-[150ms]"
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px',
-                        borderRadius: 8, cursor: 'pointer',
                         background: isSel ? `${color}12` : '#F9FAFB',
                         border: `1px solid ${isSel ? color + '40' : '#F3F4F6'}`,
-                        transition: 'all .15s',
                       }}
                     >
-                      <div style={{
-                        width: 26, height: 26, borderRadius: 6, background: color, flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
-                      }}>
+                      <div
+                        className="w-[26px] h-[26px] rounded-md shrink-0 flex items-center justify-center text-xs"
+                        style={{ background: color }}
+                      >
                         {getIncidentTypeIcon(inc.type, 12, '#FFFFFF')}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ color: '#1E293B', fontSize: 11, fontWeight: 600 }}>{inc.label}</div>
-                        <div style={{ color: '#9CA3AF', fontSize: 10 }}>{inc.barangay}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-semibold text-[#1E293B]">{inc.label}</div>
+                        <div className="text-[10px] text-[#9CA3AF]">{inc.barangay}</div>
                       </div>
-                      <div style={{
-                        background: sevBg[inc.severity], color: sevCol[inc.severity],
-                        fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 4, textTransform: 'capitalize',
-                      }}>{inc.severity}</div>
+                      <div
+                        className="text-[9px] font-bold px-[5px] py-0.5 rounded capitalize"
+                        style={{ background: sevBg[inc.severity], color: sevCol[inc.severity] }}
+                      >{inc.severity}</div>
                     </div>
                   );
                 })}
@@ -1405,7 +1262,7 @@ export default function SABarangayMap() {
           </div>
 
           {/* Quick barangay buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="flex flex-col gap-1.5">
             {barangaysData.map(b => {
               const al = alertLevelConfig[b.alertLevel];
               const isSel = selectedBarangay === b.id;
@@ -1413,27 +1270,25 @@ export default function SABarangayMap() {
                 <button
                   key={b.id}
                   onClick={() => setSelectedBarangay(isSel ? null : b.id)}
+                  className="flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none"
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
                     background: isSel ? `${b.color}14` : 'white',
                     border: `1px solid ${isSel ? b.color + '50' : '#E5E7EB'}`,
-                    borderRadius: 10, padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
-                    boxShadow: 'none',
                   }}
                 >
-                  <div style={{ width: 10, height: 10, borderRadius: 3, background: b.color, flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: '#0F172A', fontSize: 12, fontWeight: 600 }}>{b.name}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 10 }}>
+                  <div className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: b.color }} />
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-[#0F172A]">{b.name}</div>
+                    <div className="text-[10px] text-[#9CA3AF]">
                       {b.center[0].toFixed(4)}°N, {b.center[1].toFixed(4)}°E
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{
-                      background: al.bg, color: al.color,
-                      fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
-                    }}>{al.label}</span>
-                    <span style={{ color: '#374151', fontSize: 11, fontWeight: 700 }}>{b.activeIncidents}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="text-[9px] font-bold px-[5px] py-0.5 rounded-[3px]"
+                      style={{ background: al.bg, color: al.color }}
+                    >{al.label}</span>
+                    <span className="text-[11px] font-bold text-[#374151]">{b.activeIncidents}</span>
                     <AlertTriangle size={10} color="#9CA3AF" />
                   </div>
                 </button>
@@ -1444,17 +1299,14 @@ export default function SABarangayMap() {
       </div>
 
       {/* Comparison table */}
-      <div style={{
-        background: 'white', borderRadius: 14, padding: '18px 20px', marginTop: 14,
-        boxShadow: '0 1px 6px rgba(0,0,0,.07)', border: '1px solid #E5E7EB',
-      }}>
-        <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>Barangay Comparison Summary</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <div className="bg-white rounded-[14px] px-5 py-[18px] mt-3.5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB]">
+        <div className="text-[15px] font-bold text-[#0F172A] mb-3.5">Barangay Comparison Summary</div>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
             <thead>
-              <tr style={{ borderBottom: '2px solid #F3F4F6' }}>
+              <tr className="border-b-2 border-[#F3F4F6]">
                 {['Barangay', 'District', 'Population', 'Area', 'Captain', 'Alert Level', 'Active', 'Response Rate', 'Avg Response', 'OSM Center'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: '#9CA3AF', fontWeight: 600, fontSize: 10, whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} className="px-3 py-2 text-left text-[#9CA3AF] font-semibold text-[10px] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1464,39 +1316,39 @@ export default function SABarangayMap() {
                 return (
                   <tr
                     key={b.id}
+                    className="cursor-pointer"
                     style={{
                       borderBottom: i < barangaysData.length - 1 ? '1px solid #F9FAFB' : 'none',
                       background: selectedBarangay === b.id ? `${b.color}08` : 'transparent',
-                      cursor: 'pointer',
                     }}
                     onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
                   >
-                    <td style={{ padding: '10px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: 2, background: b.color, flexShrink: 0 }} />
-                        <span style={{ color: '#0F172A', fontWeight: 600 }}>{b.name}</span>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-[2px] shrink-0" style={{ background: b.color }} />
+                        <span className="text-[#0F172A] font-semibold">{b.name}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#6B7280' }}>{b.district}</td>
-                    <td style={{ padding: '10px 12px', color: '#374151', fontWeight: 600 }}>{b.population.toLocaleString()}</td>
-                    <td style={{ padding: '10px 12px', color: '#6B7280' }}>{b.area}</td>
-                    <td style={{ padding: '10px 12px', color: '#374151' }}>{b.captain}</td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{ background: al.bg, color: al.color, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{al.label}</span>
+                    <td className="px-3 py-2.5 text-[#6B7280]">{b.district}</td>
+                    <td className="px-3 py-2.5 text-[#374151] font-semibold">{b.population.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-[#6B7280]">{b.area}</td>
+                    <td className="px-3 py-2.5 text-[#374151]">{b.captain}</td>
+                    <td className="px-3 py-2.5">
+                      <span className="text-[10px] font-bold px-[7px] py-0.5 rounded" style={{ background: al.bg, color: al.color }}>{al.label}</span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: b.activeIncidents > 8 ? '#B91C1C' : '#374151', fontWeight: 700 }}>{b.activeIncidents}</td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ width: 60, height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${b.responseRate}%`, background: b.responseRate >= 90 ? '#059669' : '#B4730A', borderRadius: 3 }} />
+                    <td className="px-3 py-2.5 font-bold" style={{ color: b.activeIncidents > 8 ? 'var(--severity-critical)' : '#374151' }}>{b.activeIncidents}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-[60px] h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
+                          <div style={{ height: '100%', width: `${b.responseRate}%`, background: b.responseRate >= 90 ? '#059669' : 'var(--severity-medium)', borderRadius: 3 }} />
                         </div>
-                        <span style={{ color: '#374151', fontWeight: 600 }}>{b.responseRate}%</span>
+                        <span className="text-[#374151] font-semibold">{b.responseRate}%</span>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 12px', color: b.avgResponseMin > 10 ? '#B91C1C' : '#059669', fontWeight: 600 }}>
+                    <td className="px-3 py-2.5 font-semibold" style={{ color: b.avgResponseMin > 10 ? 'var(--severity-critical)' : '#059669' }}>
                       {b.avgResponseMin} min
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#6B7280', fontSize: 10, fontFamily: 'monospace' }}>
+                    <td className="px-3 py-2.5 text-[#6B7280] text-[10px] font-mono">
                       {b.center[0].toFixed(4)}°N<br />{b.center[1].toFixed(4)}°E
                     </td>
                   </tr>

@@ -415,7 +415,7 @@ export default function MapView() {
               onClick={() => setPanelOpen(v => !v)}
               className="map-panel-toggle"
             >
-              <Layers size={14} color="#1E3A8A" />
+              <Layers size={14} color="var(--primary)" />
               <span className="map-panel-toggle-text">{panelOpen ? 'Hide' : 'Show'} Panel</span>
             </button>
           )}

@@ -11,10 +11,10 @@ import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
 
-const PRIMARY = '#1E3A8A';
+const PRIMARY = 'var(--primary)';
 
 const ROLE_CONFIG = {
-  'Super Admin': { color: '#1E3A8A', bg: '#DBEAFE', icon: <Shield size={11} /> },
+  'Super Admin': { color: 'var(--primary)', bg: '#DBEAFE', icon: <Shield size={11} /> },
   'Barangay Admin': { color: '#1D4ED8', bg: '#DBEAFE', icon: <Users size={11} /> },
   'Viewer': { color: '#374151', bg: '#F3F4F6', icon: <Eye size={11} /> },
 } as const;
@@ -148,7 +148,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         style={{ animation: 'modal-in 0.2s ease' }}
       >
         {/* Modal header */}
-        <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-[#1E3A8A] rounded-t-2xl">
+        <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
           <div className="flex items-center gap-[10px]">
             <div className="w-8 h-8 rounded-lg bg-[rgba(255,255,255,0.15)] flex items-center justify-center">
               <Users size={16} color="#BFDBFE" />
@@ -185,7 +185,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           )}
 
           {error ? (
-            <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-[#B91C1C] text-xs px-[10px] py-2">
+            <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-severity-critical text-xs px-[10px] py-2">
               {error}
             </div>
           ) : null}
@@ -323,7 +323,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 });
               }}
               disabled={saving}
-              className="px-[18px] py-[9px] border-0 rounded-lg bg-[#1E3A8A] text-white text-[13px] font-semibold"
+              className="px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold"
               style={{ cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}
             >
               {saving ? 'Saving...' : isCreateMode ? 'Create User' : 'Save Changes'}
@@ -559,7 +559,7 @@ export default function SAUsers() {
               setModalSaving(false);
               setModal({ user: null, mode: 'create' });
             }}
-            className="flex items-center gap-[6px] bg-[#1E3A8A] border-0 rounded-lg px-4 py-2 cursor-pointer text-xs font-semibold text-white"
+            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-xs font-semibold text-white"
           >
             <Plus size={14} /> Add User
           </button>
@@ -567,7 +567,7 @@ export default function SAUsers() {
       </div>
 
       {apiError ? (
-        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-[10px] text-[#B91C1C] text-xs">
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-[10px] text-severity-critical text-xs">
           {apiError}
         </div>
       ) : null}
@@ -650,7 +650,7 @@ export default function SAUsers() {
           </button>
           <button
             onClick={() => { void handleBulkStatusUpdate('inactive'); }}
-            className="px-3 py-[5px] bg-[#B4730A] border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
+            className="px-3 py-[5px] bg-severity-medium border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
             <UserX size={12} /> Deactivate
           </button>

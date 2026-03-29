@@ -48,9 +48,9 @@ export function CitizenNotificationBellTrigger({ unreadCount, onClick }: Citizen
             minWidth: 18,
             height: 18,
             borderRadius: 999,
-            background: '#B91C1C',
+            background: 'var(--severity-critical)',
             color: '#FFFFFF',
-            border: '1.5px solid #1E3A8A',
+            border: '1.5px solid var(--primary)',
             fontSize: 10,
             lineHeight: '16px',
             fontWeight: 700,
@@ -111,7 +111,7 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
         <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
         <span
           style={{
-            background: '#B91C1C',
+            background: 'var(--severity-critical)',
             color: '#fff',
             borderRadius: 20,
             padding: '1px 7px',

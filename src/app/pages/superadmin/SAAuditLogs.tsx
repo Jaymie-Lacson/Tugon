@@ -346,7 +346,7 @@ export default function SAAuditLogs() {
                 >
                   <td className="px-3 py-2.5 text-slate-700 whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
                   <td className="px-3 py-2.5">
-                    <span className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-[14px] bg-blue-100 text-[#1E3A8A] font-bold text-[10px]">
+                    <span className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-[14px] bg-blue-100 text-primary font-bold text-[10px]">
                       <Activity size={10} /> {log.action}
                     </span>
                   </td>

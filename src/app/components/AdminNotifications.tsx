@@ -97,7 +97,7 @@ export function AdminNotifications({
               minWidth: 18,
               height: 18,
               borderRadius: 9,
-              background: '#B91C1C',
+              background: 'var(--severity-critical)',
               color: '#fff',
               fontSize: 10,
               fontWeight: 700,
@@ -148,7 +148,7 @@ export function AdminNotifications({
               style={{
                 border: 'none',
                 background: 'transparent',
-                color: unreadCount === 0 ? '#94A3B8' : '#1E3A8A',
+                color: unreadCount === 0 ? '#94A3B8' : 'var(--primary)',
                 fontSize: 11,
                 fontWeight: 700,
                 cursor: unreadCount === 0 ? 'default' : 'pointer',
@@ -190,7 +190,7 @@ export function AdminNotifications({
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700, flex: 1 }}>{item.title}</span>
                       {isUnread ? (
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B91C1C', flexShrink: 0 }} />
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--severity-critical)', flexShrink: 0 }} />
                       ) : null}
                     </div>
                     <div style={{ color: '#334155', fontSize: 12, lineHeight: 1.35 }}>{item.message}</div>

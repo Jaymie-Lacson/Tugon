@@ -13,7 +13,7 @@ import type { Incident } from '../../data/incidents';
 
 const TYPE_COLORS: Record<string, string> = {
   flood: '#1D4ED8',
-  accident: '#B4730A',
+  accident: 'var(--severity-medium)',
   medical: '#0F766E',
   crime: '#7C3AED',
   infrastructure: '#374151',
@@ -168,10 +168,10 @@ export default function SAAnalytics() {
       ) : null}
 
       <div className="sa-analytics-stats grid mb-4" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <StatCard label="Total Reports" value={kpis.total} color="#1E3A8A" />
-        <StatCard label="Open Reports" value={kpis.active} color="#B91C1C" />
+        <StatCard label="Total Reports" value={kpis.total} color="var(--primary)" />
+        <StatCard label="Open Reports" value={kpis.active} color="var(--severity-critical)" />
         <StatCard label="Resolved Reports" value={kpis.resolved} color="#059669" />
-        <StatCard label="Avg Response" value={kpis.avgResponseLabel} color="#B4730A" />
+        <StatCard label="Avg Response" value={kpis.avgResponseLabel} color="var(--severity-medium)" />
       </div>
 
       <div className="sa-analytics-grid grid" style={{ gridTemplateColumns: '1fr 340px', gap: 14 }}>
@@ -183,7 +183,7 @@ export default function SAAnalytics() {
               <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip />
-              <Bar dataKey="reports" fill="#1E3A8A" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="reports" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -205,7 +205,7 @@ export default function SAAnalytics() {
 
       <div className="mt-3.5 bg-white rounded-[14px] px-[18px] py-3.5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
         <div className="flex items-center gap-2 text-slate-900 text-[13px] font-bold mb-2">
-          <AlertTriangle size={14} color="#B4730A" />
+          <AlertTriangle size={14} color="var(--severity-medium)" />
           Reporting Health
         </div>
         <div className="text-slate-500 text-xs leading-[1.5]">

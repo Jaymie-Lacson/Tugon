@@ -53,7 +53,7 @@ type MonitoringItem = {
 };
 
 function getMonitoringColor(incidents: number): string {
-  if (incidents >= 10) return '#B91C1C';
+  if (incidents >= 10) return 'var(--severity-critical)';
   if (incidents >= 5) return '#F59E0B';
   return '#22C55E';
 }

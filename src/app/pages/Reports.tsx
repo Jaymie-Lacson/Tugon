@@ -22,7 +22,7 @@ const REPORT_TEMPLATES = [
     title: 'Daily Operations Report',
     description: 'Comprehensive summary of all incidents, responses, and resolutions for the operational day.',
     category: 'Operations',
-    color: '#1E3A8A',
+    color: 'var(--primary)',
     bg: '#EFF6FF',
     frequency: 'Daily',
   },
@@ -32,7 +32,7 @@ const REPORT_TEMPLATES = [
     title: 'Incident Summary Report',
     description: 'Statistical breakdown of incidents by type, severity, barangay, and resolution status.',
     category: 'Statistical',
-    color: '#B4730A',
+    color: 'var(--severity-medium)',
     bg: '#FEF3C7',
     frequency: 'Weekly',
   },
@@ -52,7 +52,7 @@ const REPORT_TEMPLATES = [
     title: 'Critical Incident Report',
     description: 'Detailed after-action reports for critical severity incidents requiring executive review.',
     category: 'Executive',
-    color: '#B91C1C',
+    color: 'var(--severity-critical)',
     bg: '#FEE2E2',
     frequency: 'Per incident',
   },
@@ -222,13 +222,13 @@ interface DSSRecommendation {
 
 function getRecommendationStyle(priority: RecommendationPriority): Pick<DSSRecommendation, 'icon' | 'color' | 'bg'> {
   if (priority === 'critical') {
-    return { icon: <ShieldAlert size={16} />, color: '#B91C1C', bg: '#FEE2E2' };
+    return { icon: <ShieldAlert size={16} />, color: 'var(--severity-critical)', bg: '#FEE2E2' };
   }
   if (priority === 'high') {
     return { icon: <CloudRain size={16} />, color: '#1D4ED8', bg: '#EFF6FF' };
   }
   if (priority === 'medium') {
-    return { icon: <Users size={16} />, color: '#B4730A', bg: '#FEF3C7' };
+    return { icon: <Users size={16} />, color: 'var(--severity-medium)', bg: '#FEF3C7' };
   }
   return { icon: <TrendingUp size={16} />, color: '#059669', bg: '#D1FAE5' };
 }
@@ -337,7 +337,7 @@ function mapApiRecommendationsToUi(recommendations: ApiDssRecommendation[]): DSS
 }
 
 const priorityStyle = {
-  critical: { color: '#B91C1C', bg: '#FEE2E2', label: 'CRITICAL' },
+  critical: { color: 'var(--severity-critical)', bg: '#FEE2E2', label: 'CRITICAL' },
   high: { color: '#C2410C', bg: '#FFEDD5', label: 'HIGH PRIORITY' },
   medium: { color: '#92400E', bg: '#FEF3C7', label: 'MEDIUM' },
   info: { color: '#065F46', bg: '#D1FAE5', label: 'INSIGHT' },
@@ -792,7 +792,7 @@ export default function Reports() {
             onClick={() => setActiveTab(tab.key as any)}
             className={`flex items-center gap-1.5 whitespace-nowrap rounded-[7px] border-none px-4 py-2 text-xs transition-all duration-150 cursor-pointer ${
               activeTab === tab.key
-                ? 'bg-[#1E3A8A] font-bold text-white'
+                ? 'bg-primary font-bold text-white'
                 : 'bg-transparent font-medium text-slate-500'
             }`}
           >
@@ -850,8 +850,8 @@ export default function Reports() {
           {/* Stats row */}
           <div className="mb-4 flex flex-wrap gap-2.5">
             {[
-              { label: 'Active Recommendations', value: visibleDssRecommendations.length, color: '#1E3A8A', bg: '#EFF6FF' },
-              { label: 'Pending Actions', value: dssActionCount, color: '#B4730A', bg: '#FEF3C7' },
+              { label: 'Active Recommendations', value: visibleDssRecommendations.length, color: 'var(--primary)', bg: '#EFF6FF' },
+              { label: 'Pending Actions', value: dssActionCount, color: 'var(--severity-medium)', bg: '#FEF3C7' },
               { label: 'Resolved This Week', value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: 'Avg. Confidence Score', value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
@@ -865,7 +865,7 @@ export default function Reports() {
           {/* Recommendations */}
           <div>
             <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
-              <Lightbulb size={15} color="#B4730A" />
+              <Lightbulb size={15} color="var(--severity-medium)" />
               Current Recommendations
             </div>
               {visibleDssRecommendations.length > 0 ? (
@@ -925,7 +925,7 @@ export default function Reports() {
                   </div>
                   <div className="report-template-actions flex flex-col items-stretch gap-2">
                     <div className="report-template-secondary-actions grid grid-cols-2 gap-2">
-                      <button onClick={() => { void handleTemplateDownload(t.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
+                      <button onClick={() => { void handleTemplateDownload(t.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-primary cursor-pointer">
                         <Download size={14} /> Download
                       </button>
                       <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -985,7 +985,7 @@ export default function Reports() {
                       <td className="px-3.5 py-[11px] text-slate-600">{historyItem.fileName}</td>
                       <td className="px-3.5 py-[11px]">
                         <div className="flex gap-1.5">
-                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-[#1E3A8A] cursor-pointer">
+                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
                             <Download size={11} /> Download
                           </button>
                           <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] text-[11px] font-semibold text-slate-700 cursor-pointer">
@@ -1013,7 +1013,7 @@ export default function Reports() {
                     <div className="break-words text-[11px] text-slate-500"><strong>File:</strong> {historyItem.fileName}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
+                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
                       <Download size={12} /> Download
                     </button>
                     <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -1077,7 +1077,7 @@ export default function Reports() {
                   <td className="px-3.5 py-[11px] text-slate-500">{r.size}</td>
                   <td className="px-3.5 py-[11px]">
                     <div className="flex gap-1.5">
-                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-[#1E3A8A] cursor-pointer">
+                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
                         <Download size={11} /> Download
                       </button>
                       <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer">
@@ -1117,7 +1117,7 @@ export default function Reports() {
                   <div className="text-[11px] text-slate-500"><strong>Evidence:</strong> {reportItem.size}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-[#1E3A8A] cursor-pointer">
+                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
                     <Download size={12} /> Download
                   </button>
                   <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">

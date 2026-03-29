@@ -17,7 +17,7 @@ import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 
-const PRIMARY = '#1E3A8A';
+const PRIMARY = 'var(--primary)';
 
 type BarangayOverviewCard = {
   id: string;
@@ -56,7 +56,7 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
         {trend !== undefined && (
           <div
             className="flex items-center gap-[3px] text-[11px] font-semibold"
-            style={{ color: isUp ? '#B91C1C' : '#059669' }}
+            style={{ color: isUp ? 'var(--severity-critical)' : '#059669' }}
           >
             {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(trend)}%
@@ -75,14 +75,14 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
   normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
-  elevated: { label: 'ELEVATED', color: '#B4730A', bg: '#FEF3C7' },
-  critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
+  elevated: { label: 'ELEVATED', color: 'var(--severity-medium)', bg: '#FEF3C7' },
+  critical: { label: 'CRITICAL', color: 'var(--severity-critical)', bg: '#FEE2E2' },
 };
 
 const logTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = {
-  incident: { icon: <AlertTriangle size={13} />, color: '#B91C1C' },
+  incident: { icon: <AlertTriangle size={13} />, color: 'var(--severity-critical)' },
   user:     { icon: <Users size={13} />,         color: '#1D4ED8' },
-  alert:    { icon: <Bell size={13} />,           color: '#B4730A' },
+  alert:    { icon: <Bell size={13} />,           color: 'var(--severity-medium)' },
   system:   { icon: <Server size={13} />,         color: '#0F766E' },
 };
 
@@ -201,7 +201,7 @@ export default function SAOverview() {
       const colorByCode: Record<string, string> = {
         '251': '#1D4ED8',
         '252': '#0F766E',
-        '256': '#B4730A',
+        '256': 'var(--severity-medium)',
       };
 
       const nextCards = payload.barangays
@@ -228,7 +228,7 @@ export default function SAOverview() {
             avgResponseMin: 0,
             responders: barangay.officialCount,
             registeredUsers: barangay.citizenCount,
-            color: colorByCode[barangay.code] ?? '#1E3A8A',
+            color: colorByCode[barangay.code] ?? 'var(--primary)',
             alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
           } as BarangayOverviewCard;
         });
@@ -319,7 +319,7 @@ export default function SAOverview() {
       <div className="sa-overview-header flex items-center justify-between mb-5 gap-[10px]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-[#1E3A8A] text-[10px] font-bold tracking-[0.08em] uppercase">
+            <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-primary text-[10px] font-bold tracking-[0.08em] uppercase">
               Super Admin
             </div>
             <div className="text-[#6B7280] text-xs">Multi-Barangay Overview</div>
@@ -344,7 +344,7 @@ export default function SAOverview() {
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
-            className="flex items-center gap-[6px] bg-[#1E3A8A] border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold"
+            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold"
           >
             View Analytics
             <ArrowRight size={13} />
@@ -353,7 +353,7 @@ export default function SAOverview() {
       </div>
 
       {summaryError ? (
-        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-[#B91C1C] text-xs px-3 py-[10px]">
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-[10px]">
           {summaryError}
         </div>
       ) : null}
@@ -365,7 +365,7 @@ export default function SAOverview() {
           value={total}
           sub="Across Brgy 251, 252, 256"
           icon={<AlertTriangle />}
-          color="#B91C1C"
+          color="var(--severity-critical)"
           trend={activeTrendPercent}
           trendLabel={`${openedToday} new reports today`}
         />
@@ -382,7 +382,7 @@ export default function SAOverview() {
           value={avgResponseLabel}
           sub="Target: ≤ 10 min"
           icon={<Clock />}
-          color="#B4730A"
+          color="var(--severity-medium)"
           trendLabel="Computed from responded incidents"
         />
         <KPICard
@@ -433,10 +433,10 @@ export default function SAOverview() {
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   {[
-                    { label: 'Active',     value: b.activeIncidents,   color: '#B91C1C' },
+                    { label: 'Active',     value: b.activeIncidents,   color: 'var(--severity-critical)' },
                     { label: 'This Month', value: b.totalThisMonth,    color: '#1D4ED8' },
                     { label: 'Resolved',   value: b.resolvedThisMonth, color: '#059669' },
-                    { label: 'Resp. Rate', value: `${b.responseRate}%`, color: '#B4730A' },
+                    { label: 'Resp. Rate', value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
                     <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
                       <div className="text-[17px] font-bold leading-none" style={{ color: s.color }}>{s.value}</div>
@@ -451,7 +451,7 @@ export default function SAOverview() {
                     <span className="text-[#6B7280] text-[11px]">Avg Response Time</span>
                     <span
                       className="text-[11px] font-semibold"
-                      style={{ color: b.responseRate < 90 ? '#B4730A' : '#059669' }}
+                      style={{ color: b.responseRate < 90 ? 'var(--severity-medium)' : '#059669' }}
                     >{b.responseRate}%</span>
                   </div>
                   <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
@@ -459,7 +459,7 @@ export default function SAOverview() {
                       className="h-full rounded-[3px]"
                       style={{
                         width: `${b.responseRate}%`,
-                        background: b.responseRate < 90 ? '#B4730A' : '#059669',
+                        background: b.responseRate < 90 ? 'var(--severity-medium)' : '#059669',
                       }}
                     />
                   </div>
@@ -519,7 +519,7 @@ export default function SAOverview() {
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#6B7280' }} />
               <Bar dataKey="brgy251" name="Brgy 251" fill="#1D4ED8" radius={[3, 3, 0, 0]} />
               <Bar dataKey="brgy252" name="Brgy 252" fill="#0F766E" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="brgy256" name="Brgy 256" fill="#B4730A" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="brgy256" name="Brgy 256" fill="var(--severity-medium)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -585,7 +585,7 @@ export default function SAOverview() {
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
-              className="flex items-center gap-[5px] bg-[#1E3A8A] text-white border-0 rounded-[7px] px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
+              className="flex items-center gap-[5px] bg-primary text-white border-0 rounded-[7px] px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
               Full Map <ArrowRight size={11} />
             </button>
