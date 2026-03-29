@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["terminal"]
+agent: "agent"
+tools: ["runCommands"]
 description: "Run full production validation (Prisma validate/generate, backend build, frontend build)."
 ---
 Run the production validation pipeline for TUGON in this order:

@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["codebase", "terminal"]
+agent: "agent"
+tools: ["codebase", "runCommands"]
 description: "UI/UX planning and implementation using the ui-ux-pro-max skill guidance."
 ---
 Use a UI/UX-first workflow for requested interface work.

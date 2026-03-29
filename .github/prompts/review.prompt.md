@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["codebase", "terminal"]
+agent: "agent"
+tools: ["codebase", "runCommands"]
 description: "Pre-commit review of staged and unstaged changes against TUGON rules and quality checks."
 ---
 Perform a pre-commit review of current changes.

@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["terminal", "codebase"]
+agent: "agent"
+tools: ["runCommands", "codebase"]
 description: "Safely run Prisma migration status, deploy, or create migration with confirmations."
 ---
 Manage Prisma migrations for TUGON safely.

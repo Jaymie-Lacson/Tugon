@@ -1,5 +1,5 @@
 ---
-mode: "agent"
+agent: "agent"
 tools: ["codebase"]
 description: "Audit a page/component for mobile responsiveness and TUGON citizen UX constraints."
 ---

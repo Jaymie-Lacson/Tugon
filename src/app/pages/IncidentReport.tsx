@@ -70,9 +70,6 @@ const CATEGORIES: {
 const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
 
 type LatLng = [number, number];
-type LngLat = [number, number];
-
-const EDGE_EPSILON = 1e-6;
 
 const TONDO_MAP_CENTER: LatLng = [14.61515, 120.97805];
 const TONDO_MAP_BOUNDS: [LatLng, LatLng] = [
@@ -288,8 +285,7 @@ function Step2FitToBoundaryBounds() {
 function StepIndicator({ current }: { current: number }) {
   return (
     <div
-      className="citizen-web-strip bg-white border-b border-slate-200"
-      style={{ position: 'sticky', top: 60, zIndex: 40, paddingTop: 12, paddingBottom: 10 }}
+      className="citizen-web-strip sticky top-[60px] z-40 bg-white border-b border-slate-200 pt-3 pb-2.5"
     >
       <div className="citizen-web-strip-inner flex items-start">
         {STEP_LABELS.map((label, i) => {
@@ -299,31 +295,30 @@ function StepIndicator({ current }: { current: number }) {
           return (
             <React.Fragment key={s}>
               <div className="flex flex-col items-center gap-1">
-                <div style={{
-                  width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                  background: done ? 'var(--primary)' : active ? 'var(--primary)' : '#F1F5F9',
-                  color: done || active ? '#fff' : '#94A3B8',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 700,
-                  border: active ? '2.5px solid #60A5FA' : done ? '2.5px solid var(--primary)' : '2px solid #E2E8F0',
-                  boxShadow: 'none',
-                  transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                }}>
+                <div
+                  className={[
+                    'size-8 shrink-0 rounded-[9px] flex items-center justify-center text-xs font-bold transition-all duration-300 ease-out',
+                    done
+                      ? 'bg-primary text-white border-[2.5px] border-primary'
+                      : active
+                        ? 'bg-primary text-white border-[2.5px] border-[#60A5FA]'
+                        : 'bg-[#F1F5F9] text-[#94A3B8] border-2 border-[#E2E8F0]',
+                  ].join(' ')}
+                >
                   {done ? <Check size={14} strokeWidth={3} /> : s}
                 </div>
-                <span style={{
-                  fontSize: 9, fontWeight: active ? 700 : 500, whiteSpace: 'nowrap',
-                  color: active ? 'var(--primary)' : done ? '#64748B' : '#CBD5E1',
-                  letterSpacing: '0.02em',
-                }}>{label}</span>
+                <span
+                  className={[
+                    'text-[9px] whitespace-nowrap tracking-[0.02em]',
+                    active ? 'font-bold text-primary' : done ? 'font-medium text-[#64748B]' : 'font-medium text-[#CBD5E1]',
+                  ].join(' ')}
+                >
+                  {label}
+                </span>
               </div>
               {i < STEP_LABELS.length - 1 && (
                 <div className="flex-1 h-[2.5px] mt-[14px] mx-[3px] rounded overflow-hidden bg-slate-200">
-                  <div style={{
-                    height: '100%', width: done ? '100%' : '0%',
-                    background: 'var(--primary)',
-                    transition: 'width 0.4s ease',
-                  }} />
+                  <div className={[`h-full bg-primary transition-[width] duration-300 ease-out`, done ? 'w-full' : 'w-0'].join(' ')} />
                 </div>
               )}
             </React.Fragment>
@@ -332,6 +327,78 @@ function StepIndicator({ current }: { current: number }) {
       </div>
     </div>
   );
+}
+
+function getCategoryThemeClasses(type: IncidentCategory) {
+  if (type === 'Pollution') {
+    return {
+      selectedCard: 'bg-[#0F766E] border-[#0F766E]',
+      unselectedHalo: 'bg-[#CCFBF1]',
+      unselectedIcon: 'bg-[#CCFBF1] text-[#0F766E]',
+    };
+  }
+  if (type === 'Noise') {
+    return {
+      selectedCard: 'bg-[#7C3AED] border-[#7C3AED]',
+      unselectedHalo: 'bg-[#EDE9FE]',
+      unselectedIcon: 'bg-[#EDE9FE] text-[#7C3AED]',
+    };
+  }
+  if (type === 'Crime') {
+    return {
+      selectedCard: 'bg-primary border-primary',
+      unselectedHalo: 'bg-[#DBEAFE]',
+      unselectedIcon: 'bg-[#DBEAFE] text-primary',
+    };
+  }
+  if (type === 'Road Hazard') {
+    return {
+      selectedCard: 'bg-[var(--severity-medium)] border-[var(--severity-medium)]',
+      unselectedHalo: 'bg-[#FEF3C7]',
+      unselectedIcon: 'bg-[#FEF3C7] text-[var(--severity-medium)]',
+    };
+  }
+  return {
+    selectedCard: 'bg-[#475569] border-[#475569]',
+    unselectedHalo: 'bg-[#F1F5F9]',
+    unselectedIcon: 'bg-[#F1F5F9] text-[#475569]',
+  };
+}
+
+function getSeverityButtonClasses(level: Severity, selected: boolean) {
+  const base = 'rounded-xl py-2.5 px-1 border-2 text-[10px] font-bold text-center tracking-[0.01em] transition-all duration-200';
+
+  if (level === 'low') {
+    return [
+      base,
+      selected
+        ? 'border-[#059669] bg-[#D1FAE5] text-[#059669] shadow-[0_2px_10px_rgba(5,150,105,0.19)]'
+        : 'border-[#6EE7B7] bg-white text-[#059669]',
+    ].join(' ');
+  }
+  if (level === 'medium') {
+    return [
+      base,
+      selected
+        ? 'border-[var(--severity-medium)] bg-[#FEF3C7] text-[var(--severity-medium)] shadow-[0_2px_10px_rgba(180,115,10,0.19)]'
+        : 'border-[#FCD34D] bg-white text-[var(--severity-medium)]',
+    ].join(' ');
+  }
+  if (level === 'high') {
+    return [
+      base,
+      selected
+        ? 'border-[#C2410C] bg-[#FFEDD5] text-[#C2410C] shadow-[0_2px_10px_rgba(194,65,12,0.19)]'
+        : 'border-[#FB923C] bg-white text-[#C2410C]',
+    ].join(' ');
+  }
+
+  return [
+    base,
+    selected
+      ? 'border-[var(--severity-critical)] bg-[#FEE2E2] text-[var(--severity-critical)] shadow-[0_2px_10px_rgba(185,28,28,0.19)]'
+      : 'border-[#FCA5A5] bg-white text-[var(--severity-critical)]',
+  ].join(' ');
 }
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -363,8 +430,9 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
 
       {/* Category Cards */}
       <div className="grid grid-cols-2 gap-[10px] mb-3.5">
-        {CATEGORIES.map(({ type, label, icon: Icon, color, bg, desc, emoji }) => {
+        {CATEGORIES.map(({ type, label, icon: Icon, desc }) => {
           const sel = form.category === type;
+          const theme = getCategoryThemeClasses(type);
           return (
             <button
               key={type}
@@ -379,50 +447,38 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                 }));
                 scrollToSection(severitySectionRef);
               }}
-              style={{
-                background: sel ? color : '#fff',
-                border: `2px solid ${sel ? color : '#E8EEF4'}`,
-                borderRadius: 12, padding: '14px 12px 12px',
-                cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                alignItems: 'flex-start', gap: 10, textAlign: 'left',
-                transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                boxShadow: sel ? '0 8px 16px rgba(15,23,42,0.14)' : '0 1px 3px rgba(0,0,0,0.06)',
-                position: 'relative', overflow: 'hidden', minHeight: 124,
-              }}
+              className={[
+                'relative overflow-hidden min-h-[124px] rounded-xl border-2 pt-3.5 px-3 pb-3 text-left flex flex-col items-start gap-2.5 transition-all duration-200 ease-out',
+                sel
+                  ? `${theme.selectedCard} text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]`
+                  : 'bg-white border-[#E8EEF4] text-[#1E293B] shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
+              ].join(' ')}
             >
               {/* Subtle bg pattern for unselected */}
               {!sel && (
-                <div style={{
-                  position: 'absolute', top: -20, right: -20, width: 70, height: 70,
-                  borderRadius: 12, background: bg, opacity: 0.35,
-                }} />
+                <div className={`absolute -top-5 -right-5 size-[70px] rounded-xl opacity-35 ${theme.unselectedHalo}`} />
               )}
               {/* Checkmark badge */}
               {sel && (
-                <div style={{
-                  position: 'absolute', top: 10, right: 10, width: 22, height: 22,
-                  borderRadius: 7, background: 'rgba(255,255,255,0.26)',
-                  border: '1.5px solid rgba(255,255,255,0.5)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div className="absolute top-2.5 right-2.5 size-[22px] rounded-[7px] bg-white/25 border-[1.5px] border-white/50 flex items-center justify-center">
                   <Check size={11} color="#fff" strokeWidth={3} />
                 </div>
               )}
               {/* Icon */}
-              <div style={{
-                width: 46, height: 46, borderRadius: 13,
-                background: sel ? 'rgba(255,255,255,0.22)' : bg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: sel ? '#fff' : color, flexShrink: 0,
-              }}>
+              <div
+                className={[
+                  'size-[46px] rounded-[13px] flex items-center justify-center shrink-0',
+                  sel ? 'bg-white/20 text-white' : theme.unselectedIcon,
+                ].join(' ')}
+              >
                 <Icon size={22} />
               </div>
               {/* Label & desc */}
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ fontWeight: 800, fontSize: 14, color: sel ? '#fff' : '#1E293B', marginBottom: 3, lineHeight: 1.2 }}>
+              <div className="relative z-[1]">
+                <div className={['mb-[3px] text-sm font-extrabold leading-[1.2]', sel ? 'text-white' : 'text-[#1E293B]'].join(' ')}>
                   {label}
                 </div>
-                <div style={{ fontSize: 10, color: sel ? 'rgba(255,255,255,0.78)' : '#94A3B8', lineHeight: 1.45 }}>
+                <div className={['text-[10px] leading-[1.45]', sel ? 'text-white/80' : 'text-[#94A3B8]'].join(' ')}>
                   {desc}
                 </div>
               </div>
@@ -432,11 +488,13 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {/* Severity Row - appears after selecting a type */}
-      <div ref={severitySectionRef} style={{
-        overflow: 'hidden', maxHeight: form.category ? 200 : 0,
-        transition: 'max-height 0.4s ease', opacity: form.category ? 1 : 0,
-        transitionProperty: 'max-height, opacity',
-      }}>
+      <div
+        ref={severitySectionRef}
+        className={[
+          'overflow-hidden transition-all duration-300 ease-out',
+          form.category ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0',
+        ].join(' ')}
+      >
         <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#E2E8F0]">
           <div className="font-bold text-[13px] text-[#1E293B] mb-3 flex items-center gap-1.5">
             <AlertTriangle size={14} color="var(--severity-medium)" /> How severe is this incident?
@@ -456,15 +514,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                     setForm(p => ({ ...p, severity: s.k }));
                     scrollToSection(subcategorySectionRef);
                   }}
-                  style={{
-                    padding: '10px 4px', borderRadius: 12,
-                    border: `2px solid ${sel ? s.color : s.border}`,
-                    background: sel ? s.bg : '#fff',
-                    color: s.color, fontWeight: 700, fontSize: 10,
-                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.18s',
-                    boxShadow: sel ? `0 2px 10px ${s.color}30` : 'none',
-                    letterSpacing: '0.01em',
-                  }}
+                  className={getSeverityButtonClasses(s.k, sel)}
                 >
                   {s.label}
                 </button>
@@ -476,10 +526,12 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
 
       {form.category ? (
         <div ref={subcategorySectionRef} className="mt-3 bg-white border border-[#E2E8F0] rounded-[14px] p-3.5">
-          <label className="block font-bold text-xs text-[#1E293B] mb-2">
+          <label htmlFor="incident-subcategory-select" className="block font-bold text-xs text-[#1E293B] mb-2">
             Select Subcategory
           </label>
           <select
+            id="incident-subcategory-select"
+            title="Select incident subcategory"
             value={form.subcategory ?? ''}
             onChange={(event) => setForm((p) => ({ ...p, subcategory: event.target.value as ReportSubcategory }))}
             className="w-full rounded-[10px] border border-[#CBD5E1] p-[10px_12px] text-xs text-[#1E293B]"
@@ -541,7 +593,6 @@ function Step2({
   const [pinValidationInFlight, setPinValidationInFlight] = useState(false);
   const [pinValidationError, setPinValidationError] = useState<string | null>(null);
   const hasBarangayProfile = allowedBarangays.length > 0;
-  const assignedBarangayLabel = allowedBarangays[0]?.name ?? (userBarangayCode ? `Barangay ${userBarangayCode}` : 'your registered barangay');
   const pinInSupportedArea = isPinWithinSupportedBarangay(form.pin);
   const assignedBarangayCenter = hasBarangayProfile
     ? getBarangayBoundaryCenter(allowedBarangays[0].boundary)
@@ -665,43 +716,24 @@ function Step2({
         </p>
       </div>
 
-      <div className="incident-step2-map-shell" style={{
-        borderRadius: 12, overflow: 'hidden', marginBottom: 12,
-        border: `2px solid ${form.pin ? '#3B82F6' : '#E2E8F0'}`,
-        boxShadow: form.pin ? '0 8px 16px rgba(15,23,42,0.14)' : '0 2px 8px rgba(0,0,0,0.06)',
-        position: 'relative',
-        transition: 'border-color 0.3s, box-shadow 0.3s',
-      }}>
+      <div
+        className={[
+          'incident-step2-map-shell relative overflow-hidden rounded-xl mb-3 border-2 transition-all duration-300',
+          form.pin
+            ? 'border-[#3B82F6] shadow-[0_8px_16px_rgba(15,23,42,0.14)]'
+            : 'border-[#E2E8F0] shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+        ].join(' ')}
+      >
         <button
           type="button"
           onClick={() => setMapExpanded(true)}
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            zIndex: 11,
-            border: '1px solid rgba(255,255,255,0.7)',
-            background: 'rgba(15,23,42,0.72)',
-            color: '#fff',
-            borderRadius: 10,
-            padding: '6px 10px',
-            fontSize: 11,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
+          className="absolute top-2.5 right-2.5 z-[11] border border-white/70 bg-[#0F172AB8] text-white rounded-[10px] py-1.5 px-2.5 text-[11px] font-bold"
         >
           Expand Map
         </button>
 
         {!form.pin && (
-          <div className="incident-step2-map-hint" style={{
-            position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(15,23,42,0.88)', color: '#fff',
-            borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600,
-            pointerEvents: 'none', zIndex: 10,
-            display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-          }}>
+          <div className="incident-step2-map-hint absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#0F172AE0] text-white rounded-lg py-2 px-3.5 text-xs font-semibold pointer-events-none z-10 flex items-center gap-[7px] whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
             <MapPin size={13} /> Tap map to pin location
           </div>
         )}
@@ -709,16 +741,7 @@ function Step2({
       </div>
 
       {mapExpanded ? (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 250,
-            background: '#0B1220',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <div className="fixed inset-0 z-[250] bg-[#0B1220] flex flex-col">
           <div className="flex items-center justify-between gap-3 px-[14px] py-3 text-white border-b border-white/[0.15]">
             <div className="text-[13px] font-bold">Expanded Map Pinning</div>
             <button
@@ -749,20 +772,9 @@ function Step2({
             </div>
           </div>
           <button
-            className="icon-btn-square icon-btn-sm incident-step2-pin-clear"
             onClick={() => setForm(p => ({ ...p, pin: null }))}
             aria-label="Remove selected incident pin"
-            style={{
-              background: 'rgba(0,0,0,0.06)',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              color: '#64748B',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
+            className="icon-btn-square icon-btn-sm incident-step2-pin-clear bg-black/5 text-[#64748B] rounded-lg inline-flex items-center justify-center shrink-0"
           >
             <X size={14} />
           </button>
@@ -772,13 +784,10 @@ function Step2({
         <button
           onClick={() => placePin(assignedBarangayCenter[0], assignedBarangayCenter[1])}
           disabled={!hasBarangayProfile}
-          style={{
-            width: '100%', padding: '13px', borderRadius: 13,
-            border: '1.5px solid #BFDBFE', background: '#EFF6FF',
-            color: 'var(--primary)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            marginBottom: 12, transition: 'all 0.15s', opacity: !hasBarangayProfile ? 0.6 : 1,
-          }}
+          className={[
+            'w-full mb-3 rounded-[13px] border-[1.5px] border-[#BFDBFE] bg-[#EFF6FF] text-primary font-bold text-[13px] flex items-center justify-center gap-2 p-[13px] transition-all duration-150',
+            !hasBarangayProfile ? 'opacity-60' : 'opacity-100',
+          ].join(' ')}
         >
           <Navigation size={15} /> Use My Registered Location
         </button>
@@ -823,15 +832,7 @@ function Step2({
           value={form.address}
           onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
           placeholder="e.g. Near the church, Purok 3, beside the basketball court"
-          style={{
-            width: '100%', padding: '13px 14px', borderRadius: 13,
-            border: '1.5px solid #E2E8F0', fontSize: 13,
-            fontFamily: 'Roboto, sans-serif', outline: 'none',
-            boxSizing: 'border-box', color: '#1E293B', background: '#fff',
-            transition: 'border-color 0.2s',
-          }}
-          onFocus={e => (e.target.style.borderColor = '#3B82F6')}
-          onBlur={e => (e.target.style.borderColor = '#E2E8F0')}
+          className="incident-step2-address-input"
         />
       </div>
 
@@ -857,8 +858,6 @@ function Step3({
   validationError?: string;
 }) {
   const MAX = 500;
-  const charColor = form.description.length >= MAX * 0.9 ? 'var(--severity-critical)' : form.description.length >= MAX * 0.7 ? 'var(--severity-medium)' : '#94A3B8';
-
   const QUICK_TAGS = [
     'People in danger', 'Property damage', 'Road blocked', 'Spreading rapidly',
     'Multiple victims', 'Ongoing situation', 'Needs evacuation', 'Structural damage',
@@ -891,7 +890,7 @@ function Step3({
 
       {/* Tip box */}
       <div className="bg-[#FFFBEB] rounded-xl p-[12px_14px] border border-[#FDE68A] mb-[18px] flex gap-2.5 items-start">
-        <Info size={14} color="var(--severity-medium)" style={{ flexShrink: 0, marginTop: 1 }} />
+        <Info size={14} color="var(--severity-medium)" className="shrink-0 mt-px" />
         <div className="text-xs text-[#92400E] leading-relaxed">
           <strong>Good description:</strong> What is happening, how many people are involved, any immediate danger, and what has already been done.
         </div>
@@ -903,7 +902,16 @@ function Step3({
           <label className="text-[11px] font-bold text-[#475569] uppercase tracking-[0.07em]">
             Incident Description *
           </label>
-          <span style={{ fontSize: 11, color: charColor, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+          <span
+            className={[
+              'text-[11px] font-semibold tabular-nums',
+              form.description.length >= MAX * 0.9
+                ? 'text-[var(--severity-critical)]'
+                : form.description.length >= MAX * 0.7
+                  ? 'text-[var(--severity-medium)]'
+                  : 'text-[#94A3B8]',
+            ].join(' ')}
+          >
             {form.description.length}/{MAX}
           </span>
         </div>
@@ -912,15 +920,10 @@ function Step3({
           onChange={e => { if (e.target.value.length <= MAX) setForm(p => ({ ...p, description: e.target.value })); }}
           placeholder="Describe clearly what you can see or hear. Include any urgent details that responders should know immediately..."
           rows={6}
-          style={{
-            width: '100%', padding: '13px 14px', borderRadius: 14,
-            border: `1.5px solid ${form.description.length >= MAX * 0.9 ? '#FCA5A5' : '#E2E8F0'}`,
-            fontSize: 13, fontFamily: 'Roboto, sans-serif', outline: 'none',
-            resize: 'none', boxSizing: 'border-box', color: '#1E293B', lineHeight: 1.65,
-            transition: 'border-color 0.2s', background: '#fff',
-          }}
-          onFocus={e => { if (form.description.length < MAX * 0.9) e.target.style.borderColor = '#3B82F6'; }}
-          onBlur={e => { e.target.style.borderColor = form.description.length >= MAX * 0.9 ? '#FCA5A5' : '#E2E8F0'; }}
+          className={[
+            'w-full p-[13px_14px] rounded-[14px] border-[1.5px] text-[13px] font-roboto outline-none resize-none box-border text-[#1E293B] leading-[1.65] transition-colors bg-white focus:border-[#3B82F6]',
+            form.description.length >= MAX * 0.9 ? 'border-[#FCA5A5]' : 'border-[#E2E8F0]',
+          ].join(' ')}
         />
       </div>
 
@@ -936,14 +939,12 @@ function Step3({
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
-                style={{
-                  padding: '6px 11px', borderRadius: 20,
-                  border: `1.5px solid ${added ? 'var(--primary)' : '#E2E8F0'}`,
-                  background: added ? '#EFF6FF' : '#F8FAFC',
-                  color: added ? 'var(--primary)' : '#64748B',
-                  fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
-                  boxShadow: added ? '0 1px 4px rgba(30,58,138,0.12)' : 'none',
-                }}
+                className={[
+                  'py-1.5 px-[11px] rounded-[20px] border-[1.5px] text-[11px] font-semibold transition-all duration-200',
+                  added
+                    ? 'border-primary bg-[#EFF6FF] text-primary shadow-[0_1px_4px_rgba(30,58,138,0.12)]'
+                    : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]',
+                ].join(' ')}
               >
                 {added ? 'Selected ' : '+ '}{tag}
               </button>
@@ -981,16 +982,15 @@ function Step3({
               <button
                 key={opt.val}
                 onClick={() => setForm(p => ({ ...p, affectedCount: sel ? null : opt.val }))}
-                style={{
-                  padding: '12px 4px', borderRadius: 12,
-                  border: `2px solid ${sel ? 'var(--primary)' : '#E2E8F0'}`,
-                  background: sel ? '#EFF6FF' : '#fff',
-                  cursor: 'pointer', textAlign: 'center', transition: 'all 0.18s',
-                  boxShadow: sel ? '0 2px 8px rgba(30,58,138,0.15)' : 'none',
-                }}
+                className={[
+                  'py-3 px-1 rounded-xl border-2 text-center transition-all duration-200',
+                  sel
+                    ? 'border-primary bg-[#EFF6FF] shadow-[0_2px_8px_rgba(30,58,138,0.15)]'
+                    : 'border-[#E2E8F0] bg-white',
+                ].join(' ')}
               >
-                <div style={{ fontWeight: 800, fontSize: 14, color: sel ? 'var(--primary)' : '#1E293B' }}>{opt.label}</div>
-                <div style={{ fontSize: 9, color: sel ? '#3B82F6' : '#94A3B8', marginTop: 2, fontWeight: 600 }}>{opt.sublabel}</div>
+                <div className={['text-sm font-extrabold', sel ? 'text-primary' : 'text-[#1E293B]'].join(' ')}>{opt.label}</div>
+                <div className={['mt-0.5 text-[9px] font-semibold', sel ? 'text-[#3B82F6]' : 'text-[#94A3B8]'].join(' ')}>{opt.sublabel}</div>
               </button>
             );
           })}
@@ -1132,7 +1132,17 @@ function Step4({
           </div>
         </div>
 
-        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoSelect} />
+        <input
+          ref={fileInputRef}
+          id="incident-photo-upload"
+          type="file"
+          accept="image/*"
+          multiple
+          title="Upload photo evidence"
+          aria-label="Upload photo evidence"
+          className="hidden"
+          onChange={handlePhotoSelect}
+        />
 
         <div className="flex flex-wrap gap-2.5">
           {form.photoPreviews.map((src, i) => (
@@ -1146,19 +1156,13 @@ function Step4({
               </button>
               <button
                 onClick={() => removePhoto(i)}
-                style={{
-                  position: 'absolute', top: 4, right: 4, width: 22, height: 22,
-                  borderRadius: '50%', background: 'rgba(15,23,42,0.75)',
-                  border: 'none', color: '#fff', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
+                className="incident-step4-photo-remove-btn"
+                aria-label={`Remove photo ${i + 1}`}
+                title={`Remove photo ${i + 1}`}
               >
                 <X size={11} />
               </button>
-              <div style={{
-                position: 'absolute', bottom: 4, left: 4, background: 'rgba(15,23,42,0.6)',
-                borderRadius: 4, padding: '1px 5px', color: '#fff', fontSize: 8, fontWeight: 700,
-              }}>
+              <div className="incident-step4-photo-index-badge">
                 {i + 1}
               </div>
             </div>
@@ -1167,24 +1171,10 @@ function Step4({
           {form.photoPreviews.length < 4 && (
             <button
               onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: 84, height: 84, borderRadius: 14,
-                border: '2px dashed #CBD5E1', background: '#F8FAFC',
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 5, cursor: 'pointer',
-                transition: 'all 0.18s', flexShrink: 0,
-              }}
-              onMouseOver={e => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = '#3B82F6';
-                (e.currentTarget as HTMLButtonElement).style.background = '#EFF6FF';
-              }}
-              onMouseOut={e => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = '#CBD5E1';
-                (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFC';
-              }}
+              className="incident-step4-photo-add-btn"
             >
               <Camera size={24} color="#94A3B8" />
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#94A3B8', textAlign: 'center', lineHeight: 1.3 }}>
+              <span className="incident-step4-photo-add-text">
                 {form.photoPreviews.length === 0 ? 'Add\nPhoto' : 'Add\nMore'}
               </span>
             </button>
@@ -1216,33 +1206,20 @@ function Step4({
 
         {micError && (
           <div className="bg-[#FEF2F2] rounded-[10px] p-[10px_12px] mb-3 flex gap-2 items-start">
-            <MicOff size={14} color="var(--severity-critical)" style={{ flexShrink: 0, marginTop: 1 }} />
+            <MicOff size={14} color="var(--severity-critical)" className="incident-step4-mic-error-icon" />
             <span className="text-xs text-severity-critical leading-[1.5]">{micError}</span>
           </div>
         )}
 
         {!form.audioUrl ? (
           /* Recording UI */
-          <div style={{
-            borderRadius: 14, padding: '20px 16px',
-            border: `2px ${recording ? 'solid' : 'dashed'} ${recording ? '#FECACA' : '#E2E8F0'}`,
-            background: recording ? '#FFF5F5' : '#FAFBFC',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
-            transition: 'all 0.3s',
-          }}>
+          <div className={`incident-step4-recorder-shell ${recording ? 'is-recording' : 'is-idle'}`}>
             {recording ? (
               <>
                 {/* Waveform visual */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 40 }}>
+                <div className="incident-step4-waveform">
                   {Array.from({ length: 18 }, (_, i) => (
-                    <div key={i} style={{
-                      width: 3, borderRadius: 2,
-                      background: 'var(--severity-critical)',
-                      opacity: 0.7 + Math.sin(i * 0.8) * 0.3,
-                      animation: `wave-bar ${0.6 + (i % 5) * 0.12}s ease-in-out infinite alternate`,
-                      animationDelay: `${i * 0.06}s`,
-                      height: `${20 + Math.abs(Math.sin(i * 1.2)) * 20}px`,
-                    }} />
+                    <div key={i} className="incident-step4-wavebar" />
                   ))}
                 </div>
 
@@ -1251,23 +1228,14 @@ function Step4({
                     {fmt(recTime)}
                   </div>
                   <div className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-[5px]">
-                    <span style={{
-                      width: 7, height: 7, borderRadius: '50%', background: 'var(--severity-critical)',
-                      display: 'inline-block', animation: 'blink 1s step-start infinite',
-                    }} />
+                    <span className="incident-step4-recording-dot" />
                     Recording in progress
                   </div>
                 </div>
 
                 <button
                   onClick={stopRecording}
-                  style={{
-                    background: 'linear-gradient(135deg, #B91C1C, #991B1B)',
-                    border: 'none', borderRadius: 14, padding: '13px 28px',
-                    color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    boxShadow: '0 4px 14px rgba(185,28,28,0.4)',
-                  }}
+                  className="incident-step4-rec-stop-btn"
                 >
                   <Square size={14} fill="white" /> Stop Recording
                 </button>
@@ -1283,13 +1251,7 @@ function Step4({
                 </div>
                 <button
                   onClick={startRecording}
-                  style={{
-                    background: 'linear-gradient(135deg, #1E3A8A, #1e40af)',
-                    border: 'none', borderRadius: 14, padding: '13px 28px',
-                    color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    boxShadow: '0 4px 14px rgba(30,58,138,0.35)',
-                  }}
+                  className="incident-step4-rec-start-btn"
                 >
                   <Mic size={14} /> Start Recording
                 </button>
@@ -1310,12 +1272,14 @@ function Step4({
                 ref={audioElRef}
                 src={form.audioUrl}
                 controls
-                style={{ width: '100%', height: 34 }}
+                className="incident-step4-audio-player"
               />
             </div>
             <button
               onClick={() => setForm(p => ({ ...p, audioBlob: null, audioUrl: null }))}
               className="bg-[#FEE2E2] border-none rounded-lg p-2 cursor-pointer text-severity-critical shrink-0 flex items-center"
+              aria-label="Remove voice recording"
+              title="Remove voice recording"
             >
               <Trash2 size={15} />
             </button>
@@ -1331,37 +1295,12 @@ function Step4({
       {previewIndex !== null ? (
         <div
           className="citizen-photo-preview-overlay"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 260,
-            background: 'rgba(2,6,23,0.88)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
           onClick={() => setPreviewIndex(null)}
         >
           <button
             className="citizen-photo-preview-close"
             type="button"
             onClick={() => setPreviewIndex(null)}
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              border: '1px solid rgba(255,255,255,0.3)',
-              background: 'rgba(15,23,42,0.7)',
-              color: '#fff',
-              borderRadius: 999,
-              width: 36,
-              height: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
             aria-label="Close photo preview"
           >
             <X size={16} />
@@ -1369,15 +1308,13 @@ function Step4({
           <div
             className="citizen-photo-preview-stage"
             onClick={(event) => event.stopPropagation()}
-            style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
           >
             <img
               className="citizen-photo-preview-image"
               src={form.photoPreviews[previewIndex]}
               alt={`preview-${previewIndex + 1}`}
-              style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 96px)', borderRadius: 12 }}
             />
-            <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600 }}>
+            <div className="citizen-photo-preview-count">
               Photo {previewIndex + 1} of {form.photoPreviews.length}
             </div>
           </div>
@@ -1413,31 +1350,41 @@ function Step5({
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const cat = CATEGORIES.find(c => c.type === form.category);
   const Icon = cat?.icon ?? MoreHorizontal;
+  const categoryClass =
+    form.category === 'Pollution'
+      ? 'is-pollution'
+      : form.category === 'Noise'
+        ? 'is-noise'
+        : form.category === 'Crime'
+          ? 'is-crime'
+          : form.category === 'Road Hazard'
+            ? 'is-road-hazard'
+            : 'is-other';
 
   const details = [
     {
       label: 'Category',
       icon: <Icon size={14} />,
       value: cat ? `${cat.label} - ${form.subcategory ?? 'Subcategory not set'}` : 'Not set',
-      accent: cat?.color ?? '#475569',
+      accentClass: 'is-category',
     },
     {
       label: 'Location',
       icon: <MapPin size={14} />,
       value: form.address || (form.pin ? `${form.pin.barangay}, ${form.pin.district}` : 'Location not set'),
-      accent: 'var(--primary)',
+      accentClass: 'is-location',
     },
     {
       label: 'Description',
       icon: <FileText size={14} />,
       value: form.description || 'No description provided',
-      accent: '#7C3AED',
+      accentClass: 'is-description',
     },
     {
       label: 'Affected Persons',
       icon: <User size={14} />,
       value: form.affectedCount ? `Approx. ${form.affectedCount} persons` : 'Not specified',
-      accent: 'var(--severity-medium)',
+      accentClass: 'is-affected',
     },
     {
       label: 'Evidence',
@@ -1446,19 +1393,19 @@ function Step5({
         form.photoPreviews.length > 0 ? `${form.photoPreviews.length} photo${form.photoPreviews.length > 1 ? 's' : ''}` : null,
         form.audioUrl ? '1 voice recording' : null,
       ].filter(Boolean).join(' - ') || 'None attached',
-      accent: '#059669',
+      accentClass: 'is-evidence',
     },
     {
       label: 'Reporter',
       icon: <User size={14} />,
       value: `${reporterName} - ${reporterBarangayCode ? `Barangay ${reporterBarangayCode}` : 'Registered barangay not set'}`,
-      accent: '#475569',
+      accentClass: 'is-neutral',
     },
     {
       label: 'Date & Time',
       icon: <Clock size={14} />,
       value: new Date().toLocaleString('en-PH', { dateStyle: 'long', timeStyle: 'short' }),
-      accent: '#475569',
+      accentClass: 'is-neutral',
     },
   ];
 
@@ -1492,19 +1439,8 @@ function Step5({
       {/* Summary Card */}
       <div className="bg-white rounded-[20px] border-[1.5px] border-[#E2E8F0] overflow-hidden mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
         {/* Card header with type color accent */}
-        <div style={{
-          background: cat ? `linear-gradient(135deg, ${cat.color}14, ${cat.color}08)` : '#F8FAFC',
-          borderBottom: `3px solid ${cat?.color ?? '#E2E8F0'}`,
-          padding: '18px 18px 14px',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <div style={{
-            width: 50, height: 50, borderRadius: 14,
-            background: cat?.bg ?? '#F1F5F9',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: cat?.color ?? '#475569', flexShrink: 0,
-            boxShadow: `0 2px 8px ${cat?.color ?? '#000'}20`,
-          }}>
+        <div className={`incident-step5-card-head ${categoryClass}`}>
+          <div className={`incident-step5-card-icon ${categoryClass}`}>
             <Icon size={24} />
           </div>
           <div>
@@ -1517,29 +1453,27 @@ function Step5({
           </div>
           {/* Severity pill */}
           {form.severity && (
-            <div style={{
-              marginLeft: 'auto',
-              background: form.severity === 'critical' ? '#FEE2E2' : form.severity === 'high' ? '#FFEDD5' : form.severity === 'medium' ? '#FEF3C7' : '#D1FAE5',
-              color: form.severity === 'critical' ? 'var(--severity-critical)' : form.severity === 'high' ? '#C2410C' : form.severity === 'medium' ? 'var(--severity-medium)' : '#059669',
-              borderRadius: 20, padding: '4px 10px', fontSize: 10, fontWeight: 800,
-              textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', flexShrink: 0,
-            }}>
+            <div
+              className={[
+                'incident-step5-severity-pill',
+                form.severity === 'critical'
+                  ? 'is-critical'
+                  : form.severity === 'high'
+                    ? 'is-high'
+                    : form.severity === 'medium'
+                      ? 'is-medium'
+                      : 'is-low',
+              ].join(' ')}
+            >
               {form.severity}
             </div>
           )}
         </div>
 
         {/* Detail rows */}
-        {details.map(({ label, icon, value, accent }, idx, arr) => (
-          <div key={label} style={{
-            padding: '13px 18px', display: 'flex', gap: 12, alignItems: 'flex-start',
-            borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
-          }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-              background: `${accent}14`, color: accent,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+        {details.map(({ label, icon, value, accentClass }, idx, arr) => (
+          <div key={label} className={`incident-step5-detail-row${idx < arr.length - 1 ? ' has-divider' : ''}`}>
+            <div className={`incident-step5-detail-icon ${accentClass}`}>
               {icon}
             </div>
             <div className="flex-1 min-w-0">
@@ -1567,19 +1501,13 @@ function Step5({
                   type="button"
                   onClick={() => setPreviewIndex(i)}
                   className="w-full h-full border-none p-0 m-0 bg-transparent cursor-zoom-in"
+                  aria-label={`Preview attached photo ${i + 1}`}
+                  title={`Preview attached photo ${i + 1}`}
                 >
                   <img src={src} alt="" className="w-full h-full object-cover" />
                 </button>
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.4))',
-                  pointerEvents: 'none',
-                }} />
-                <div style={{
-                  position: 'absolute', bottom: 3, right: 3,
-                  background: 'rgba(0,0,0,0.6)', borderRadius: 4,
-                  padding: '1px 4px', color: '#fff', fontSize: 8, fontWeight: 700,
-                }}>
+                <div className="incident-step5-photo-overlay" />
+                <div className="incident-step5-photo-badge">
                   {i + 1}
                 </div>
               </div>
@@ -1590,7 +1518,7 @@ function Step5({
 
       {/* Legal disclaimer */}
       <div className="bg-[#FFFBEB] rounded-[14px] p-3.5 border border-[#FDE68A] mb-1 flex gap-2.5 items-start">
-        <Info size={15} color="var(--severity-medium)" style={{ flexShrink: 0, marginTop: 1 }} />
+        <Info size={15} color="var(--severity-medium)" className="incident-step5-disclaimer-icon" />
         <p className="text-xs text-[#78350F] leading-[1.65] m-0">
           By submitting this report, you certify that the information provided is <strong>true and accurate</strong> to the best of your knowledge. Filing a false incident report is a punishable offense under Philippine law (RA 10173, LGU ordinances).
         </p>
@@ -1599,37 +1527,12 @@ function Step5({
       {previewIndex !== null ? (
         <div
           className="citizen-photo-preview-overlay"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 260,
-            background: 'rgba(2,6,23,0.88)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
           onClick={() => setPreviewIndex(null)}
         >
           <button
             className="citizen-photo-preview-close"
             type="button"
             onClick={() => setPreviewIndex(null)}
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              border: '1px solid rgba(255,255,255,0.3)',
-              background: 'rgba(15,23,42,0.7)',
-              color: '#fff',
-              borderRadius: 999,
-              width: 36,
-              height: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
             aria-label="Close photo preview"
           >
             <X size={16} />
@@ -1637,15 +1540,13 @@ function Step5({
           <div
             className="citizen-photo-preview-stage"
             onClick={(event) => event.stopPropagation()}
-            style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
           >
             <img
               className="citizen-photo-preview-image"
               src={form.photoPreviews[previewIndex]}
               alt={`review-preview-${previewIndex + 1}`}
-              style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 96px)', borderRadius: 12 }}
             />
-            <div style={{ fontSize: 12, color: '#E2E8F0', fontWeight: 600 }}>
+            <div className="citizen-photo-preview-count">
               Photo {previewIndex + 1} of {form.photoPreviews.length}
             </div>
           </div>
@@ -1679,28 +1580,16 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
   ];
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 300,
-      background: 'linear-gradient(160deg, #0F172A 0%, #1E3A8A 55%, #1e40af 100%)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '32px 24px',
-      fontFamily: "'Roboto', sans-serif",
-    }}>
+    <div className="incident-success-overlay">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(59,130,246,0.08)' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'rgba(185,28,28,0.08)' }} />
+        <div className="incident-success-blob incident-success-blob-primary" />
+        <div className="incident-success-blob incident-success-blob-alert" />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1 }} className="w-full max-w-[420px] flex flex-col items-center">
+      <div className="incident-success-content w-full max-w-[420px] flex flex-col items-center">
         {/* Success icon */}
-        <div style={{
-          width: 100, height: 100, borderRadius: '50%',
-          background: 'rgba(74,222,128,0.15)',
-          border: '2.5px solid rgba(74,222,128,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: 22, animation: 'successPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
-        }}>
+        <div className="incident-success-icon-wrap">
           <CheckCircle2 size={54} color="#4ADE80" strokeWidth={1.5} />
         </div>
 
@@ -1731,18 +1620,13 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
           </div>
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-2.5${i < steps.length - 1 ? ' mb-2.5' : ''}`}>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                background: s.done ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.08)',
-                border: `2px solid ${s.done ? '#4ADE80' : 'rgba(255,255,255,0.15)'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div className={`incident-success-step-dot ${s.done ? 'is-done' : 'is-pending'}`}>
                 {s.done
                   ? <Check size={12} color="#4ADE80" strokeWidth={3} />
                   : <Clock size={11} color="rgba(255,255,255,0.3)" />
                 }
               </div>
-              <span style={{ fontSize: 12, color: s.done ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: s.done ? 600 : 400 }}>
+              <span className={`incident-success-step-label ${s.done ? 'is-done' : 'is-pending'}`}>
                 {s.label}
               </span>
             </div>
@@ -1751,7 +1635,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
 
         {/* Emergency note */}
         <div className="w-full bg-[rgba(185,28,28,0.15)] border border-[rgba(185,28,28,0.3)] rounded-xl p-[12px_14px] mb-[22px] flex items-center gap-2.5">
-          <Phone size={16} color="#FCA5A5" style={{ flexShrink: 0 }} />
+          <Phone size={16} color="#FCA5A5" className="incident-success-note-icon" />
           <span className="text-xs text-[#FCA5A5] leading-[1.5]">
             <strong>In immediate danger?</strong> Call <strong>911</strong> now without waiting for a response.
           </span>
@@ -1779,18 +1663,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
 function SubmissionLoadingOverlay() {
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 290,
-        background: 'rgba(15, 23, 42, 0.34)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-      }}
+      className="incident-submit-overlay"
       aria-live="polite"
       aria-busy="true"
       aria-label="Submitting report"
@@ -1803,15 +1676,7 @@ function SubmissionLoadingOverlay() {
         >
           <span
             aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: -6,
-              borderRadius: 9999,
-              border: '4px solid rgba(30, 58, 138, 0.16)',
-              borderTopColor: 'var(--severity-critical)',
-              borderRightColor: 'var(--primary)',
-              animation: 'incidentSubmitSpin 0.9s linear infinite',
-            }}
+            className="incident-submit-spinner-ring"
           />
           <img
             src="/favicon.svg"
@@ -2110,34 +1975,8 @@ export default function IncidentReport() {
       <CitizenPageLayout
         hideBottomNav
         header={
-          <header
-            className="citizen-web-header"
-            style={{
-            background: 'var(--primary)',
-            display: 'flex',
-            alignItems: 'center',
-            height: 60,
-            flexShrink: 0,
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
-          }}
-          >
-            <div
-              className="citizen-web-header-inner"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '0 var(--citizen-content-gutter)',
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-                position: 'relative',
-              }}
-            >
+          <header className="citizen-report-header">
+            <div className="citizen-report-header-inner">
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
               <div className="flex items-center gap-2.5">
@@ -2166,7 +2005,7 @@ export default function IncidentReport() {
                     setMobileMenuOpen(false);
                   }}
                 />
-                <div style={{ position: 'relative' }}>
+                <div className="citizen-report-profile-wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -2176,7 +2015,6 @@ export default function IncidentReport() {
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    aria-expanded={profileMenuOpen}
                     className="w-9 h-9 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-[14px] border-none cursor-pointer"
                   >
                     {initials}
@@ -2186,18 +2024,7 @@ export default function IncidentReport() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      style={{
-                        position: 'absolute',
-                        top: 44,
-                        right: 0,
-                        width: 190,
-                        background: '#fff',
-                        borderRadius: 12,
-                        boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
-                        border: '1px solid #E2E8F0',
-                        overflow: 'hidden',
-                        zIndex: 110,
-                      }}
+                      className="citizen-report-profile-menu"
                     >
                       <button
                         type="button"
@@ -2243,14 +2070,7 @@ export default function IncidentReport() {
         }
         afterMain={
           <>
-            <div className="citizen-report-footer" style={{
-              position: 'sticky', bottom: 0, left: 0, transform: 'none',
-              width: '100%', maxWidth: 'var(--citizen-desktop-main-max)', margin: '0 auto', background: '#fff',
-              borderTop: '1px solid #E2E8F0', padding: '12px var(--citizen-content-gutter)',
-              display: 'block', zIndex: 50,
-              boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
-              boxSizing: 'border-box',
-            }}>
+            <div className="citizen-report-footer">
               <div className="flex gap-2.5">
               {step > 1 && (
                 <button
@@ -2264,23 +2084,15 @@ export default function IncidentReport() {
               <button
                 onClick={goNext}
                 disabled={submitting || (!canProceed && step < 5)}
-                style={{
-                  flex: step === 1 ? 1 : 2,
-                  padding: '14px', borderRadius: 14, border: 'none',
-                  background: (!canProceed && step < 5) || submitting
-                    ? '#E2E8F0'
+                className={[
+                  'citizen-report-next-btn',
+                  step === 1 ? 'is-single' : 'is-wide',
+                  submitting || (!canProceed && step < 5)
+                    ? 'is-disabled'
                     : step === 5
-                      ? 'var(--severity-critical)'
-                      : 'var(--primary)',
-                  color: (canProceed || step === 5) && !submitting ? '#fff' : '#94A3B8',
-                  fontWeight: 700, fontSize: 14,
-                  cursor: (canProceed || step === 5) && !submitting ? 'pointer' : 'not-allowed',
-                  boxShadow: (canProceed || step === 5) && !submitting
-                    ? '0 4px 12px rgba(15,23,42,0.16)'
-                    : 'none',
-                  transition: 'all 0.2s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
+                      ? 'is-submit'
+                      : 'is-default',
+                ].join(' ')}
               >
                 {submitting ? (
                   <>Submitting...</>

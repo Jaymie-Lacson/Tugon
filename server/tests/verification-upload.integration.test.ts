@@ -65,7 +65,7 @@ before(async () => {
     isVerified: false,
     verificationStatus: null,
     idImageUrl: null,
-  })) as typeof prismaModule.prisma.user.findUnique;
+  })) as unknown as typeof prismaModule.prisma.user.findUnique;
 
   prismaModule.prisma.user.update = (async () => ({
     id: "test-citizen-id",
@@ -75,7 +75,7 @@ before(async () => {
     verificationRejectionReason: null,
     verifiedByUserId: null,
     verifiedAt: null,
-  })) as typeof prismaModule.prisma.user.update;
+  })) as unknown as typeof prismaModule.prisma.user.update;
 
   const app = createApp();
   await new Promise<void>((resolve) => {
@@ -151,7 +151,7 @@ describe("Verification upload hardening integration", () => {
       verificationRejectionReason: null,
       verifiedByUserId: null,
       verifiedAt: null,
-    })) as typeof prismaModule.prisma.user.update;
+    })) as unknown as typeof prismaModule.prisma.user.update;
 
     const { response, payload } = await postJson("/api/citizen/verification-id", token, {
       fileName: "resident-id.png",

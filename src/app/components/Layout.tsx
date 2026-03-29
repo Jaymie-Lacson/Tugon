@@ -325,7 +325,6 @@ function Layout() {
                 }}
                 aria-label="Open profile actions"
                 aria-haspopup="menu"
-                aria-expanded={profileMenuOpen}
                 className="size-9 rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center font-bold text-white text-xs cursor-pointer shrink-0 border-none"
               >
                 {userInitials}

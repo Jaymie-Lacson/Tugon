@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["codebase", "terminal"]
+agent: "agent"
+tools: ["codebase", "runCommands"]
 description: "Security and compliance audit for TUGON auth, RBAC, geofencing, and data handling."
 ---
 Run a focused security and compliance audit for TUGON.

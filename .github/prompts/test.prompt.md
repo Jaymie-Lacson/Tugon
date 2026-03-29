@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["terminal", "codebase"]
+agent: "agent"
+tools: ["runCommands", "codebase"]
 description: "Run backend integration tests and summarize failures with likely causes."
 ---
 Run TUGON integration tests using Node's test runner via npm scripts.

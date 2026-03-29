@@ -1,5 +1,5 @@
 ---
-mode: "agent"
+agent: "agent"
 tools: ["codebase"]
 description: "Validate automatic prompt routing by matching user intents to the expected prompt file."
 ---
