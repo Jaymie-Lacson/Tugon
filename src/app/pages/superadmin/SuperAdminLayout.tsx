@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
-  Activity,
-  BarChart2,
   ChevronRight,
-  LayoutDashboard,
   LogOut,
-  Map,
   Menu,
-  Settings,
-  Users,
   X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
@@ -17,15 +11,7 @@ import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
 import { BottomNav, type BottomNavItem } from '../../components/BottomNav';
 import { useTranslation } from '../../i18n';
-
-const NAV_ITEM_DEFS = [
-  { path: '/superadmin', labelKey: 'nav.overview' as const, icon: LayoutDashboard, exact: true },
-  { path: '/superadmin/map', labelKey: 'nav.barangayMap' as const, icon: Map },
-  { path: '/superadmin/analytics', labelKey: 'nav.analytics' as const, icon: BarChart2 },
-  { path: '/superadmin/users', labelKey: 'nav.users' as const, icon: Users },
-  { path: '/superadmin/audit-logs', labelKey: 'nav.auditLogs' as const, icon: Activity },
-  { path: '/superadmin/settings', labelKey: 'nav.settings' as const, icon: Settings },
-];
+import { superAdminBottomNavDefs, superAdminSidebarNavDefs } from '../../data/navigationConfig';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -68,14 +54,17 @@ export default function SuperAdminLayout() {
   ]);
   const navigate = useNavigate();
   const location = useLocation();
-  const NAV_ITEMS = NAV_ITEM_DEFS.map((item) => ({ ...item, label: t(item.labelKey) }));
-  const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-    { key: 'overview',  icon: <LayoutDashboard size={20} />, label: t('nav.overview'),   path: '/superadmin',           exact: true },
-    { key: 'map',       icon: <Map size={20} />,             label: t('nav.barangayMap'), path: '/superadmin/map' },
-    { key: 'analytics', icon: <BarChart2 size={20} />,       label: t('nav.analytics'),   path: '/superadmin/analytics' },
-    { key: 'users',     icon: <Users size={20} />,           label: t('nav.users'),       path: '/superadmin/users' },
-    { key: 'settings',  icon: <Settings size={20} />,        label: t('nav.settings'),    path: '/superadmin/settings' },
-  ];
+  const NAV_ITEMS = superAdminSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
+  const BOTTOM_NAV_ITEMS: BottomNavItem[] = superAdminBottomNavDefs.map((item) => {
+    const Icon = item.icon;
+    return {
+      key: item.key,
+      icon: <Icon size={20} />,
+      label: t(item.labelKey),
+      path: item.path,
+      exact: item.exact,
+    };
+  });
   const session = getAuthSession();
   const userFullName = session?.user.fullName?.trim() || 'Super Admin';
   const userInitials = userFullName
@@ -353,7 +342,7 @@ export default function SuperAdminLayout() {
             {/* Drawer nav items */}
             <div className="flex-1 overflow-y-auto p-3">
               <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-                Navigation
+                {t('nav.navigation')}
               </div>
               {NAV_ITEMS.map((item) => {
                 const active = item.exact

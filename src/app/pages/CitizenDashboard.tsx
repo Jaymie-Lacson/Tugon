@@ -56,6 +56,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Restricted',
       color: '#991B1B',
       bg: '#FEE2E2',
+      surfaceClass: 'border border-red-200 bg-red-100',
+      titleClass: 'text-red-800',
     };
   }
 
@@ -66,6 +68,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Verified',
       color: '#065F46',
       bg: '#DCFCE7',
+      surfaceClass: 'border border-emerald-200 bg-emerald-100',
+      titleClass: 'text-emerald-800',
     };
   }
 
@@ -76,6 +80,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Pending Review',
       color: '#92400E',
       bg: '#FEF3C7',
+      surfaceClass: 'border border-amber-200 bg-amber-100',
+      titleClass: 'text-amber-800',
     };
   }
 
@@ -88,6 +94,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Re-upload Required',
       color: 'var(--severity-critical)',
       bg: '#FEE2E2',
+      surfaceClass: 'border border-red-200 bg-red-100',
+      titleClass: 'text-severity-critical',
     };
   }
 
@@ -97,6 +105,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
     statusLabel: 'Not Submitted',
     color: 'var(--primary)',
     bg: '#DBEAFE',
+    surfaceClass: 'border border-blue-200 bg-blue-100',
+    titleClass: 'text-primary',
   };
 }
 
@@ -116,6 +126,80 @@ const typeIcon: Record<IncidentType, React.ReactNode> = {
   crime: <AlertCircle size={14} />,
   infrastructure: <Zap size={14} />,
   typhoon: <CloudRain size={14} />,
+};
+
+type AccentTone = 'critical' | 'warning' | 'primary' | 'success' | 'slate';
+
+function resolveAccentTone(accent: string): AccentTone {
+  if (accent === 'var(--severity-critical)') return 'critical';
+  if (accent === 'var(--severity-medium)') return 'warning';
+  if (accent === 'var(--primary)') return 'primary';
+  if (accent === '#059669') return 'success';
+  return 'slate';
+}
+
+const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
+  critical: {
+    card: 'border-[1.5px] border-red-100',
+    icon: 'bg-red-100 text-severity-critical',
+  },
+  warning: {
+    card: 'border-[1.5px] border-amber-100',
+    icon: 'bg-amber-100 text-amber-700',
+  },
+  primary: {
+    card: 'border-[1.5px] border-blue-100',
+    icon: 'bg-blue-100 text-primary',
+  },
+  success: {
+    card: 'border-[1.5px] border-emerald-100',
+    icon: 'bg-emerald-100 text-emerald-600',
+  },
+  slate: {
+    card: 'border-[1.5px] border-slate-200',
+    icon: 'bg-slate-100 text-slate-600',
+  },
+};
+
+const quickActionToneClass: Record<AccentTone, {
+  card: string;
+  icon: string;
+  cta: string;
+}> = {
+  critical: {
+    card: 'bg-red-50 border border-red-200 text-severity-critical',
+    icon: 'bg-red-100 text-severity-critical',
+    cta: 'text-severity-critical',
+  },
+  warning: {
+    card: 'bg-amber-50 border border-amber-200 text-amber-700',
+    icon: 'bg-amber-100 text-amber-700',
+    cta: 'text-amber-700',
+  },
+  primary: {
+    card: 'bg-blue-50 border border-blue-200 text-primary',
+    icon: 'bg-blue-100 text-primary',
+    cta: 'text-primary',
+  },
+  success: {
+    card: 'bg-emerald-50 border border-emerald-200 text-emerald-600',
+    icon: 'bg-emerald-100 text-emerald-600',
+    cta: 'text-emerald-600',
+  },
+  slate: {
+    card: 'bg-slate-50 border border-slate-200 text-slate-700',
+    icon: 'bg-slate-200 text-slate-700',
+    cta: 'text-slate-700',
+  },
+};
+
+const incidentIconToneClass: Record<IncidentType, string> = {
+  flood: 'bg-sky-100 text-sky-700',
+  accident: 'bg-orange-100 text-orange-700',
+  medical: 'bg-red-100 text-severity-critical',
+  crime: 'bg-blue-100 text-primary',
+  infrastructure: 'bg-amber-100 text-amber-700',
+  typhoon: 'bg-cyan-100 text-cyan-700',
 };
 
 /* ── sub-components ──────────────────────────────────────────────────── */
@@ -157,15 +241,10 @@ function StatCard({
   label: string;
   accent: string;
 }) {
+  const tone = statToneClass[resolveAccentTone(accent)];
   return (
-    <div
-      className="bg-white rounded-xl p-3 min-w-0 w-full flex flex-col gap-1 shadow-sm"
-      style={{ border: `1.5px solid ${accent}22` }}
-    >
-      <div
-        className="w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5"
-        style={{ background: `${accent}18`, color: accent }}
-      >
+    <div className={`bg-white rounded-xl p-3 min-w-0 w-full flex flex-col gap-1 shadow-sm ${tone.card}`}>
+      <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5 ${tone.icon}`}>
         {icon}
       </div>
       <div className="font-extrabold text-slate-900 text-xl leading-none">{value}</div>
@@ -190,44 +269,28 @@ function QuickActionCard({
   featured?: boolean;
 }) {
   const { t } = useTranslation();
+  const tone = quickActionToneClass[resolveAccentTone(accent)];
   return (
     <button
       onClick={onClick}
-      className="rounded-xl cursor-pointer flex flex-col items-start gap-2 w-full text-left hover:-translate-y-0.5 transition-transform duration-150"
-      style={{
-        padding: '18px 16px',
-        background: featured ? accent : '#fff',
-        border: featured ? 'none' : '1.5px solid #E2E8F0',
-        boxShadow: featured ? '0 8px 16px rgba(15,23,42,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
-      }}
+      className={`w-full cursor-pointer rounded-xl px-4 py-[18px] text-left transition-transform duration-150 hover:-translate-y-0.5 flex flex-col items-start gap-2 ${
+        featured
+          ? 'border-0 bg-primary text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]'
+          : `shadow-[0_1px_4px_rgba(0,0,0,0.06)] ${tone.card}`
+      }`}
     >
-      <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center"
-        style={{
-          background: featured ? 'rgba(255,255,255,0.25)' : `${accent}18`,
-          color: featured ? '#fff' : accent,
-        }}
-      >
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${featured ? 'bg-white/25 text-white' : tone.icon}`}>
         {icon}
       </div>
       <div>
-        <div
-          className="font-bold text-sm mb-0.5"
-          style={{ color: featured ? '#fff' : '#1E293B' }}
-        >
+        <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-slate-800'}`}>
           {label}
         </div>
-        <div
-          className="text-[11px] leading-snug"
-          style={{ color: featured ? 'rgba(255,255,255,0.75)' : '#64748B' }}
-        >
+        <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-slate-500'}`}>
           {sublabel}
         </div>
       </div>
-      <div
-        className="mt-auto flex items-center gap-[3px] text-[11px] font-semibold"
-        style={{ color: featured ? 'rgba(255,255,255,0.8)' : accent }}
-      >
+      <div className={`mt-auto flex items-center gap-[3px] text-[11px] font-semibold ${featured ? 'text-white/80' : tone.cta}`}>
         {t('citizen.dashboard.tapToOpen')} <ArrowRight size={11} />
       </div>
     </button>
@@ -238,10 +301,7 @@ function RecentIncidentRow({ report }: { report: CitizenMyReport }) {
   const cfg = incidentTypeConfig[report.type];
   return (
     <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
-      <div
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-        style={{ background: cfg.bgColor, color: cfg.color }}
-      >
+      <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${incidentIconToneClass[report.type]}`}>
         {typeIcon[report.type]}
       </div>
       <div className="flex-1 min-w-0">
@@ -265,10 +325,7 @@ function MyReportRow({
   const cfg = incidentTypeConfig[report.type];
   return (
     <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
-      <div
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-        style={{ background: cfg.bgColor, color: cfg.color }}
-      >
+      <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${incidentIconToneClass[report.type]}`}>
         {typeIcon[report.type]}
       </div>
       <div className="flex-1 min-w-0">
@@ -329,7 +386,6 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
     isVerified: Boolean(session?.user.isVerified),
@@ -411,7 +467,6 @@ export default function CitizenDashboard() {
 
     setNotifOpen(false);
     setProfileMenuOpen(false);
-    setMobileMenuOpen(false);
   }, [mapIncidents, navigate]);
 
   const handleSignOut = React.useCallback(() => {
@@ -446,10 +501,8 @@ export default function CitizenDashboard() {
         })),
       );
     } catch {
-      if (!silent) {
-        setIncidents([]);
-        setMyReports([]);
-      }
+      setIncidents([]);
+      setMyReports([]);
     } finally {
       if (!silent) {
         setReportsLoading(false);
@@ -512,13 +565,11 @@ export default function CitizenDashboard() {
 
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     document.addEventListener('pointerdown', handleOutsideHeaderTap);
@@ -559,7 +610,6 @@ export default function CitizenDashboard() {
         <header className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
           <div
             className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
-            style={{ padding: '0 var(--citizen-content-gutter)' }}
           >
             <div className="flex items-center gap-2.5">
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
@@ -568,14 +618,7 @@ export default function CitizenDashboard() {
             <div className="flex items-center gap-2.5">
               <CitizenMobileMenu
                 activeKey={activeTab}
-                open={mobileMenuOpen}
-                onToggle={() => {
-                  setMobileMenuOpen((prev) => !prev);
-                  setNotifOpen(false);
-                  setProfileMenuOpen(false);
-                }}
                 onNavigate={(key) => {
-                  setMobileMenuOpen(false);
                   if (key === 'report') navigate('/citizen/report');
                   else if (key === 'myreports') navigate('/citizen/my-reports');
                   else if (key === 'map') setActiveTab('map');
@@ -588,7 +631,6 @@ export default function CitizenDashboard() {
                 onClick={() => {
                   setNotifOpen(!notifOpen);
                   setProfileMenuOpen(false);
-                  setMobileMenuOpen(false);
                 }}
               />
               <div className="relative">
@@ -596,13 +638,11 @@ export default function CitizenDashboard() {
                   type="button"
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
-                  aria-expanded={profileMenuOpen}
                   onClick={() => {
                     setProfileMenuOpen((prev) => !prev);
                     setNotifOpen(false);
-                    setMobileMenuOpen(false);
                   }}
-                  className="w-9 h-9 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
+                  className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
                 >
                   {initials}
                 </button>
@@ -676,16 +716,10 @@ export default function CitizenDashboard() {
         if (notifOpen) {
           setNotifOpen(false);
         }
-        if (mobileMenuOpen) {
-          setMobileMenuOpen(false);
-        }
       }}
       mainOnScroll={() => {
         if (notifOpen) {
           setNotifOpen(false);
-        }
-        if (mobileMenuOpen) {
-          setMobileMenuOpen(false);
         }
       }}
       mobileMainPaddingBottom={activeTab === 'map' ? 0 : 20}
@@ -768,8 +802,7 @@ function HomeTab({
       {/* Stats */}
       <section className="bg-white rounded-2xl border border-slate-200 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
         <div
-          className="grid gap-2.5"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}
+          className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
           <StatCard
             icon={<AlertTriangle size={16} />}
@@ -795,15 +828,11 @@ function HomeTab({
       {/* Verification prompt */}
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <section
-          className="rounded-2xl p-3.5 shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
-          style={{
-            background: verificationSummary.bg,
-            border: `1px solid ${verificationSummary.color}33`,
-          }}
+          className={`rounded-2xl p-3.5 shadow-[0_4px_16px_rgba(15,23,42,0.06)] ${verificationSummary.surfaceClass}`}
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="font-bold text-[15px]" style={{ color: verificationSummary.color }}>
+              <div className={`font-bold text-[15px] ${verificationSummary.titleClass}`}>
                 {verificationSummary.title}
               </div>
               <div className="text-xs text-slate-600 mt-1">
@@ -856,13 +885,7 @@ function HomeTab({
               <div className="bg-blue-50 border border-blue-200 rounded-[10px] px-3 py-2.5">
                 <div className="text-[11px] text-primary font-bold mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
                 <div className="flex items-center gap-2">
-                  <div
-                    className="w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0"
-                    style={{
-                      background: incidentTypeConfig[selectedIncident.type].bgColor,
-                      color: incidentTypeConfig[selectedIncident.type].color,
-                    }}
-                  >
+                  <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 ${incidentIconToneClass[selectedIncident.type]}`}>
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -901,8 +924,7 @@ function HomeTab({
       <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
         <div
-          className="grid gap-2.5"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
+          className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5"
         >
           <QuickActionCard
             icon={<Plus size={22} />}
@@ -964,24 +986,21 @@ function HomeTab({
         <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
         <div className="flex flex-col gap-2">
           {[
-            { label: t('citizen.dashboard.emergencyHotline'), number: '911', color: 'var(--severity-critical)', bg: '#FEE2E2' },
-            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', color: 'var(--primary)', bg: '#DBEAFE' },
-            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', color: '#059669', bg: '#D1FAE5' },
+            { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-severity-critical', iconTone: 'bg-red-100 text-severity-critical' },
+            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', tone: 'text-primary', iconTone: 'bg-blue-100 text-primary' },
+            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', tone: 'text-emerald-600', iconTone: 'bg-emerald-100 text-emerald-600' },
           ].map((contact) => (
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
               className="bg-white rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-slate-200"
             >
-              <div
-                className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0"
-                style={{ background: contact.bg, color: contact.color }}
-              >
+              <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${contact.iconTone}`}>
                 <Phone size={17} />
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-[13px] text-slate-900">{contact.label}</div>
-                <div className="text-xs font-bold mt-px" style={{ color: contact.color }}>{contact.number}</div>
+                <div className={`text-xs font-bold mt-px ${contact.tone}`}>{contact.number}</div>
               </div>
               <ChevronRight size={16} color="#94A3B8" />
             </a>
@@ -1003,6 +1022,69 @@ const REPORT_TYPES: { type: IncidentType; label: string; icon: React.ReactNode }
   { type: 'infrastructure', label: 'Infrastructure', icon: <Zap size={20} /> },
   { type: 'typhoon', label: 'Typhoon', icon: <CloudRain size={20} /> },
 ];
+
+const reportTypeToneClass: Record<IncidentType, {
+  selectedCard: string;
+  selectedIcon: string;
+  selectedLabel: string;
+  unselectedIcon: string;
+}> = {
+  flood: {
+    selectedCard: 'bg-sky-700 border-sky-700 shadow-[0_4px_12px_rgba(3,105,161,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-sky-100 text-sky-700',
+  },
+  accident: {
+    selectedCard: 'bg-orange-700 border-orange-700 shadow-[0_4px_12px_rgba(194,65,12,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-orange-100 text-orange-700',
+  },
+  medical: {
+    selectedCard: 'bg-severity-critical border-severity-critical shadow-[0_4px_12px_rgba(185,28,28,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-red-100 text-severity-critical',
+  },
+  crime: {
+    selectedCard: 'bg-primary border-primary shadow-[0_4px_12px_rgba(30,58,138,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-blue-100 text-primary',
+  },
+  infrastructure: {
+    selectedCard: 'bg-amber-700 border-amber-700 shadow-[0_4px_12px_rgba(180,115,10,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-amber-100 text-amber-700',
+  },
+  typhoon: {
+    selectedCard: 'bg-cyan-700 border-cyan-700 shadow-[0_4px_12px_rgba(14,116,144,0.28)]',
+    selectedIcon: 'bg-white/25 text-white',
+    selectedLabel: 'text-white',
+    unselectedIcon: 'bg-cyan-100 text-cyan-700',
+  },
+};
+
+const severityToneClass: Record<string, { selected: string; unselected: string }> = {
+  low: {
+    selected: 'border-emerald-600 bg-emerald-100 text-emerald-600',
+    unselected: 'border-slate-200 bg-white text-slate-400',
+  },
+  medium: {
+    selected: 'border-amber-700 bg-amber-100 text-amber-700',
+    unselected: 'border-slate-200 bg-white text-slate-400',
+  },
+  high: {
+    selected: 'border-orange-700 bg-orange-100 text-orange-700',
+    unselected: 'border-slate-200 bg-white text-slate-400',
+  },
+  critical: {
+    selected: 'border-severity-critical bg-red-100 text-severity-critical',
+    unselected: 'border-slate-200 bg-white text-slate-400',
+  },
+};
 
 function _ReportTab() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -1047,8 +1129,7 @@ function _ReportTab() {
     <div className="citizen-content-shell pt-5 pb-5">
       {/* Header */}
       <div
-        className="rounded-2xl p-4 mb-5 text-white"
-        style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)' }}
+        className="mb-5 rounded-2xl bg-[linear-gradient(135deg,#B91C1C_0%,#991B1B_100%)] p-4 text-white"
       >
         <div className="font-extrabold text-lg mb-1">Submit Incident Report</div>
         <div className="text-xs text-white/75">
@@ -1058,8 +1139,7 @@ function _ReportTab() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className="flex-1 h-1 rounded-sm transition-[background] duration-300"
-              style={{ background: s <= step ? '#fff' : 'rgba(255,255,255,0.3)' }}
+              className={`flex-1 h-1 rounded-sm transition-[background] duration-300 ${s <= step ? 'bg-white' : 'bg-white/30'}`}
             />
           ))}
         </div>
@@ -1076,33 +1156,22 @@ function _ReportTab() {
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             {REPORT_TYPES.map(({ type, label, icon }) => {
-              const cfg = incidentTypeConfig[type];
               const isSelected = selectedType === type;
+              const tone = reportTypeToneClass[type];
               return (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className="rounded-[14px] cursor-pointer flex items-center gap-2.5 transition-all duration-200"
-                  style={{
-                    padding: '14px 12px',
-                    background: isSelected ? cfg.color : '#fff',
-                    border: `2px solid ${isSelected ? cfg.color : '#E2E8F0'}`,
-                    boxShadow: isSelected ? `0 4px 12px ${cfg.color}44` : '0 1px 4px rgba(0,0,0,0.07)',
-                  }}
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-[14px] border-2 px-3 py-[14px] transition-all duration-200 ${
+                    isSelected
+                      ? tone.selectedCard
+                      : 'bg-white border-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.07)]'
+                  }`}
                 >
-                  <div
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                    style={{
-                      background: isSelected ? 'rgba(255,255,255,0.25)' : cfg.bgColor,
-                      color: isSelected ? '#fff' : cfg.color,
-                    }}
-                  >
+                  <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${isSelected ? tone.selectedIcon : tone.unselectedIcon}`}>
                     {icon}
                   </div>
-                  <span
-                    className="font-semibold text-[13px]"
-                    style={{ color: isSelected ? '#fff' : '#1E293B' }}
-                  >
+                  <span className={`font-semibold text-[13px] ${isSelected ? tone.selectedLabel : 'text-slate-800'}`}>
                     {label}
                   </span>
                 </button>
@@ -1112,12 +1181,11 @@ function _ReportTab() {
           <button
             onClick={() => selectedType && setStep(2)}
             disabled={!selectedType}
-            className="mt-5 w-full border-0 rounded-xl py-3.5 font-bold text-sm transition-colors duration-200"
-            style={{
-              background: selectedType ? 'var(--primary)' : '#E2E8F0',
-              color: selectedType ? '#fff' : '#94A3B8',
-              cursor: selectedType ? 'pointer' : 'not-allowed',
-            }}
+            className={`mt-5 w-full rounded-xl border-0 py-3.5 text-sm font-bold transition-colors duration-200 ${
+              selectedType
+                ? 'cursor-pointer bg-primary text-white'
+                : 'cursor-not-allowed bg-slate-200 text-slate-400'
+            }`}
           >
             {'Continue ->'}
           </button>
@@ -1145,20 +1213,17 @@ function _ReportTab() {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { key: 'low', label: 'Low', color: '#059669', bg: '#D1FAE5' },
-                { key: 'medium', label: 'Medium', color: 'var(--severity-medium)', bg: '#FEF3C7' },
-                { key: 'high', label: 'High', color: '#C2410C', bg: '#FFEDD5' },
-                { key: 'critical', label: 'Critical', color: 'var(--severity-critical)', bg: '#FEE2E2' },
+                { key: 'low', label: 'Low' },
+                { key: 'medium', label: 'Medium' },
+                { key: 'high', label: 'High' },
+                { key: 'critical', label: 'Critical' },
               ].map((s) => (
                 <button
                   key={s.key}
                   onClick={() => setSeverity(s.key)}
-                  className="py-2 px-1 rounded-lg font-bold text-[11px] cursor-pointer transition-all duration-150"
-                  style={{
-                    border: `2px solid ${severity === s.key ? s.color : '#E2E8F0'}`,
-                    background: severity === s.key ? s.bg : '#fff',
-                    color: severity === s.key ? s.color : '#94A3B8',
-                  }}
+                  className={`cursor-pointer rounded-lg border-2 px-1 py-2 text-[11px] font-bold transition-all duration-150 ${
+                    severity === s.key ? severityToneClass[s.key].selected : severityToneClass[s.key].unselected
+                  }`}
                 >
                   {s.label}
                 </button>
@@ -1187,12 +1252,11 @@ function _ReportTab() {
             <button
               onClick={() => description && location && severity && setStep(3)}
               disabled={!description || !location || !severity}
-              className="flex-[2] border-0 rounded-xl py-3.5 font-bold text-sm"
-              style={{
-                background: description && location && severity ? 'var(--primary)' : '#E2E8F0',
-                color: description && location && severity ? '#fff' : '#94A3B8',
-                cursor: description && location && severity ? 'pointer' : 'not-allowed',
-              }}
+              className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
+                description && location && severity
+                  ? 'cursor-pointer bg-primary text-white'
+                  : 'cursor-not-allowed bg-slate-200 text-slate-400'
+              }`}
             >
               {'Review ->'}
             </button>
@@ -1222,7 +1286,7 @@ function _ReportTab() {
             ))}
           </div>
           <div className="bg-amber-50 rounded-[10px] px-3.5 py-2.5 border border-amber-200 mb-4 text-xs text-amber-800 flex gap-2 items-start">
-            <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+            <Info size={14} className="shrink-0 mt-px" />
             False reporting is punishable by law. Only submit genuine emergencies or concerns.
           </div>
           <div className="flex gap-2.5">
@@ -1234,8 +1298,7 @@ function _ReportTab() {
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-[2] text-white border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer shadow-[0_4px_12px_rgba(185,28,28,0.4)]"
-              style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)' }}
+              className="flex-[2] cursor-pointer rounded-xl border-0 bg-[linear-gradient(135deg,#B91C1C_0%,#991B1B_100%)] py-3.5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(185,28,28,0.4)]"
             >
               Submit Report
             </button>
@@ -1302,9 +1365,9 @@ function MapTab({
     : 186;
   const mapDetailOffset = isMobileViewport ? (isCompactMobileHeight ? 50 : 62) : 48;
   const mapHeight = `max(320px, calc(100dvh - ${mapBaseOffset + mapDetailOffset}px - env(safe-area-inset-bottom)))`;
-  const mapShellMinHeight = isMobileViewport
-    ? (isCompactMobileHeight ? 'calc(100dvh - 108px)' : 'calc(100dvh - 120px)')
-    : 'calc(100dvh - 176px)';
+  const mapShellMinHeightClass = isMobileViewport
+    ? (isCompactMobileHeight ? 'min-h-[calc(100dvh-108px)]' : 'min-h-[calc(100dvh-120px)]')
+    : 'min-h-[calc(100dvh-176px)]';
 
   useEffect(() => {
     if (!selectedIncident) {
@@ -1317,40 +1380,38 @@ function MapTab({
   }, [filtered, selectedIncident, setSelectedIncident]);
 
   return (
-    <div className="flex flex-col" style={{ minHeight: mapShellMinHeight }}>
+    <div className={`flex flex-col ${mapShellMinHeightClass}`}>
       {/* Filters */}
       <div className="citizen-map-filter-bar px-4 py-3 bg-white border-b border-slate-100 flex gap-2 items-center flex-wrap">
         <div className="font-bold text-sm text-slate-900 flex-1">{t('citizen.dashboard.myReportMap')}</div>
         <button
           type="button"
           onClick={onBack}
-          className="rounded-[10px] border border-blue-200 bg-blue-50 text-primary font-bold text-[11px] cursor-pointer inline-flex items-center gap-1.5"
-          style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
+          className={`inline-flex items-center gap-1.5 rounded-[10px] border border-blue-200 bg-blue-50 text-[11px] font-bold text-primary cursor-pointer ${
+            isMobileViewport ? 'px-3 py-2' : 'px-[10px] py-1.5'
+          }`}
         >
           <ArrowLeft size={12} />
           {t('citizen.dashboard.backToDashboard')}
         </button>
         {(['all', 'active', 'responding'] as const).map((f) => (
           <button
-            className="citizen-map-filter-chip border-0 rounded-full font-semibold capitalize cursor-pointer"
+            className={`citizen-map-filter-chip border-0 rounded-full font-semibold capitalize cursor-pointer ${
+              isMobileViewport ? 'px-[14px] py-2 text-xs' : 'px-3 py-[5px] text-[11px]'
+            } ${filter === f ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}
             key={f}
             onClick={() => setFilter(f)}
-            style={{
-              padding: isMobileViewport ? '8px 14px' : '5px 12px',
-              background: filter === f ? 'var(--primary)' : '#F1F5F9',
-              color: filter === f ? '#fff' : '#64748B',
-              fontSize: isMobileViewport ? 12 : 11,
-            }}
           >
             {f}
           </button>
         ))}
         {selectedIncident ? (
           <button
-            className="citizen-map-clear-btn ml-auto border border-slate-200 bg-white text-slate-600 font-bold text-[11px] rounded-[10px] cursor-pointer"
             type="button"
             onClick={() => setSelectedIncident(null)}
-            style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
+            className={`citizen-map-clear-btn ml-auto border border-slate-200 bg-white text-slate-600 font-bold text-[11px] rounded-[10px] cursor-pointer ${
+              isMobileViewport ? 'px-3 py-2' : 'px-[10px] py-1.5'
+            }`}
           >
             {t('citizen.dashboard.clearSelection')}
           </button>
@@ -1536,13 +1597,9 @@ function ProfileTab({
       {/* Verification preview */}
       <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
       <div
-        className="rounded-[14px] px-3.5 py-3 mb-4"
-        style={{
-          background: verificationSummary.bg,
-          border: `1px solid ${verificationSummary.color}33`,
-        }}
+        className={`mb-4 rounded-[14px] px-3.5 py-3 ${verificationSummary.surfaceClass}`}
       >
-        <div className="font-bold text-[13px]" style={{ color: verificationSummary.color }}>
+        <div className={`font-bold text-[13px] ${verificationSummary.titleClass}`}>
           {verificationSummary.title}
         </div>
         <div className="text-xs text-slate-600 mt-1 leading-[1.5]">{verificationSummary.detail}</div>
@@ -1570,8 +1627,9 @@ function ProfileTab({
         ].map((item, idx, arr) => (
           <div
             key={item.label}
-            className="w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white"
-            style={{ borderBottom: idx < arr.length - 1 ? '1px solid #F8FAFC' : 'none' }}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white ${
+              idx < arr.length - 1 ? 'border-b border-slate-50' : ''
+            }`}
           >
             <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
               {item.icon}

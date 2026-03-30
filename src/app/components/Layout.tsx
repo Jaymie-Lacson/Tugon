@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, Outlet, useNavigate } from 'react-router';
 import {
-  LayoutDashboard,
-  AlertTriangle,
-  Map,
-  BarChart2,
-  FileText,
   Menu,
-  UserCheck,
   X,
   ChevronRight,
   Settings,
@@ -19,15 +13,7 @@ import { officialReportsApi, type ApiCrossBorderAlert } from '../services/offici
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { BottomNav, type BottomNavItem } from './BottomNav';
 import { useTranslation } from '../i18n';
-
-const NAV_ITEM_DEFS = [
-  { path: '/app',            labelKey: 'nav.dashboard', icon: LayoutDashboard, exact: true },
-  { path: '/app/incidents',  labelKey: 'nav.incidents',  icon: AlertTriangle },
-  { path: '/app/map',        labelKey: 'nav.map',        icon: Map },
-  { path: '/app/analytics',  labelKey: 'nav.analytics',  icon: BarChart2 },
-  { path: '/app/reports',    labelKey: 'nav.reports',    icon: FileText },
-  { path: '/app/verifications', labelKey: 'nav.verifications', icon: UserCheck },
-] as const;
+import { officialBottomNavDefs, officialSidebarNavDefs } from '../data/navigationConfig';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -63,15 +49,17 @@ function Layout() {
     .join('') || 'BO';
   const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? t('role.superAdmin') : t('role.official');
 
-  const NAV_ITEMS = NAV_ITEM_DEFS.map((item) => ({ ...item, label: t(item.labelKey) }));
-
-  const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-    { key: 'dashboard', icon: <LayoutDashboard size={20} />, label: t('nav.home'),      path: '/app',            exact: true },
-    { key: 'incidents', icon: <AlertTriangle size={20} />,   label: t('nav.incidents'),  path: '/app/incidents' },
-    { key: 'map',       icon: <Map size={20} />,             label: t('nav.map'),        path: '/app/map' },
-    { key: 'reports',   icon: <FileText size={20} />,        label: t('nav.reports'),    path: '/app/reports' },
-    { key: 'settings',  icon: <Settings size={20} />,        label: t('common.settings'), path: '/app/settings' },
-  ];
+  const NAV_ITEMS = officialSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
+  const BOTTOM_NAV_ITEMS: BottomNavItem[] = officialBottomNavDefs.map((item) => {
+    const Icon = item.icon;
+    return {
+      key: item.key,
+      icon: <Icon size={20} />,
+      label: t(item.labelKey),
+      path: item.path,
+      exact: item.exact,
+    };
+  });
 
   const currentPage = NAV_ITEMS.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'

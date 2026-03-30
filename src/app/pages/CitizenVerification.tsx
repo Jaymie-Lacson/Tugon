@@ -50,6 +50,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusNotSubmitted'),
       color: '#475569',
       bg: '#F8FAFC',
+      badgeClass: 'border-slate-300 bg-slate-50 text-slate-600',
       icon: <Clock3 size={14} />,
       helper: t('citizen.verification.helperNotSubmitted'),
     };
@@ -60,6 +61,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusRestricted'),
       color: '#991B1B',
       bg: '#FEE2E2',
+      badgeClass: 'border-red-300 bg-red-100 text-red-800',
       icon: <ShieldAlert size={14} />,
       helper: t('citizen.verification.helperRestricted'),
     };
@@ -70,6 +72,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.approved'),
       color: '#065F46',
       bg: '#DCFCE7',
+      badgeClass: 'border-emerald-300 bg-emerald-100 text-emerald-800',
       icon: <CheckCircle2 size={14} />,
       helper: t('citizen.verification.helperApproved'),
     };
@@ -80,6 +83,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusPending'),
       color: '#92400E',
       bg: '#FEF3C7',
+      badgeClass: 'border-amber-300 bg-amber-100 text-amber-800',
       icon: <Clock3 size={14} />,
       helper: t('citizen.verification.helperPending'),
     };
@@ -90,6 +94,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusReupload'),
       color: '#9A3412',
       bg: '#FFEDD5',
+      badgeClass: 'border-orange-300 bg-orange-100 text-orange-800',
       icon: <XCircle size={14} />,
       helper: t('citizen.verification.helperReupload'),
     };
@@ -99,6 +104,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
     label: t('citizen.verification.statusNotSubmitted'),
     color: '#475569',
     bg: '#F8FAFC',
+    badgeClass: 'border-slate-300 bg-slate-50 text-slate-600',
     icon: <Clock3 size={14} />,
     helper: t('citizen.verification.helperNotSubmitted'),
   };
@@ -146,7 +152,6 @@ export default function CitizenVerification() {
   const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const frontFileInputRef = useRef<HTMLInputElement | null>(null);
   const backFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -283,7 +288,6 @@ export default function CitizenVerification() {
 
     setNotifOpen(false);
     setProfileMenuOpen(false);
-    setMobileMenuOpen(false);
   };
 
   useEffect(() => {
@@ -294,13 +298,11 @@ export default function CitizenVerification() {
       }
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     document.addEventListener('pointerdown', handleOutsideHeaderTap);
@@ -401,7 +403,6 @@ export default function CitizenVerification() {
         >
           <div
             className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
-            style={{ padding: '0 var(--citizen-content-gutter)' }}
           >
             <div className="flex items-center gap-[10px]">
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
@@ -410,14 +411,7 @@ export default function CitizenVerification() {
             <div className="flex items-center gap-[10px]">
               <CitizenMobileMenu
                 activeKey="profile"
-                open={mobileMenuOpen}
-                onToggle={() => {
-                  setMobileMenuOpen((prev) => !prev);
-                  setNotifOpen(false);
-                  setProfileMenuOpen(false);
-                }}
                 onNavigate={(key) => {
-                  setMobileMenuOpen(false);
                   if (key === 'report') navigate('/citizen/report');
                   else if (key === 'myreports') navigate('/citizen/my-reports');
                   else if (key === 'map') navigate('/citizen?tab=map');
@@ -430,7 +424,6 @@ export default function CitizenVerification() {
                 onClick={() => {
                   setNotifOpen(!notifOpen);
                   setProfileMenuOpen(false);
-                  setMobileMenuOpen(false);
                 }}
               />
               <div className="relative">
@@ -439,12 +432,10 @@ export default function CitizenVerification() {
                   onClick={() => {
                     setProfileMenuOpen((prev) => !prev);
                     setNotifOpen(false);
-                    setMobileMenuOpen(false);
                   }}
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
-                  aria-expanded={profileMenuOpen}
-                  className="w-9 h-9 rounded-[10px] border-0 bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
+                  className="w-11 h-11 rounded-[10px] border-0 bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
                 >
                   {initials}
                 </button>
@@ -496,16 +487,10 @@ export default function CitizenVerification() {
         if (notifOpen) {
           setNotifOpen(false);
         }
-        if (mobileMenuOpen) {
-          setMobileMenuOpen(false);
-        }
       }}
       mainOnScroll={() => {
         if (notifOpen) {
           setNotifOpen(false);
-        }
-        if (mobileMenuOpen) {
-          setMobileMenuOpen(false);
         }
       }}
       mobileMainPaddingBottom={16}
@@ -534,8 +519,7 @@ export default function CitizenVerification() {
 
           <section className="bg-white rounded-2xl border border-slate-200 p-4">
             <div
-              className="inline-flex items-center gap-2 px-[10px] py-[6px] rounded-lg font-bold text-xs"
-              style={{ border: `1px solid ${meta.color}33`, background: meta.bg, color: meta.color }}
+              className={`inline-flex items-center gap-2 rounded-lg border px-[10px] py-[6px] text-xs font-bold ${meta.badgeClass}`}
             >
               {meta.icon} {meta.label}
             </div>
@@ -600,8 +584,7 @@ export default function CitizenVerification() {
               {t('citizen.verification.acceptedIdsDesc')}
             </div>
             <div
-              className="grid gap-[10px] mb-[10px]"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}
+              className="mb-[10px] grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[10px]"
             >
               <div className="border border-[#BBF7D0] rounded-xl p-[10px] bg-[#F0FDF4]">
                 <div className="text-xs font-bold text-[#166534] mb-2">
@@ -663,20 +646,30 @@ export default function CitizenVerification() {
                 {t('citizen.verification.uploadLabel')}
               </label>
 
+              <label htmlFor="citizen-id-upload-front" className="sr-only">
+                Front ID image file
+              </label>
               <input
                 ref={frontFileInputRef}
                 id="citizen-id-upload-front"
                 type="file"
+                title="Upload front ID image"
+                aria-label="Upload front ID image"
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                 disabled={!canUploadVerification || submitting}
                 onChange={(event) => onSelectFile('front', event.target.files?.[0] ?? null)}
                 className="hidden"
               />
 
+              <label htmlFor="citizen-id-upload-back" className="sr-only">
+                Back ID image file
+              </label>
               <input
                 ref={backFileInputRef}
                 id="citizen-id-upload-back"
                 type="file"
+                title="Upload back ID image"
+                aria-label="Upload back ID image"
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                 disabled={!canUploadVerification || submitting}
                 onChange={(event) => onSelectFile('back', event.target.files?.[0] ?? null)}
@@ -691,11 +684,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => frontFileInputRef.current?.click()}
-                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
-                        style={{
-                          cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
-                          opacity: !canUploadVerification || submitting ? 0.65 : 1,
-                        }}
+                        className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border border-blue-200 bg-blue-50 px-3 py-[9px] text-xs font-bold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectFront')}
                       </button>
@@ -733,11 +722,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => backFileInputRef.current?.click()}
-                        className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-3 py-[9px] inline-flex items-center gap-[6px] w-fit"
-                        style={{
-                          cursor: !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
-                          opacity: !canUploadVerification || submitting ? 0.65 : 1,
-                        }}
+                        className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border border-blue-200 bg-blue-50 px-3 py-[9px] text-xs font-bold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectBack')}
                       </button>
@@ -784,8 +769,7 @@ export default function CitizenVerification() {
                   <div className="border border-slate-200 rounded-xl p-[10px] bg-white grid gap-2">
                     <div className="text-xs font-bold text-slate-700">{t('citizen.verification.selectedPreviews')}</div>
                     <div
-                      className="grid gap-[10px]"
-                      style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
+                      className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[10px]"
                     >
                       {frontIdPreviewUrl ? (
                         <div className="grid gap-[6px]">
@@ -828,11 +812,7 @@ export default function CitizenVerification() {
                 type="button"
                 onClick={() => void submit()}
                 disabled={!frontIdFile || !backIdFile || !canUploadVerification || submitting}
-                className="border-0 rounded-[10px] bg-primary text-white text-[13px] font-bold px-[14px] py-[10px] w-fit inline-flex items-center gap-[6px]"
-                style={{
-                  cursor: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 'not-allowed' : 'pointer',
-                  opacity: !frontIdFile || !backIdFile || !canUploadVerification || submitting ? 0.65 : 1,
-                }}
+                className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border-0 bg-primary px-[14px] py-[10px] text-[13px] font-bold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
               >
                 <UploadCloud size={15} /> {submitting ? t('citizen.verification.uploading') : t('citizen.verification.submitBtn')}
               </button>

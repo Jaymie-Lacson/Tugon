@@ -668,14 +668,14 @@ function Step2({
 
   const renderMap = (height: number | string) => (
     <MapContainer
-      className="incident-step2-map"
+      className="incident-step2-map block w-full"
       center={TONDO_MAP_CENTER}
       zoom={18}
       minZoom={17}
       maxZoom={22}
       maxBounds={TONDO_MAP_BOUNDS}
       maxBoundsViscosity={1}
-      style={{ display: 'block', height, width: '100%' }}
+      style={{ height }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -1769,7 +1769,6 @@ export default function IncidentReport() {
   const [submittedReportId, setSubmittedReportId] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
   const contentRef              = useRef<HTMLDivElement>(null);
 
@@ -1786,7 +1785,6 @@ export default function IncidentReport() {
 
     setNotifOpen(false);
     setProfileMenuOpen(false);
-    setMobileMenuOpen(false);
   }, [navigate]);
 
   const handleSignOut = React.useCallback(() => {
@@ -1838,13 +1836,11 @@ export default function IncidentReport() {
 
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
       setProfileMenuOpen(false);
-      setMobileMenuOpen(false);
     };
 
     document.addEventListener('pointerdown', handleOutsideHeaderTap);
@@ -2012,14 +2008,7 @@ export default function IncidentReport() {
               <div className="flex items-center gap-2.5">
                 <CitizenMobileMenu
                   activeKey="report"
-                  open={mobileMenuOpen}
-                  onToggle={() => {
-                    setMobileMenuOpen((prev) => !prev);
-                    setNotifOpen(false);
-                    setProfileMenuOpen(false);
-                  }}
                   onNavigate={(key) => {
-                    setMobileMenuOpen(false);
                     if (key === 'report') navigate('/citizen/report');
                     else if (key === 'myreports') navigate('/citizen/my-reports');
                     else if (key === 'map') navigate('/citizen?tab=map');
@@ -2032,7 +2021,6 @@ export default function IncidentReport() {
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
-                    setMobileMenuOpen(false);
                   }}
                 />
                 <div className="citizen-report-profile-wrap">
@@ -2041,11 +2029,10 @@ export default function IncidentReport() {
                     onClick={() => {
                       setProfileMenuOpen((prev) => !prev);
                       setNotifOpen(false);
-                      setMobileMenuOpen(false);
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    className="w-9 h-9 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-[14px] border-none cursor-pointer"
+                    className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-[14px] border-none cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -2164,16 +2151,10 @@ export default function IncidentReport() {
           if (notifOpen) {
             setNotifOpen(false);
           }
-          if (mobileMenuOpen) {
-            setMobileMenuOpen(false);
-          }
         }}
         mainOnScroll={() => {
           if (notifOpen) {
             setNotifOpen(false);
-          }
-          if (mobileMenuOpen) {
-            setMobileMenuOpen(false);
           }
         }}
       >

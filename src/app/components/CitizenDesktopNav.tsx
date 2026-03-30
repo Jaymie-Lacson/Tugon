@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { Home, Plus, Map, FileText, User } from 'lucide-react';
-
-type CitizenNavKey = 'home' | 'report' | 'map' | 'myreports' | 'profile';
+import { useTranslation } from '../i18n';
+import { citizenNavDefs, type CitizenNavKey } from '../data/navigationConfig';
 
 interface CitizenDesktopNavProps {
   activeKey: CitizenNavKey;
@@ -11,14 +10,7 @@ interface CitizenDesktopNavProps {
 
 export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavProps) {
   const navigate = useNavigate();
-
-  const navItems: { key: CitizenNavKey; icon: React.ReactNode; label: string }[] = [
-    { key: 'home', icon: <Home size={22} />, label: 'Home' },
-    { key: 'report', icon: <Plus size={22} />, label: 'Report' },
-    { key: 'map', icon: <Map size={22} />, label: 'Map' },
-    { key: 'myreports', icon: <FileText size={22} />, label: 'My Reports' },
-    { key: 'profile', icon: <User size={22} />, label: 'Profile' },
-  ];
+  const { t } = useTranslation();
 
   const handleClick = (key: CitizenNavKey) => {
     const handled = onNavigate?.(key);
@@ -34,7 +26,8 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
   return (
     <div className="citizen-only-desktop citizen-web-strip flex justify-center pt-3.5 pb-2.5 border-b border-slate-200 bg-slate-50">
       <div className="citizen-web-strip-inner flex items-center gap-2.5 overflow-x-auto flex-nowrap bg-white border border-slate-200 rounded-xl p-2">
-        {navItems.map((item) => {
+        {citizenNavDefs.map((item) => {
+          const Icon = item.icon;
           const isActionRoute = item.key === 'report' || item.key === 'myreports';
           const isActive = activeKey === item.key;
 
@@ -50,8 +43,8 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
                     : 'border-slate-200 bg-white text-slate-700 font-semibold hover:border-blue-200'
               }`}
             >
-              {item.icon}
-              {item.label}
+              <Icon size={22} />
+              {t(item.labelKey)}
             </button>
           );
         })}

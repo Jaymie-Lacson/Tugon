@@ -64,7 +64,7 @@ export function CitizenPageLayout({
       {header}
       {beforeMain}
       {!hideVerificationPrompt && (
-        <div className="citizen-content-shell w-full mx-auto py-3" style={{ maxWidth: 'var(--citizen-desktop-main-max)' }}>
+        <div className="citizen-content-shell citizen-verification-shell w-full mx-auto py-3">
           <VerificationProgressCard />
         </div>
       )}
@@ -141,6 +141,17 @@ export function CitizenPageLayout({
         }
 
         .citizen-content-shell {
+          padding-left: var(--citizen-content-gutter);
+          padding-right: var(--citizen-content-gutter);
+          box-sizing: border-box;
+        }
+
+        .citizen-verification-shell,
+        .citizen-web-header-inner {
+          max-width: var(--citizen-desktop-main-max);
+        }
+
+        .citizen-web-header-inner {
           padding-left: var(--citizen-content-gutter);
           padding-right: var(--citizen-content-gutter);
           box-sizing: border-box;
