@@ -133,7 +133,6 @@ export const fil: TranslationDictionary = {
   'auth.createPassword.password': 'Password',
   'auth.createPassword.passwordPlaceholder': 'Gumawa ng password',
   'auth.createPassword.confirm': 'Kumpirmahin ang password',
-  'auth.createPassword.confirmPlaceholder': 'Kumpirmahin ang iyong password',
   'auth.createPassword.submit': 'Gumawa ng account',
   'auth.createPassword.creating': 'Gumagawa ng account...',
   'auth.createPassword.mismatch': 'Hindi magkatugma ang mga password.',

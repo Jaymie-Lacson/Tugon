@@ -133,7 +133,6 @@ export const en: TranslationDictionary = {
   'auth.createPassword.password': 'Password',
   'auth.createPassword.passwordPlaceholder': 'Create a password',
   'auth.createPassword.confirm': 'Confirm password',
-  'auth.createPassword.confirmPlaceholder': 'Confirm your password',
   'auth.createPassword.submit': 'Create account',
   'auth.createPassword.creating': 'Creating account...',
   'auth.createPassword.mismatch': 'Passwords do not match.',
