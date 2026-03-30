@@ -215,6 +215,9 @@ export const fil: TranslationDictionary = {
   'auth.forgotPassword.sendResetCode': 'Ipadala ang Reset Code',
   'auth.forgotPassword.phoneLabel': 'Nakarehistrong Numero ng Telepono',
   'auth.forgotPassword.phoneHint': 'Dapat tumugma sa numero ng telepono na ginamit sa pagpaparehistro.',
+  'auth.forgotPassword.step.requestCode': 'Humiling ng Code',
+  'auth.forgotPassword.step.verifyCode': 'I-verify ang Code',
+  'auth.forgotPassword.step.newPassword': 'Bagong Password',
 
   // ── Auth: Shared ──
   'auth.branding.tagline': 'Kaligtasan ng Komunidad na Pinapagana ng Data.',

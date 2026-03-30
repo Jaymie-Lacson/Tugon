@@ -215,6 +215,9 @@ export const en: TranslationDictionary = {
   'auth.forgotPassword.sendResetCode': 'Send Reset Code',
   'auth.forgotPassword.phoneLabel': 'Registered Phone Number',
   'auth.forgotPassword.phoneHint': 'Must match the phone number used during registration.',
+  'auth.forgotPassword.step.requestCode': 'Request Code',
+  'auth.forgotPassword.step.verifyCode': 'Verify Code',
+  'auth.forgotPassword.step.newPassword': 'New Password',
 
   // ── Auth: Shared ──
   'auth.branding.tagline': 'Community Safety Powered by Data.',

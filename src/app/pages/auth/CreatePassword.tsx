@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck, House } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { useTranslation } from '../../i18n';
@@ -127,43 +127,13 @@ export default function CreatePassword() {
           </button>
         )}
       >
-        {/* Step indicator */}
-        <div className="flex items-center gap-0 mb-7">
-          {[
-            { n: 1, label: t('auth.steps.details'), done: true },
-            { n: 2, label: t('auth.steps.verify'), done: true },
-            { n: 3, label: t('auth.steps.password'), active: true },
-          ].flatMap((step, idx) => {
-            const items = [
-              <div key={`step-${step.n}`} className="flex flex-col items-center flex-1">
-                <div className={`w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-bold mb-1 ${
-                  step.done
-                    ? 'bg-emerald-600 text-white'
-                    : step.active
-                      ? 'bg-primary text-white'
-                      : 'bg-slate-200 text-slate-400'
-                }`}>
-                  {step.done ? <CheckCircle2 size={15} /> : step.n}
-                </div>
-                <span className={`text-[10px] ${
-                  step.done
-                    ? 'text-emerald-600'
-                    : step.active
-                      ? 'text-primary font-bold'
-                      : 'text-slate-400'
-                }`}>
-                  {step.label}
-                </span>
-              </div>
-            ];
-            if (idx < 2) {
-              items.push(
-                <div key={`connector-${idx}`} className={`flex-1 h-0.5 mb-[18px] ${step.done ? 'bg-emerald-600' : 'bg-slate-200'}`} />
-              );
-            }
-            return items;
-          })}
-        </div>
+        <AuthProgressStepper
+          steps={[
+            { label: t('auth.steps.details'), status: 'done' },
+            { label: t('auth.steps.verify'), status: 'done' },
+            { label: t('auth.steps.password'), status: 'active' },
+          ]}
+        />
 
         {/* Account summary pill */}
         {flow !== 'password-reset' && state.fullName && (

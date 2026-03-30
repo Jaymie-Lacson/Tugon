@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { MapPin, Radio } from 'lucide-react';
+import { CheckCircle2, MapPin, Radio } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
@@ -10,6 +10,11 @@ interface AuthLayoutProps {
   title: string;
   subtitle: string;
   topAction?: React.ReactNode;
+}
+
+export interface AuthProgressStep {
+  label: string;
+  status: 'done' | 'active' | 'upcoming';
 }
 
 export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutProps) {
@@ -102,7 +107,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
           </div>
 
           {/* Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-[0_8px_40px_rgba(30,58,138,0.08)] sm:p-10">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_rgba(30,58,138,0.08)] sm:p-8 lg:p-10">
             <div className="mb-6">
               <h1 className="text-xl font-bold text-slate-900">{title}</h1>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{subtitle}</p>
@@ -213,6 +218,60 @@ export function PrimaryButton({ children, onClick, loading = false, disabled = f
     >
       {loading ? <span className="size-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : children}
     </button>
+  );
+}
+
+interface AuthProgressStepperProps {
+  steps: AuthProgressStep[];
+  className?: string;
+}
+
+export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressStepperProps) {
+  return (
+    <div className={`${className} flex items-center`}>
+      {steps.flatMap((step, idx) => {
+        const isDone = step.status === 'done';
+        const isActive = step.status === 'active';
+
+        const items = [
+          <div key={`step-${idx}`} className="flex flex-1 flex-col items-center">
+            <div
+              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13px] font-bold ${
+                isDone
+                  ? 'bg-emerald-600 text-white'
+                  : isActive
+                    ? 'bg-primary text-white'
+                    : 'bg-slate-200 text-slate-400'
+              }`}
+            >
+              {isDone ? <CheckCircle2 size={15} /> : idx + 1}
+            </div>
+            <span
+              className={`text-[10px] ${
+                isDone
+                  ? 'text-emerald-600'
+                  : isActive
+                    ? 'font-bold text-primary'
+                    : 'text-slate-400'
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>,
+        ];
+
+        if (idx < steps.length - 1) {
+          items.push(
+            <div
+              key={`connector-${idx}`}
+              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-slate-200'}`}
+            />,
+          );
+        }
+
+        return items;
+      })}
+    </div>
   );
 }
 

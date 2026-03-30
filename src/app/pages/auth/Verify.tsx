@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { CheckCircle2, RefreshCw, Phone, ArrowLeft, ShieldCheck, House } from 'lucide-react';
-import { AuthLayout, PrimaryButton } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
 
@@ -186,43 +186,13 @@ export default function Verify() {
         </button>
       )}
     >
-      {/* Step indicator */}
-      <div className="mb-7 flex items-center">
-        {[
-          { n: 1, label: t('auth.steps.details'), done: true },
-          { n: 2, label: t('auth.steps.verify'), active: true },
-          { n: 3, label: t('auth.steps.password') },
-        ].flatMap((step, idx) => {
-          const items = [
-            <div key={`step-${step.n}`} className="flex flex-1 flex-col items-center">
-              <div className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13px] font-bold ${
-                step.done
-                  ? 'bg-emerald-600 text-white'
-                  : step.active
-                    ? 'bg-primary text-white'
-                    : 'bg-slate-200 text-slate-400'
-              }`}>
-                {step.done ? <CheckCircle2 size={15} /> : step.n}
-              </div>
-              <span className={`text-[10px] ${
-                step.done
-                  ? 'text-emerald-600'
-                  : step.active
-                    ? 'font-bold text-primary'
-                    : 'text-slate-400'
-              }`}>
-                {step.label}
-              </span>
-            </div>
-          ];
-          if (idx < 2) {
-            items.push(
-              <div key={`connector-${idx}`} className={`mb-[18px] h-0.5 flex-1 ${step.done ? 'bg-emerald-600' : 'bg-slate-200'}`} />
-            );
-          }
-          return items;
-        })}
-      </div>
+      <AuthProgressStepper
+        steps={[
+          { label: t('auth.steps.details'), status: 'done' },
+          { label: t('auth.steps.verify'), status: 'active' },
+          { label: t('auth.steps.password'), status: 'upcoming' },
+        ]}
+      />
 
       {/* Phone info pill */}
       <div className="mb-7 flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-sky-200 bg-sky-50 p-3">

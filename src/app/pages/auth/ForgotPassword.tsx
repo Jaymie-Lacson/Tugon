@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
 
@@ -44,6 +44,14 @@ export default function ForgotPassword() {
       title={t('auth.forgotPassword.title')}
       subtitle={t('auth.forgotPassword.subtitle')}
     >
+      <AuthProgressStepper
+        steps={[
+          { label: t('auth.forgotPassword.step.requestCode'), status: sent ? 'done' : 'active' },
+          { label: t('auth.forgotPassword.step.verifyCode'), status: sent ? 'active' : 'upcoming' },
+          { label: t('auth.forgotPassword.step.newPassword'), status: 'upcoming' },
+        ]}
+      />
+
       {sent ? (
         <div className="text-center py-2">
           <div className="size-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft, House } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
 
@@ -85,39 +85,13 @@ export default function Register() {
         </button>
       )}
     >
-      {/* Step indicator */}
-      <div className="flex items-center gap-0 mb-7">
-        {[
-          { n: 1, label: t('auth.steps.details') },
-          { n: 2, label: t('auth.steps.verify') },
-          { n: 3, label: t('auth.steps.password') },
-        ].flatMap((step, idx) => {
-          const items = [
-            <div key={`step-${step.n}`} className="flex flex-col items-center flex-1">
-              <div className={`size-[30px] rounded-full flex items-center justify-center text-[13px] font-bold mb-1 ${
-                step.n === 1
-                  ? 'bg-primary text-white'
-                  : 'bg-slate-200 text-slate-400'
-              }`}>
-                {step.n}
-              </div>
-              <span className={`text-[10px] ${
-                step.n === 1
-                  ? 'text-primary font-bold'
-                  : 'text-slate-400 font-normal'
-              }`}>
-                {step.label}
-              </span>
-            </div>
-          ];
-          if (idx < 2) {
-            items.push(
-              <div key={`connector-${idx}`} className="flex-1 h-0.5 bg-slate-200 -mb-[18px]" />
-            );
-          }
-          return items;
-        })}
-      </div>
+      <AuthProgressStepper
+        steps={[
+          { label: t('auth.steps.details'), status: 'active' },
+          { label: t('auth.steps.verify'), status: 'upcoming' },
+          { label: t('auth.steps.password'), status: 'upcoming' },
+        ]}
+      />
 
       <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
         {errors.general && (
