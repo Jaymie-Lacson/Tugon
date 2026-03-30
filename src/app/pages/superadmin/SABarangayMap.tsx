@@ -85,15 +85,17 @@ function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon 
 function ZoomController() {
   const map = useMap();
   return (
-    <div style={{ position: 'absolute', top: 80, right: 10, zIndex: 1000 }} className="flex flex-col gap-1">
+    <div className="absolute top-20 right-2.5 z-[1000] flex flex-col gap-1">
       {[
-        { label: '+', action: () => map.zoomIn() },
-        { label: '−', action: () => map.zoomOut() },
-        { label: '⌂', action: () => map.flyTo([14.61495, 120.97795], 18, { animate: true }) },
+        { label: '+', action: () => map.zoomIn(), title: 'Zoom in' },
+        { label: '−', action: () => map.zoomOut(), title: 'Zoom out' },
+        { label: '⌂', action: () => map.flyTo([14.61495, 120.97795], 18, { animate: true }), title: 'Reset map view' },
       ].map(btn => (
         <button
           key={btn.label}
           onClick={btn.action}
+          aria-label={btn.title}
+          title={btn.title}
           className="w-8 h-8 border border-[#E5E7EB] rounded-md bg-white cursor-pointer text-[15px] font-bold text-[#374151] shadow-[0_1px_4px_rgba(0,0,0,.12)] flex items-center justify-center"
         >{btn.label}</button>
       ))}
@@ -157,11 +159,62 @@ const BOUNDARY_EDIT_ENABLED = false;
 const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
 const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
 
-const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
-  normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
-  elevated: { label: 'ELEVATED', color: 'var(--severity-medium)', bg: '#FEF3C7' },
-  critical: { label: 'CRITICAL', color: 'var(--severity-critical)', bg: '#FEE2E2' },
+const alertLevelConfig: Record<string, { label: string; badgeClass: string }> = {
+  normal: { label: 'NORMAL', badgeClass: 'bg-emerald-100 text-emerald-700' },
+  elevated: { label: 'ELEVATED', badgeClass: 'bg-amber-100 text-amber-700' },
+  critical: { label: 'CRITICAL', badgeClass: 'bg-red-100 text-red-700' },
 };
+
+const SEVERITY_TEXT_CLASS: Record<string, string> = {
+  critical: 'text-red-700',
+  high: 'text-orange-600',
+  medium: 'text-amber-600',
+  low: 'text-emerald-700',
+};
+
+const SEVERITY_BADGE_CLASS: Record<string, string> = {
+  critical: 'bg-red-100 text-red-700',
+  high: 'bg-orange-100 text-orange-700',
+  medium: 'bg-amber-100 text-amber-700',
+  low: 'bg-emerald-100 text-emerald-700',
+};
+
+const INCIDENT_BUTTON_CLASS: Record<string, { active: string; inactive: string }> = {
+  all: { active: 'bg-slate-700 text-white', inactive: 'bg-slate-100 text-slate-500' },
+  flood: { active: 'bg-blue-700 text-white', inactive: 'bg-slate-100 text-slate-500' },
+  accident: { active: 'bg-amber-600 text-white', inactive: 'bg-slate-100 text-slate-500' },
+  medical: { active: 'bg-teal-700 text-white', inactive: 'bg-slate-100 text-slate-500' },
+  crime: { active: 'bg-slate-700 text-white', inactive: 'bg-slate-100 text-slate-500' },
+};
+
+const BARANGAY_TEXT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'text-blue-700',
+  '252': 'text-teal-700',
+  '256': 'text-amber-700',
+};
+
+const BARANGAY_DOT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-blue-700 border-blue-700',
+  '252': 'bg-teal-700 border-teal-700',
+  '256': 'bg-amber-600 border-amber-600',
+};
+
+const BARANGAY_SELECTION_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-blue-50 border-blue-300',
+  '252': 'bg-teal-50 border-teal-300',
+  '256': 'bg-amber-50 border-amber-300',
+};
+
+const BARANGAY_ACCENT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-blue-700',
+  '252': 'bg-teal-700',
+  '256': 'bg-amber-600',
+};
+
+function incidentButtonClass(typeKey: string, active: boolean) {
+  const entry = INCIDENT_BUTTON_CLASS[typeKey] ?? INCIDENT_BUTTON_CLASS.all;
+  return active ? entry.active : entry.inactive;
+}
 
 const BARANGAY_CENTER_BY_CODE: Record<string, [number, number]> = {
   '251': [14.6146, 120.9776],
@@ -673,25 +726,25 @@ export default function SABarangayMap() {
   return (
     <div className="p-5 bg-[#F0F4FF] min-h-full">
       {/* Page header */}
-      <div className="sa-map-header flex items-center justify-between mb-4 gap-2.5">
+      <div className="flex flex-col items-start justify-between mb-4 gap-2.5 md:flex-row md:items-center">
         <div>
           <h1 className="text-[22px] font-bold text-[#0F172A] m-0">{t('superadmin.barangayMap.pageTitle')}</h1>
           <p className="text-xs text-[#6B7280] m-0 mt-0.5">
             {t('superadmin.barangayMap.subtitle')}
           </p>
         </div>
-        <div className="sa-map-header-actions flex gap-2">
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
           <button
             onClick={() => {
               void loadBarangays();
             }}
-            className="flex items-center gap-1.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
+            className="flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >
             <RefreshCw size={13} /> {loadingBarangays ? t('superadmin.barangayMap.syncing') : t('superadmin.barangayMap.syncBoundaries')}
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
-            className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
+            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
             <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
           </button>
@@ -700,7 +753,7 @@ export default function SABarangayMap() {
               setShowHeatmapSettings((open) => !open);
               setShowHeatmap(true);
             }}
-            className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
+            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
             <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
           </button>
@@ -719,7 +772,7 @@ export default function SABarangayMap() {
         </div>
       ) : null}
 
-      <div className="sa-map-main-grid grid gap-3.5" style={{ gridTemplateColumns: '1fr 296px' }}>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_296px] gap-3.5">
         {/* ── OSM Map ── */}
         <div className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,.08)] border border-[#E5E7EB] flex flex-col">
           {/* Toolbar */}
@@ -731,6 +784,7 @@ export default function SABarangayMap() {
                 <select
                   value={filterType}
                   onChange={(event) => setFilterType(event.target.value)}
+                  title="Filter by category"
                   className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
                 >
                   <option value="all">{t('superadmin.barangayMap.allCategories')}</option>
@@ -757,11 +811,7 @@ export default function SABarangayMap() {
                   <button
                     key={typeKey}
                     onClick={() => setFilterType(typeKey)}
-                    style={{
-                      background: filterType === typeKey ? (INCIDENT_COLORS[typeKey] ?? '#374151') : '#F3F4F6',
-                      color: filterType === typeKey ? 'white' : '#6B7280',
-                    }}
-                    className="px-2.5 py-1 rounded-[20px] text-[11px] font-semibold cursor-pointer border border-transparent capitalize"
+                    className={`px-2.5 py-1 rounded-[20px] text-[11px] font-semibold cursor-pointer border border-transparent capitalize ${incidentButtonClass(typeKey, filterType === typeKey)}`}
                   >
                     {typeKey !== 'all' ? <span className="mr-1 inline-flex align-middle">{getIncidentTypeIcon(typeKey, 12, filterType === typeKey ? '#FFFFFF' : '#6B7280')}</span> : null}
                     {typeKey === 'all' ? t('superadmin.barangayMap.allCategories') : getCategoryLabelForIncidentType(typeKey as IncidentType)}
@@ -800,17 +850,10 @@ export default function SABarangayMap() {
           </div>
 
           {/* Map */}
-          <div style={{ position: 'relative', flex: 1, minHeight: 500 }}>
+          <div className="relative flex-1 min-h-[500px]">
             {showHeatmapSettings ? (
               <div
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  zIndex: 1200,
-                  width: 232,
-                }}
-                className="bg-[rgba(255,255,255,0.98)] border border-[#DBEAFE] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
+                className="absolute top-3 right-3 z-[1200] w-[232px] bg-[rgba(255,255,255,0.98)] border border-[#DBEAFE] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
                 onMouseDown={(event) => event.stopPropagation()}
                 onMouseMove={(event) => event.stopPropagation()}
                 onTouchStart={(event) => event.stopPropagation()}
@@ -836,6 +879,7 @@ export default function SABarangayMap() {
                   </div>
                   <input
                     type="range"
+                    title={t('superadmin.barangayMap.radiusScale')}
                     min={50}
                     max={100}
                     step={1}
@@ -858,6 +902,7 @@ export default function SABarangayMap() {
                   </div>
                   <input
                     type="range"
+                    title={t('superadmin.barangayMap.opacityScale')}
                     min={0.25}
                     max={3}
                     step={0.05}
@@ -878,7 +923,7 @@ export default function SABarangayMap() {
             <MapContainer
               center={TONDO_TRI_BRGY_CENTER}
               zoom={MAP_DEFAULT_ZOOM}
-              style={{ width: '100%', height: '100%', minHeight: 500 }}
+              className="w-full h-full min-h-[500px]"
               zoomControl={false}
               attributionControl={true}
               scrollWheelZoom={!showHeatmapSettings}
@@ -918,7 +963,7 @@ export default function SABarangayMap() {
                 >
                   <Tooltip sticky direction="center" opacity={1}>
                     <div className="text-xs">
-                      <div className="font-bold" style={{ color: b.color }}>{b.name}</div>
+                      <div className={`font-bold ${BARANGAY_TEXT_CLASS_BY_CODE[b.code] ?? 'text-slate-700'}`}>{b.name}</div>
                       <div className="text-[#475569]">Pop: {b.population.toLocaleString()}</div>
                       <div className="text-[#6B7280]">Active: {b.activeIncidents} incidents</div>
                     </div>
@@ -987,8 +1032,7 @@ export default function SABarangayMap() {
                       <div className="font-bold text-[#1E293B] mb-0.5">{inc.label}</div>
                       <div className="text-[#475569]">{inc.barangay}</div>
                       <div
-                        className="font-semibold capitalize mt-0.5"
-                        style={{ color: SEVERITY_COLORS[inc.severity] }}
+                        className={`font-semibold capitalize mt-0.5 ${SEVERITY_TEXT_CLASS[inc.severity] ?? 'text-slate-600'}`}
                       >
                         {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
                       </div>
@@ -1004,15 +1048,14 @@ export default function SABarangayMap() {
 
             {/* Map legend overlay */}
             <div
-              style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 1000 }}
-              className="bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[#E5E7EB] min-w-[140px]"
+              className="absolute bottom-7 left-2.5 z-[1000] bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[#E5E7EB] min-w-[140px]"
             >
               <div className="font-bold text-[#0F172A] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
                 {t('superadmin.barangayMap.mapLegend')}
               </div>
               {barangaysData.map(b => (
                 <div key={b.id} className="flex items-center gap-1.5 mb-1">
-                  <div className="w-3 h-3 rounded-[3px] opacity-80" style={{ background: b.color, border: `2px solid ${b.color}` }} />
+                  <div className={`w-3 h-3 rounded-[3px] opacity-80 border-2 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-slate-500 border-slate-500'}`} />
                   <span className="text-[10px] text-[#374151]">{b.name}</span>
                 </div>
               ))}
@@ -1022,15 +1065,15 @@ export default function SABarangayMap() {
                     {t('superadmin.barangayMap.heatIntensity')}
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
-                    <span className="w-[11px] h-[11px] rounded-full bg-[#64748B]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.08 * heatOpacityScale)) }} />
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#64748B] opacity-25" />
                     <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatLow', { radius: Math.round(60 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
-                    <span className="w-[11px] h-[11px] rounded-full bg-[#475569]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.11 * heatOpacityScale)) }} />
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#475569] opacity-35" />
                     <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatHigh', { radius: Math.round(85 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-[11px] h-[11px] rounded-full bg-[#334155]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.14 * heatOpacityScale)) }} />
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#334155] opacity-45" />
                     <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatCritical', { radius: Math.round(110 * heatRadiusScale) })}</span>
                   </div>
                 </div>
@@ -1048,8 +1091,7 @@ export default function SABarangayMap() {
 
             {/* OSM attribution note */}
             <div
-              style={{ position: 'absolute', bottom: 5, right: 10, zIndex: 1000 }}
-              className="text-[9px] text-[#9CA3AF]"
+              className="absolute bottom-[5px] right-2.5 z-[1000] text-[9px] text-[#9CA3AF]"
             >
               {t('superadmin.barangayMap.osmAttribution')}
             </div>
@@ -1062,7 +1104,7 @@ export default function SABarangayMap() {
           {/* Barangay detail card */}
           {selectedBrgy ? (
             <div className="bg-white rounded-[14px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,.07)] border border-[#E5E7EB]">
-              <div style={{ height: 4, background: selectedBrgy.color }} />
+              <div className={`h-1 ${BARANGAY_ACCENT_CLASS_BY_CODE[selectedBrgy.code] ?? 'bg-primary'}`} />
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -1071,7 +1113,7 @@ export default function SABarangayMap() {
                       {(() => {
                         const al = alertLevelConfig[selectedBrgy.alertLevel];
                         return (
-                          <span style={{ background: al.bg, color: al.color }} className="text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em]">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em] ${al.badgeClass}`}>
                             {al.label}
                           </span>
                         );
@@ -1082,6 +1124,8 @@ export default function SABarangayMap() {
                   </div>
                   <button
                     onClick={() => setSelectedBarangay(null)}
+                    aria-label={t('common.close')}
+                    title={t('common.close')}
                     className="bg-[#F3F4F6] border-none rounded-md px-2 py-1 cursor-pointer text-[#6B7280] text-[11px]"
                   >✕</button>
                 </div>
@@ -1133,41 +1177,28 @@ export default function SABarangayMap() {
                             }
                           }}
                           disabled={!BOUNDARY_EDIT_ENABLED}
-                          className={`border border-[#BFDBFE] rounded-md px-2 py-[5px] text-[10px] font-bold text-[#1D4ED8] ${boundaryEditMode ? 'bg-[#DBEAFE]' : 'bg-[#EFF6FF]'}`}
-                          style={{ cursor: !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer', opacity: !BOUNDARY_EDIT_ENABLED ? 0.6 : 1 }}
+                          className={`border border-[#BFDBFE] rounded-md px-2 py-[5px] text-[10px] font-bold text-[#1D4ED8] ${boundaryEditMode ? 'bg-[#DBEAFE]' : 'bg-[#EFF6FF]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
                         </button>
                         <button
                           onClick={handleUndoBoundaryPoint}
                           disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
-                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
-                          style={{
-                            cursor: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'not-allowed' : 'pointer',
-                            opacity: !BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 0.6 : 1,
-                          }}
+                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Undo Point
                         </button>
                         <button
                           onClick={handleResetBoundaryPoints}
                           disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
-                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
-                          style={{
-                            cursor: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'not-allowed' : 'pointer',
-                            opacity: !BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 0.6 : 1,
-                          }}
+                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Reset Points
                         </button>
                         <button
                           onClick={handleApplyPointsToDraft}
                           disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
-                          className="border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold"
-                          style={{
-                            cursor: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'not-allowed' : 'pointer',
-                            opacity: !BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 0.6 : 1,
-                          }}
+                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Apply Points to JSON
                         </button>
@@ -1178,6 +1209,8 @@ export default function SABarangayMap() {
                     </>
                   ) : null}
                   <textarea
+                    title={t('superadmin.barangayMap.boundaryGeojson')}
+                    aria-label={t('superadmin.barangayMap.boundaryGeojson')}
                     value={boundaryDraft}
                     onChange={(event) => {
                       if (BOUNDARY_EDIT_ENABLED) {
@@ -1199,11 +1232,7 @@ export default function SABarangayMap() {
                         void handleSaveBoundary();
                       }}
                       disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
-                      className="mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold"
-                      style={{
-                        cursor: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'not-allowed' : 'pointer',
-                        opacity: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 0.7 : 1,
-                      }}
+                      className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
                     >
                       <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
                     </button>
@@ -1229,23 +1258,15 @@ export default function SABarangayMap() {
               {filteredIncidents
                 .filter(inc => !selectedBrgy || inc.barangay === selectedBrgy.name)
                 .map(inc => {
-                  const color = INCIDENT_COLORS[inc.type] ?? '#6B7280';
-                  const sevBg: Record<string, string> = { critical: '#FEE2E2', high: '#FFEDD5', medium: '#FEF3C7', low: '#D1FAE5' };
-                  const sevCol: Record<string, string> = { critical: 'var(--severity-critical)', high: '#EA580C', medium: 'var(--severity-medium)', low: '#059669' };
                   const isSel = selectedIncident?.id === inc.id;
                   return (
                     <div
                       key={inc.id}
                       onClick={() => setSelectedIncident(isSel ? null : inc)}
-                      className="flex items-center gap-[9px] px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-[150ms]"
-                      style={{
-                        background: isSel ? `${color}12` : '#F9FAFB',
-                        border: `1px solid ${isSel ? color + '40' : '#F3F4F6'}`,
-                      }}
+                      className={`flex items-center gap-[9px] px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-[150ms] border ${isSel ? 'bg-blue-50 border-blue-200' : 'bg-[#F9FAFB] border-[#F3F4F6]'}`}
                     >
                       <div
-                        className="w-[26px] h-[26px] rounded-md shrink-0 flex items-center justify-center text-xs"
-                        style={{ background: color }}
+                        className={`w-[26px] h-[26px] rounded-md shrink-0 flex items-center justify-center text-xs ${incidentButtonClass(inc.type, true).split(' ').slice(0, 1).join(' ')}`}
                       >
                         {getIncidentTypeIcon(inc.type, 12, '#FFFFFF')}
                       </div>
@@ -1254,8 +1275,7 @@ export default function SABarangayMap() {
                         <div className="text-[10px] text-[#9CA3AF]">{inc.barangay}</div>
                       </div>
                       <div
-                        className="text-[9px] font-bold px-[5px] py-0.5 rounded capitalize"
-                        style={{ background: sevBg[inc.severity], color: sevCol[inc.severity] }}
+                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'bg-slate-100 text-slate-700'}`}
                       >{inc.severity}</div>
                     </div>
                   );
@@ -1272,13 +1292,9 @@ export default function SABarangayMap() {
                 <button
                   key={b.id}
                   onClick={() => setSelectedBarangay(isSel ? null : b.id)}
-                  className="flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none"
-                  style={{
-                    background: isSel ? `${b.color}14` : 'white',
-                    border: `1px solid ${isSel ? b.color + '50' : '#E5E7EB'}`,
-                  }}
+                  className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none border ${isSel ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-slate-50 border-slate-300') : 'bg-white border-[#E5E7EB]'}`}
                 >
-                  <div className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: b.color }} />
+                  <div className={`w-2.5 h-2.5 rounded-[3px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-slate-500 border-slate-500'} border`} />
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-[#0F172A]">{b.name}</div>
                     <div className="text-[10px] text-[#9CA3AF]">
@@ -1287,8 +1303,7 @@ export default function SABarangayMap() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span
-                      className="text-[9px] font-bold px-[5px] py-0.5 rounded-[3px]"
-                      style={{ background: al.bg, color: al.color }}
+                      className={`text-[9px] font-bold px-[5px] py-0.5 rounded-[3px] ${al.badgeClass}`}
                     >{al.label}</span>
                     <span className="text-[11px] font-bold text-[#374151]">{b.activeIncidents}</span>
                     <AlertTriangle size={10} color="#9CA3AF" />
@@ -1318,16 +1333,12 @@ export default function SABarangayMap() {
                 return (
                   <tr
                     key={b.id}
-                    className="cursor-pointer"
-                    style={{
-                      borderBottom: i < barangaysData.length - 1 ? '1px solid #F9FAFB' : 'none',
-                      background: selectedBarangay === b.id ? `${b.color}08` : 'transparent',
-                    }}
+                    className={`cursor-pointer ${i < barangaysData.length - 1 ? 'border-b border-[#F9FAFB]' : ''} ${selectedBarangay === b.id ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-slate-50') : 'bg-transparent'}`}
                     onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
                   >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-[2px] shrink-0" style={{ background: b.color }} />
+                        <div className={`w-2.5 h-2.5 rounded-[2px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-slate-500 border-slate-500'} border`} />
                         <span className="text-[#0F172A] font-semibold">{b.name}</span>
                       </div>
                     </td>
@@ -1336,18 +1347,26 @@ export default function SABarangayMap() {
                     <td className="px-3 py-2.5 text-[#6B7280]">{b.area}</td>
                     <td className="px-3 py-2.5 text-[#374151]">{b.captain}</td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[10px] font-bold px-[7px] py-0.5 rounded" style={{ background: al.bg, color: al.color }}>{al.label}</span>
+                      <span className={`text-[10px] font-bold px-[7px] py-0.5 rounded ${al.badgeClass}`}>{al.label}</span>
                     </td>
-                    <td className="px-3 py-2.5 font-bold" style={{ color: b.activeIncidents > 8 ? 'var(--severity-critical)' : '#374151' }}>{b.activeIncidents}</td>
+                    <td className={`px-3 py-2.5 font-bold ${b.activeIncidents > 8 ? 'text-red-700' : 'text-[#374151]'}`}>{b.activeIncidents}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-[60px] h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
-                          <div style={{ height: '100%', width: `${b.responseRate}%`, background: b.responseRate >= 90 ? '#059669' : 'var(--severity-medium)', borderRadius: 3 }} />
+                        <div className="w-[60px] h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden grid grid-cols-[repeat(20,minmax(0,1fr))] gap-px">
+                          {Array.from({ length: 20 }).map((_, segmentIndex) => {
+                            const isActive = segmentIndex < Math.round(b.responseRate / 5);
+                            return (
+                              <div
+                                key={`${b.id}-response-${segmentIndex}`}
+                                className={`${isActive ? (b.responseRate >= 90 ? 'bg-emerald-600' : 'bg-amber-600') : 'bg-[#F3F4F6]'}`}
+                              />
+                            );
+                          })}
                         </div>
                         <span className="text-[#374151] font-semibold">{b.responseRate}%</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 font-semibold" style={{ color: b.avgResponseMin > 10 ? 'var(--severity-critical)' : '#059669' }}>
+                    <td className={`px-3 py-2.5 font-semibold ${b.avgResponseMin > 10 ? 'text-red-700' : 'text-emerald-700'}`}>
                       {b.avgResponseMin} min
                     </td>
                     <td className="px-3 py-2.5 text-[#6B7280] text-[10px] font-mono">
@@ -1366,30 +1385,6 @@ export default function SABarangayMap() {
           0%   { transform: scale(1);   opacity: .18; }
           70%  { transform: scale(2.5); opacity: 0;   }
           100% { transform: scale(2.5); opacity: 0;   }
-        }
-
-        @media (max-width: 1024px) {
-          .sa-map-main-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .sa-map-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-map-header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .sa-map-header-actions button {
-            flex: 1;
-            min-height: 40px;
-            justify-content: center;
-          }
         }
       `}</style>
     </div>

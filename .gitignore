@@ -16,7 +16,6 @@ barangay-source/*.shp.*
 .env*.local
 
 # Personal AI/session workflow files
-session-handoff.md
 .claude/
 CLAUDE.md
 

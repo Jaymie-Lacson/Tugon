@@ -117,6 +117,7 @@ export default function SAAuditLogs() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const canExport = logs.length > 0;
+  const exportButtonsDisabled = !canExport || exportingJson || exportingCsv;
   const pageStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const pageEnd = total === 0 ? 0 : Math.min(page * PAGE_SIZE, total);
 
@@ -195,7 +196,7 @@ export default function SAAuditLogs() {
 
   return (
     <div className="p-5 bg-[#F0F4FF] min-h-full">
-      <div className="sa-audit-header flex items-center justify-between mb-3.5 gap-2.5">
+      <div className="flex flex-col items-start justify-between mb-3.5 gap-2.5 md:flex-row md:items-center">
         <div>
           <h1 className="text-slate-950 text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>
           <p className="text-gray-500 text-xs m-0 mt-0.5">
@@ -206,7 +207,7 @@ export default function SAAuditLogs() {
           onClick={() => {
             void loadLogs();
           }}
-          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
+          className="flex w-full justify-center items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold md:w-auto"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
@@ -229,13 +230,13 @@ export default function SAAuditLogs() {
         </div>
       </div>
 
-      <div className="sa-audit-filter-bar flex items-center gap-2 mb-3 flex-wrap bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
+      <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-gray-200 rounded-[10px] px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
         <Filter size={13} color="#6B7280" />
         <select
           title="Filter by action"
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
-          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         >
           {ACTIONS.map((action) => (
             <option key={action} value={action}>{action}</option>
@@ -245,7 +246,7 @@ export default function SAAuditLogs() {
           title="Filter by target type"
           value={targetFilter}
           onChange={(event) => setTargetFilter(event.target.value)}
-          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         >
           {TARGET_TYPES.map((target) => (
             <option key={target} value={target}>{target}</option>
@@ -256,36 +257,36 @@ export default function SAAuditLogs() {
           type="date"
           value={fromDate}
           onChange={(event) => setFromDate(event.target.value)}
-          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         />
         <input
           title="Filter to date"
           type="date"
           value={toDate}
           onChange={(event) => setToDate(event.target.value)}
-          className="px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-gray-200 rounded-lg text-xs text-gray-700"
         />
         <button
           onClick={() => applyDatePreset(1)}
-          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.today')}
         </button>
         <button
           onClick={() => applyDatePreset(7)}
-          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.last7Days')}
         </button>
         <button
           onClick={() => applyDatePreset(30)}
-          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.last30Days')}
         </button>
         <button
           onClick={clearDatePreset}
-          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.clearDates')}
         </button>
@@ -293,12 +294,8 @@ export default function SAAuditLogs() {
           onClick={() => {
             void handleExportJson();
           }}
-          disabled={!canExport || exportingJson || exportingCsv}
-          className="ml-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold"
-          style={{
-            cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
-            opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
-          }}
+          disabled={exportButtonsDisabled}
+          className={`w-full md:w-auto md:ml-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
           {exportingJson ? t('superadmin.auditLogs.exportingJson') : t('superadmin.auditLogs.exportJson')}
         </button>
@@ -306,12 +303,8 @@ export default function SAAuditLogs() {
           onClick={() => {
             void handleExportCsv();
           }}
-          disabled={!canExport || exportingJson || exportingCsv}
-          className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold"
-          style={{
-            cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
-            opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
-          }}
+          disabled={exportButtonsDisabled}
+          className={`w-full md:w-auto border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-gray-700 text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
           {exportingCsv ? t('superadmin.auditLogs.exportingCsv') : t('superadmin.auditLogs.exportCsv')}
         </button>
@@ -343,8 +336,7 @@ export default function SAAuditLogs() {
                 <tr
                   key={log.id}
                   onClick={() => setSelectedLog(log)}
-                  className="cursor-pointer hover:bg-slate-50"
-                  style={{ borderBottom: index < logs.length - 1 ? '1px solid #F3F4F6' : 'none' }}
+                  className={`cursor-pointer hover:bg-slate-50 ${index < logs.length - 1 ? 'border-b border-gray-100' : ''}`}
                 >
                   <td className="px-3 py-2.5 text-slate-700 whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
                   <td className="px-3 py-2.5">
@@ -365,7 +357,7 @@ export default function SAAuditLogs() {
             </tbody>
           </table>
         </div>
-        <div className="sa-audit-pagination flex items-center justify-between px-3 py-2.5 border-t border-gray-100 bg-[#FAFAFA] text-xs">
+        <div className="flex flex-col items-start gap-2 px-3 py-2.5 border-t border-gray-100 bg-[#FAFAFA] text-xs md:flex-row md:items-center md:justify-between">
           <span className="text-slate-500">
             {t('superadmin.auditLogs.showingRange', { start: pageStart, end: pageEnd, total })}
           </span>
@@ -373,8 +365,7 @@ export default function SAAuditLogs() {
             <button
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
-              style={{ cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.6 : 1 }}
+              className={`border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold ${page === 1 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
               {t('superadmin.auditLogs.prev')}
             </button>
@@ -382,8 +373,7 @@ export default function SAAuditLogs() {
             <button
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
-              className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
-              style={{ cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.6 : 1 }}
+              className={`border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold ${page >= totalPages ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
               {t('common.next')}
             </button>
@@ -407,6 +397,8 @@ export default function SAAuditLogs() {
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
+                aria-label={t('common.close')}
+                title={t('common.close')}
                 className="border-0 bg-transparent cursor-pointer text-slate-500"
               >
                 <X size={18} />
@@ -437,39 +429,6 @@ export default function SAAuditLogs() {
           </div>
         </div>
       ) : null}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .sa-audit-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-audit-header button {
-            width: 100%;
-            justify-content: center;
-            min-height: 40px;
-          }
-
-          .sa-audit-filter-bar {
-            flex-direction: column;
-            align-items: stretch !important;
-          }
-
-          .sa-audit-filter-bar button,
-          .sa-audit-filter-bar select,
-          .sa-audit-filter-bar input {
-            width: 100%;
-            margin-left: 0 !important;
-          }
-
-          .sa-audit-pagination {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 8px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
