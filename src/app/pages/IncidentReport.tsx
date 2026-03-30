@@ -744,7 +744,7 @@ function Step2({
         </button>
 
         {!form.pin && (
-          <div className="incident-step2-map-hint absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#0F172AE0] text-white rounded-lg py-2 px-3.5 text-xs font-semibold pointer-events-none z-10 flex items-center gap-[7px] whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
+          <div className="incident-step2-map-hint absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#0F172AE0] text-white rounded-lg py-2 px-3.5 text-xs font-semibold pointer-events-none z-10 flex max-w-[calc(100%-20px)] items-center justify-center gap-[7px] text-center shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
             <MapPin size={13} /> {t('citizen.report.step2.tapHint')}
           </div>
         )}

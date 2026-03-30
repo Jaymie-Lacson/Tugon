@@ -904,7 +904,7 @@ function HomeTab({
             )}
           </aside>
 
-          <div className="flex-[1_1_420px] min-w-[320px]">
+          <div className="flex-[1_1_420px] min-w-0">
             <div className="rounded-xl overflow-hidden border border-slate-200 bg-white block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}

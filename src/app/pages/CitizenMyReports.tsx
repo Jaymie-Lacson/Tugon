@@ -1407,7 +1407,7 @@ export default function CitizenMyReports() {
                 className="mb-[10px] rounded-2xl border border-[#DBEAFE] bg-[linear-gradient(140deg,#EFF6FF_0%,#F8FAFC_46%,#FFFFFF_100%)] px-4 pb-[14px] pt-4 shadow-[0_8px_24px_rgba(30,58,138,0.08)]"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-[220px]">
+                  <div className="min-w-0 flex-1">
                     <p className="m-0 text-[11px] font-extrabold text-primary tracking-[0.08em] uppercase">
                       {t('citizen.myReports.headerLabel')}
                     </p>
@@ -1436,7 +1436,7 @@ export default function CitizenMyReports() {
                 className="rounded-2xl border border-[#DBEAFE] bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
               >
               <div className="flex gap-2 flex-wrap">
-                <div className="flex-1 flex min-w-[240px] items-center gap-2 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 px-3 py-[10px] transition-colors duration-200">
+                <div className="flex-1 flex min-w-0 items-center gap-2 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 px-3 py-[10px] transition-colors duration-200">
                   <Search size={14} color="#94A3B8" className="shrink-0" />
                   <input
                     value={query}
