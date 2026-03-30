@@ -21,12 +21,27 @@ const TYPE_COLORS: Record<string, string> = {
   typhoon: '#0369A1',
 };
 
+function getStatDotClass(color: string) {
+  switch (color) {
+    case 'var(--primary)':
+      return 'bg-primary';
+    case 'var(--severity-critical)':
+      return 'bg-severity-critical';
+    case 'var(--severity-medium)':
+      return 'bg-severity-medium';
+    case '#059669':
+      return 'bg-[#059669]';
+    default:
+      return 'bg-slate-400';
+  }
+}
+
 function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
     <div className="bg-white rounded-[10px] px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.07)] border border-gray-200">
       <div className="flex items-center justify-between gap-2">
         <div className="text-slate-950 text-[22px] font-bold leading-none">{value}</div>
-        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+        <span className={`w-2 h-2 rounded-full shrink-0 ${getStatDotClass(color)}`} />
       </div>
       <div className="text-gray-500 text-[11px] mt-1">{label}</div>
     </div>
@@ -146,7 +161,7 @@ export default function SAAnalytics() {
 
   return (
     <div className="p-5 bg-[#F0F4FF] min-h-full">
-      <div className="sa-analytics-header flex items-center justify-between mb-4 gap-2.5">
+      <div className="flex items-center justify-between mb-4 gap-2.5 max-md:flex-col max-md:items-start">
         <div>
           <h1 className="text-slate-950 text-[22px] font-bold m-0">{t('superadmin.analytics.pageTitle')}</h1>
           <p className="text-gray-500 text-xs m-0 mt-0.5">
@@ -157,7 +172,7 @@ export default function SAAnalytics() {
           onClick={() => {
             void loadIncidents();
           }}
-          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
+          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold max-md:w-full max-md:min-h-10 max-md:justify-center"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
@@ -169,14 +184,14 @@ export default function SAAnalytics() {
         </div>
       ) : null}
 
-      <div className="sa-analytics-stats grid mb-4" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+      <div className="grid mb-4 gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t('superadmin.analytics.totalReports')} value={kpis.total} color="var(--primary)" />
         <StatCard label={t('superadmin.analytics.openReports')} value={kpis.active} color="var(--severity-critical)" />
         <StatCard label={t('superadmin.analytics.resolvedReports')} value={kpis.resolved} color="#059669" />
         <StatCard label={t('superadmin.analytics.avgResponse')} value={kpis.avgResponseLabel} color="var(--severity-medium)" />
       </div>
 
-      <div className="sa-analytics-grid grid" style={{ gridTemplateColumns: '1fr 340px', gap: 14 }}>
+      <div className="grid gap-[14px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
           <div className="text-slate-950 text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportsByBarangay')}</div>
           <ResponsiveContainer width="100%" height={250}>
@@ -214,35 +229,6 @@ export default function SAAnalytics() {
           {t('superadmin.analytics.reportingHealthDesc')}
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 1024px) {
-          .sa-analytics-stats {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-
-          .sa-analytics-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .sa-analytics-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-analytics-header button {
-            width: 100%;
-            justify-content: center;
-            min-height: 40px;
-          }
-
-          .sa-analytics-stats {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

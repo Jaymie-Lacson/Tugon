@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, ArrowRight, MapPin,
@@ -45,20 +45,15 @@ interface KPIProps {
 
 function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps) {
   const isUp = (trend ?? 0) >= 0;
+  const iconToneClass = getColorToneBackgroundClass(color);
   return (
-    <div className="bg-white rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex-[1_1_220px] min-w-[180px]">
+    <div className="bg-white rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex-[1_1_220px] min-w-[180px] max-md:flex-[1_1_calc(50%-10px)] max-md:min-w-0 max-[520px]:flex-[1_1_100%]">
       <div className="flex items-start justify-between mb-[10px]">
-        <div
-          className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center"
-          style={{ background: `${color}18` }}
-        >
+        <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center ${iconToneClass}`}>
           {React.cloneElement(icon as React.ReactElement, { color, size: 18 })}
         </div>
         {trend !== undefined && (
-          <div
-            className="flex items-center gap-[3px] text-[11px] font-semibold"
-            style={{ color: isUp ? 'var(--severity-critical)' : '#059669' }}
-          >
+          <div className={`flex items-center gap-[3px] text-[11px] font-semibold ${isUp ? 'text-severity-critical' : 'text-[#059669]'}`}>
             {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(trend)}%
           </div>
@@ -86,6 +81,66 @@ const logTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = 
   alert:    { icon: <Bell size={13} />,           color: 'var(--severity-medium)' },
   system:   { icon: <Server size={13} />,         color: '#0F766E' },
 };
+
+function getColorToneBackgroundClass(color: string) {
+  switch (color) {
+    case 'var(--severity-critical)':
+      return 'bg-[rgba(220,38,38,0.1)]';
+    case 'var(--severity-medium)':
+      return 'bg-[rgba(180,115,10,0.14)]';
+    case '#059669':
+      return 'bg-[rgba(5,150,105,0.1)]';
+    case '#1D4ED8':
+      return 'bg-[rgba(29,78,216,0.1)]';
+    case '#0F766E':
+      return 'bg-[rgba(15,118,110,0.1)]';
+    case 'var(--primary)':
+      return 'bg-[rgba(30,58,138,0.1)]';
+    default:
+      return 'bg-[rgba(107,114,128,0.1)]';
+  }
+}
+
+function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
+  switch (level) {
+    case 'normal':
+      return 'bg-[#D1FAE5] text-[#059669]';
+    case 'elevated':
+      return 'bg-[#FEF3C7] text-severity-medium';
+    case 'critical':
+      return 'bg-[#FEE2E2] text-severity-critical';
+    default:
+      return 'bg-slate-100 text-slate-600';
+  }
+}
+
+function getStatValueClass(color: string) {
+  switch (color) {
+    case 'var(--severity-critical)':
+      return 'text-severity-critical';
+    case 'var(--severity-medium)':
+      return 'text-severity-medium';
+    case '#1D4ED8':
+      return 'text-[#1D4ED8]';
+    case '#059669':
+      return 'text-[#059669]';
+    default:
+      return 'text-[#0F172A]';
+  }
+}
+
+function getMapButtonClass(color: string) {
+  switch (color) {
+    case '#1D4ED8':
+      return 'bg-[rgba(29,78,216,0.08)] text-[#1D4ED8] border border-[rgba(29,78,216,0.18)]';
+    case '#0F766E':
+      return 'bg-[rgba(15,118,110,0.08)] text-[#0F766E] border border-[rgba(15,118,110,0.18)]';
+    case 'var(--severity-medium)':
+      return 'bg-[rgba(180,115,10,0.08)] text-severity-medium border border-[rgba(180,115,10,0.2)]';
+    default:
+      return 'bg-[rgba(30,58,138,0.08)] text-primary border border-[rgba(30,58,138,0.18)]';
+  }
+}
 
 
 function formatLogTime(ts: string) {
@@ -116,7 +171,6 @@ function formatDurationFromMinutes(totalMinutes: number) {
 export default function SAOverview() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
   const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
   const [barangayCards, setBarangayCards] = useState<BarangayOverviewCard[]>([]);
@@ -124,7 +178,6 @@ export default function SAOverview() {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
-  const [incidentTypesCardHeight, setIncidentTypesCardHeight] = useState<number | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
@@ -268,32 +321,6 @@ export default function SAOverview() {
     void loadAuditLogs();
   }, []);
 
-  useEffect(() => {
-    const cardElement = incidentTypesCardRef.current;
-    if (!cardElement) {
-      return;
-    }
-
-    const syncHeight = () => {
-      setIncidentTypesCardHeight(Math.round(cardElement.getBoundingClientRect().height));
-    };
-
-    syncHeight();
-
-    if (typeof ResizeObserver === 'undefined') {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      syncHeight();
-    });
-    observer.observe(cardElement);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [reportIncidents.length]);
-
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
   if (initialLoadPending) {
@@ -318,7 +345,7 @@ export default function SAOverview() {
   return (
     <div className="p-5 bg-[#F0F4FF] min-h-full">
       {/* Page header */}
-      <div className="sa-overview-header flex items-center justify-between mb-5 gap-[10px]">
+      <div className="flex items-center justify-between mb-5 gap-[10px] max-md:flex-col max-md:items-start">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-primary text-[10px] font-bold tracking-[0.08em] uppercase">
@@ -331,7 +358,7 @@ export default function SAOverview() {
             {t('superadmin.overview.monitoringSubtitle')}
           </p>
         </div>
-        <div className="sa-overview-header-actions flex items-center gap-[10px]">
+        <div className="flex items-center gap-[10px] max-md:w-full max-md:flex-wrap">
           <button
             onClick={() => {
               void loadAnalyticsSummary();
@@ -339,14 +366,14 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold"
+            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
             <RefreshCw size={13} color="#6B7280" />
             {summaryLoading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
-            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold"
+            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
             {t('superadmin.overview.viewAnalytics')}
             <ArrowRight size={13} />
@@ -361,7 +388,7 @@ export default function SAOverview() {
       ) : null}
 
       {/* KPI row */}
-      <div className="sa-overview-kpi-row flex gap-[14px] mb-5 flex-wrap">
+      <div className="flex gap-[14px] mb-5 flex-wrap max-md:gap-[10px]">
         <KPICard
           label={t('superadmin.overview.kpiActiveIncidents')}
           value={total}
@@ -409,6 +436,9 @@ export default function SAOverview() {
       <div className="flex gap-[14px] mb-5 flex-wrap">
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
+          const alertLevelClass = getAlertLevelClass(b.alertLevel);
+          const pinToneClass = getColorToneBackgroundClass(b.color);
+          const mapButtonClass = getMapButtonClass(b.color);
           return (
             <div key={b.id} className="flex-1 min-w-[260px] bg-white rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB]">
               <div className="p-4">
@@ -417,17 +447,13 @@ export default function SAOverview() {
                     <div className="flex items-center gap-2 mb-[3px]">
                       <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
                       <span
-                        className="text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] tracking-[0.08em]"
-                        style={{ background: al.bg, color: al.color }}
+                        className={`text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] tracking-[0.08em] ${alertLevelClass}`}
                       >{al.label}</span>
                     </div>
                     <div className="text-[#6B7280] text-[11px]">{b.district}</div>
                     <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
-                  <div
-                    className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center"
-                    style={{ background: `${b.color}18` }}
-                  >
+                  <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center ${pinToneClass}`}>
                     <MapPin size={20} color={b.color} />
                   </div>
                 </div>
@@ -441,7 +467,7 @@ export default function SAOverview() {
                     { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
                     <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
-                      <div className="text-[17px] font-bold leading-none" style={{ color: s.color }}>{s.value}</div>
+                      <div className={`text-[17px] font-bold leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
                       <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
@@ -451,18 +477,17 @@ export default function SAOverview() {
                 <div className="mb-3">
                   <div className="flex justify-between mb-1">
                     <span className="text-[#6B7280] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
-                    <span
-                      className="text-[11px] font-semibold"
-                      style={{ color: b.responseRate < 90 ? 'var(--severity-medium)' : '#059669' }}
-                    >{b.responseRate}%</span>
+                    <span className={`text-[11px] font-semibold ${b.responseRate < 90 ? 'text-severity-medium' : 'text-[#059669]'}`}>{b.responseRate}%</span>
                   </div>
                   <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
-                    <div
-                      className="h-full rounded-[3px]"
-                      style={{
-                        width: `${b.responseRate}%`,
-                        background: b.responseRate < 90 ? 'var(--severity-medium)' : '#059669',
-                      }}
+                    <progress
+                      value={b.responseRate}
+                      max={100}
+                      className={`h-[5px] w-full overflow-hidden rounded-[3px] align-top ${
+                        b.responseRate < 90
+                          ? '[&::-webkit-progress-value]:bg-[var(--severity-medium)] [&::-moz-progress-bar]:bg-[var(--severity-medium)]'
+                          : '[&::-webkit-progress-value]:bg-[#059669] [&::-moz-progress-bar]:bg-[#059669]'
+                      } [&::-webkit-progress-bar]:bg-[#F3F4F6]`}
                     />
                   </div>
                   <div className="text-[#9CA3AF] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
@@ -480,8 +505,7 @@ export default function SAOverview() {
                   </div>
                   <button
                     onClick={() => navigate('/superadmin/map')}
-                    className="flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold"
-                    style={{ background: `${b.color}14`, color: b.color, border: `1px solid ${b.color}30` }}
+                    className={`flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold ${mapButtonClass}`}
                   >
                     {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
                   </button>
@@ -493,13 +517,9 @@ export default function SAOverview() {
       </div>
 
       {/* Charts + Logs row */}
-      <div
-        className="sa-overview-grid grid gap-[14px] mb-5 items-start"
-        style={{ gridTemplateColumns: '1fr 380px' }}
-      >
+      <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
         <div
-          ref={incidentTypesCardRef}
           className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]"
         >
           <div className="flex items-center justify-between mb-4">
@@ -527,13 +547,7 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div
-          className="sa-overview-activity-card bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex flex-col"
-          style={{
-            height: incidentTypesCardHeight ?? undefined,
-            maxHeight: incidentTypesCardHeight ?? undefined,
-          }}
-        >
+        <div className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex flex-col">
           <div className="flex items-center justify-between mb-[14px]">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
@@ -546,10 +560,7 @@ export default function SAOverview() {
               const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: '#6B7280' };
               return (
                 <div key={log.id} className="flex gap-[10px] px-[10px] py-2 rounded-lg bg-[#F9FAFB] border border-[#F3F4F6]">
-                  <div
-                    className="w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0"
-                    style={{ background: `${ltc.color}18` }}
-                  >
+                  <div className={`w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0 ${getColorToneBackgroundClass(ltc.color)}`}>
                     {React.cloneElement(ltc.icon as React.ReactElement, { color: ltc.color })}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -572,7 +583,7 @@ export default function SAOverview() {
 
       {/* Live OSM Map preview */}
       <div className="sa-overview-map-preview bg-white rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]">
-        <div className="sa-overview-map-preview-head px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
             <MapPin size={15} color={PRIMARY} />
             <div>
@@ -580,7 +591,7 @@ export default function SAOverview() {
               <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
             <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[5px] px-2 py-[3px] flex items-center gap-1">
               <span className="w-[6px] h-[6px] rounded-full bg-[#22C55E] inline-block" />
               <span className="text-[#059669] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
@@ -607,16 +618,15 @@ export default function SAOverview() {
           { label: t('superadmin.overview.quickNavMap'),          desc: t('superadmin.overview.quickNavMapDesc'),          path: '/superadmin/map',       color: '#1D4ED8',             icon: <MapPin size={18} /> },
           { label: t('superadmin.analytics.title'),              desc: t('superadmin.overview.quickNavAnalyticsDesc'),    path: '/superadmin/analytics', color: PRIMARY,               icon: <Activity size={18} /> },
           { label: t('superadmin.users.title'),                  desc: t('superadmin.overview.quickNavUsersDesc'),        path: '/superadmin/users',     color: '#0F766E',             icon: <Users size={18} /> },
-        ].map(item => (
+        ].map((item) => {
+          const quickNavToneClass = getColorToneBackgroundClass(item.color);
+          return (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
             className="flex-1 min-w-[220px] bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
-            <div
-              className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
-              style={{ background: `${item.color}15` }}
-            >
+            <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0 ${quickNavToneClass}`}>
               {React.cloneElement(item.icon as React.ReactElement, { color: item.color })}
             </div>
             <div>
@@ -625,65 +635,10 @@ export default function SAOverview() {
             </div>
             <ChevronRight size={16} color="#D1D5DB" className="ml-auto shrink-0" />
           </button>
-        ))}
+          );
+        })}
       </div>
 
-      <style>{`
-        @media (max-width: 1024px) {
-          .sa-overview-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .sa-overview-activity-card {
-            height: auto !important;
-            max-height: none !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .sa-overview-kpi-row {
-            gap: 10px;
-          }
-
-          .sa-overview-kpi-row > div {
-            flex: 1 1 calc(50% - 10px) !important;
-            min-width: 0 !important;
-          }
-
-          .sa-overview-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-overview-header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .sa-overview-header-actions button {
-            flex: 1;
-            min-height: 40px;
-            justify-content: center;
-          }
-
-          .sa-overview-map-preview-head {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 8px;
-          }
-
-          .sa-overview-map-preview-head > div:last-child {
-            width: 100%;
-            justify-content: space-between;
-          }
-        }
-
-        @media (max-width: 520px) {
-          .sa-overview-kpi-row > div {
-            flex: 1 1 100% !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

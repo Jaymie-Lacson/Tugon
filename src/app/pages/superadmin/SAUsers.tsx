@@ -35,6 +35,46 @@ const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as co
 
 const PAGE_SIZE = 8;
 
+function getToneBackgroundClass(color: string) {
+  switch (color) {
+    case 'var(--primary)':
+      return 'bg-[rgba(30,58,138,0.1)]';
+    case '#059669':
+      return 'bg-[rgba(5,150,105,0.1)]';
+    case '#6B7280':
+      return 'bg-[rgba(107,114,128,0.1)]';
+    case '#1D4ED8':
+      return 'bg-[rgba(29,78,216,0.1)]';
+    case '#7C3AED':
+      return 'bg-[rgba(124,58,237,0.12)]';
+    default:
+      return 'bg-[rgba(107,114,128,0.1)]';
+  }
+}
+
+function getAvatarBackgroundClass(color: string) {
+  switch (color) {
+    case '#7C3AED':
+      return 'bg-[#7C3AED]';
+    case '#1D4ED8':
+      return 'bg-[#1D4ED8]';
+    case '#6B7280':
+      return 'bg-[#6B7280]';
+    default:
+      return 'bg-slate-500';
+  }
+}
+
+function getRoleBadgeClass(role: SupportedUiRole) {
+  if (role === 'Super Admin') return 'bg-[#DBEAFE] text-primary';
+  if (role === 'Barangay Admin') return 'bg-[#DBEAFE] text-[#1D4ED8]';
+  return 'bg-[#F3F4F6] text-[#374151]';
+}
+
+function getStatusBadgeClass(status: SupportedUiStatus) {
+  return status === 'active' ? 'bg-[#D1FAE5] text-[#059669]' : 'bg-[#F3F4F6] text-[#6B7280]';
+}
+
 type SAUserRow = {
   id: number;
   name: string;
@@ -146,8 +186,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
   return (
     <div className="fixed inset-0 z-[100] bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-5">
       <div
-        className="bg-white rounded-2xl w-full max-w-[500px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
-        style={{ animation: 'modal-in 0.2s ease' }}
+        className="bg-white rounded-2xl w-full max-w-[500px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease]"
       >
         {/* Modal header */}
         <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
@@ -164,6 +203,8 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           </div>
           <button
             onClick={onClose}
+            title={t('common.close')}
+            aria-label={t('common.close')}
             className="bg-[rgba(255,255,255,0.07)] border-0 rounded-lg w-[30px] h-[30px] cursor-pointer flex items-center justify-center"
           >
             <X size={16} color="#94A3B8" />
@@ -175,8 +216,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           {user && (
             <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[#F9FAFB] rounded-[10px]">
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shrink-0"
-                style={{ background: user.avatarColor }}
+                className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
               >{user.initials}</div>
               <div>
                 <div className="text-[#0F172A] text-base font-bold">{user.name}</div>
@@ -201,8 +241,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     value={formData.fullName}
                     onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                     disabled={mode === 'edit'}
-                    className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
-                    style={{ background: mode === 'edit' ? '#F9FAFB' : 'white' }}
+                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
                     placeholder={t('superadmin.users.fullNamePlaceholder')}
                   />
                 </div>
@@ -212,8 +251,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     value={formData.phoneNumber}
                     onChange={e => setFormData(f => ({ ...f, phoneNumber: e.target.value }))}
                     disabled={mode === 'edit'}
-                    className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
-                    style={{ background: mode === 'edit' ? '#F9FAFB' : 'white' }}
+                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
                     placeholder="09xxxxxxxxx"
                   />
                 </div>
@@ -235,6 +273,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     <select
                       value={formData.role}
                       onChange={e => setFormData(f => ({ ...f, role: e.target.value as SupportedUiRole }))}
+                      title={t('superadmin.users.roleLabel')}
                       className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
                     >
                       {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
@@ -248,6 +287,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                       value={formData.barangay}
                       onChange={e => setFormData(f => ({ ...f, barangay: e.target.value }))}
                       disabled={formData.role === 'Super Admin'}
+                      title={t('superadmin.users.barangay')}
                       className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
                     >
                       {['Brgy. 251', 'Brgy. 252', 'Brgy. 256'].map(b => (
@@ -265,12 +305,11 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                         <button
                           key={s}
                           onClick={() => setFormData(f => ({ ...f, status: s }))}
-                          className="flex-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-semibold capitalize flex items-center justify-center gap-[5px]"
-                          style={{
-                            border: `2px solid ${formData.status === s ? sc.color : '#E5E7EB'}`,
-                            background: formData.status === s ? sc.bg : 'transparent',
-                            color: formData.status === s ? sc.color : '#6B7280',
-                          }}
+                          className={`flex-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-semibold capitalize flex items-center justify-center gap-[5px] border-2 ${
+                            formData.status === s
+                              ? `${getStatusBadgeClass(s)} ${s === 'active' ? 'border-[#059669]' : 'border-[#6B7280]'}`
+                              : 'border-[#E5E7EB] bg-transparent text-[#6B7280]'
+                          }`}
                         >
                           {sc.icon} {sc.label}
                         </button>
@@ -325,8 +364,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 });
               }}
               disabled={saving}
-              className="px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold"
-              style={{ cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}
+              className={`px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold ${saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
             >
               {saving ? t('common.saving') : isCreateMode ? t('superadmin.users.createUser') : t('superadmin.users.saveChanges')}
             </button>
@@ -583,10 +621,7 @@ export default function SAUsers() {
           { label: t('superadmin.users.inactive'), value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-3 flex-1 min-w-[130px]">
-            <div
-              className="w-9 h-9 rounded-[9px] flex items-center justify-center"
-              style={{ background: `${stat.color}15` }}
-            >
+            <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
               {stat.icon}
             </div>
             <div>
@@ -601,7 +636,7 @@ export default function SAUsers() {
       <div className="sa-users-filter-bar bg-white rounded-xl px-4 py-[14px] mb-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} color="#9CA3AF" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={14} color="#9CA3AF" className="absolute left-[11px] top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -615,6 +650,7 @@ export default function SAUsers() {
         <select
           value={roleFilter}
           onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
+          title={t('superadmin.users.role')}
           className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
@@ -623,6 +659,7 @@ export default function SAUsers() {
         <select
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+          title={t('superadmin.users.status')}
           className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SupportedUiStatus].label}</option>)}
@@ -631,6 +668,7 @@ export default function SAUsers() {
         <select
           value={barangayFilter}
           onChange={e => { setBarangayFilter(e.target.value); setPage(1); }}
+          title={t('superadmin.users.barangay')}
           className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
@@ -657,7 +695,12 @@ export default function SAUsers() {
           >
             <UserX size={12} /> {t('superadmin.users.deactivate')}
           </button>
-          <button onClick={() => setSelectedIds(new Set())} className="ml-auto bg-transparent border-0 cursor-pointer">
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            title={t('common.close')}
+            aria-label={t('common.close')}
+            className="ml-auto bg-transparent border-0 cursor-pointer"
+          >
             <X size={16} color="#64748B" />
           </button>
         </div>
@@ -670,7 +713,12 @@ export default function SAUsers() {
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#F3F4F6]">
                 <th className="px-[14px] py-3 text-left w-8">
-                  <input type="checkbox" style={{ cursor: 'pointer', accentColor: PRIMARY }} />
+                  <input
+                    type="checkbox"
+                    title="Select all users"
+                    aria-label="Select all users"
+                    className="cursor-pointer accent-[var(--primary)]"
+                  />
                 </th>
                 {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
                   <th key={h} className="px-[14px] py-3 text-left text-[#6B7280] text-[11px] font-bold tracking-[0.03em] uppercase whitespace-nowrap">{h}</th>
@@ -691,17 +739,16 @@ export default function SAUsers() {
                 return (
                   <tr
                     key={user.id}
-                    style={{
-                      borderBottom: i < paginated.length - 1 ? '1px solid #F9FAFB' : 'none',
-                      background: isSelected ? '#EFF6FF' : 'transparent',
-                    }}
+                    className={`${i < paginated.length - 1 ? 'border-b border-[#F9FAFB]' : ''} ${isSelected ? 'bg-[#EFF6FF]' : 'bg-transparent'}`}
                   >
                     <td className="px-[14px] py-3">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        style={{ cursor: 'pointer', accentColor: PRIMARY }}
+                        title={`Select ${user.name}`}
+                        aria-label={`Select ${user.name}`}
+                        className="cursor-pointer accent-[var(--primary)]"
                       />
                     </td>
 
@@ -709,8 +756,7 @@ export default function SAUsers() {
                     <td className="px-[14px] py-3">
                       <div className="flex items-center gap-[10px]">
                         <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                          style={{ background: user.avatarColor }}
+                          className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
                         >{user.initials}</div>
                         <div>
                           <div className="text-[#0F172A] font-semibold text-[13px]">{user.name}</div>
@@ -722,8 +768,7 @@ export default function SAUsers() {
                     {/* Role */}
                     <td className="px-[14px] py-3">
                       <div
-                        className="inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[6px] whitespace-nowrap"
-                        style={{ background: rc.bg, color: rc.color }}
+                        className={`inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[6px] whitespace-nowrap ${getRoleBadgeClass(user.role)}`}
                       >
                         {rc.icon} {user.role}
                       </div>
@@ -735,8 +780,7 @@ export default function SAUsers() {
                     {/* Status */}
                     <td className="px-[14px] py-3">
                       <div
-                        className="inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[20px]"
-                        style={{ background: sc.bg, color: sc.color }}
+                        className={`inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[20px] ${getStatusBadgeClass(user.status)}`}
                       >
                         {sc.icon} {sc.label}
                       </div>
@@ -793,8 +837,9 @@ export default function SAUsers() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center"
-              style={{ cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1 }}
+              title="Previous page"
+              aria-label="Previous page"
+              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === 1 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
             >
               <ChevronLeft size={14} color="#374151" />
             </button>
@@ -802,20 +847,19 @@ export default function SAUsers() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className="w-[30px] h-[30px] rounded-[6px] cursor-pointer text-xs"
-                style={{
-                  border: `1px solid ${page === p ? PRIMARY : '#E5E7EB'}`,
-                  background: page === p ? PRIMARY : 'white',
-                  fontWeight: page === p ? 700 : 400,
-                  color: page === p ? 'white' : '#374151',
-                }}
+                className={`w-[30px] h-[30px] rounded-[6px] cursor-pointer text-xs ${
+                  page === p
+                    ? 'border border-primary bg-primary font-bold text-white'
+                    : 'border border-[#E5E7EB] bg-white font-normal text-[#374151]'
+                }`}
               >{p}</button>
             ))}
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center"
-              style={{ cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.4 : 1 }}
+              title="Next page"
+              aria-label="Next page"
+              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === totalPages ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
             >
               <ChevronRight size={14} color="#374151" />
             </button>
