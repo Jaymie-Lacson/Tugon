@@ -494,8 +494,8 @@ export default function SAOverview() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-3">
+                <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <div className="flex gap-3 flex-wrap">
                     <div className="text-[#6B7280] text-[10px]">
                       <span className="text-[#374151] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
                     </div>
@@ -505,7 +505,7 @@ export default function SAOverview() {
                   </div>
                   <button
                     onClick={() => navigate('/superadmin/map')}
-                    className={`flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold ${mapButtonClass}`}
+                    className={`flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold shrink-0 ${mapButtonClass}`}
                   >
                     {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
                   </button>
@@ -624,12 +624,12 @@ export default function SAOverview() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex-1 min-w-[220px] bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+            className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
             <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0 ${quickNavToneClass}`}>
               {React.cloneElement(item.icon as React.ReactElement, { color: item.color })}
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-[#0F172A] text-[13px] font-semibold">{item.label}</div>
               <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
             </div>

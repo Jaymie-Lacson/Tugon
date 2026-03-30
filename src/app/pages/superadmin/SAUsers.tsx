@@ -681,7 +681,7 @@ export default function SAUsers() {
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
-        <div className="bg-[#0F172A] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3">
+        <div className="bg-[#0F172A] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3 flex-wrap">
           <span className="text-[#E2E8F0] text-[13px] font-semibold">{t('superadmin.users.selectedCount', { count: selectedIds.size })}</span>
           <button
             onClick={() => { void handleBulkStatusUpdate('active'); }}
@@ -699,7 +699,7 @@ export default function SAUsers() {
             onClick={() => setSelectedIds(new Set())}
             title={t('common.close')}
             aria-label={t('common.close')}
-            className="ml-auto bg-transparent border-0 cursor-pointer"
+            className="ml-auto max-sm:ml-0 bg-transparent border-0 cursor-pointer"
           >
             <X size={16} color="#64748B" />
           </button>
@@ -829,11 +829,11 @@ export default function SAUsers() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-[#F3F4F6] bg-[#FAFAFA]">
+        <div className="flex flex-col gap-2 px-4 py-3 border-t border-[#F3F4F6] bg-[#FAFAFA] sm:flex-row sm:items-center sm:justify-between">
           <div className="text-[#9CA3AF] text-xs">
             {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
-          <div className="flex items-center gap-[6px]">
+          <div className="flex items-center gap-[6px] self-end sm:self-auto">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
