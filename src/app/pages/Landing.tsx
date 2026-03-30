@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
+import { useTranslation } from '../i18n';
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
@@ -94,6 +95,7 @@ function AuthRedirectOverlay({ visible }: { visible: boolean }) {
 
 function Navbar() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -170,9 +172,9 @@ function Navbar() {
   }, [mobileOpen]);
 
   const navLinks = [
-    { label: 'How It Works', href: '#how' },
-    { label: 'Safety Tips', href: '#safety' },
-    { label: 'Hotlines', href: '#hotlines' },
+    { label: t('landing.nav.howItWorks'), href: '#how' },
+    { label: t('landing.nav.safety'), href: '#safety' },
+    { label: t('landing.nav.hotlines'), href: '#hotlines' },
   ];
 
   const scrollTo = (id: string) => {
@@ -275,7 +277,7 @@ function Navbar() {
                 cursor: 'pointer',
               }}
             >
-              Login
+              {t('landing.nav.login')}
             </button>
             <button
               onClick={() => navigateAuthWithOverlay('/auth/register')}
@@ -290,7 +292,7 @@ function Navbar() {
                 cursor: 'pointer',
               }}
             >
-              Register
+              {t('landing.nav.register')}
             </button>
           </div>
 
@@ -388,7 +390,7 @@ function Navbar() {
                   cursor: 'pointer',
                 }}
               >
-                Login to Continue
+                {t('landing.nav.loginToContinue')}
               </button>
               <button
                 onClick={() => navigateAuthWithOverlay('/auth/register')}
@@ -404,7 +406,7 @@ function Navbar() {
                   cursor: 'pointer',
                 }}
               >
-                Register
+                {t('landing.nav.register')}
               </button>
             </div>
         </div>
@@ -477,6 +479,7 @@ function Navbar() {
 
 function Hero() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
@@ -538,7 +541,7 @@ function Hero() {
             >
               <Radio size={12} color="#F87171" />
               <span style={{ color: '#FCA5A5', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Live in Barangays 251, 252, 256
+                {t('landing.hero.liveIn')}
               </span>
             </div>
 
@@ -564,7 +567,7 @@ function Hero() {
             </h1>
 
             <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 'clamp(14px,2vw,18px)', lineHeight: 1.55, maxWidth: 540, marginBottom: 22 }}>
-              Report. Track. Stay aware.
+              {t('landing.hero.subtagline')}
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
@@ -585,7 +588,7 @@ function Hero() {
                   gap: 8,
                 }}
               >
-                <AlertTriangle size={16} /> Report an Incident
+                <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
               </button>
               <button
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
@@ -604,8 +607,27 @@ function Hero() {
                   gap: 8,
                 }}
               >
-                <CheckCircle2 size={16} /> Track Status
+                <CheckCircle2 size={16} /> {t('landing.hero.trackStatus')}
               </button>
+            </div>
+
+            {/* Hero stats strip */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 20, marginTop: 4 }}>
+              {([
+                { val: '3', labelKey: 'landing.hero.statBarangays' as const },
+                { val: '5', labelKey: 'landing.hero.statCategories' as const },
+                { val: '24/7', labelKey: 'landing.hero.statReporting' as const },
+              ]).map((stat, i, arr) => (
+                <React.Fragment key={stat.val}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingRight: 20 }}>
+                    <span style={{ fontSize: 22, fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>{stat.val}</span>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>{t(stat.labelKey)}</span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div style={{ width: 1, background: 'rgba(255,255,255,0.15)', margin: '0 20px 0 0', alignSelf: 'stretch' }} />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
 
             <button
@@ -624,7 +646,7 @@ function Hero() {
                 gap: 6,
               }}
             >
-              <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
+              <MapIcon size={14} /> {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
             </button>
           </div>
         </div>
@@ -648,6 +670,7 @@ function Hero() {
 
 function QuickActions() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
@@ -660,24 +683,24 @@ function QuickActions() {
 
   const actions = [
     {
-      title: 'Report Incident',
-      desc: 'Pin location, add evidence, submit report.',
+      title: t('landing.quickActions.reportTitle'),
+      desc: t('landing.quickActions.reportDesc'),
       icon: AlertTriangle,
       color: 'var(--severity-critical)',
       bg: '#FEE2E2',
       action: () => navigateAuthWithOverlay('/auth/register'),
     },
     {
-      title: 'Track Status',
-      desc: 'Monitor your report from start to resolution.',
+      title: t('landing.quickActions.trackTitle'),
+      desc: t('landing.quickActions.trackDesc'),
       icon: FileText,
       color: 'var(--primary)',
       bg: '#DBEAFE',
       action: () => navigateAuthWithOverlay('/auth/login'),
     },
     {
-      title: 'View Community Map',
-      desc: 'See incidents near you in real-time.',
+      title: t('landing.quickActions.mapTitle'),
+      desc: t('landing.quickActions.mapDesc'),
       icon: MapIcon,
       color: 'var(--severity-medium)',
       bg: '#FEF3C7',
@@ -691,9 +714,9 @@ function QuickActions() {
       <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
-          label="Quick Access"
-          title="Start With One Simple Action"
-          subtitle="Pick what you need right now."
+          label={t('landing.quickActions.label')}
+          title={t('landing.quickActions.title')}
+          subtitle={t('landing.quickActions.subtitle')}
         />
 
         <div
@@ -735,7 +758,7 @@ function QuickActions() {
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>{item.desc}</div>
               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
                 <span className="quick-action-open">
-                  Open <ArrowRight size={12} />
+                  {t('landing.quickActions.open')} <ArrowRight size={12} />
                 </span>
               </div>
             </button>
@@ -774,7 +797,7 @@ function QuickActions() {
               <div style={{ textAlign: 'left', fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45 }}>{item.desc}</div>
               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
                 <span className="quick-action-open">
-                  Open <ArrowRight size={12} />
+                  {t('landing.quickActions.open')} <ArrowRight size={12} />
                 </span>
               </div>
             </button>
@@ -823,31 +846,154 @@ function QuickActions() {
   );
 }
 
+function MapTeaser() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const go = () => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => navigate('/community-map'), 260);
+  };
+
+  const pins = [
+    { x: '20%', y: '28%', color: '#B91C1C', label: t('incident.type.crime'), delay: '0s' },
+    { x: '58%', y: '50%', color: '#B4730A', label: t('incident.type.noise'), delay: '0.4s' },
+    { x: '35%', y: '68%', color: '#0F766E', label: t('incident.type.pollution'), delay: '0.8s' },
+    { x: '72%', y: '30%', color: '#1E3A8A', label: t('incident.type.road_hazard'), delay: '1.2s' },
+  ];
+
+  return (
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section
+        data-reveal
+        style={{ position: 'relative', background: '#0F172A', overflow: 'hidden', padding: '72px 24px' }}
+      >
+        {/* Background grid */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 48, alignItems: 'center' }}>
+
+            {/* Left: text */}
+            <div style={{ flex: '1 1 300px' }}>
+              <span style={{
+                display: 'inline-block',
+                background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)',
+                color: '#93C5FD', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+                textTransform: 'uppercase', padding: '6px 12px', borderRadius: 8, marginBottom: 16,
+              }}>
+                {t('landing.map.label')}
+              </span>
+              <h2 style={{ color: '#FFFFFF', fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, lineHeight: 1.25, marginBottom: 12 }}>
+                {t('landing.map.title').split('\n').map((line, i) => (
+                  <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
+                ))}
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.65, marginBottom: 24, maxWidth: 380 }}>
+                {t('landing.map.desc')}
+              </p>
+              <button
+                onClick={go}
+                style={{
+                  background: 'var(--primary)', border: 'none', borderRadius: 10,
+                  padding: '12px 22px', color: 'white', fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
+                }}
+              >
+                <MapIcon size={16} /> {t('landing.map.exploreBtn')} <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Right: map preview visual */}
+            <div style={{ flex: '1 1 280px', position: 'relative' }}>
+              <div style={{
+                background: 'rgba(30,58,138,0.25)', border: '1px solid rgba(59,130,246,0.18)',
+                borderRadius: 20, padding: 28, position: 'relative', overflow: 'hidden', minHeight: 230,
+              }}>
+                {/* Inner grid */}
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: 20, pointerEvents: 'none',
+                  backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
+                  backgroundSize: '28px 28px',
+                }} />
+
+                {/* Incident pins */}
+                {pins.map((pin) => (
+                  <div
+                    key={pin.label}
+                    style={{
+                      position: 'absolute', left: pin.x, top: pin.y,
+                      transform: 'translate(-50%, -50%)',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                      animation: `mapPinPulse 2.8s ease-in-out ${pin.delay} infinite alternate`,
+                    }}
+                  >
+                    <div style={{
+                      width: 13, height: 13, borderRadius: '50%',
+                      background: pin.color, border: '2px solid rgba(255,255,255,0.5)',
+                      boxShadow: `0 0 10px ${pin.color}90`,
+                    }} />
+                    <span style={{
+                      background: 'rgba(15,23,42,0.82)', color: 'rgba(255,255,255,0.85)',
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap',
+                    }}>
+                      {pin.label}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Footer label */}
+                <div style={{
+                  position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(15,23,42,0.88)', border: '1px solid rgba(59,130,246,0.35)',
+                  borderRadius: 8, padding: '5px 14px', color: '#93C5FD',
+                  fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+                }}>
+                  {t('landing.map.footer')}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
 function HowToUse() {
+  const { t } = useTranslation();
+
   const steps = [
     {
-      title: 'Submit Report',
-      detail: 'Pin location and attach photo or voice.',
+      title: t('landing.howItWorks.step1.sectionTitle'),
+      detail: t('landing.howItWorks.step1.detail'),
       icon: FileText,
       color: 'var(--primary)',
       bg: '#DBEAFE',
-      visual: 'Citizen',
+      visual: t('landing.howItWorks.step1.visual'),
     },
     {
-      title: 'Barangay Review',
-      detail: 'Officials validate and assign response.',
+      title: t('landing.howItWorks.step2.sectionTitle'),
+      detail: t('landing.howItWorks.step2.detail'),
       icon: Users,
       color: 'var(--severity-medium)',
       bg: '#FEF3C7',
-      visual: 'Official',
+      visual: t('landing.howItWorks.step2.visual'),
     },
     {
-      title: 'Resolution',
-      detail: 'Track updates until closure.',
+      title: t('landing.howItWorks.step3.sectionTitle'),
+      detail: t('landing.howItWorks.step3.detail'),
       icon: CheckCircle2,
       color: '#059669',
       bg: '#D1FAE5',
-      visual: 'Outcome',
+      visual: t('landing.howItWorks.step3.visual'),
     },
   ];
 
@@ -855,9 +1001,9 @@ function HowToUse() {
     <section id="how" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
-          label="How It Works"
-          title="Three Simple Steps"
-          subtitle="Fast, guided, and trackable."
+          label={t('landing.howItWorks.label')}
+          title={t('landing.howItWorks.threeSteps')}
+          subtitle={t('landing.howItWorks.tagline')}
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
@@ -892,7 +1038,7 @@ function HowToUse() {
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                      Step {index + 1}
+                      {t('landing.howItWorks.step', { number: String(index + 1) })}
                     </div>
                     <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '2px 0 0' }}>{step.title}</h3>
                   </div>
@@ -915,6 +1061,7 @@ function HowToUse() {
 
 function SupportedBarangays() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const barangays = [
   {
@@ -950,9 +1097,9 @@ function SupportedBarangays() {
     <section id="barangays" data-reveal style={{ padding: '88px 24px', background: 'var(--primary)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
-          label="Coverage"
-          title="Three Barangays, One Platform"
-          subtitle="Geofenced incident routing for Tondo communities."
+          label={t('landing.barangays.label')}
+          title={t('landing.barangays.subtitle')}
+          subtitle={t('landing.barangays.tagline')}
           light
         />
 
@@ -994,7 +1141,7 @@ function SupportedBarangays() {
               </div>
 
               <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
-              <p style={{ margin: '0 0 6px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 700 }}>Barangay Captain: {item.captain}</p>
+              <p style={{ margin: '0 0 6px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 700 }}>{t('landing.barangays.captain', { name: item.captain })}</p>
               <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#DBEAFE', fontWeight: 600 }}>{item.district}</p>
               <p style={{ margin: '0 0 18px 0', fontSize: 12, color: '#BFDBFE', fontWeight: 500 }}>{item.hallAddress}</p>
 
@@ -1041,7 +1188,7 @@ function SupportedBarangays() {
                   (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                 }}
               >
-                Start Reporting <ChevronRight size={15} />
+                {t('landing.barangays.startReporting')} <ChevronRight size={15} />
               </button>
             </div>
           ))}
@@ -1052,27 +1199,29 @@ function SupportedBarangays() {
 }
 
 function SafetyTips() {
+  const { t } = useTranslation();
+
   const tips = [
     {
-      title: 'Clean Surroundings',
+      title: t('landing.safety.tip1.title'),
       icon: Shield,
       color: '#0F766E',
       bg: '#CCFBF1',
-      actions: ['Dispose waste properly', 'Keep drainage clear'],
+      actions: [t('landing.safety.tip1.action1'), t('landing.safety.tip1.action2')],
     },
     {
-      title: 'Noise Control',
+      title: t('landing.safety.tip2.title'),
       icon: Users,
       color: 'var(--primary)',
       bg: '#DBEAFE',
-      actions: ['Respect quiet hours', 'Record details safely'],
+      actions: [t('landing.safety.tip2.action1'), t('landing.safety.tip2.action2')],
     },
     {
-      title: 'Road Safety',
+      title: t('landing.safety.tip3.title'),
       icon: AlertTriangle,
       color: 'var(--severity-medium)',
       bg: '#FEF3C7',
-      actions: ['Use marked crossings', 'Report hazards quickly'],
+      actions: [t('landing.safety.tip3.action1'), t('landing.safety.tip3.action2')],
     },
   ];
 
@@ -1080,9 +1229,9 @@ function SafetyTips() {
     <section id="safety" data-reveal style={{ padding: '88px 24px', background: '#FFFFFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
-          label="Awareness"
-          title="Community Safety Tips"
-          subtitle="Quick reminders for daily safety."
+          label={t('landing.safety.label')}
+          title={t('landing.safety.subtitle')}
+          subtitle={t('landing.safety.tagline')}
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
@@ -1136,7 +1285,7 @@ function SafetyTips() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, color: '#475569', fontSize: 12, fontWeight: 700 }}>
                 <CheckCircle2 size={14} color={tip.color} />
-                Report incidents right away through TUGON.
+                {t('landing.safety.reportTugon')}
               </div>
             </div>
           ))}
@@ -1147,19 +1296,21 @@ function SafetyTips() {
 }
 
 function EmergencyHotlines() {
+  const { t } = useTranslation();
+
   const hotlines = [
-    { name: 'National Emergency', number: '911', note: 'Police, fire, medical', color: 'var(--severity-critical)', bg: '#FEE2E2' },
-    { name: 'PNP Hotline', number: '117', note: 'Law enforcement', color: 'var(--primary)', bg: '#DBEAFE' },
-    { name: 'Fire Protection', number: '160', note: 'Fire and rescue', color: 'var(--severity-medium)', bg: '#FEF3C7' },
+    { name: t('landing.emergency.hotline1.name'), number: '911', note: t('landing.emergency.hotline1.note'), color: 'var(--severity-critical)', bg: '#FEE2E2' },
+    { name: t('landing.emergency.hotline2.name'), number: '117', note: t('landing.emergency.hotline2.note'), color: 'var(--primary)', bg: '#DBEAFE' },
+    { name: t('landing.emergency.hotline3.name'), number: '160', note: t('landing.emergency.hotline3.note'), color: 'var(--severity-medium)', bg: '#FEF3C7' },
   ];
 
   return (
     <section id="hotlines" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHeading
-          label="Emergency Contacts"
-          title="Emergency Hotlines"
-          subtitle="Call first for urgent situations."
+          label={t('landing.emergency.label')}
+          title={t('landing.emergency.subtitle')}
+          subtitle={t('landing.emergency.tagline')}
         />
 
         <div
@@ -1179,8 +1330,8 @@ function EmergencyHotlines() {
           }}
         >
           <div>
-            <div style={{ color: 'white', fontSize: 20, fontWeight: 800, marginBottom: 4 }}>Emergency? Call 911</div>
-            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Then file details in TUGON.</div>
+            <div style={{ color: 'white', fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{t('landing.emergency.callNow')}</div>
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>{t('landing.emergency.callThenFile')}</div>
           </div>
           <a
             href="tel:911"
@@ -1197,7 +1348,7 @@ function EmergencyHotlines() {
               gap: 6,
             }}
           >
-            <Phone size={14} /> Call Now
+            <Phone size={14} /> {t('landing.emergency.callNowBtn')}
           </a>
         </div>
 
@@ -1234,7 +1385,7 @@ function EmergencyHotlines() {
                   fontWeight: 800,
                 }}
               >
-                <Phone size={13} /> Call {item.number}
+                <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
               </a>
             </div>
           ))}
@@ -1246,6 +1397,7 @@ function EmergencyHotlines() {
 
 function Footer() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
 
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -1258,9 +1410,9 @@ function Footer() {
   };
 
   const quickLinks = [
-    { label: 'Register', action: () => navigateAuthWithOverlay('/auth/register') },
-    { label: 'Login', action: () => navigateAuthWithOverlay('/auth/login') },
-    { label: 'Community Map', action: () => navigateAuthWithOverlay('/community-map') },
+    { label: t('landing.footer.register'), action: () => navigateAuthWithOverlay('/auth/register') },
+    { label: t('landing.footer.login'), action: () => navigateAuthWithOverlay('/auth/login') },
+    { label: t('landing.footer.communityMap'), action: () => navigateAuthWithOverlay('/community-map') },
   ];
 
   return (
@@ -1289,13 +1441,13 @@ function Footer() {
               />
             </button>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.74)', lineHeight: 1.62, margin: 0, maxWidth: 500 }}>
-              A web-based incident management and decision support platform for Barangays 251, 252, and 256 in Tondo, Manila.
+              {t('landing.footer.desc')}
             </p>
           </div>
 
           <div>
             <div style={{ color: 'white', fontSize: 12, fontWeight: 700, marginBottom: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Citizen Access
+              {t('landing.footer.citizenAccess')}
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
               {quickLinks.map((link) => (
@@ -1334,7 +1486,7 @@ function Footer() {
                 letterSpacing: '0.04em',
               }}
             >
-              <Phone size={13} /> Emergency: 911
+              <Phone size={13} /> {t('landing.footer.emergencyCall')}
             </a>
           </div>
         </div>
@@ -1351,8 +1503,8 @@ function Footer() {
             gap: 8,
           }}
         >
-          <span>© {year} TUGON. Digital support tool for community reporting and response coordination.</span>
-          <span style={{ color: 'rgba(255,255,255,0.55)' }}>Barangays 251, 252, 256 · Tondo, Manila</span>
+          <span>© {year} TUGON. {t('landing.footer.tagline')}</span>
+          <span style={{ color: 'rgba(255,255,255,0.55)' }}>{t('landing.footer.location')}</span>
         </div>
       </div>
 
@@ -1367,6 +1519,8 @@ function Footer() {
 }
 
 export default function Landing() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
     if (!revealItems.length) {
@@ -1440,12 +1594,13 @@ export default function Landing() {
       }}
     >
       <a className="skip-link" href="#landing-main-content">
-        Skip to main content
+        {t('landing.skipToMain')}
       </a>
       <Navbar />
       <main id="landing-main-content">
         <Hero />
         <QuickActions />
+        <MapTeaser />
         <HowToUse />
         <SupportedBarangays />
         <SafetyTips />
@@ -1488,6 +1643,11 @@ export default function Landing() {
 
         .hero-transition-scope {
           transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        @keyframes mapPinPulse {
+          from { transform: translate(-50%, -50%) translateY(0px); }
+          to   { transform: translate(-50%, -50%) translateY(-6px); }
         }
 
         .skip-link {

@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
@@ -128,6 +129,7 @@ interface UserModalProps {
 }
 
 function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit }: UserModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fullName: user?.name ?? '',
     phoneNumber: user?.email ?? '',
@@ -137,7 +139,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
     status: user?.status ?? 'active',
   });
 
-  const title = mode === 'create' ? 'Create User' : mode === 'edit' ? 'Edit User' : 'User Details';
+  const title = mode === 'create' ? t('superadmin.users.createUser') : mode === 'edit' ? t('superadmin.users.editUser') : t('superadmin.users.userDetails');
   const isReadOnlyMode = mode === 'view';
   const isCreateMode = mode === 'create';
 
@@ -179,7 +181,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
               <div>
                 <div className="text-[#0F172A] text-base font-bold">{user.name}</div>
                 <div className="text-[#6B7280] text-xs">{user.email}</div>
-                <div className="text-[#9CA3AF] text-[11px] mt-[2px]">Last active: {formatLastActive(user.lastActive)}</div>
+                <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
               </div>
             </div>
           )}
@@ -194,18 +196,18 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
             {!isReadOnlyMode ? (
               <>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Full Name</label>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.fullName')}</label>
                   <input
                     value={formData.fullName}
                     onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                     disabled={mode === 'edit'}
                     className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
                     style={{ background: mode === 'edit' ? '#F9FAFB' : 'white' }}
-                    placeholder="Enter full name"
+                    placeholder={t('superadmin.users.fullNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Phone Number</label>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.phoneNumber')}</label>
                   <input
                     value={formData.phoneNumber}
                     onChange={e => setFormData(f => ({ ...f, phoneNumber: e.target.value }))}
@@ -217,19 +219,19 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 </div>
                 {isCreateMode ? (
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Initial Password</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.initialPassword')}</label>
                     <input
                       type="password"
                       value={formData.password}
                       onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
                       className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border bg-white"
-                      placeholder="At least 8 characters"
+                      placeholder={t('superadmin.users.passwordPlaceholder')}
                     />
                   </div>
                 ) : null}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Role</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.roleLabel')}</label>
                     <select
                       value={formData.role}
                       onChange={e => setFormData(f => ({ ...f, role: e.target.value as SupportedUiRole }))}
@@ -241,7 +243,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     </select>
                   </div>
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Barangay</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.barangay')}</label>
                     <select
                       value={formData.barangay}
                       onChange={e => setFormData(f => ({ ...f, barangay: e.target.value }))}
@@ -255,7 +257,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">Status</label>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.status')}</label>
                   <div className="flex gap-2">
                     {(['active', 'inactive'] as const).map(s => {
                       const sc = STATUS_CONFIG[s];
@@ -278,7 +280,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 </div>
                 {mode === 'edit' ? (
                   <div className="text-[#6B7280] text-[11px]">
-                    Name and phone edits are disabled in this phase. Use role, barangay, and status reassignment only.
+                    {t('superadmin.users.editDisabledHint')}
                   </div>
                 ) : null}
               </>
@@ -286,10 +288,10 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
               user && (
                 <div className="grid grid-cols-2 gap-[10px]">
                   {[
-                    { label: 'Role', value: user.role },
-                    { label: 'Barangay', value: user.barangay },
-                    { label: 'Status', value: user.status },
-                    { label: 'Last Active', value: formatLastActive(user.lastActive) },
+                    { label: t('superadmin.users.role'), value: user.role },
+                    { label: t('superadmin.users.barangay'), value: user.barangay },
+                    { label: t('superadmin.users.status'), value: user.status },
+                    { label: t('superadmin.users.lastActiveLabel'), value: formatLastActive(user.lastActive) },
                   ].map(f => (
                     <div key={f.label} className="bg-[#F9FAFB] rounded-lg px-3 py-[10px]">
                       <div className="text-[#9CA3AF] text-[10px] mb-[3px]">{f.label}</div>
@@ -308,7 +310,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
             onClick={onClose}
             className="px-[18px] py-[9px] border border-[#E5E7EB] rounded-lg bg-white cursor-pointer text-[13px] font-semibold text-[#374151]"
           >
-            {mode === 'view' ? 'Close' : 'Cancel'}
+            {mode === 'view' ? t('common.close') : t('common.cancel')}
           </button>
           {!isReadOnlyMode && (
             <button
@@ -326,7 +328,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
               className="px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold"
               style={{ cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}
             >
-              {saving ? 'Saving...' : isCreateMode ? 'Create User' : 'Save Changes'}
+              {saving ? t('common.saving') : isCreateMode ? t('superadmin.users.createUser') : t('superadmin.users.saveChanges')}
             </button>
           )}
         </div>
@@ -337,6 +339,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
 }
 
 export default function SAUsers() {
+  const { t } = useTranslation();
   const [usersData, setUsersData] = useState<SAUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -540,9 +543,9 @@ export default function SAUsers() {
       {/* Header */}
       <div className="sa-users-header flex items-center justify-between mb-[18px] gap-[10px]">
         <div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">User Management</h1>
+          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
           <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
-            Manage accounts, roles & permissions across all barangays
+            {t('superadmin.users.subtitle')}
           </p>
         </div>
         <div className="sa-users-header-actions flex gap-[10px]">
@@ -550,7 +553,7 @@ export default function SAUsers() {
             onClick={() => { void loadUsers(); }}
             className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-xs font-semibold text-[#374151]"
           >
-            <Download size={13} color="#6B7280" /> {loading ? 'Refreshing...' : 'Refresh'}
+            <Download size={13} color="#6B7280" /> {loading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => {
@@ -561,7 +564,7 @@ export default function SAUsers() {
             }}
             className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-xs font-semibold text-white"
           >
-            <Plus size={14} /> Add User
+            <Plus size={14} /> {t('superadmin.users.addUser')}
           </button>
         </div>
       </div>
@@ -575,9 +578,9 @@ export default function SAUsers() {
       {/* Stats chips */}
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { label: 'Total Users', value: counts.total, color: PRIMARY, icon: <Users size={16} color={PRIMARY} /> },
-          { label: 'Active', value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
-          { label: 'Inactive', value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
+          { label: t('superadmin.users.totalUsers'), value: counts.total, color: PRIMARY, icon: <Users size={16} color={PRIMARY} /> },
+          { label: t('superadmin.users.active'), value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
+          { label: t('superadmin.users.inactive'), value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-3 flex-1 min-w-[130px]">
             <div
@@ -602,7 +605,7 @@ export default function SAUsers() {
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search users..."
+            placeholder={t('superadmin.users.searchPlaceholder')}
             className="w-full px-[10px] py-2 pl-8 border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
           />
         </div>
@@ -634,25 +637,25 @@ export default function SAUsers() {
         </select>
 
         <span className="text-[#9CA3AF] text-xs ml-auto">
-          {filtered.length} user{filtered.length !== 1 ? 's' : ''}
+          {filtered.length !== 1 ? t('superadmin.users.userCountPlural', { count: filtered.length }) : t('superadmin.users.userCount', { count: filtered.length })}
         </span>
       </div>
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
         <div className="bg-[#0F172A] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3">
-          <span className="text-[#E2E8F0] text-[13px] font-semibold">{selectedIds.size} selected</span>
+          <span className="text-[#E2E8F0] text-[13px] font-semibold">{t('superadmin.users.selectedCount', { count: selectedIds.size })}</span>
           <button
             onClick={() => { void handleBulkStatusUpdate('active'); }}
             className="px-3 py-[5px] bg-[#0F766E] border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
-            <UserCheck size={12} /> Activate
+            <UserCheck size={12} /> {t('superadmin.users.activate')}
           </button>
           <button
             onClick={() => { void handleBulkStatusUpdate('inactive'); }}
             className="px-3 py-[5px] bg-severity-medium border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
-            <UserX size={12} /> Deactivate
+            <UserX size={12} /> {t('superadmin.users.deactivate')}
           </button>
           <button onClick={() => setSelectedIds(new Set())} className="ml-auto bg-transparent border-0 cursor-pointer">
             <X size={16} color="#64748B" />
@@ -669,7 +672,7 @@ export default function SAUsers() {
                 <th className="px-[14px] py-3 text-left w-8">
                   <input type="checkbox" style={{ cursor: 'pointer', accentColor: PRIMARY }} />
                 </th>
-                {['User', 'Role', 'Barangay', 'Status', 'Last Active', 'Actions'].map(h => (
+                {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
                   <th key={h} className="px-[14px] py-3 text-left text-[#6B7280] text-[11px] font-bold tracking-[0.03em] uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -678,7 +681,7 @@ export default function SAUsers() {
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-[40px] text-center">
-                    <div className="text-[#9CA3AF] text-[13px]">No users found matching your filters.</div>
+                    <div className="text-[#9CA3AF] text-[13px]">{t('superadmin.users.noUsersFound')}</div>
                   </td>
                 </tr>
               ) : paginated.map((user, i) => {
@@ -784,7 +787,7 @@ export default function SAUsers() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-[#F3F4F6] bg-[#FAFAFA]">
           <div className="text-[#9CA3AF] text-xs">
-            Showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} users
+            {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-[6px]">
             <button

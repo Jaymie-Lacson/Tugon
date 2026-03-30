@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { useTranslation } from '../i18n';
 import {
   Search, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
@@ -314,6 +315,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
    REPORT CARD
 ──────────────────────────────────────────────────────────────────── */
 function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () => void }) {
+  const { t } = useTranslation();
   const tc = typeConfig[report.type];
   const Icon = tc.icon;
 
@@ -385,7 +387,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
               <span className="text-slate-300 text-[10px]"> - </span>
               <div className="flex items-center gap-[3px] bg-slate-100 rounded-[6px] px-[6px] py-[2px]">
                 <Mic size={9} color="#64748B" />
-                <span className="text-[9px] text-slate-500 font-semibold">Audio</span>
+                <span className="text-[9px] text-slate-500 font-semibold">{t('citizen.myReports.audioSection')}</span>
               </div>
             </span>
           )}
@@ -407,7 +409,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
           {citizenStatusConfig[report.status].description}
         </span>
         <div className="flex items-center gap-[3px]" style={{ color: citizenStatusConfig[report.status].color }}>
-          <span className="text-[11px] font-bold">Details</span>
+          <span className="text-[11px] font-bold">{t('citizen.myReports.detailsCardCta')}</span>
           <ChevronRight size={13} />
         </div>
       </div>
@@ -428,6 +430,7 @@ function DetailView({
   cancelling?: boolean;
   cancelError?: string | null;
 }) {
+  const { t } = useTranslation();
   const tc = typeConfig[report.type];
   const TypeIcon = tc.icon;
   const photoEvidence = report.evidence.filter((item) => item.kind === 'photo');
@@ -514,7 +517,7 @@ function DetailView({
           <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
-              <div className="font-extrabold text-base text-slate-900">Report Details</div>
+              <div className="font-extrabold text-base text-slate-900">{t('citizen.myReports.detailsTitle')}</div>
               <div className="text-[11px] text-slate-400 mt-[1px]">{report.id}</div>
             </div>
             <button
@@ -541,7 +544,7 @@ function DetailView({
               </div>
               <div className="flex-1">
                 <div className="font-extrabold text-[18px] text-slate-900 leading-[1.15] mb-1">
-                  {tc.label} Incident
+                  {t('citizen.myReports.incidentHeading', { type: tc.label })}
                 </div>
                 <div className="flex items-center gap-[6px] flex-wrap">
                   <CitizenStatusBadge status={report.status} size="md" />
@@ -551,7 +554,7 @@ function DetailView({
                     color: report.severity === 'critical' ? 'var(--severity-critical)' : report.severity === 'high' ? '#C2410C' : report.severity === 'medium' ? 'var(--severity-medium)' : '#059669',
                     borderRadius: 6, padding: '3px 8px', textTransform: 'uppercase',
                   }}>
-                    {report.severity} severity
+                    {t('citizen.myReports.severityBadge', { severity: report.severity })}
                   </span>
                 </div>
               </div>
@@ -560,12 +563,12 @@ function DetailView({
             <dl className="m-0 px-[18px] pt-1 pb-[14px]"
               style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               {[
-                { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
-                { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
-                { icon: <Calendar size={13} />, label: 'Date Submitted', value: formatDateTime(report.submittedAt) },
-                { icon: <Clock size={13} />, label: 'Last Updated', value: formatDateTime(report.updatedAt) },
-                ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
-                ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
+                { icon: <FileText size={13} />, label: t('citizen.myReports.fieldTicketId'), value: report.id },
+                { icon: <MapPin size={13} />, label: t('citizen.myReports.location'), value: `${report.location}, ${report.barangay}, ${report.district}` },
+                { icon: <Calendar size={13} />, label: t('citizen.myReports.fieldDateSubmitted'), value: formatDateTime(report.submittedAt) },
+                { icon: <Clock size={13} />, label: t('citizen.myReports.fieldLastUpdated'), value: formatDateTime(report.updatedAt) },
+                ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: t('citizen.myReports.fieldAssignedOfficer'), value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
+                ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: t('citizen.myReports.fieldAffected'), value: t('citizen.myReports.affectedValue', { count: report.affectedCount }) }] : []),
               ].map(({ icon, label, value }) => (
                 <div key={label} className="border border-slate-200 rounded-xl bg-slate-50 px-3 py-[10px]">
                   <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-slate-500 font-bold tracking-[0.04em] uppercase">
@@ -582,7 +585,7 @@ function DetailView({
             style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
             <div className="flex items-center gap-[6px] mb-[10px]">
               <MessageSquare size={14} color={tc.color} />
-              <span className="font-bold text-[13px] text-slate-900">Description</span>
+              <span className="font-bold text-[13px] text-slate-900">{t('citizen.myReports.description')}</span>
             </div>
             <p className="text-[13px] text-slate-600 leading-[1.7] m-0">{report.description}</p>
           </section>
@@ -591,7 +594,7 @@ function DetailView({
             <section className="rounded-[14px] px-[14px] py-3 border border-[#FDE68A] mb-4"
               style={{ background: '#FFFBEB' }}>
               <p className="m-0 text-xs text-[#78350F] leading-[1.6]">
-                You may cancel this report only while its status is <strong>Submitted</strong>.
+                {t('citizen.myReports.cancelNotice')}
               </p>
               <button
                 type="button"
@@ -608,7 +611,7 @@ function DetailView({
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
-                {cancelling ? 'Cancelling...' : 'Cancel Report'}
+                {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.cancelBtn')}
               </button>
               {cancelError && (
                 <p className="mt-2 mb-0 text-[11px] text-red-700 leading-[1.5]">{cancelError}</p>
@@ -620,26 +623,26 @@ function DetailView({
             <section className="bg-white rounded-xl p-4 border border-slate-200 mb-4"
               style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
               <div className="font-bold text-[13px] text-slate-900 mb-3">
-                Evidence Attached
+                {t('citizen.myReports.evidenceAttached')}
               </div>
               <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
                   <div className="flex items-center gap-[6px] bg-blue-50 rounded-[10px] px-3 py-2 border border-[#BFDBFE]">
                     <Camera size={14} color="var(--primary)" />
-                    <span className="text-xs text-primary font-bold">{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
+                    <span className="text-xs text-primary font-bold">{report.photoCount > 1 ? t('citizen.myReports.photoCountPlural', { count: report.photoCount }) : t('citizen.myReports.photoCount', { count: report.photoCount })}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
                   <div className="flex items-center gap-[6px] bg-[#EDE9FE] rounded-[10px] px-3 py-2 border border-[#DDD6FE]">
                     <Mic size={14} color="#7C3AED" />
-                    <span className="text-xs text-[#7C3AED] font-bold">Voice Recording</span>
+                    <span className="text-xs text-[#7C3AED] font-bold">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
                 ) : null}
               </div>
 
               {photoEvidence.length > 0 && (
                 <section className={audioEvidence.length > 0 ? 'mb-3' : ''}>
-                  <div className="text-[11px] font-bold text-slate-500 mb-2">Photos</div>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.photosSection')}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 8 }}>
                     {photoEvidence.map((item, index) => (
                       <button
@@ -662,7 +665,7 @@ function DetailView({
 
               {audioEvidence.length > 0 && (
                 <section>
-                  <div className="text-[11px] font-bold text-slate-500 mb-2">Audio</div>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.audioSection')}</div>
                   <div className="grid gap-2">
                     {audioEvidence.map((item) => (
                       <article key={item.id} className="border border-slate-200 rounded-[10px] px-3 py-[10px] bg-slate-50">
@@ -676,7 +679,7 @@ function DetailView({
 
               {!hasPreviewableEvidence && (
                 <p className="m-0 text-xs text-slate-400 leading-[1.6]">
-                  Evidence metadata is available, but preview links are not currently accessible for this report.
+                  {t('citizen.myReports.evidenceUnavailable')}
                 </p>
               )}
             </section>
@@ -694,7 +697,7 @@ function DetailView({
                   : <CheckCircle2 size={14} color="#059669" />
                 }
                 <span className="font-bold text-[13px]" style={{ color: report.status === 'unresolvable' ? 'var(--severity-critical)' : '#059669' }}>
-                  {report.status === 'unresolvable' ? 'Why This Was Unresolvable' : 'Resolution Summary'}
+                  {report.status === 'unresolvable' ? t('citizen.myReports.unresolvableReason') : t('citizen.myReports.resolutionSummary')}
                 </span>
               </div>
               <p className="text-[13px] leading-[1.65] m-0" style={{ color: report.status === 'unresolvable' ? '#7F1D1D' : '#065F46' }}>
@@ -703,7 +706,7 @@ function DetailView({
               {report.status === 'unresolvable' && (
                 <button className="mt-3 flex items-center gap-[6px] border-none rounded-lg px-[14px] py-2 text-white text-xs font-bold cursor-pointer"
                   style={{ background: 'var(--severity-critical)' }}>
-                  <Phone size={12} /> Call City Veterinary Office
+                  <Phone size={12} /> {t('citizen.myReports.callCityVet')}
                 </button>
               )}
             </section>
@@ -712,7 +715,7 @@ function DetailView({
           <section className="bg-white rounded-xl p-[18px] border border-slate-200 mb-2"
             style={{ boxShadow: '0 2px 6px rgba(15,23,42,0.06)' }}>
             <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
-              <Clock size={14} color="var(--primary)" /> Status Timeline
+              <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
 
             <ul className="m-0 p-0 list-none">
@@ -742,7 +745,7 @@ function DetailView({
                       </div>
                       {isLast && (
                         <span className="shrink-0 rounded-[7px] px-2 py-[2px] text-[9px] font-extrabold tracking-[0.06em] uppercase"
-                          style={{ background: colors.bg, color: colors.color }}>Latest</span>
+                          style={{ background: colors.bg, color: colors.color }}>{t('citizen.myReports.timelineLatest')}</span>
                       )}
                     </div>
                     <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
@@ -750,7 +753,7 @@ function DetailView({
                     </div>
                     {event.note && event.note !== event.description && (
                       <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-lg px-[10px] py-[7px] text-[11px] text-[#78350F] leading-[1.5] mb-1">
-                        Note: {event.note}
+                        {t('citizen.myReports.timelineNote', { note: event.note })}
                       </div>
                     )}
                     <div className="flex items-center gap-2">
@@ -773,7 +776,7 @@ function DetailView({
           <section className="bg-[#FEF2F2] rounded-[14px] px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
             <Info size={14} color="var(--severity-critical)" className="shrink-0 mt-[1px]" />
             <p className="text-xs text-[#7F1D1D] leading-[1.6] m-0">
-              <strong>Immediate danger?</strong> Don't wait for a response - call <strong>911</strong> right away.
+              {t('citizen.myReports.emergencyNotice')}
             </p>
           </section>
         </main>
@@ -806,7 +809,7 @@ function DetailView({
             <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <AlertTriangle size={16} color="#FDE68A" />
-                <span className="text-sm font-bold">Confirm Cancellation</span>
+                <span className="text-sm font-bold">{t('citizen.myReports.confirmCancelTitle')}</span>
               </div>
               <button
                 type="button"
@@ -830,7 +833,7 @@ function DetailView({
 
             <div className="px-4 pt-[14px] pb-[10px]">
               <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
-                Cancel this submitted report? This action is only available while the ticket is still in <strong>Submitted</strong> status.
+                {t('citizen.myReports.confirmCancelBody')}
               </p>
             </div>
 
@@ -842,7 +845,7 @@ function DetailView({
                 className="h-[38px] border border-slate-300 rounded-[10px] bg-slate-50 text-slate-600 text-xs font-bold px-[14px]"
                 style={{ cursor: cancelling ? 'not-allowed' : 'pointer' }}
               >
-                Keep Ticket
+                {t('citizen.myReports.keepTicket')}
               </button>
               <button
                 type="button"
@@ -860,7 +863,7 @@ function DetailView({
                   cursor: cancelling ? 'not-allowed' : 'pointer',
                 }}
               >
-                {cancelling ? 'Cancelling...' : 'Yes, Cancel Ticket'}
+                {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.yesCancelTicket')}
               </button>
             </footer>
           </article>
@@ -888,7 +891,7 @@ function DetailView({
                 className="citizen-photo-preview-close bg-[#0F172A] border border-[#334155] text-slate-200 rounded-lg px-[10px] py-1 cursor-pointer"
                 onClick={() => setPreviewPhotoIndex(null)}
               >
-                Close
+                {t('citizen.myReports.photoPreviewClose')}
               </button>
             </div>
             <img
@@ -912,28 +915,38 @@ function DetailView({
 }
 
 function EmptyState({ filter, query }: { filter: string; query: string }) {
+  const { t } = useTranslation();
+  const headingText = query
+    ? t('citizen.myReports.emptyNoResults')
+    : filter === 'active'
+      ? t('citizen.myReports.emptyActiveLabel')
+      : filter === 'resolved'
+        ? t('citizen.myReports.emptyResolvedLabel')
+        : t('citizen.myReports.empty');
+  const bodyText = query
+    ? t('citizen.myReports.emptyNoResultsDesc', { query })
+    : filter === 'active'
+      ? t('citizen.myReports.emptyActiveDesc')
+      : filter === 'resolved'
+        ? t('citizen.myReports.emptyResolvedDesc')
+        : t('citizen.myReports.emptyDefaultDesc');
   return (
     <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
       <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
         <FileText size={36} />
       </div>
       <div className="font-extrabold text-[17px] text-slate-900 mb-2">
-        {query ? 'No results found' : `No ${filter !== 'all' ? filter : ''} reports`}
+        {headingText}
       </div>
       <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
-        {query
-          ? `No reports match "${query}". Try a different search term.`
-          : filter === 'active'
-            ? 'You have no active reports at the moment.'
-            : filter === 'resolved'
-              ? 'None of your reports have been resolved yet.'
-              : 'You haven\'t submitted any incident reports yet.'}
+        {bodyText}
       </div>
     </div>
   );
 }
 
 function TicketPageLoadingState() {
+  const { t } = useTranslation();
   return (
     <div className="citizen-content-shell pt-7 pb-7">
       <section
@@ -983,10 +996,10 @@ function TicketPageLoadingState() {
             />
           </div>
           <p className="m-0 text-primary text-sm font-extrabold">
-            Loading your ticket records...
+            {t('citizen.myReports.loadingTitle')}
           </p>
           <p className="m-0 text-slate-500 text-xs leading-[1.55]">
-            Pulling incident status updates from your barangay queue.
+            {t('citizen.myReports.loadingSubtitle')}
           </p>
         </div>
       </section>
@@ -998,6 +1011,7 @@ type FilterKey = 'all' | 'active' | 'resolved';
 type DateSortKey = 'newest' | 'oldest';
 
 export default function CitizenMyReports() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -1196,9 +1210,9 @@ export default function CitizenMyReports() {
   }, []);
 
   const FILTER_TABS: { key: FilterKey; label: string; count: number }[] = [
-    { key: 'all',      label: 'All',      count: allCount },
-    { key: 'active',   label: 'Active',   count: activeCount },
-    { key: 'resolved', label: 'Resolved', count: resolvedCount },
+    { key: 'all',      label: t('citizen.myReports.filterAll'),      count: allCount },
+    { key: 'active',   label: t('citizen.myReports.filterActive'),   count: activeCount },
+    { key: 'resolved', label: t('citizen.myReports.filterResolved'), count: resolvedCount },
   ];
 
   return (
@@ -1286,7 +1300,7 @@ export default function CitizenMyReports() {
                         }}
                         className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
                       >
-                        Open profile page
+                        {t('citizen.myReports.openProfilePage')}
                       </button>
                       <button
                         type="button"
@@ -1297,7 +1311,7 @@ export default function CitizenMyReports() {
                         }}
                         className="w-full text-left px-3 py-[11px] bg-white border-none text-red-700 text-[13px] font-bold cursor-pointer"
                       >
-                        Sign out
+                        {t('common.signOut')}
                       </button>
                     </div>
                   )}
@@ -1355,25 +1369,25 @@ export default function CitizenMyReports() {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-[220px]">
                     <p className="m-0 text-[11px] font-extrabold text-primary tracking-[0.08em] uppercase">
-                      Ticket Monitoring
+                      {t('citizen.myReports.headerLabel')}
                     </p>
                     <h2 className="mt-[6px] mb-1 text-slate-900 font-extrabold leading-[1.2]"
                       style={{ fontSize: 'clamp(18px,2.4vw,22px)' }}>
-                      My Incident Reports
+                      {t('citizen.myReports.headerTitle')}
                     </h2>
                     <p className="m-0 text-slate-500 text-xs leading-[1.55]">
-                      Track your submitted reports, review timeline updates, and open ticket details anytime.
+                      {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <span className="bg-white border border-[#BFDBFE] text-primary rounded-full px-[10px] py-[6px] text-[11px] font-bold">
-                      Total: {allCount}
+                      {t('citizen.myReports.countTotal', { count: allCount })}
                     </span>
                     <span className="bg-[#FFFBEB] border border-[#FDE68A] text-severity-medium rounded-full px-[10px] py-[6px] text-[11px] font-bold">
-                      Active: {activeCount}
+                      {t('citizen.myReports.countActive', { count: activeCount })}
                     </span>
                     <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
-                      Resolved: {resolvedCount}
+                      {t('citizen.myReports.countResolved', { count: resolvedCount })}
                     </span>
                   </div>
                 </div>
@@ -1390,7 +1404,7 @@ export default function CitizenMyReports() {
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Search by ID, type, location..."
+                    placeholder={t('citizen.myReports.searchPlaceholder')}
                     className="flex-1 border-none bg-transparent text-[13px] text-slate-900 outline-none"
                     style={{ fontFamily: "'Roboto', sans-serif" }}
                   />
@@ -1407,7 +1421,7 @@ export default function CitizenMyReports() {
                     className="h-[42px] bg-slate-50 border-[1.5px] border-slate-200 rounded-xl px-3 flex items-center gap-[5px] cursor-pointer text-slate-600 font-semibold text-xs whitespace-nowrap"
                   >
                     <SlidersHorizontal size={13} />
-                    {sortBy === 'newest' ? 'Newest' : 'Oldest'}
+                    {sortBy === 'newest' ? t('citizen.myReports.sortNewestShort') : t('citizen.myReports.sortOldestShort')}
                     <ChevronDown size={12} />
                   </button>
                   {sortOpen && (
@@ -1425,7 +1439,7 @@ export default function CitizenMyReports() {
                             fontFamily: "'Roboto', sans-serif",
                           }}
                         >
-                          {opt === 'newest' ? 'Newest First' : 'Oldest First'}
+                          {opt === 'newest' ? t('citizen.myReports.sortNewestFull') : t('citizen.myReports.sortOldestFull')}
                         </button>
                       ))}
                     </div>
@@ -1471,12 +1485,12 @@ export default function CitizenMyReports() {
             <div onClick={() => sortOpen && setSortOpen(false)}>
               <div className="citizen-content-shell citizen-reports-summary-row pt-[10px] pb-2 flex items-center justify-between">
                 <span className="citizen-reports-summary-text text-xs text-slate-400 font-medium">
-                  Showing <strong className="text-slate-900">{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
-                  {query && ` for "${query}"`}
+                  {t('citizen.myReports.showing')} <strong className="text-slate-900">{filtered.length}</strong> {filtered.length !== 1 ? t('citizen.myReports.reports') : t('citizen.myReports.report')}
+                  {query && ` ${t('citizen.myReports.showingFor', { query })}`}
                 </span>
                 {filtered.length > 0 && (
                   <span className="citizen-reports-summary-hint text-[11px] text-slate-400">
-                    Open a card to view details
+                    {t('citizen.myReports.openCardHint')}
                   </span>
                 )}
               </div>
@@ -1499,7 +1513,7 @@ export default function CitizenMyReports() {
                 <div className="citizen-content-shell citizen-reports-footnote-wrap pt-0 pb-8 flex items-start gap-2">
                   <Info size={13} color="#94A3B8" className="shrink-0 mt-[1px]" />
                   <p className="citizen-reports-footnote text-[11px] text-slate-400 leading-[1.6] m-0">
-                    Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
+                    {t('citizen.myReports.footnote')}
                   </p>
                 </div>
               )}

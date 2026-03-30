@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { useTranslation } from '../i18n';
 import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
@@ -120,6 +121,7 @@ const typeIcon: Record<IncidentType, React.ReactNode> = {
 /* ── sub-components ──────────────────────────────────────────────────── */
 function AlertBanner({ incidents }: { incidents: Incident[] }) {
   const [dismissed, setDismissed] = useState(false);
+  const { t } = useTranslation();
   const criticalCount = incidents.filter(
     (item) => (item.status === 'active' || item.status === 'responding') && item.severity === 'critical',
   ).length;
@@ -130,10 +132,9 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
         <AlertTriangle size={15} />
       </span>
       <span className="flex-1">
-        <span className="font-bold">
-          {criticalCount} Critical Report{criticalCount > 1 ? 's' : ''}
-        </span>{' '}
-        in your submissions still needs attention.
+        {criticalCount > 1
+          ? t('citizen.dashboard.alertBannerPlural', { count: criticalCount })
+          : t('citizen.dashboard.alertBannerSingle', { count: criticalCount })}
       </span>
       <button
         onClick={() => setDismissed(true)}
@@ -188,6 +189,7 @@ function QuickActionCard({
   onClick: () => void;
   featured?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       onClick={onClick}
@@ -226,7 +228,7 @@ function QuickActionCard({
         className="mt-auto flex items-center gap-[3px] text-[11px] font-semibold"
         style={{ color: featured ? 'rgba(255,255,255,0.8)' : accent }}
       >
-        Tap to open <ArrowRight size={11} />
+        {t('citizen.dashboard.tapToOpen')} <ArrowRight size={11} />
       </div>
     </button>
   );
@@ -301,6 +303,7 @@ type CitizenNotificationItem = {
 export default function CitizenDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen';
   const firstName = fullName.split(' ')[0] || 'Citizen';
@@ -317,7 +320,7 @@ export default function CitizenDashboard() {
     year: 'numeric',
   });
   const nowHour = new Date().getHours();
-  const greetingLabel = nowHour < 12 ? 'Good morning' : nowHour < 18 ? 'Good afternoon' : 'Good evening';
+  const greetingLabel = nowHour < 12 ? t('citizen.dashboard.greetingMorning') : nowHour < 18 ? t('citizen.dashboard.greetingAfternoon') : t('citizen.dashboard.greetingEvening');
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [myReports, setMyReports] = useState<CitizenMyReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
@@ -345,7 +348,7 @@ export default function CitizenDashboard() {
         icon: <AlertTriangle size={14} />,
         color: 'var(--severity-critical)',
         bg: '#FEE2E2',
-        title: 'Critical Report Alert',
+        title: t('citizen.dashboard.criticalReportAlert'),
         desc: `${incidentTypeConfig[item.type].label} in ${item.barangay}`,
         time: timeAgo(item.reportedAt),
         unread: true,
@@ -366,7 +369,7 @@ export default function CitizenDashboard() {
         bg: verificationSummary.bg,
         title: verificationSummary.title,
         desc: verificationSummary.statusLabel,
-        time: 'Account',
+        time: t('citizen.dashboard.accountTime'),
         unread: hasPendingVerificationNotification,
         action: 'open-verification' as const,
       }]
@@ -381,8 +384,8 @@ export default function CitizenDashboard() {
       icon: <Info size={14} />,
       color: 'var(--primary)',
       bg: '#DBEAFE',
-      title: 'No new alerts',
-      desc: 'You are all caught up for now.',
+      title: t('citizen.dashboard.noNewAlerts'),
+      desc: t('citizen.dashboard.allCaughtUp'),
       time: 'Live',
       unread: false,
       action: 'open-home',
@@ -619,7 +622,7 @@ export default function CitizenDashboard() {
                       }}
                       className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
                     >
-                      Open profile page
+                      {t('citizen.dashboard.openProfilePage')}
                     </button>
                     <button
                       type="button"
@@ -630,7 +633,7 @@ export default function CitizenDashboard() {
                       }}
                       className="w-full text-left px-3 py-[11px] bg-white border-0 text-red-700 text-[13px] font-bold cursor-pointer"
                     >
-                      Sign out
+                      {t('common.signOut')}
                     </button>
                   </div>
                 )}
@@ -723,6 +726,7 @@ function HomeTab({
   isLoading: boolean;
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
@@ -747,9 +751,9 @@ function HomeTab({
       {/* Welcome banner */}
       <section className="bg-primary rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
         <div className="text-[13px] text-blue-200">{greetingLabel}, {firstName}.</div>
-        <div className="font-extrabold text-[28px] leading-[1.15] mt-1">Citizen Dashboard</div>
+        <div className="font-extrabold text-[28px] leading-[1.15] mt-1">{t('citizen.dashboard.citizenDashboard')}</div>
         <div className="text-[13px] text-indigo-200 mt-0.5">
-          Track your submitted reports and stay updated on response progress.
+          {t('citizen.dashboard.trackReports')}
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
           <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
@@ -770,19 +774,19 @@ function HomeTab({
           <StatCard
             icon={<AlertTriangle size={16} />}
             value={activeIncidents.length}
-            label="Active Reports"
+            label={t('citizen.dashboard.activeReports')}
             accent="var(--severity-critical)"
           />
           <StatCard
             icon={<Clock size={16} />}
             value={criticalCount}
-            label="Critical"
+            label={t('severity.critical')}
             accent="var(--severity-medium)"
           />
           <StatCard
             icon={<CheckCircle2 size={16} />}
             value={myReports.length}
-            label="Total My Reports"
+            label={t('citizen.dashboard.totalMyReports')}
             accent="var(--primary)"
           />
         </div>
@@ -811,7 +815,7 @@ function HomeTab({
               onClick={() => navigate('/citizen/verification')}
               className="border-0 rounded-[10px] bg-primary text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
             >
-              Open Verification
+              {t('citizen.dashboard.openVerification')}
             </button>
           </div>
         </section>
@@ -821,28 +825,28 @@ function HomeTab({
       <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div className="font-bold text-slate-950 text-base">My Report Map</div>
-            <div className="text-xs text-slate-500">Pins and activity based on your submitted reports only.</div>
+            <div className="font-bold text-slate-950 text-base">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-xs text-slate-500">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
             className="bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
           >
-            Open Full Map <ArrowRight size={12} />
+            {t('citizen.dashboard.openFullMap')} <ArrowRight size={12} />
           </button>
         </div>
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
             <div className="bg-slate-50 border border-slate-200 rounded-[10px] px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-slate-600">Map Summary</div>
+              <div className="text-[11px] font-semibold text-slate-600">{t('citizen.dashboard.mapSummary')}</div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <div className="text-[10px] text-slate-500">Total Pins</div>
+                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.totalPins')}</div>
                   <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500">Needs Attention</div>
+                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.needsAttention')}</div>
                   <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
                 </div>
               </div>
@@ -850,7 +854,7 @@ function HomeTab({
 
             {selectedIncident ? (
               <div className="bg-blue-50 border border-blue-200 rounded-[10px] px-3 py-2.5">
-                <div className="text-[11px] text-primary font-bold mb-1.5">Selected Pin</div>
+                <div className="text-[11px] text-primary font-bold mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0"
@@ -872,7 +876,7 @@ function HomeTab({
               </div>
             ) : (
               <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[10px] px-3 py-2.5 text-[11px] text-slate-500">
-                Tap any map pin to see details.
+                {t('citizen.dashboard.tapPinHint')}
               </div>
             )}
           </aside>
@@ -895,37 +899,37 @@ function HomeTab({
 
       {/* Quick Actions */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">Quick Actions</div>
+        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
         <div
           className="grid gap-2.5"
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
         >
           <QuickActionCard
             icon={<Plus size={22} />}
-            label="Submit Incident Report"
-            sublabel="Create a new report with map pin and evidence"
+            label={t('citizen.dashboard.submitIncidentReport')}
+            sublabel={t('citizen.dashboard.submitIncidentSublabel')}
             accent="var(--severity-critical)"
             featured
             onClick={() => navigate('/citizen/report')}
           />
           <QuickActionCard
             icon={<FileText size={22} />}
-            label="My Reports"
-            sublabel="View and track your report statuses"
+            label={t('citizen.myReports.title')}
+            sublabel={t('citizen.dashboard.myReportsSublabel')}
             accent="var(--primary)"
             onClick={() => navigate('/citizen/my-reports')}
           />
           <QuickActionCard
             icon={<MapPin size={22} />}
-            label="My Report Map"
-            sublabel="Inspect your pinned report locations"
+            label={t('citizen.dashboard.myReportMap')}
+            sublabel={t('citizen.dashboard.myReportMapSublabel')}
             accent="#059669"
             onClick={() => setActiveTab('map')}
           />
           <QuickActionCard
             icon={<User size={22} />}
-            label="Profile Settings"
-            sublabel="Update your account information"
+            label={t('citizen.dashboard.profileSettings')}
+            sublabel={t('citizen.dashboard.profileSettingsSublabel')}
             accent="var(--severity-medium)"
             onClick={() => setActiveTab('profile')}
           />
@@ -935,12 +939,12 @@ function HomeTab({
       {/* Recent activity */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <div className="font-bold text-base text-slate-900">Recent Report Activity</div>
+          <div className="font-bold text-base text-slate-900">{t('citizen.dashboard.recentReportActivity')}</div>
           <button
             className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
           >
-            View all <ChevronRight size={13} />
+            {t('common.viewAll')} <ChevronRight size={13} />
           </button>
         </div>
         <div className="border border-slate-100 rounded-xl px-3 py-1">
@@ -949,7 +953,7 @@ function HomeTab({
           ))}
           {myReports.length === 0 && (
             <div className="text-center py-5 text-slate-400 text-[13px]">
-              No submitted reports yet.
+              {t('citizen.dashboard.noSubmittedReports')}
             </div>
           )}
         </div>
@@ -957,12 +961,12 @@ function HomeTab({
 
       {/* Emergency contacts */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">Emergency Contacts</div>
+        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
         <div className="flex flex-col gap-2">
           {[
-            { label: 'Emergency Hotline', number: '911', color: 'var(--severity-critical)', bg: '#FEE2E2' },
-            { label: 'MDRRMO Office', number: '(02) 123-4567', color: 'var(--primary)', bg: '#DBEAFE' },
-            { label: 'Barangay Hotline', number: '(02) 765-4321', color: '#059669', bg: '#D1FAE5' },
+            { label: t('citizen.dashboard.emergencyHotline'), number: '911', color: 'var(--severity-critical)', bg: '#FEE2E2' },
+            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', color: 'var(--primary)', bg: '#DBEAFE' },
+            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', color: '#059669', bg: '#D1FAE5' },
           ].map((contact) => (
             <a
               key={contact.label}
@@ -1256,6 +1260,7 @@ function MapTab({
   setSelectedIncident: (i: Incident | null) => void;
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
   const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
@@ -1315,7 +1320,7 @@ function MapTab({
     <div className="flex flex-col" style={{ minHeight: mapShellMinHeight }}>
       {/* Filters */}
       <div className="citizen-map-filter-bar px-4 py-3 bg-white border-b border-slate-100 flex gap-2 items-center flex-wrap">
-        <div className="font-bold text-sm text-slate-900 flex-1">My Report Map</div>
+        <div className="font-bold text-sm text-slate-900 flex-1">{t('citizen.dashboard.myReportMap')}</div>
         <button
           type="button"
           onClick={onBack}
@@ -1323,7 +1328,7 @@ function MapTab({
           style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
         >
           <ArrowLeft size={12} />
-          Back to Dashboard
+          {t('citizen.dashboard.backToDashboard')}
         </button>
         {(['all', 'active', 'responding'] as const).map((f) => (
           <button
@@ -1347,7 +1352,7 @@ function MapTab({
             onClick={() => setSelectedIncident(null)}
             style={{ padding: isMobileViewport ? '8px 12px' : '6px 10px' }}
           >
-            Clear Selection
+            {t('citizen.dashboard.clearSelection')}
           </button>
         ) : null}
       </div>
@@ -1367,14 +1372,14 @@ function MapTab({
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-gradient-to-b from-white/[0.16] to-white/[0.42]">
             <div className="citizen-map-empty-card pointer-events-auto bg-white/[0.96] border border-slate-200 rounded-xl px-3 py-2.5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
               <div className="text-xs font-bold text-slate-900 mb-1">
-                No map pins for this filter
+                {t('citizen.dashboard.noMapPins')}
               </div>
               <button
                 type="button"
                 onClick={() => setFilter('all')}
                 className="border border-blue-200 bg-blue-50 text-primary rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
               >
-                Show all pins
+                {t('citizen.dashboard.showAllPins')}
               </button>
             </div>
           </div>
@@ -1450,6 +1455,7 @@ function ProfileTab({
   verificationPreview: CitizenVerificationPreview;
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
   const phoneNumber = session?.user.phoneNumber || 'Not available';
@@ -1519,16 +1525,16 @@ function ProfileTab({
       {/* Stats */}
       <div className="flex gap-2.5 mb-5">
         {[
-          { label: 'Reports Filed', value: myReports.length, icon: <FileText size={16} />, accent: 'var(--primary)' },
-          { label: 'Resolved', value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
-          { label: 'Pending', value: pendingCount, icon: <Clock size={16} />, accent: 'var(--severity-medium)' },
+          { label: t('citizen.dashboard.reportsFiled'), value: myReports.length, icon: <FileText size={16} />, accent: 'var(--primary)' },
+          { label: t('status.resolved'), value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
+          { label: t('citizen.dashboard.pending'), value: pendingCount, icon: <Clock size={16} />, accent: 'var(--severity-medium)' },
         ].map((s) => (
           <StatCard key={s.label} icon={s.icon} value={s.value} label={s.label} accent={s.accent} />
         ))}
       </div>
 
       {/* Verification preview */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">Verification Preview</div>
+      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
       <div
         className="rounded-[14px] px-3.5 py-3 mb-4"
         style={{
@@ -1547,20 +1553,20 @@ function ProfileTab({
             rel="noreferrer"
             className="inline-flex mt-2 no-underline text-primary text-xs font-bold"
           >
-            View latest uploaded ID
+            {t('citizen.dashboard.viewLatestId')}
           </a>
         ) : null}
       </div>
 
       {/* Account info */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">Account Information</div>
+      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
       <div className="bg-white rounded-[14px] overflow-hidden border border-slate-100 mb-4">
         {[
-          { icon: <User size={16} />, label: 'Personal Information', sub: fullName, action: 'personal' as const },
-          { icon: <Bell size={16} />, label: 'Notifications', sub: 'Alerts, updates, advisories', action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: 'Verification Status', sub: verificationSummary.statusLabel, action: 'verification' as const },
-          { icon: <MapPin size={16} />, label: 'Home Barangay', sub: barangayLabel, action: 'barangay' as const },
-          { icon: <Phone size={16} />, label: 'Contact Number', sub: phoneNumber, action: 'contact' as const },
+          { icon: <User size={16} />, label: t('settings.personalInfo'), sub: fullName, action: 'personal' as const },
+          { icon: <Bell size={16} />, label: t('common.notifications'), sub: t('citizen.dashboard.alertsSubLabel'), action: 'notifications' as const },
+          { icon: <Shield size={16} />, label: t('citizen.dashboard.verificationStatus'), sub: verificationSummary.statusLabel, action: 'verification' as const },
+          { icon: <MapPin size={16} />, label: t('citizen.dashboard.homeBarangay'), sub: barangayLabel, action: 'barangay' as const },
+          { icon: <Phone size={16} />, label: t('citizen.dashboard.contactNumber'), sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
           <div
             key={item.label}
@@ -1587,7 +1593,7 @@ function ProfileTab({
           onClick={() => navigate('/auth/register')}
           className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
-          Verify Phone Number
+          {t('citizen.dashboard.verifyPhoneNumber')}
         </button>
       ) : null}
 
@@ -1596,7 +1602,7 @@ function ProfileTab({
           onClick={() => navigate('/citizen/verification')}
           className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
-          Open Verification Status
+          {t('citizen.dashboard.openVerificationStatus')}
         </button>
       ) : null}
 
@@ -1608,7 +1614,7 @@ function ProfileTab({
         }}
         className="w-full py-3.5 rounded-xl border-[1.5px] border-red-100 bg-red-50 text-red-700 font-bold text-sm cursor-pointer"
       >
-        Sign Out
+        {t('common.signOut')}
       </button>
     </div>
   );

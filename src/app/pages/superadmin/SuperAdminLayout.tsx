@@ -16,22 +16,15 @@ import { superAdminApi, type ApiAdminNotification } from '../../services/superAd
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
 import { BottomNav, type BottomNavItem } from '../../components/BottomNav';
+import { useTranslation } from '../../i18n';
 
-const NAV_ITEMS = [
-  { path: '/superadmin', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { path: '/superadmin/map', label: 'Barangay Map', icon: Map },
-  { path: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
-  { path: '/superadmin/users', label: 'Users', icon: Users },
-  { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
-  { path: '/superadmin/settings', label: 'Settings', icon: Settings },
-];
-
-const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { key: 'overview',  icon: <LayoutDashboard size={20} />, label: 'Overview',   path: '/superadmin',           exact: true },
-  { key: 'map',       icon: <Map size={20} />,             label: 'Map',        path: '/superadmin/map' },
-  { key: 'analytics', icon: <BarChart2 size={20} />,       label: 'Analytics',  path: '/superadmin/analytics' },
-  { key: 'users',     icon: <Users size={20} />,           label: 'Users',      path: '/superadmin/users' },
-  { key: 'settings',  icon: <Settings size={20} />,        label: 'Settings',   path: '/superadmin/settings' },
+const NAV_ITEM_DEFS = [
+  { path: '/superadmin', labelKey: 'nav.overview' as const, icon: LayoutDashboard, exact: true },
+  { path: '/superadmin/map', labelKey: 'nav.barangayMap' as const, icon: Map },
+  { path: '/superadmin/analytics', labelKey: 'nav.analytics' as const, icon: BarChart2 },
+  { path: '/superadmin/users', labelKey: 'nav.users' as const, icon: Users },
+  { path: '/superadmin/audit-logs', labelKey: 'nav.auditLogs' as const, icon: Activity },
+  { path: '/superadmin/settings', labelKey: 'nav.settings' as const, icon: Settings },
 ];
 
 function LiveClock() {
@@ -61,6 +54,7 @@ function getMonitoringColor(incidents: number): string {
 }
 
 export default function SuperAdminLayout() {
+  const { t } = useTranslation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -74,6 +68,14 @@ export default function SuperAdminLayout() {
   ]);
   const navigate = useNavigate();
   const location = useLocation();
+  const NAV_ITEMS = NAV_ITEM_DEFS.map((item) => ({ ...item, label: t(item.labelKey) }));
+  const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
+    { key: 'overview',  icon: <LayoutDashboard size={20} />, label: t('nav.overview'),   path: '/superadmin',           exact: true },
+    { key: 'map',       icon: <Map size={20} />,             label: t('nav.barangayMap'), path: '/superadmin/map' },
+    { key: 'analytics', icon: <BarChart2 size={20} />,       label: t('nav.analytics'),   path: '/superadmin/analytics' },
+    { key: 'users',     icon: <Users size={20} />,           label: t('nav.users'),       path: '/superadmin/users' },
+    { key: 'settings',  icon: <Settings size={20} />,        label: t('nav.settings'),    path: '/superadmin/settings' },
+  ];
   const session = getAuthSession();
   const userFullName = session?.user.fullName?.trim() || 'Super Admin';
   const userInitials = userFullName
@@ -214,7 +216,7 @@ export default function SuperAdminLayout() {
       <aside className="hidden lg:flex w-[248px] flex-col shrink-0 z-10 border-r border-white/10 bg-primary">
         {/* Logo */}
         <div className="px-[18px] pt-[18px] pb-3.5 border-b border-white/10">
-          <NavLink to="/superadmin" aria-label="Go to TUGON super admin overview" className="inline-flex">
+          <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="inline-flex">
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
@@ -225,7 +227,7 @@ export default function SuperAdminLayout() {
 
         {/* Barangay quick status */}
         <div className="px-3.5 py-2.5 border-b border-white/[0.08]">
-          <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">Monitoring</div>
+          <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">{t('nav.monitoring')}</div>
           {monitoringItems.map((b) => (
             <div key={b.code} className="flex items-center gap-2 px-1.5 py-1 rounded-[5px] mb-0.5 bg-white/5">
               <span
@@ -246,7 +248,7 @@ export default function SuperAdminLayout() {
         {/* Nav */}
         <nav className="flex-1 p-3 overflow-y-auto">
           <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-            Navigation
+            {t('nav.navigation')}
           </div>
           {NAV_ITEMS.map((item) => {
             const active = item.exact
@@ -280,13 +282,13 @@ export default function SuperAdminLayout() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
-              <div className="text-blue-300 text-[10px]">Super Admin</div>
+              <div className="text-blue-300 text-[10px]">{t('role.superAdmin')}</div>
             </div>
             <button
               type="button"
               onClick={handleSignOut}
-              aria-label="Sign out"
-              title="Sign out"
+              aria-label={t('common.signOut')}
+              title={t('common.signOut')}
               className="border-none bg-transparent p-0 cursor-pointer inline-flex items-center justify-center shrink-0"
             >
               <LogOut size={15} className="text-blue-300" />
@@ -308,7 +310,7 @@ export default function SuperAdminLayout() {
           <nav
             id="superadmin-mobile-drawer"
             role="navigation"
-            aria-label="Super admin navigation"
+            aria-label={t('superadmin.layout.ariaNavigation')}
             className="absolute inset-y-0 left-0 w-[270px] bg-primary flex flex-col shadow-2xl"
           >
             {/* Drawer header */}
@@ -321,7 +323,7 @@ export default function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(false)}
-                aria-label="Close navigation drawer"
+                aria-label={t('superadmin.layout.ariaCloseNav')}
                 className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-white border-none cursor-pointer"
               >
                 <X size={16} />
@@ -330,7 +332,7 @@ export default function SuperAdminLayout() {
 
             {/* Barangay monitoring */}
             <div className="px-3.5 py-2.5 border-b border-white/[0.08]">
-              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">Monitoring</div>
+              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase mb-1.5">{t('nav.monitoring')}</div>
               {monitoringItems.map((b) => (
                 <div key={b.code} className="flex items-center gap-2 px-1.5 py-1 rounded-[5px] mb-0.5 bg-white/5">
                   <span
@@ -342,7 +344,7 @@ export default function SuperAdminLayout() {
                     className="text-[9px] font-bold px-[5px] py-px rounded-[3px]"
                     style={{ background: `${b.color}22`, color: b.color }}
                   >
-                    {b.incidents} active
+                    {t('superadmin.barangayMap.activeReports', { count: b.incidents })}
                   </span>
                 </div>
               ))}
@@ -386,12 +388,12 @@ export default function SuperAdminLayout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
-                  <div className="text-blue-300 text-[10px]">Super Admin</div>
+                  <div className="text-blue-300 text-[10px]">{t('role.superAdmin')}</div>
                 </div>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  aria-label="Sign out"
+                  aria-label={t('common.signOut')}
                   className="border-none bg-transparent p-0 cursor-pointer inline-flex"
                 >
                   <LogOut size={15} className="text-blue-300" />
@@ -413,7 +415,7 @@ export default function SuperAdminLayout() {
               type="button"
               aria-controls="superadmin-mobile-drawer"
               aria-expanded={mobileDrawerOpen}
-              aria-label="Open navigation menu"
+              aria-label={t('superadmin.layout.ariaOpenNav')}
               onClick={() => {
                 setMobileDrawerOpen((prev) => !prev);
                 setProfileMenuOpen(false);
@@ -423,7 +425,7 @@ export default function SuperAdminLayout() {
             >
               <Menu size={18} />
             </button>
-            <NavLink to="/superadmin" aria-label="Go to TUGON super admin overview" className="inline-flex">
+            <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="inline-flex">
               <img
                 src="/tugon-header-logo.svg"
                 alt="TUGON Tondo Emergency Response"
@@ -436,13 +438,13 @@ export default function SuperAdminLayout() {
           <div className="hidden lg:block flex-1">
             <div className="flex items-center gap-1.5">
               <span className="bg-white/15 border border-white/20 rounded px-[7px] py-px text-blue-200 text-[9px] font-bold tracking-widest uppercase">
-                SUPER ADMIN
+                {t('role.superAdmin').toUpperCase()}
               </span>
               <ChevronRight size={12} className="text-blue-300" />
               <span className="text-white text-[13px] font-semibold">{currentPage?.label}</span>
             </div>
             <div className="text-blue-300 text-[10px]">
-              Tondo Tri-Barangay Super Admin Console
+              {t('superadmin.layout.consoleSubtitle')}
             </div>
           </div>
 
@@ -468,7 +470,7 @@ export default function SuperAdminLayout() {
               loading={notificationsLoading}
               unreadCount={unreadCount}
               items={notificationItems}
-              panelLabel="Super admin notifications"
+              panelLabel={t('superadmin.layout.ariaNotifications')}
               panelTop={44}
               panelRight={0}
               panelZIndex={2300}
@@ -491,7 +493,7 @@ export default function SuperAdminLayout() {
                   setProfileMenuOpen((prev) => !prev);
                   setNotificationsOpen(false);
                 }}
-                aria-label="Open profile actions"
+                aria-label={t('superadmin.layout.ariaProfileActions')}
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
                 className="size-9 rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center font-bold text-white text-xs cursor-pointer shrink-0 border-none"
@@ -502,7 +504,7 @@ export default function SuperAdminLayout() {
               {profileMenuOpen && (
                 <div
                   role="menu"
-                  aria-label="Profile actions"
+                  aria-label={t('superadmin.layout.ariaProfileActions')}
                   className="absolute top-11 right-0 w-[200px] bg-white rounded-xl shadow-elevated border border-slate-200 overflow-hidden z-[2300] divide-y divide-slate-100"
                 >
                   <button
@@ -511,7 +513,7 @@ export default function SuperAdminLayout() {
                     onClick={() => { setProfileMenuOpen(false); navigate('/superadmin/settings'); }}
                     className="w-full text-left px-3 py-[11px] bg-white border-none text-slate-800 text-[13px] font-semibold cursor-pointer hover:bg-slate-50"
                   >
-                    Open settings
+                    {t('superadmin.layout.openSettings')}
                   </button>
                   <button
                     type="button"
@@ -519,7 +521,7 @@ export default function SuperAdminLayout() {
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
                     className="w-full text-left px-3 py-[11px] bg-white border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
                   >
-                    Sign out
+                    {t('common.signOut')}
                   </button>
                 </div>
               )}

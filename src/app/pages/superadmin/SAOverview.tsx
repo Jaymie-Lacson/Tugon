@@ -4,6 +4,7 @@ import {
   Clock, ArrowRight, MapPin,
   RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import { useNavigate } from 'react-router';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -113,6 +114,7 @@ function formatDurationFromMinutes(totalMinutes: number) {
 }
 
 export default function SAOverview() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
@@ -320,13 +322,13 @@ export default function SAOverview() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-primary text-[10px] font-bold tracking-[0.08em] uppercase">
-              Super Admin
+              {t('role.superAdmin')}
             </div>
-            <div className="text-[#6B7280] text-xs">Multi-Barangay Overview</div>
+            <div className="text-[#6B7280] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
           </div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">System Overview Dashboard</h1>
+          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
           <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
-            Monitoring Barangays 251, 252 & 256 — Real-time Status
+            {t('superadmin.overview.monitoringSubtitle')}
           </p>
         </div>
         <div className="sa-overview-header-actions flex items-center gap-[10px]">
@@ -340,13 +342,13 @@ export default function SAOverview() {
             className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold"
           >
             <RefreshCw size={13} color="#6B7280" />
-            {summaryLoading ? 'Refreshing...' : 'Refresh'}
+            {summaryLoading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
             className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold"
           >
-            View Analytics
+            {t('superadmin.overview.viewAnalytics')}
             <ArrowRight size={13} />
           </button>
         </div>
@@ -361,45 +363,45 @@ export default function SAOverview() {
       {/* KPI row */}
       <div className="sa-overview-kpi-row flex gap-[14px] mb-5 flex-wrap">
         <KPICard
-          label="Active Incidents (All Barangays)"
+          label={t('superadmin.overview.kpiActiveIncidents')}
           value={total}
-          sub="Across Brgy 251, 252, 256"
+          sub={t('superadmin.overview.kpiAcrossBarangays')}
           icon={<AlertTriangle />}
           color="var(--severity-critical)"
           trend={activeTrendPercent}
-          trendLabel={`${openedToday} new reports today`}
+          trendLabel={t('superadmin.overview.kpiNewReportsToday', { count: openedToday })}
         />
         <KPICard
-          label="Resolved Today"
+          label={t('superadmin.overview.kpiResolvedToday')}
           value={resolvedToday}
-          sub="Incidents closed today"
+          sub={t('superadmin.overview.kpiIncidentsClosedToday')}
           icon={<CheckCircle2 />}
           color="#059669"
-          trendLabel="Based on ticket status updates"
+          trendLabel={t('superadmin.overview.kpiBasedOnTickets')}
         />
         <KPICard
-          label="Avg. Response Time"
+          label={t('superadmin.overview.kpiAvgResponseTime')}
           value={avgResponseLabel}
-          sub="Target: ≤ 10 min"
+          sub={t('superadmin.overview.kpiResponseTarget')}
           icon={<Clock />}
           color="var(--severity-medium)"
-          trendLabel="Computed from responded incidents"
+          trendLabel={t('superadmin.overview.kpiComputedFromIncidents')}
         />
         <KPICard
-          label="Registered Users"
+          label={t('superadmin.overview.kpiRegisteredUsers')}
           value={analyticsSummary?.summary.totalUsers ?? 0}
-          sub={`${analyticsSummary?.summary.verifiedUsers ?? 0} verified accounts`}
+          sub={t('superadmin.overview.kpiVerifiedAccounts', { count: analyticsSummary?.summary.verifiedUsers ?? 0 })}
           icon={<Users />}
           color="#1D4ED8"
-          trendLabel="across 3 barangays"
+          trendLabel={t('superadmin.overview.kpiAcrossThreeBarangays')}
         />
         <KPICard
-          label="System Uptime"
+          label={t('superadmin.overview.kpiSystemUptime')}
           value="99.87%"
-          sub="All services running"
+          sub={t('superadmin.overview.kpiAllServicesRunning')}
           icon={<Activity />}
           color="#0F766E"
-          trendLabel="Monitored by deployment platform"
+          trendLabel={t('superadmin.overview.kpiMonitoredByPlatform')}
         />
       </div>
 
@@ -433,10 +435,10 @@ export default function SAOverview() {
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   {[
-                    { label: 'Active',     value: b.activeIncidents,   color: 'var(--severity-critical)' },
-                    { label: 'This Month', value: b.totalThisMonth,    color: '#1D4ED8' },
-                    { label: 'Resolved',   value: b.resolvedThisMonth, color: '#059669' },
-                    { label: 'Resp. Rate', value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
+                    { label: t('superadmin.overview.statActive'),     value: b.activeIncidents,   color: 'var(--severity-critical)' },
+                    { label: t('superadmin.overview.statThisMonth'), value: b.totalThisMonth,    color: '#1D4ED8' },
+                    { label: t('superadmin.overview.statResolved'),   value: b.resolvedThisMonth, color: '#059669' },
+                    { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
                     <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
                       <div className="text-[17px] font-bold leading-none" style={{ color: s.color }}>{s.value}</div>
@@ -448,7 +450,7 @@ export default function SAOverview() {
                 {/* Response time bar */}
                 <div className="mb-3">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[#6B7280] text-[11px]">Avg Response Time</span>
+                    <span className="text-[#6B7280] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
                     <span
                       className="text-[11px] font-semibold"
                       style={{ color: b.responseRate < 90 ? 'var(--severity-medium)' : '#059669' }}
@@ -463,17 +465,17 @@ export default function SAOverview() {
                       }}
                     />
                   </div>
-                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">Resolution rate</div>
+                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-center justify-between">
                   <div className="flex gap-3">
                     <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.responders}</span> responders
+                      <span className="text-[#374151] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
                     </div>
                     <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> users
+                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
                     </div>
                   </div>
                   <button
@@ -481,7 +483,7 @@ export default function SAOverview() {
                     className="flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold"
                     style={{ background: `${b.color}14`, color: b.color, border: `1px solid ${b.color}30` }}
                   >
-                    View Map <ArrowRight size={11} />
+                    {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
                   </button>
                 </div>
               </div>
@@ -502,8 +504,8 @@ export default function SAOverview() {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">Incident Types — All Barangays</div>
-              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">Current reporting window</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
+              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -534,8 +536,8 @@ export default function SAOverview() {
         >
           <div className="flex items-center justify-between mb-[14px]">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">System Activity Log</div>
-              <div className="text-[#9CA3AF] text-[11px]">Live feed — all barangays</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
+              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
             <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
           </div>
@@ -574,20 +576,20 @@ export default function SAOverview() {
           <div className="flex items-center gap-[10px]">
             <MapPin size={15} color={PRIMARY} />
             <div>
-              <div className="text-[#0F172A] text-sm font-bold">Live System Map</div>
-              <div className="text-[#9CA3AF] text-[11px]">Open incidents · OpenStreetMap · Municipality of Tugon</div>
+              <div className="text-[#0F172A] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
+              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[5px] px-2 py-[3px] flex items-center gap-1">
               <span className="w-[6px] h-[6px] rounded-full bg-[#22C55E] inline-block" />
-              <span className="text-[#059669] text-[9px] font-bold">LIVE · OSM</span>
+              <span className="text-[#059669] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
               className="flex items-center gap-[5px] bg-primary text-white border-0 rounded-[7px] px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
-              Full Map <ArrowRight size={11} />
+              {t('superadmin.overview.fullMap')} <ArrowRight size={11} />
             </button>
           </div>
         </div>
@@ -602,9 +604,9 @@ export default function SAOverview() {
       {/* Bottom quick nav */}
       <div className="flex gap-3 flex-wrap">
         {[
-          { label: 'Barangay Map & Boundaries', desc: 'View Brgy 251, 252, 256 boundary map with live incidents', path: '/superadmin/map', color: '#1D4ED8', icon: <MapPin size={18} /> },
-          { label: 'System Analytics',          desc: 'Heatmaps, trend charts & response time analytics',         path: '/superadmin/analytics', color: PRIMARY, icon: <Activity size={18} /> },
-          { label: 'User Management',           desc: 'Manage accounts, roles & permissions across all barangays', path: '/superadmin/users', color: '#0F766E', icon: <Users size={18} /> },
+          { label: t('superadmin.overview.quickNavMap'),          desc: t('superadmin.overview.quickNavMapDesc'),          path: '/superadmin/map',       color: '#1D4ED8',             icon: <MapPin size={18} /> },
+          { label: t('superadmin.analytics.title'),              desc: t('superadmin.overview.quickNavAnalyticsDesc'),    path: '/superadmin/analytics', color: PRIMARY,               icon: <Activity size={18} /> },
+          { label: t('superadmin.users.title'),                  desc: t('superadmin.overview.quickNavUsersDesc'),        path: '/superadmin/users',     color: '#0F766E',             icon: <Users size={18} /> },
         ].map(item => (
           <button
             key={item.path}

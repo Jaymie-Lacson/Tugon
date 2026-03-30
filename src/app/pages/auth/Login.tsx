@@ -5,9 +5,11 @@ import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayo
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { validateLoginForm } from '../../utils/authValidation';
+import { useTranslation } from '../../i18n';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -64,8 +66,8 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome Back"
-      subtitle="Sign in to your TUGON account to access the incident management dashboard."
+      title={t('auth.login.title')}
+      subtitle={t('auth.login.subtitle')}
       topAction={
         <button
           type="button"
@@ -74,7 +76,7 @@ export default function Login() {
         >
           <ArrowLeft size={14} />
           <House size={14} />
-          Back to Homepage
+          {t('auth.backToHome')}
         </button>
       }
     >
@@ -87,23 +89,23 @@ export default function Login() {
 
       <form onSubmit={e => { e.preventDefault(); handleLogin(); }}>
         <InputField
-          label="Phone Number"
+          label={t('auth.login.phone')}
           type="tel"
-          placeholder="0917-xxx-xxxx"
+          placeholder={t('auth.login.phonePlaceholder')}
           value={phone}
           onChange={v => setPhone(formatPhone(v))}
           icon={<Phone size={17} />}
           error={errors.phone}
-          hint="Use your registered Philippine mobile number."
+          hint={t('auth.login.phoneHint')}
           inputMode="tel"
           autoComplete="tel"
           autoFocus
         />
 
         <InputField
-          label="Password"
+          label={t('auth.login.password')}
           type={showPassword ? 'text' : 'password'}
-          placeholder="Enter your password"
+          placeholder={t('auth.login.passwordPlaceholder')}
           value={password}
           onChange={setPassword}
           icon={<Lock size={17} />}
@@ -126,19 +128,19 @@ export default function Login() {
             onClick={() => navigate('/auth/forgot-password')}
             className="border-none bg-transparent text-xs font-semibold text-primary hover:underline"
           >
-            Forgot Password?
+            {t('auth.login.forgotPassword')}
           </button>
         </div>
 
         <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
-          {!loading && <><ArrowRight size={16} /> Sign In</>}
+          {!loading && <><ArrowRight size={16} /> {t('auth.login.submit')}</>}
         </PrimaryButton>
       </form>
 
       {/* Divider */}
       <div className="my-5 flex items-center gap-3">
         <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs text-slate-400">New to TUGON?</span>
+        <span className="text-xs text-slate-400">{t('auth.login.newToTugon')}</span>
         <div className="h-px flex-1 bg-slate-200" />
       </div>
 
@@ -146,11 +148,11 @@ export default function Login() {
         onClick={() => navigate('/auth/register')}
         className="w-full rounded-[var(--radius-lg)] border-[1.5px] border-primary/20 bg-blue-50/50 py-3 text-sm font-bold text-primary transition-colors hover:bg-blue-50"
       >
-        Register a New Account
+        {t('auth.login.registerNew')}
       </button>
 
       <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-400">
-        By signing in, you agree to TUGON's terms and confirm you are a resident or official of Barangays 251, 252, or 256.
+        {t('auth.login.termsNotice')}
       </p>
     </AuthLayout>
   );

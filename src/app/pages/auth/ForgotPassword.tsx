@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router';
 import { Phone, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
+import { useTranslation } from '../../i18n';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -39,55 +41,55 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter your registered phone number and we'll send you a reset code via SMS."
+      title={t('auth.forgotPassword.title')}
+      subtitle={t('auth.forgotPassword.subtitle')}
     >
       {sent ? (
         <div className="text-center py-2">
           <div className="size-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 size={32} color="#059669" />
           </div>
-          <div className="text-emerald-800 text-[17px] font-extrabold mb-2">Code Sent!</div>
+          <div className="text-emerald-800 text-[17px] font-extrabold mb-2">{t('auth.forgotPassword.codeSentTitle')}</div>
           <p className="text-slate-500 text-[13px] leading-relaxed mb-6">
-            A password reset code has been sent to <strong className="text-slate-800">{phone}</strong>. Check your SMS inbox.
+            {t('auth.forgotPassword.codeSentDesc', { phone })}
           </p>
 
           <button
             onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
             className="w-full py-3.5 bg-primary border-none rounded-[var(--radius-lg)] text-white text-sm font-bold cursor-pointer flex items-center justify-center gap-2 font-[inherit] mb-3"
           >
-            <ArrowRight size={15} /> Enter Reset Code
+            <ArrowRight size={15} /> {t('auth.forgotPassword.enterCode')}
           </button>
 
           <button
             onClick={() => setSent(false)}
             className="w-full py-3 bg-blue-50 border-[1.5px] border-blue-200 rounded-[var(--radius-lg)] text-primary text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5 font-[inherit]"
           >
-            <RefreshCw size={13} /> Use a Different Number
+            <RefreshCw size={13} /> {t('auth.forgotPassword.differentNumber')}
           </button>
         </div>
       ) : (
         <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
           <InputField
-            label="Registered Phone Number"
+            label={t('auth.forgotPassword.phoneLabel')}
             type="tel"
-            placeholder="0917-xxx-xxxx"
+            placeholder={t('auth.forgotPassword.phonePlaceholder')}
             value={phone}
             onChange={v => { setPhone(formatPhone(v)); setError(''); }}
             icon={<Phone size={17} />}
             error={error}
-            hint="Must match the phone number used during registration."
+            hint={t('auth.forgotPassword.phoneHint')}
             inputMode="tel"
             autoComplete="tel"
             autoFocus
           />
 
           <div className="rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 mb-6 text-xs text-amber-800 leading-relaxed">
-            If the number is not registered in TUGON, you will not receive a reset code. Contact your barangay office for assistance.
+            {t('auth.forgotPassword.notRegistered')}
           </div>
 
           <PrimaryButton loading={loading} type="submit" color="#B4730A">
-            {!loading && <><ArrowRight size={16} /> Send Reset Code</>}
+            {!loading && <><ArrowRight size={16} /> {t('auth.forgotPassword.sendResetCode')}</>}
           </PrimaryButton>
         </form>
       )}
@@ -97,7 +99,7 @@ export default function ForgotPassword() {
           onClick={() => navigate('/auth/login')}
           className="bg-transparent border-none text-slate-500 text-sm cursor-pointer inline-flex items-center gap-1.5 font-[inherit]"
         >
-          <ArrowLeft size={14} /> Back to <span className="text-primary font-bold ml-0.5">Sign In</span>
+          <ArrowLeft size={14} /> {t('auth.forgotPassword.backToLogin')} <span className="text-primary font-bold ml-0.5">{t('auth.login.submit')}</span>
         </button>
       </div>
     </AuthLayout>

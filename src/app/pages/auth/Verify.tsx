@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { CheckCircle2, RefreshCw, Phone, ArrowLeft, ShieldCheck, House } from 'lucide-react';
 import { AuthLayout, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
+import { useTranslation } from '../../i18n';
 
 const OTP_LENGTH = 6;
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
@@ -17,6 +18,7 @@ type PendingRegistrationState = {
 export default function Verify() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const locationState = (location.state as PendingRegistrationState | null) ?? null;
   const storedState = useMemo<PendingRegistrationState>(() => {
@@ -46,8 +48,8 @@ export default function Verify() {
 
   useEffect(() => {
     if (resendCountdown <= 0) return;
-    const t = setTimeout(() => setResendCountdown(c => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setResendCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [resendCountdown]);
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function Verify() {
       return;
     }
 
-    if (!allFilled) { setError('Please enter all 6 digits of your OTP.'); return; }
+    if (!allFilled) { setError(t('auth.verify.allDigits')); return; }
     setError('');
     setLoading(true);
     try {
@@ -170,8 +172,8 @@ export default function Verify() {
 
   return (
     <AuthLayout
-      title="Verify Your Number"
-      subtitle={`We sent a 6-digit OTP to ${displayPhone}. Enter it below to continue.`}
+      title={t('auth.verify.title')}
+      subtitle={t('auth.verify.subtitle', { phone: displayPhone })}
       topAction={(
         <button
           type="button"
@@ -180,16 +182,16 @@ export default function Verify() {
         >
           <ArrowLeft size={14} />
           <House size={14} />
-          Back to Homepage
+          {t('auth.backToHome')}
         </button>
       )}
     >
       {/* Step indicator */}
       <div className="mb-7 flex items-center">
         {[
-          { n: 1, label: 'Details', done: true },
-          { n: 2, label: 'Verify', active: true },
-          { n: 3, label: 'Password' },
+          { n: 1, label: t('auth.steps.details'), done: true },
+          { n: 2, label: t('auth.steps.verify'), active: true },
+          { n: 3, label: t('auth.steps.password') },
         ].flatMap((step, idx) => {
           const items = [
             <div key={`step-${step.n}`} className="flex flex-1 flex-col items-center">
@@ -229,14 +231,14 @@ export default function Verify() {
         </div>
         <div>
           <div className="text-[13px] font-bold text-slate-800">{displayPhone}</div>
-          <div className="text-[11px] text-sky-700">OTP sent via SMS</div>
+          <div className="text-[11px] text-sky-700">{t('auth.verify.otpSent')}</div>
         </div>
       </div>
 
       {/* OTP boxes */}
       <div>
         <label className="mb-3 block text-xs font-semibold text-gray-700">
-          6-Digit Verification Code
+          {t('auth.verify.codeLabel')}
         </label>
         <div className="mb-2 flex justify-center gap-2.5" onPaste={handlePaste}>
           {digits.map((digit, idx) => (
@@ -270,7 +272,7 @@ export default function Verify() {
         {/* Hint */}
         {!error && (
           <div className="mb-2 text-center text-[11px] text-slate-400">
-            Enter the OTP sent to your phone number.
+            {t('auth.verify.hint')}
           </div>
         )}
       </div>
@@ -279,7 +281,7 @@ export default function Verify() {
       <div className="mt-5">
         {verified ? (
           <div className="flex items-center justify-center gap-2.5 rounded-[10px] border-[1.5px] border-emerald-300 bg-emerald-100 p-[15px] text-[15px] font-bold text-emerald-600">
-            <ShieldCheck size={20} /> Verified! Redirecting…
+            <ShieldCheck size={20} /> {t('auth.verify.verified')}
           </div>
         ) : (
           <PrimaryButton
@@ -288,7 +290,7 @@ export default function Verify() {
             disabled={!allFilled}
             color="#1E3A8A"
           >
-            {!loading && <><ShieldCheck size={16} /> Verify Code</>}
+            {!loading && <><ShieldCheck size={16} /> {t('auth.verify.verifyCode')}</>}
           </PrimaryButton>
         )}
       </div>
@@ -297,7 +299,7 @@ export default function Verify() {
       <div className="mt-5 text-center">
         {resendCountdown > 0 ? (
           <p className="text-xs text-slate-400">
-            Resend code in <span className="font-bold text-primary">{resendCountdown}s</span>
+            {t('auth.verify.resendCountdown')} <span className="font-bold text-primary">{resendCountdown}s</span>
           </p>
         ) : (
           <button
@@ -308,7 +310,7 @@ export default function Verify() {
             }`}
           >
             <RefreshCw size={13} className={resending ? 'animate-spin' : ''} />
-            {resending ? 'Sending…' : "Didn't receive a code? Resend"}
+            {resending ? t('auth.verify.sending') : t('auth.verify.resendPrompt')}
           </button>
         )}
       </div>
@@ -319,7 +321,7 @@ export default function Verify() {
           onClick={() => navigate(flow === 'password-reset' ? '/auth/forgot-password' : '/auth/register')}
           className="inline-flex items-center gap-1 border-none bg-transparent text-xs text-slate-400 hover:text-slate-600"
         >
-          <ArrowLeft size={13} /> {flow === 'password-reset' ? 'Back to Forgot Password' : 'Back to Registration'}
+          <ArrowLeft size={13} /> {flow === 'password-reset' ? t('auth.verify.backToForgot') : t('auth.verify.backToRegister')}
         </button>
       </div>
     </AuthLayout>

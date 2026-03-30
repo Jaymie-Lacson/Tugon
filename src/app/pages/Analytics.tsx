@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from '../i18n';
 import {
   BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -104,6 +105,7 @@ function formatBarangayTick(label: string): string {
 }
 
 export default function Analytics() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -297,8 +299,8 @@ export default function Analytics() {
       {/* Header */}
       <div className="analytics-header flex items-start justify-between mb-4 flex-wrap gap-2.5">
         <div>
-          <h1 className="text-slate-800 text-xl font-bold mb-0.5">Analytics & Insights</h1>
-          <p className="text-slate-500 text-xs">Incident data analysis — TUGON Decision Support System</p>
+          <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.analytics.pageTitle')}</h1>
+          <p className="text-slate-500 text-xs">{t('official.analytics.pageSubtitle')}</p>
         </div>
         <div className="analytics-header-controls flex gap-2 items-center flex-wrap">
           <div className="analytics-period-tabs flex bg-white rounded-lg border border-slate-200 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
@@ -315,7 +317,7 @@ export default function Analytics() {
             ))}
           </div>
           <button className="bg-white border border-slate-200 rounded-lg px-3.5 py-[7px] text-xs text-slate-600 font-semibold cursor-pointer flex items-center gap-[5px] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-            <Download size={13} /> Export
+            <Download size={13} /> {t('official.analytics.export')}
           </button>
         </div>
       </div>
@@ -326,10 +328,10 @@ export default function Analytics() {
           <CardSkeleton count={4} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" />
         ) : (
           <>
-            <MetricCard title="Total Incidents" value={totalIncidents.toString()} change="Live" up={true} sub={`${period} dataset`} color="var(--severity-critical)" />
-            <MetricCard title="Resolution Rate" value={`${resolutionRate.toFixed(1)}%`} change="Live" up={true} sub={`${period} dataset`} color="#059669" />
-            <MetricCard title="Avg. Response" value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change="Live" up={true} sub={avgResponse !== null ? `${period} dataset` : 'No responded incidents yet'} color="var(--severity-medium)" />
-            <MetricCard title="Deployed Units" value={deployedUnits.toString()} change="Live" up={true} sub="reported assignment load" color="var(--primary)" />
+            <MetricCard title={t('official.analytics.totalIncidents')} value={totalIncidents.toString()} change={t('official.analytics.liveChange')} up={true} sub={t('official.analytics.periodDataset', { period })} color="var(--severity-critical)" />
+            <MetricCard title={t('official.analytics.resolutionRate')} value={`${resolutionRate.toFixed(1)}%`} change={t('official.analytics.liveChange')} up={true} sub={t('official.analytics.periodDataset', { period })} color="#059669" />
+            <MetricCard title={t('official.analytics.avgResponse')} value={avgResponse !== null ? formatDurationFromMinutes(avgResponse) : 'N/A'} change={t('official.analytics.liveChange')} up={true} sub={avgResponse !== null ? t('official.analytics.periodDataset', { period }) : t('official.analytics.noRespondedYet')} color="var(--severity-medium)" />
+            <MetricCard title={t('official.analytics.deployedUnits')} value={deployedUnits.toString()} change={t('official.analytics.liveChange')} up={true} sub={t('official.analytics.reportedAssignmentLoad')} color="var(--primary)" />
           </>
         )}
       </div>
@@ -338,21 +340,21 @@ export default function Analytics() {
       <div className="analytics-card analytics-trend-card bg-white rounded-xl shadow-card p-3.5 px-4 mb-3.5">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
-            <div className="font-bold text-slate-800 text-lg md:text-[13px]">Incident Trend by Category</div>
-            <div className="text-slate-400 text-sm md:text-[11px] mt-0.5">{period} — daily incident count by category</div>
+            <div className="font-bold text-slate-800 text-lg md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
+            <div className="text-slate-400 text-sm md:text-[11px] mt-0.5">{t('official.analytics.dailyCount', { period })}</div>
           </div>
           <div className="analytics-chart-toggle flex gap-1.5">
-            {(['area', 'bar'] as const).map(t => (
+            {(['area', 'bar'] as const).map(chartTypeBtn => (
               <button
-                key={t}
-                onClick={() => setChartType(t)}
+                key={chartTypeBtn}
+                onClick={() => setChartType(chartTypeBtn)}
                 className={`px-3 py-[5px] md:px-3 md:py-[5px] rounded-md border text-[11px] font-semibold cursor-pointer ${
-                  chartType === t
+                  chartType === chartTypeBtn
                     ? 'border-primary bg-primary text-white'
                     : 'border-slate-200 bg-white text-slate-500'
                 }`}
               >
-                {t === 'area' ? 'Area' : 'Bar'}
+                {chartTypeBtn === 'area' ? t('official.analytics.areaChart') : t('official.analytics.barChart')}
               </button>
             ))}
           </div>
@@ -402,11 +404,11 @@ export default function Analytics() {
       <div className="analytics-middle-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-3.5">
         {/* Response time */}
         <div className="analytics-card flex-[2_1_280px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">Average Response Time by Category</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">Minutes from report to first response (target overlay)</div>
+          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.avgResponseByCategory')}</div>
+          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
             <div className="text-slate-500 text-xs px-0.5 py-2.5">
-              No responded incidents yet for the selected period.
+              {t('official.analytics.noRespondedPeriod')}
             </div>
           ) : (
             <>
@@ -425,9 +427,9 @@ export default function Analytics() {
                 </BarChart>
               </ResponsiveContainer>
               <div className="flex gap-3 text-[11px] mt-2 flex-wrap">
-                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-600" /> Within target</span>
-                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-destructive" /> Exceeds target</span>
-                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-slate-100 border border-slate-200" /> Target</span>
+                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-600" /> {t('official.analytics.withinTarget')}</span>
+                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-destructive" /> {t('official.analytics.exceedsTarget')}</span>
+                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-slate-100 border border-slate-200" /> {t('official.analytics.targetLabel')}</span>
               </div>
             </>
           )}
@@ -435,8 +437,8 @@ export default function Analytics() {
 
         {/* Severity Distribution */}
         <div className="analytics-card flex-[1_1_200px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">Severity Distribution</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-2.5">{period} incidents by severity</div>
+          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.severityDistribution')}</div>
+          <div className="text-slate-400 text-sm md:text-[11px] mb-2.5">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -461,8 +463,8 @@ export default function Analytics() {
 
         {/* Hourly pattern */}
         <div className="analytics-card flex-[2_1_260px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">Hourly Incident Pattern</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">Average incidents per hour ({period})</div>
+          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.hourlyPattern')}</div>
+          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -492,8 +494,8 @@ export default function Analytics() {
       <div className="analytics-bottom-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-2">
         {/* Barangay comparison */}
         <div className="analytics-card flex-[3_1_300px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">Barangay Incident Comparison</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">Incidents reported vs. resolved by barangay ({period})</div>
+          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.barangayComparison')}</div>
+          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: isMobile ? 42 : 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -510,8 +512,8 @@ export default function Analytics() {
 
         {/* Resource utilization */}
         <div className="analytics-card flex-[2_1_240px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">Resource Utilization</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">Reported responders by incident type</div>
+          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.resourceUtilization')}</div>
+          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
             const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
@@ -537,8 +539,8 @@ export default function Analytics() {
             );
           })}
           <div className="mt-3.5 px-3 py-2.5 bg-amber-100 rounded-lg border border-amber-200">
-            <div className="text-[11px] font-bold text-amber-800 mb-0.5">Operational Note</div>
-            <div className="text-[11px] text-amber-800">Responder load is computed from assigned reports only. Unassigned incidents are excluded from deployed counts.</div>
+            <div className="text-[11px] font-bold text-amber-800 mb-0.5">{t('official.analytics.operationalNote')}</div>
+            <div className="text-[11px] text-amber-800">{t('official.analytics.operationalNoteText')}</div>
           </div>
         </div>
       </div>

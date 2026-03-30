@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../i18n';
 import { CheckCircle2, XCircle, RefreshCw, ShieldAlert, Upload, Ban, Clock3 } from 'lucide-react';
 import {
   officialReportsApi,
@@ -22,6 +23,7 @@ function isPreviewableImageUrl(value: string | null | undefined): boolean {
 }
 
 export default function Verifications() {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<ApiPendingVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function Verifications() {
   const [reasonByUser, setReasonByUser] = useState<Record<string, string>>({});
   const [notesByUser, setNotesByUser] = useState<Record<string, string>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string>('Resident ID Preview');
+  const [previewTitle, setPreviewTitle] = useState<string>('');
 
   useEffect(() => {
     if (!previewUrl) return;
@@ -66,7 +68,7 @@ export default function Verifications() {
     const notes = notesByUser[citizenUserId] ?? '';
     const needsReason = decision === 'REJECT' || decision === 'REQUEST_REUPLOAD' || decision === 'BAN_ACCOUNT';
     if (needsReason && !reason) {
-      setError('Please select a rejection reason before submitting this action.');
+      setError(t('official.verifications.selectReasonFirst'));
       return;
     }
     setSubmittingId(citizenUserId);
@@ -97,9 +99,9 @@ export default function Verifications() {
     <div className="p-4 px-5 min-h-full">
       <div className="flex items-start justify-between gap-3 mb-3.5 flex-wrap">
         <div>
-          <h1 className="text-slate-800 text-xl font-bold mb-0.5">Resident ID Verification Queue</h1>
+          <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.verifications.pageTitle')}</h1>
           <p className="text-slate-500 text-xs">
-            Review pending resident IDs for your barangay only. Actions are logged for audit.
+            {t('official.verifications.pageSubtitle')}
           </p>
         </div>
         <button
@@ -107,7 +109,7 @@ export default function Verifications() {
           disabled={loading}
           className="border border-slate-300 bg-white rounded-[10px] px-3 py-2 font-bold text-xs text-slate-700 inline-flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
         >
-          <RefreshCw size={14} /> Refresh
+          <RefreshCw size={14} /> {t('common.refresh')}
         </button>
       </div>
 
@@ -118,14 +120,14 @@ export default function Verifications() {
       )}
 
       <div className="mb-2.5 inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-[5px] text-[11px] font-bold text-primary">
-        <Clock3 size={12} /> Pending: {rows.length}
+        <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
       </div>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-xl p-4 text-slate-500 text-[13px]">
-          No pending resident ID submissions in your barangay.
+          {t('official.verifications.noPending')}
         </div>
       ) : (
         <div className="grid gap-3">
@@ -152,15 +154,15 @@ export default function Verifications() {
                         type="button"
                         onClick={() => {
                           if (!isPreviewableImageUrl(row.idImageUrl)) {
-                            setError('Uploaded ID preview is not directly viewable yet. Please refresh after storage URL normalization.');
+                            setError(t('official.verifications.previewNotViewable'));
                             return;
                           }
-                          setPreviewTitle(`Resident ID - ${row.fullName}`);
+                          setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);
                           setPreviewUrl(row.idImageUrl);
                         }}
                         className="inline-flex items-center gap-1.5 w-fit text-primary bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5 text-xs font-bold cursor-pointer"
                       >
-                        <Upload size={13} /> Preview uploaded ID
+                        <Upload size={13} /> {t('official.verifications.previewUploadedId')}
                       </button>
                       <a
                         href={row.idImageUrl}
@@ -168,22 +170,22 @@ export default function Verifications() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 w-fit no-underline text-slate-700 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
                       >
-                        Open in new tab
+                        {t('official.verifications.openInNewTab')}
                       </a>
                     </div>
                   ) : (
-                    <div className="text-xs text-amber-700 font-bold">No ID image currently attached.</div>
+                    <div className="text-xs text-amber-700 font-bold">{t('official.verifications.noIdImage')}</div>
                   )}
 
                   <div className="grid gap-2">
-                    <label className="text-[11px] font-bold text-slate-600">Reason (required for reject/re-upload/ban)</label>
+                    <label className="text-[11px] font-bold text-slate-600">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       className="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 bg-white"
                     >
-                      <option value="">Select reason</option>
+                      <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
                         <option key={reason} value={reason}>{reason}</option>
                       ))}
@@ -192,7 +194,7 @@ export default function Verifications() {
                     <textarea
                       value={notesByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      placeholder="Optional internal notes"
+                      placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
                       className="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 resize-y box-border"
                     />
@@ -204,34 +206,34 @@ export default function Verifications() {
                       onClick={() => void submitDecision(row.citizenUserId, 'APPROVE')}
                       className="bg-emerald-600 text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <CheckCircle2 size={13} /> Approve
+                      <CheckCircle2 size={13} /> {t('official.verifications.approve')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REQUEST_REUPLOAD')}
                       className="bg-severity-medium text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <Upload size={13} /> Request Re-upload
+                      <Upload size={13} /> {t('official.verifications.requestReupload')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REJECT')}
                       className="bg-destructive text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <XCircle size={13} /> Reject
+                      <XCircle size={13} /> {t('official.verifications.reject')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'BAN_ACCOUNT')}
                       className="bg-red-900 text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <Ban size={13} /> Ban Account
+                      <Ban size={13} /> {t('official.verifications.banAccount')}
                     </button>
                   </div>
 
                   <div className="bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-2 text-[11px] text-orange-800 flex items-start gap-1.5">
                     <ShieldAlert size={14} className="shrink-0 mt-px" />
-                    Use Ban Account only for grave offenses or repeated false claims.
+                    {t('official.verifications.banWarning')}
                   </div>
                 </div>
               </section>
@@ -259,20 +261,20 @@ export default function Verifications() {
                 onClick={() => setPreviewUrl(null)}
                 className="border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-700 cursor-pointer"
               >
-                Close
+                {t('official.verifications.closeBtn')}
               </button>
             </div>
 
             <div className="p-3 overflow-auto bg-[#0B1220]">
               <div className="grid gap-3">
                 <div className="text-slate-200 text-[11px] font-bold">
-                  Separated preview for review: top section is treated as Front ID, bottom section as Back ID.
+                  {t('official.verifications.separatedPreview')}
                 </div>
 
                 <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
                   <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
                     <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
-                      Front ID
+                      {t('official.verifications.frontId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">
                       <img
@@ -285,7 +287,7 @@ export default function Verifications() {
 
                   <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
                     <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
-                      Back ID
+                      {t('official.verifications.backId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">
                       <img
@@ -299,7 +301,7 @@ export default function Verifications() {
 
                 <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
                   <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
-                    Full uploaded file
+                    {t('official.verifications.fullUploadedFile')}
                   </div>
                   <div className="p-2.5">
                     <img

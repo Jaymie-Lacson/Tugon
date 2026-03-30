@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft, House } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
+import { useTranslation } from '../../i18n';
 
 const BARANGAYS = [
   { value: '251', label: 'Barangay 251', sub: 'Zone 24 — Tondo I/II' },
@@ -14,6 +15,7 @@ const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [barangay, setBarangay] = useState('');
@@ -69,8 +71,8 @@ export default function Register() {
 
   return (
     <AuthLayout
-      title="Create Your Account"
-      subtitle="Register to start reporting incidents and protecting your community in Tondo."
+      title={t('auth.register.title')}
+      subtitle={t('auth.register.subtitle')}
       topAction={(
         <button
           type="button"
@@ -79,16 +81,16 @@ export default function Register() {
         >
           <ArrowLeft size={14} />
           <House size={14} />
-          Back to Homepage
+          {t('auth.backToHome')}
         </button>
       )}
     >
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-7">
         {[
-          { n: 1, label: 'Details' },
-          { n: 2, label: 'Verify' },
-          { n: 3, label: 'Password' },
+          { n: 1, label: t('auth.steps.details') },
+          { n: 2, label: t('auth.steps.verify') },
+          { n: 3, label: t('auth.steps.password') },
         ].flatMap((step, idx) => {
           const items = [
             <div key={`step-${step.n}`} className="flex flex-col items-center flex-1">
@@ -126,27 +128,27 @@ export default function Register() {
 
         {/* Full Name */}
         <InputField
-          label="Full Name"
-          placeholder="e.g. Juan dela Cruz"
+          label={t('auth.register.fullName')}
+          placeholder={t('auth.register.fullNamePlaceholder')}
           value={fullName}
           onChange={setFullName}
           icon={<User size={17} />}
           error={errors.fullName}
-          hint="Enter your complete legal name."
+          hint={t('auth.register.fullNameHint')}
           autoComplete="name"
           autoFocus
         />
 
         {/* Phone */}
         <InputField
-          label="Phone Number"
+          label={t('auth.register.phone')}
           type="tel"
-          placeholder="0917-xxx-xxxx"
+          placeholder={t('auth.register.phonePlaceholder')}
           value={phone}
           onChange={v => setPhone(formatPhone(v))}
           icon={<Phone size={17} />}
           error={errors.phone}
-          hint="A 6-digit verification code will be sent to this number."
+          hint={t('auth.register.phoneHint')}
           inputMode="tel"
           autoComplete="tel"
         />
@@ -154,7 +156,7 @@ export default function Register() {
         {/* Barangay selector */}
         <div className="mb-[18px] relative">
           <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Barangay
+            {t('auth.register.barangay')}
           </label>
           <button
             type="button"
@@ -175,7 +177,7 @@ export default function Register() {
                   <div className="text-[10px] text-slate-500 mt-px">{selectedBarangay.sub}</div>
                 </div>
               ) : (
-                <span className="text-[15px] text-slate-400">Select your barangay…</span>
+                <span className="text-[15px] text-slate-400">{t('auth.register.selectBarangayPlaceholder')}</span>
               )}
             </div>
             <ChevronDown
@@ -218,15 +220,15 @@ export default function Register() {
         <div className="rounded-[var(--radius-lg)] border border-sky-200 bg-sky-50 p-3 mb-6 flex items-start gap-2.5">
           <Phone size={15} className="shrink-0 mt-px text-sky-600" />
           <div>
-            <div className="text-xs font-semibold text-sky-900 mb-0.5">Verification via SMS</div>
+            <div className="text-xs font-semibold text-sky-900 mb-0.5">{t('auth.register.smsTitle')}</div>
             <div className="text-[11px] text-sky-700 leading-relaxed">
-              A 6-digit One-Time Password (OTP) will be sent to your phone number. Standard SMS rates may apply.
+              {t('auth.register.smsDesc')}
             </div>
           </div>
         </div>
 
         <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
-          {!loading && <><ArrowRight size={16} /> Send Verification Code</>}
+          {!loading && <><ArrowRight size={16} /> {t('auth.register.sendCode')}</>}
         </PrimaryButton>
       </form>
 
@@ -236,7 +238,7 @@ export default function Register() {
           onClick={() => navigate('/auth/login')}
           className="bg-transparent border-none text-slate-500 text-sm inline-flex items-center gap-1.5 cursor-pointer font-[inherit]"
         >
-          <ArrowLeft size={14} /> Already have an account? <span className="text-primary font-bold">Sign In</span>
+          <ArrowLeft size={14} /> {t('auth.register.backToLogin')} <span className="text-primary font-bold">{t('auth.register.login')}</span>
         </button>
       </div>
     </AuthLayout>

@@ -1,6 +1,8 @@
 import React from 'react';
-import { Settings as SettingsIcon, User, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, User, Shield, Globe } from 'lucide-react';
 import { getAuthSession } from '../utils/authSession';
+import { useTranslation, SUPPORTED_LOCALES, LOCALE_LABELS } from '../i18n';
+import type { Locale } from '../i18n';
 
 function SettingRow({ label, description, value }: { label: string; description?: string; value: string }) {
   return (
@@ -15,6 +17,7 @@ function SettingRow({ label, description, value }: { label: string; description?
 }
 
 export default function Settings() {
+  const { locale, setLocale, t } = useTranslation();
   const session = getAuthSession();
   const currentUser = session?.user;
 
@@ -64,6 +67,10 @@ export default function Settings() {
             <Shield size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">Access Status</span>
           </div>
+          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+            <Globe size={15} className="text-primary" />
+            <span className="text-[13px] font-bold text-primary">{t('settings.language')}</span>
+          </div>
         </div>
 
         <div className="flex-1 min-w-[280px] bg-white rounded-xl shadow-card px-6 py-5 max-md:min-w-0 max-md:w-full">
@@ -98,6 +105,30 @@ export default function Settings() {
           <SettingRow label="Phone Verification" description="Verification requirement for account security" value={phoneVerifiedLabel} />
           <SettingRow label="ID Verification" description="Current identity verification workflow state" value={verificationLabel} />
           <SettingRow label="Account" description="Enforcement state from access control" value={accountStatusLabel} />
+
+          <div className="mt-[18px] mb-2 text-xs font-bold text-slate-500 uppercase tracking-[0.06em]">
+            {t('settings.language')}
+          </div>
+          <div className="py-3.5 border-b border-slate-100">
+            <div className="text-[13px] font-semibold text-slate-800 mb-1">{t('settings.language')}</div>
+            <div className="text-[11px] text-slate-400 mb-3">{t('settings.languageDesc')}</div>
+            <div className="flex gap-2">
+              {SUPPORTED_LOCALES.map((loc: Locale) => (
+                <button
+                  key={loc}
+                  onClick={() => setLocale(loc)}
+                  className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
+                    locale === loc
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Globe size={12} className="mr-1.5 inline-block" />
+                  {LOCALE_LABELS[loc]}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

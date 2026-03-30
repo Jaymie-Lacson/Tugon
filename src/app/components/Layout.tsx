@@ -18,23 +18,16 @@ import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { BottomNav, type BottomNavItem } from './BottomNav';
+import { useTranslation } from '../i18n';
 
-const NAV_ITEMS = [
-  { path: '/app',            label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { path: '/app/incidents',  label: 'Incidents',  icon: AlertTriangle },
-  { path: '/app/map',        label: 'Map',        icon: Map },
-  { path: '/app/analytics',  label: 'Analytics',  icon: BarChart2 },
-  { path: '/app/reports',    label: 'Reports',    icon: FileText },
-  { path: '/app/verifications', label: 'Verifications', icon: UserCheck },
-];
-
-const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { key: 'dashboard', icon: <LayoutDashboard size={20} />, label: 'Home',      path: '/app',            exact: true },
-  { key: 'incidents', icon: <AlertTriangle size={20} />,   label: 'Incidents',  path: '/app/incidents' },
-  { key: 'map',       icon: <Map size={20} />,             label: 'Map',        path: '/app/map' },
-  { key: 'reports',   icon: <FileText size={20} />,        label: 'Reports',    path: '/app/reports' },
-  { key: 'settings',  icon: <Settings size={20} />,        label: 'Settings',   path: '/app/settings' },
-];
+const NAV_ITEM_DEFS = [
+  { path: '/app',            labelKey: 'nav.dashboard', icon: LayoutDashboard, exact: true },
+  { path: '/app/incidents',  labelKey: 'nav.incidents',  icon: AlertTriangle },
+  { path: '/app/map',        labelKey: 'nav.map',        icon: Map },
+  { path: '/app/analytics',  labelKey: 'nav.analytics',  icon: BarChart2 },
+  { path: '/app/reports',    labelKey: 'nav.reports',    icon: FileText },
+  { path: '/app/verifications', labelKey: 'nav.verifications', icon: UserCheck },
+] as const;
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -50,6 +43,7 @@ function LiveClock() {
 }
 
 function Layout() {
+  const { t } = useTranslation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -60,14 +54,24 @@ function Layout() {
   const location = useLocation();
   const session = getAuthSession();
   const roleHomePath = resolveDefaultAppPath(session);
-  const userFullName = session?.user.fullName?.trim() || 'Barangay Official';
+  const userFullName = session?.user.fullName?.trim() || t('role.official');
   const userInitials = userFullName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'BO';
-  const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Barangay Official';
+  const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? t('role.superAdmin') : t('role.official');
+
+  const NAV_ITEMS = NAV_ITEM_DEFS.map((item) => ({ ...item, label: t(item.labelKey) }));
+
+  const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
+    { key: 'dashboard', icon: <LayoutDashboard size={20} />, label: t('nav.home'),      path: '/app',            exact: true },
+    { key: 'incidents', icon: <AlertTriangle size={20} />,   label: t('nav.incidents'),  path: '/app/incidents' },
+    { key: 'map',       icon: <Map size={20} />,             label: t('nav.map'),        path: '/app/map' },
+    { key: 'reports',   icon: <FileText size={20} />,        label: t('nav.reports'),    path: '/app/reports' },
+    { key: 'settings',  icon: <Settings size={20} />,        label: t('common.settings'), path: '/app/settings' },
+  ];
 
   const currentPage = NAV_ITEMS.find(n =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app'
@@ -189,7 +193,7 @@ function Layout() {
         {/* Nav items */}
         <nav className="flex-1 p-3 overflow-y-auto">
           <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-            Navigation
+            {t('nav.navigation')}
           </div>
           {NAV_ITEMS.map((item) => {
             const isActive = item.exact
@@ -216,7 +220,7 @@ function Layout() {
 
           <div className="mt-4 pt-3 border-t border-white/10">
             <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-              System
+              {t('nav.system')}
             </div>
             <NavLink
               to="/app/settings"
@@ -225,7 +229,7 @@ function Layout() {
               }`}
             >
               <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
-              <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>Settings</span>
+              <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>{t('common.settings')}</span>
             </NavLink>
           </div>
         </nav>
@@ -243,8 +247,8 @@ function Layout() {
             <button
               type="button"
               onClick={handleSignOut}
-              aria-label="Sign out"
-              title="Sign out"
+              aria-label={t('common.signOut')}
+              title={t('common.signOut')}
               className="border-none bg-transparent p-0 cursor-pointer inline-flex items-center justify-center shrink-0"
             >
               <LogOut size={15} className="text-blue-300" />
@@ -289,7 +293,7 @@ function Layout() {
             {/* Drawer nav items */}
             <div className="flex-1 overflow-y-auto p-3">
               <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-                Navigation
+                {t('nav.navigation')}
               </div>
               {NAV_ITEMS.map((item) => {
                 const isActive = item.exact
@@ -317,7 +321,7 @@ function Layout() {
 
               <div className="mt-4 pt-3 border-t border-white/10">
                 <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
-                  System
+                  {t('nav.system')}
                 </div>
                 <NavLink
                   to="/app/settings"
@@ -327,7 +331,7 @@ function Layout() {
                   }`}
                 >
                   <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
-                  <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>Settings</span>
+                  <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>{t('common.settings')}</span>
                 </NavLink>
               </div>
             </div>
@@ -345,7 +349,7 @@ function Layout() {
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  aria-label="Sign out"
+                  aria-label={t('common.signOut')}
                   className="border-none bg-transparent p-0 cursor-pointer inline-flex"
                 >
                   <LogOut size={15} className="text-blue-300" />
@@ -464,7 +468,7 @@ function Layout() {
                     onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
                     className="w-full text-left px-3 py-[11px] bg-white border-none text-slate-800 text-[13px] font-semibold cursor-pointer hover:bg-slate-50"
                   >
-                    Open profile page
+                    {t('common.profile')}
                   </button>
                   <button
                     type="button"
@@ -472,7 +476,7 @@ function Layout() {
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
                     className="w-full text-left px-3 py-[11px] bg-white border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
                   >
-                    Sign out
+                    {t('common.signOut')}
                   </button>
                 </div>
               )}

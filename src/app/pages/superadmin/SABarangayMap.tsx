@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
+import { useTranslation } from '../../i18n';
 import L from 'leaflet';
 import {
   MapPin, Layers, AlertTriangle, Navigation, RefreshCw, Save,
@@ -388,6 +389,7 @@ function extractBarangayCode(label: string): string | null {
 }
 
 export default function SABarangayMap() {
+  const { t } = useTranslation();
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>([]);
   const [loadingBarangays, setLoadingBarangays] = useState(true);
   const [loadingIncidents, setLoadingIncidents] = useState(true);
@@ -673,9 +675,9 @@ export default function SABarangayMap() {
       {/* Page header */}
       <div className="sa-map-header flex items-center justify-between mb-4 gap-2.5">
         <div>
-          <h1 className="text-[22px] font-bold text-[#0F172A] m-0">Barangay Boundary Map</h1>
+          <h1 className="text-[22px] font-bold text-[#0F172A] m-0">{t('superadmin.barangayMap.pageTitle')}</h1>
           <p className="text-xs text-[#6B7280] m-0 mt-0.5">
-            OpenStreetMap — Barangays 251, 252 & 256 · Municipality of Tugon, Region IV-A
+            {t('superadmin.barangayMap.subtitle')}
           </p>
         </div>
         <div className="sa-map-header-actions flex gap-2">
@@ -685,13 +687,13 @@ export default function SABarangayMap() {
             }}
             className="flex items-center gap-1.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >
-            <RefreshCw size={13} /> {loadingBarangays ? 'Syncing...' : 'Sync Boundaries'}
+            <RefreshCw size={13} /> {loadingBarangays ? t('superadmin.barangayMap.syncing') : t('superadmin.barangayMap.syncBoundaries')}
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
             className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
-            <Layers size={13} /> {showHeatmap ? 'Hide Heatmap' : 'Show Heatmap'}
+            <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
           </button>
           <button
             onClick={() => {
@@ -700,7 +702,7 @@ export default function SABarangayMap() {
             }}
             className={`flex items-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
           >
-            <SlidersHorizontal size={13} /> Tune Heatmap
+            <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
           </button>
         </div>
       </div>
@@ -723,7 +725,7 @@ export default function SABarangayMap() {
           {/* Toolbar */}
           <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[#F3F4F6] bg-[#FAFAFA] flex-wrap">
             <Filter size={13} color="#6B7280" />
-            <span className="text-xs font-semibold text-[#6B7280]">Filters:</span>
+            <span className="text-xs font-semibold text-[#6B7280]">{t('superadmin.barangayMap.filtersLabel')}</span>
             {isCompactFilters ? (
               <>
                 <select
@@ -731,7 +733,7 @@ export default function SABarangayMap() {
                   onChange={(event) => setFilterType(event.target.value)}
                   className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
                 >
-                  <option value="all">All Categories</option>
+                  <option value="all">{t('superadmin.barangayMap.allCategories')}</option>
                   <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
                   <option value="accident">{getCategoryLabelForIncidentType('accident')}</option>
                   <option value="medical">{getCategoryLabelForIncidentType('medical')}</option>
@@ -741,7 +743,7 @@ export default function SABarangayMap() {
                   multiple
                   value={selectedBarangayCodes}
                   onChange={handleCompactBarangaySelect}
-                  title="Select one or more barangays"
+                  title={t('superadmin.barangayMap.selectBarangays')}
                   className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[72px]"
                 >
                   {BARANGAY_FILTER_CODES.map((code) => (
@@ -751,26 +753,26 @@ export default function SABarangayMap() {
               </>
             ) : (
               <>
-                {['all', 'flood', 'accident', 'medical', 'crime'].map(t => (
+                {['all', 'flood', 'accident', 'medical', 'crime'].map(typeKey => (
                   <button
-                    key={t}
-                    onClick={() => setFilterType(t)}
+                    key={typeKey}
+                    onClick={() => setFilterType(typeKey)}
                     style={{
-                      background: filterType === t ? (INCIDENT_COLORS[t] ?? '#374151') : '#F3F4F6',
-                      color: filterType === t ? 'white' : '#6B7280',
+                      background: filterType === typeKey ? (INCIDENT_COLORS[typeKey] ?? '#374151') : '#F3F4F6',
+                      color: filterType === typeKey ? 'white' : '#6B7280',
                     }}
                     className="px-2.5 py-1 rounded-[20px] text-[11px] font-semibold cursor-pointer border border-transparent capitalize"
                   >
-                    {t !== 'all' ? <span className="mr-1 inline-flex align-middle">{getIncidentTypeIcon(t, 12, filterType === t ? '#FFFFFF' : '#6B7280')}</span> : null}
-                    {t === 'all' ? 'All Categories' : getCategoryLabelForIncidentType(t as IncidentType)}
+                    {typeKey !== 'all' ? <span className="mr-1 inline-flex align-middle">{getIncidentTypeIcon(typeKey, 12, filterType === typeKey ? '#FFFFFF' : '#6B7280')}</span> : null}
+                    {typeKey === 'all' ? t('superadmin.barangayMap.allCategories') : getCategoryLabelForIncidentType(typeKey as IncidentType)}
                   </button>
                 ))}
-                <span className="text-[11px] text-[#94A3B8] ml-1">Barangay:</span>
+                <span className="text-[11px] text-[#94A3B8] ml-1">{t('superadmin.barangayMap.barangayLabel')}</span>
                 <button
                   onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
                   className="px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[#CBD5E1] bg-white text-[#475569]"
                 >
-                  All
+                  {t('common.all')}
                 </button>
                 {BARANGAY_FILTER_CODES.map((code) => (
                   <label
@@ -788,11 +790,11 @@ export default function SABarangayMap() {
               </>
             )}
             <span className="ml-auto text-[11px] text-[#9CA3AF]">
-              {filteredIncidents.length} incidents shown
+              {t('superadmin.barangayMap.incidentsShown', { count: filteredIncidents.length })}
             </span>
             {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy ? (
               <span className="text-[11px] font-semibold text-[#1D4ED8]">
-                Edit mode: click map to add boundary points for {selectedBrgy.name}
+                {t('superadmin.barangayMap.editModeHint', { name: selectedBrgy.name })}
               </span>
             ) : null}
           </div>
@@ -818,18 +820,18 @@ export default function SABarangayMap() {
                 onWheel={(event) => event.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#1E293B]">Heatmap Settings</span>
+                  <span className="text-xs font-bold text-[#1E293B]">{t('superadmin.barangayMap.heatmapSettings')}</span>
                   <button
                     onClick={handleResetHeatmapSettings}
                     className="border border-[#CBD5E1] bg-white text-[#475569] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
                   >
-                    Reset
+                    {t('superadmin.barangayMap.reset')}
                   </button>
                 </div>
 
                 <div className="mb-2.5">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] font-semibold text-[#64748B]">Radius scale</span>
+                    <span className="text-[10px] font-semibold text-[#64748B]">{t('superadmin.barangayMap.radiusScale')}</span>
                     <span className="text-[10px] font-bold text-[#1E293B]">{heatRadiusPercent}%</span>
                   </div>
                   <input
@@ -851,7 +853,7 @@ export default function SABarangayMap() {
 
                 <div className="mb-0.5">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] font-semibold text-[#64748B]">Opacity scale</span>
+                    <span className="text-[10px] font-semibold text-[#64748B]">{t('superadmin.barangayMap.opacityScale')}</span>
                     <span className="text-[10px] font-bold text-[#1E293B]">{heatOpacityScale.toFixed(2)}x</span>
                   </div>
                   <input
@@ -1006,7 +1008,7 @@ export default function SABarangayMap() {
               className="bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[#E5E7EB] min-w-[140px]"
             >
               <div className="font-bold text-[#0F172A] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
-                Map Legend
+                {t('superadmin.barangayMap.mapLegend')}
               </div>
               {barangaysData.map(b => (
                 <div key={b.id} className="flex items-center gap-1.5 mb-1">
@@ -1017,19 +1019,19 @@ export default function SABarangayMap() {
               {showHeatmap ? (
                 <div className="border-t border-[#F3F4F6] pt-[5px] mt-[3px]">
                   <div className="text-[9px] text-[#6B7280] mb-1 font-bold">
-                    Heat Intensity
+                    {t('superadmin.barangayMap.heatIntensity')}
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#64748B]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.08 * heatOpacityScale)) }} />
-                    <span className="text-[9px] text-[#6B7280]">Low ({Math.round(60 * heatRadiusScale)}m)</span>
+                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatLow', { radius: Math.round(60 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#475569]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.11 * heatOpacityScale)) }} />
-                    <span className="text-[9px] text-[#6B7280]">High ({Math.round(85 * heatRadiusScale)}m)</span>
+                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatHigh', { radius: Math.round(85 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#334155]" style={{ opacity: Math.max(0.03, Math.min(0.42, 0.14 * heatOpacityScale)) }} />
-                    <span className="text-[9px] text-[#6B7280]">Critical ({Math.round(110 * heatRadiusScale)}m)</span>
+                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatCritical', { radius: Math.round(110 * heatRadiusScale) })}</span>
                   </div>
                 </div>
               ) : (
@@ -1049,7 +1051,7 @@ export default function SABarangayMap() {
               style={{ position: 'absolute', bottom: 5, right: 10, zIndex: 1000 }}
               className="text-[9px] text-[#9CA3AF]"
             >
-              Map data © OpenStreetMap contributors
+              {t('superadmin.barangayMap.osmAttribution')}
             </div>
           </div>
         </div>
@@ -1086,11 +1088,11 @@ export default function SABarangayMap() {
 
                 <div className="grid grid-cols-2 gap-[7px] mb-3">
                   {[
-                    { label: 'Population', value: selectedBrgy.population.toLocaleString() },
-                    { label: 'Area', value: selectedBrgy.area },
-                    { label: 'Active Inc.', value: selectedBrgy.activeIncidents },
-                    { label: 'Resp. Rate', value: `${selectedBrgy.responseRate}%` },
-                    { label: 'Avg Response', value: `${selectedBrgy.avgResponseMin}m` },
+                    { label: t('superadmin.barangayMap.statPopulation'), value: selectedBrgy.population.toLocaleString() },
+                    { label: t('superadmin.barangayMap.statArea'), value: selectedBrgy.area },
+                    { label: t('superadmin.barangayMap.statActiveInc'), value: selectedBrgy.activeIncidents },
+                    { label: t('superadmin.barangayMap.statRespRate'), value: `${selectedBrgy.responseRate}%` },
+                    { label: t('superadmin.barangayMap.statAvgResponse'), value: `${selectedBrgy.avgResponseMin}m` },
                   ].map(s => (
                     <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-2.5 py-2">
                       <div className="text-[15px] font-bold text-[#0F172A]">{s.value}</div>
@@ -1102,23 +1104,23 @@ export default function SABarangayMap() {
                 {/* Coord info */}
                 <div className="bg-[#F0F4FF] rounded-lg px-2.5 py-2 border border-[#DBEAFE]">
                   <div className="text-[10px] font-semibold text-[#374151] mb-1 flex items-center gap-[5px]">
-                    <Navigation size={10} color="#1D4ED8" /> OSM Coordinates
+                    <Navigation size={10} color="#1D4ED8" /> {t('superadmin.barangayMap.osmCoordinates')}
                   </div>
                   <div className="text-[9px] text-[#6B7280] font-mono">
-                    Center: {selectedBrgy.center[0].toFixed(4)}°N, {selectedBrgy.center[1].toFixed(4)}°E
+                    {t('superadmin.barangayMap.centerCoords', { lat: selectedBrgy.center[0].toFixed(4), lng: selectedBrgy.center[1].toFixed(4) })}
                   </div>
                   <div className="text-[9px] text-[#9CA3AF] mt-0.5">
-                    {selectedBrgy.boundary.length}-vertex polygon boundary
+                    {t('superadmin.barangayMap.polygonBoundary', { count: selectedBrgy.boundary.length })}
                   </div>
                 </div>
 
                 <div className="mt-2.5">
                   <div className="text-[10px] font-semibold text-[#374151] mb-[5px]">
-                    Boundary GeoJSON (Read-only)
+                    {t('superadmin.barangayMap.boundaryGeojson')}
                   </div>
                   {!BOUNDARY_EDIT_ENABLED ? (
                     <div className="text-[9px] text-[#64748B] mb-1.5">
-                      Editing is locked to protect official barangay boundaries.
+                      {t('superadmin.barangayMap.editingLocked')}
                     </div>
                   ) : null}
                   {BOUNDARY_EDIT_ENABLED ? (
@@ -1203,7 +1205,7 @@ export default function SABarangayMap() {
                         opacity: boundarySaving || !BOUNDARY_EDIT_ENABLED ? 0.7 : 1,
                       }}
                     >
-                      <Save size={12} /> {boundarySaving ? 'Saving...' : 'Save Boundary'}
+                      <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
                     </button>
                   ) : null}
                 </div>
@@ -1213,7 +1215,7 @@ export default function SABarangayMap() {
             <div className="bg-white rounded-[14px] p-5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB] flex flex-col items-center gap-2 min-h-[140px] justify-center">
               <MapPin size={28} color="#D1D5DB" />
               <div className="text-xs text-[#9CA3AF] text-center">
-                Click a barangay boundary on the map to view details
+                {t('superadmin.barangayMap.clickBoundaryHint')}
               </div>
             </div>
           )}
@@ -1221,7 +1223,7 @@ export default function SABarangayMap() {
           {/* Active incidents list */}
           <div className="bg-white rounded-[14px] p-4 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB] flex-1 flex flex-col">
             <div className="text-sm font-bold text-[#0F172A] mb-2.5">
-              {selectedBrgy ? `${selectedBrgy.name} Incidents` : 'All Active Incidents'}
+              {selectedBrgy ? t('superadmin.barangayMap.barangayIncidents', { name: selectedBrgy.name }) : t('superadmin.barangayMap.allActiveIncidents')}
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-[7px] max-h-[260px]">
               {filteredIncidents
@@ -1300,12 +1302,12 @@ export default function SABarangayMap() {
 
       {/* Comparison table */}
       <div className="bg-white rounded-[14px] px-5 py-[18px] mt-3.5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[#E5E7EB]">
-        <div className="text-[15px] font-bold text-[#0F172A] mb-3.5">Barangay Comparison Summary</div>
+        <div className="text-[15px] font-bold text-[#0F172A] mb-3.5">{t('superadmin.barangayMap.comparisonTitle')}</div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="border-b-2 border-[#F3F4F6]">
-                {['Barangay', 'District', 'Population', 'Area', 'Captain', 'Alert Level', 'Active', 'Response Rate', 'Avg Response', 'OSM Center'].map(h => (
+                {[t('superadmin.barangayMap.colBarangay'), t('superadmin.barangayMap.colDistrict'), t('superadmin.barangayMap.colPopulation'), t('superadmin.barangayMap.colArea'), t('superadmin.barangayMap.colCaptain'), t('superadmin.barangayMap.colAlertLevel'), t('superadmin.barangayMap.colActive'), t('superadmin.barangayMap.colResponseRate'), t('superadmin.barangayMap.colAvgResponse'), t('superadmin.barangayMap.colOsmCenter')].map(h => (
                   <th key={h} className="px-3 py-2 text-left text-[#9CA3AF] font-semibold text-[10px] whitespace-nowrap">{h}</th>
                 ))}
               </tr>

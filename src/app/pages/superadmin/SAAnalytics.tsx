@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Clock, CheckCircle2, RefreshCw } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -54,6 +55,7 @@ function formatDurationFromMinutes(totalMinutes: number) {
 }
 
 export default function SAAnalytics() {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,9 +148,9 @@ export default function SAAnalytics() {
     <div className="p-5 bg-[#F0F4FF] min-h-full">
       <div className="sa-analytics-header flex items-center justify-between mb-4 gap-2.5">
         <div>
-          <h1 className="text-slate-950 text-[22px] font-bold m-0">System-Wide Analytics</h1>
+          <h1 className="text-slate-950 text-[22px] font-bold m-0">{t('superadmin.analytics.pageTitle')}</h1>
           <p className="text-gray-500 text-xs m-0 mt-0.5">
-            Database-backed incident reporting metrics
+            {t('superadmin.analytics.subtitle')}
           </p>
         </div>
         <button
@@ -157,7 +159,7 @@ export default function SAAnalytics() {
           }}
           className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
         >
-          <RefreshCw size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
       </div>
 
@@ -168,15 +170,15 @@ export default function SAAnalytics() {
       ) : null}
 
       <div className="sa-analytics-stats grid mb-4" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-        <StatCard label="Total Reports" value={kpis.total} color="var(--primary)" />
-        <StatCard label="Open Reports" value={kpis.active} color="var(--severity-critical)" />
-        <StatCard label="Resolved Reports" value={kpis.resolved} color="#059669" />
-        <StatCard label="Avg Response" value={kpis.avgResponseLabel} color="var(--severity-medium)" />
+        <StatCard label={t('superadmin.analytics.totalReports')} value={kpis.total} color="var(--primary)" />
+        <StatCard label={t('superadmin.analytics.openReports')} value={kpis.active} color="var(--severity-critical)" />
+        <StatCard label={t('superadmin.analytics.resolvedReports')} value={kpis.resolved} color="#059669" />
+        <StatCard label={t('superadmin.analytics.avgResponse')} value={kpis.avgResponseLabel} color="var(--severity-medium)" />
       </div>
 
       <div className="sa-analytics-grid grid" style={{ gridTemplateColumns: '1fr 340px', gap: 14 }}>
         <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
-          <div className="text-slate-950 text-[15px] font-bold mb-2.5">Reports by Barangay</div>
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportsByBarangay')}</div>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barangayData} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
@@ -189,7 +191,7 @@ export default function SAAnalytics() {
         </div>
 
         <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
-          <div className="text-slate-950 text-[15px] font-bold mb-2.5">Report Category Mix</div>
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportCategoryMix')}</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75}>
@@ -206,12 +208,10 @@ export default function SAAnalytics() {
       <div className="mt-3.5 bg-white rounded-[14px] px-[18px] py-3.5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
         <div className="flex items-center gap-2 text-slate-900 text-[13px] font-bold mb-2">
           <AlertTriangle size={14} color="var(--severity-medium)" />
-          Reporting Health
+          {t('superadmin.analytics.reportingHealth')}
         </div>
         <div className="text-slate-500 text-xs leading-[1.5]">
-          <Clock size={12} style={{ verticalAlign: 'middle' }} /> Average response time is based on report submission to first official action.
-          {' '}
-          <CheckCircle2 size={12} style={{ verticalAlign: 'middle' }} /> All metrics in this page are sourced from live API report data.
+          {t('superadmin.analytics.reportingHealthDesc')}
         </div>
       </div>
 

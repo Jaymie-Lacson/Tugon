@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Filter, RefreshCw, X } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
@@ -61,6 +62,7 @@ function formatDateInput(date: Date) {
 }
 
 export default function SAAuditLogs() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<ApiAdminAuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -195,9 +197,9 @@ export default function SAAuditLogs() {
     <div className="p-5 bg-[#F0F4FF] min-h-full">
       <div className="sa-audit-header flex items-center justify-between mb-3.5 gap-2.5">
         <div>
-          <h1 className="text-slate-950 text-[22px] font-bold m-0">Admin Audit Logs</h1>
+          <h1 className="text-slate-950 text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>
           <p className="text-gray-500 text-xs m-0 mt-0.5">
-            Immutable action history for Super Admin operations
+            {t('superadmin.auditLogs.subtitle')}
           </p>
         </div>
         <button
@@ -206,7 +208,7 @@ export default function SAAuditLogs() {
           }}
           className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold"
         >
-          <RefreshCw size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
       </div>
 
@@ -218,11 +220,11 @@ export default function SAAuditLogs() {
 
       <div className="grid grid-cols-2 gap-2.5 mb-3">
         <div className="bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
-          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">Total Entries</div>
+          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
           <div className="text-slate-950 text-2xl font-bold mt-0.5">{logs.length}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-[10px] px-3 py-2.5">
-          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">Actions Seen</div>
+          <div className="text-gray-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
           <div className="text-slate-950 text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
         </div>
       </div>
@@ -267,25 +269,25 @@ export default function SAAuditLogs() {
           onClick={() => applyDatePreset(1)}
           className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
-          Today
+          {t('superadmin.auditLogs.today')}
         </button>
         <button
           onClick={() => applyDatePreset(7)}
           className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
-          Last 7 Days
+          {t('superadmin.auditLogs.last7Days')}
         </button>
         <button
           onClick={() => applyDatePreset(30)}
           className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
-          Last 30 Days
+          {t('superadmin.auditLogs.last30Days')}
         </button>
         <button
           onClick={clearDatePreset}
           className="border border-gray-200 rounded-lg px-2.5 py-[7px] bg-white text-slate-700 text-xs font-semibold cursor-pointer"
         >
-          Clear Dates
+          {t('superadmin.auditLogs.clearDates')}
         </button>
         <button
           onClick={() => {
@@ -298,7 +300,7 @@ export default function SAAuditLogs() {
             opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
           }}
         >
-          {exportingJson ? 'Exporting JSON...' : 'Export JSON'}
+          {exportingJson ? t('superadmin.auditLogs.exportingJson') : t('superadmin.auditLogs.exportJson')}
         </button>
         <button
           onClick={() => {
@@ -311,7 +313,7 @@ export default function SAAuditLogs() {
             opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
           }}
         >
-          {exportingCsv ? 'Exporting CSV...' : 'Export CSV'}
+          {exportingCsv ? t('superadmin.auditLogs.exportingCsv') : t('superadmin.auditLogs.exportCsv')}
         </button>
       </div>
 
@@ -320,7 +322,7 @@ export default function SAAuditLogs() {
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-gray-200">
-                {['Timestamp', 'Action', 'Target', 'Target Label', 'Actor User ID', 'Details'].map((header) => (
+                {[t('superadmin.auditLogs.timestamp'), t('superadmin.auditLogs.action'), t('superadmin.auditLogs.target'), t('superadmin.auditLogs.targetLabel'), t('superadmin.auditLogs.actorUserId'), t('superadmin.auditLogs.details')].map((header) => (
                   <th
                     key={header}
                     className="px-3 py-2.5 text-left text-gray-500 text-[10px] font-bold tracking-[0.06em] uppercase whitespace-nowrap"
@@ -334,7 +336,7 @@ export default function SAAuditLogs() {
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-6 text-center text-gray-400">
-                    {loading ? 'Loading audit logs...' : 'No audit logs found for current filters.'}
+                    {loading ? t('superadmin.auditLogs.loadingLogs') : t('superadmin.auditLogs.noLogsFiltered')}
                   </td>
                 </tr>
               ) : logs.map((log, index) => (
@@ -365,7 +367,7 @@ export default function SAAuditLogs() {
         </div>
         <div className="sa-audit-pagination flex items-center justify-between px-3 py-2.5 border-t border-gray-100 bg-[#FAFAFA] text-xs">
           <span className="text-slate-500">
-            Showing {pageStart} to {pageEnd} of {total} logs
+            {t('superadmin.auditLogs.showingRange', { start: pageStart, end: pageEnd, total })}
           </span>
           <div className="flex gap-2">
             <button
@@ -374,16 +376,16 @@ export default function SAAuditLogs() {
               className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
               style={{ cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.6 : 1 }}
             >
-              Prev
+              {t('superadmin.auditLogs.prev')}
             </button>
-            <span className="text-slate-600 self-center">Page {page} / {totalPages}</span>
+            <span className="text-slate-600 self-center">{t('superadmin.auditLogs.page', { page, total: totalPages })}</span>
             <button
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
               className="border border-gray-200 rounded-[7px] px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold"
               style={{ cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.6 : 1 }}
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         </div>
@@ -400,7 +402,7 @@ export default function SAAuditLogs() {
           >
             <div className="px-4 py-3.5 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <div className="text-slate-950 text-base font-bold">Audit Event Details</div>
+                <div className="text-slate-950 text-base font-bold">{t('superadmin.auditLogs.eventDetails')}</div>
                 <div className="text-slate-500 text-[11px]">{formatDateTime(selectedLog.createdAt)}</div>
               </div>
               <button
@@ -412,21 +414,21 @@ export default function SAAuditLogs() {
             </div>
             <div className="p-4 overflow-y-auto grid gap-3">
               <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
-                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Action</div>
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.action')}</div>
                 <div className="text-slate-950 text-sm font-bold">{selectedLog.action}</div>
               </div>
               <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
-                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Target</div>
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.target')}</div>
                 <div className="text-slate-950 text-sm font-bold">{selectedLog.targetType}</div>
-                <div className="text-slate-600 text-xs mt-0.5">Label: {selectedLog.targetLabel ?? 'N/A'}</div>
-                <div className="text-slate-600 text-xs">ID: {selectedLog.targetId ?? 'N/A'}</div>
+                <div className="text-slate-600 text-xs mt-0.5">{t('superadmin.auditLogs.labelField', { value: selectedLog.targetLabel ?? 'N/A' })}</div>
+                <div className="text-slate-600 text-xs">{t('superadmin.auditLogs.idField', { value: selectedLog.targetId ?? 'N/A' })}</div>
               </div>
               <div className="bg-slate-50 border border-gray-200 rounded-[10px] px-3 py-2.5">
-                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">Actor</div>
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actor')}</div>
                 <div className="text-slate-700 font-mono text-xs">{selectedLog.actorUserId}</div>
               </div>
               <div className="bg-slate-950 rounded-[10px] px-3 py-2.5">
-                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase mb-2">Details JSON</div>
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase mb-2">{t('superadmin.auditLogs.detailsJson')}</div>
                 <pre className="m-0 text-slate-200 font-mono text-[11px] whitespace-pre-wrap break-words">
                   {selectedLog.details ? JSON.stringify(selectedLog.details, null, 2) : 'null'}
                 </pre>

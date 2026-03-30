@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from '../i18n';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
   ChevronLeft, Check, MapPin, Navigation,
@@ -58,16 +59,22 @@ interface ReportForm {
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const CATEGORIES: {
   type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
-  color: string; bg: string; desc: string; emoji: string;
+  color: string; bg: string; desc: string; descKey: string; emoji: string;
 }[] = [
-  { type: 'Pollution', label: 'Pollution', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, and waste pollution concerns', emoji: 'P' },
-  { type: 'Noise', label: 'Noise', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Public noise disturbance incidents', emoji: 'N' },
-  { type: 'Crime', label: 'Crime', icon: AlertCircle, color: 'var(--primary)', bg: '#DBEAFE', desc: 'Criminal and suspicious activity reports', emoji: 'C' },
-  { type: 'Road Hazard', label: 'Road Hazard', icon: AlertTriangle, color: 'var(--severity-medium)', bg: '#FEF3C7', desc: 'Road, sidewalk, and street safety hazards', emoji: 'R' },
-  { type: 'Other', label: 'Other', icon: MoreHorizontal, color: '#475569', bg: '#F1F5F9', desc: 'Unlisted general issues', emoji: 'O' },
+  { type: 'Pollution', label: 'Pollution', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, and waste pollution concerns', descKey: 'citizen.report.category.pollution.desc', emoji: 'P' },
+  { type: 'Noise', label: 'Noise', icon: Volume2, color: '#7C3AED', bg: '#EDE9FE', desc: 'Public noise disturbance incidents', descKey: 'citizen.report.category.noise.desc', emoji: 'N' },
+  { type: 'Crime', label: 'Crime', icon: AlertCircle, color: 'var(--primary)', bg: '#DBEAFE', desc: 'Criminal and suspicious activity reports', descKey: 'citizen.report.category.crime.desc', emoji: 'C' },
+  { type: 'Road Hazard', label: 'Road Hazard', icon: AlertTriangle, color: 'var(--severity-medium)', bg: '#FEF3C7', desc: 'Road, sidewalk, and street safety hazards', descKey: 'citizen.report.category.roadHazard.desc', emoji: 'R' },
+  { type: 'Other', label: 'Other', icon: MoreHorizontal, color: '#475569', bg: '#F1F5F9', desc: 'Unlisted general issues', descKey: 'citizen.report.category.other.desc', emoji: 'O' },
 ];
 
-const STEP_LABELS = ['Type', 'Location', 'Details', 'Evidence', 'Review'];
+const STEP_LABEL_KEYS = [
+  'citizen.report.stepLabel.type',
+  'citizen.report.stepLabel.location',
+  'citizen.report.stepLabel.details',
+  'citizen.report.stepLabel.evidence',
+  'citizen.report.stepLabel.review',
+] as const;
 
 type LatLng = [number, number];
 
@@ -283,12 +290,14 @@ function Step2FitToBoundaryBounds() {
    STEP PROGRESS INDICATOR
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function StepIndicator({ current }: { current: number }) {
+  const { t } = useTranslation();
   return (
     <div
       className="citizen-web-strip sticky top-[60px] z-40 bg-white border-b border-slate-200 pt-3 pb-2.5"
     >
       <div className="citizen-web-strip-inner flex items-start">
-        {STEP_LABELS.map((label, i) => {
+        {STEP_LABEL_KEYS.map((labelKey, i) => {
+          const label = t(labelKey);
           const s = i + 1;
           const done = s < current;
           const active = s === current;
@@ -316,7 +325,7 @@ function StepIndicator({ current }: { current: number }) {
                   {label}
                 </span>
               </div>
-              {i < STEP_LABELS.length - 1 && (
+              {i < STEP_LABEL_KEYS.length - 1 && (
                 <div className="flex-1 h-[2.5px] mt-[14px] mx-[3px] rounded overflow-hidden bg-slate-200">
                   <div className={[`h-full bg-primary transition-[width] duration-300 ease-out`, done ? 'w-full' : 'w-0'].join(' ')} />
                 </div>
@@ -405,6 +414,7 @@ function getSeverityButtonClasses(level: Severity, selected: boolean) {
    STEP 1 - INCIDENT TYPE
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<React.SetStateAction<ReportForm>> }) {
+  const { t } = useTranslation();
   const severitySectionRef = useRef<HTMLDivElement | null>(null);
   const subcategorySectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -418,19 +428,19 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
     <div className="incident-step2 pt-[22px] px-4 pb-2">
       <div className="mb-5">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
-          Step 1 of 5
+          {t('citizen.report.step1.badge')}
         </div>
         <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
-          What type of incident?
+          {t('citizen.report.step1.heading')}
         </h2>
         <p className="text-[13px] text-[#64748B] leading-relaxed">
-          Select the category that best describes the situation you are reporting to the barangay.
+          {t('citizen.report.step1.desc')}
         </p>
       </div>
 
       {/* Category Cards */}
       <div className="grid grid-cols-2 gap-[10px] mb-3.5">
-        {CATEGORIES.map(({ type, label, icon: Icon, desc }) => {
+        {CATEGORIES.map(({ type, label, icon: Icon, descKey }) => {
           const sel = form.category === type;
           const theme = getCategoryThemeClasses(type);
           return (
@@ -479,7 +489,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                   {label}
                 </div>
                 <div className={['text-[10px] leading-[1.45]', sel ? 'text-white/80' : 'text-[#94A3B8]'].join(' ')}>
-                  {desc}
+                  {t(descKey)}
                 </div>
               </div>
             </button>
@@ -497,14 +507,14 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       >
         <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#E2E8F0]">
           <div className="font-bold text-[13px] text-[#1E293B] mb-3 flex items-center gap-1.5">
-            <AlertTriangle size={14} color="var(--severity-medium)" /> How severe is this incident?
+            <AlertTriangle size={14} color="var(--severity-medium)" /> {t('citizen.report.step1.severityPrompt')}
           </div>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { k: 'low' as Severity,      label: 'Minor',    color: '#059669', bg: '#D1FAE5', border: '#6EE7B7' },
-              { k: 'medium' as Severity,   label: 'Moderate', color: 'var(--severity-medium)', bg: '#FEF3C7', border: '#FCD34D' },
-              { k: 'high' as Severity,     label: 'Serious',  color: '#C2410C', bg: '#FFEDD5', border: '#FB923C' },
-              { k: 'critical' as Severity, label: 'Critical', color: 'var(--severity-critical)', bg: '#FEE2E2', border: '#FCA5A5' },
+              { k: 'low' as Severity,      labelKey: 'citizen.report.severity.minor',    color: '#059669', bg: '#D1FAE5', border: '#6EE7B7' },
+              { k: 'medium' as Severity,   labelKey: 'citizen.report.severity.moderate', color: 'var(--severity-medium)', bg: '#FEF3C7', border: '#FCD34D' },
+              { k: 'high' as Severity,     labelKey: 'citizen.report.severity.serious',  color: '#C2410C', bg: '#FFEDD5', border: '#FB923C' },
+              { k: 'critical' as Severity, labelKey: 'citizen.report.severity.critical', color: 'var(--severity-critical)', bg: '#FEE2E2', border: '#FCA5A5' },
             ].map(s => {
               const sel = form.severity === s.k;
               return (
@@ -516,7 +526,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                   }}
                   className={getSeverityButtonClasses(s.k, sel)}
                 >
-                  {s.label}
+                  {t(s.labelKey)}
                 </button>
               );
             })}
@@ -527,7 +537,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       {form.category ? (
         <div ref={subcategorySectionRef} className="mt-3 bg-white border border-[#E2E8F0] rounded-[14px] p-3.5">
           <label htmlFor="incident-subcategory-select" className="block font-bold text-xs text-[#1E293B] mb-2">
-            Select Subcategory
+            {t('citizen.report.step1.subcategoryLabel')}
           </label>
           <select
             id="incident-subcategory-select"
@@ -584,6 +594,7 @@ function Step2({
   setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
   validationError?: string;
 }) {
+  const { t } = useTranslation();
   const session = getAuthSession();
   const userBarangayCode = session?.user.barangayCode ?? null;
   const allowedBarangays = userBarangayCode
@@ -697,7 +708,7 @@ function Step2({
       {form.pin && (
         <CircleMarker center={[form.pin.lat, form.pin.lng]} radius={8} pathOptions={{ color: 'var(--severity-critical)', fillColor: 'var(--severity-critical)', fillOpacity: 1 }}>
           <Tooltip direction="top" offset={[0, -8]} permanent>
-            Incident Pin
+            {t('citizen.report.step2.incidentPin')}
           </Tooltip>
         </CircleMarker>
       )}
@@ -707,12 +718,12 @@ function Step2({
   return (
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-4">
-        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 2 of 5</div>
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step2.badge')}</div>
         <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
-          Where did it happen?
+          {t('citizen.report.step2.heading')}
         </h2>
         <p className="text-[13px] text-[#64748B] leading-relaxed">
-          Tap on OpenStreetMap to drop a pin inside the supported barangay boundaries.
+          {t('citizen.report.step2.desc')}
         </p>
       </div>
 
@@ -729,12 +740,12 @@ function Step2({
           onClick={() => setMapExpanded(true)}
           className="absolute top-2.5 right-2.5 z-[11] border border-white/70 bg-[#0F172AB8] text-white rounded-[10px] py-1.5 px-2.5 text-[11px] font-bold"
         >
-          Expand Map
+          {t('citizen.report.step2.expandMap')}
         </button>
 
         {!form.pin && (
           <div className="incident-step2-map-hint absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#0F172AE0] text-white rounded-lg py-2 px-3.5 text-xs font-semibold pointer-events-none z-10 flex items-center gap-[7px] whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
-            <MapPin size={13} /> Tap map to pin location
+            <MapPin size={13} /> {t('citizen.report.step2.tapHint')}
           </div>
         )}
         {renderMap(320)}
@@ -743,18 +754,18 @@ function Step2({
       {mapExpanded ? (
         <div className="fixed inset-0 z-[250] bg-[#0B1220] flex flex-col">
           <div className="flex items-center justify-between gap-3 px-[14px] py-3 text-white border-b border-white/[0.15]">
-            <div className="text-[13px] font-bold">Expanded Map Pinning</div>
+            <div className="text-[13px] font-bold">{t('citizen.report.step2.expandedMapTitle')}</div>
             <button
               type="button"
               onClick={() => setMapExpanded(false)}
               className="border border-white/25 bg-white/[0.08] text-white rounded-[10px] py-1.5 px-3 text-xs font-bold cursor-pointer"
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
           <div className="flex-1">{renderMap('100%')}</div>
           <div className="px-[14px] py-2.5 text-[#BFDBFE] text-xs">
-            Tip: pinch or zoom in for precise pinning, then tap to place your incident pin.
+            {t('citizen.report.step2.expandedMapTip')}
           </div>
         </div>
       ) : null}
@@ -768,7 +779,7 @@ function Step2({
           <div className="flex-1 min-w-0">
             <div className="font-bold text-[13px] text-[#1E293B]">{form.pin.barangay}</div>
             <div className="text-[11px] text-[#3B82F6] mt-px font-medium">
-              Pin: {form.pin.district} - lat {form.pin.lat.toFixed(6)}, lng {form.pin.lng.toFixed(6)}
+              {t('citizen.report.step2.pinCoords', { district: form.pin.district, lat: form.pin.lat.toFixed(6), lng: form.pin.lng.toFixed(6) })}
             </div>
           </div>
           <button
@@ -789,25 +800,25 @@ function Step2({
             !hasBarangayProfile ? 'opacity-60' : 'opacity-100',
           ].join(' ')}
         >
-          <Navigation size={15} /> Use My Registered Location
+          <Navigation size={15} /> {t('citizen.report.step2.useRegisteredLocation')}
         </button>
       )}
 
       {!hasBarangayProfile ? (
         <div className="mb-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] text-severity-critical text-xs p-[9px_11px]">
-          Your account has no assigned barangay profile. Please contact barangay staff or super admin before submitting a report.
+          {t('citizen.report.step2.noBarangayProfile')}
         </div>
       ) : null}
 
       {form.pin && hasBarangayProfile && !pinInSupportedArea ? (
         <div className="mb-3 rounded-[10px] border border-[#FCA5A5] bg-[#FEF2F2] text-severity-critical text-xs p-[9px_11px]">
-          Pin is outside supported barangay boundaries. Please place the pin within Barangay 251, 252, or 256.
+          {t('citizen.report.step2.pinOutsideBoundary')}
         </div>
       ) : null}
 
       {pinValidationInFlight ? (
         <div className="mb-3 text-xs text-primary">
-          Validating selected pin against official barangay boundaries...
+          {t('citizen.report.step2.validatingPin')}
         </div>
       ) : null}
 
@@ -819,19 +830,19 @@ function Step2({
 
       {form.pin && hasBarangayProfile && pinInSupportedArea && form.pin.isCrossBarangay ? (
         <div className="mb-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-xs p-[9px_11px]">
-          This location is outside your registered barangay. Submission is allowed and will be classified as a cross-barangay incident routed to {form.pin.barangay}.
+          {t('citizen.report.step2.crossBarangayNotice', { barangay: form.pin.barangay })}
         </div>
       ) : null}
 
       {/* Address text input */}
       <div>
         <label className="text-[11px] font-bold text-[#475569] block mb-[7px] uppercase tracking-[0.07em]">
-          Specific Address / Landmark
+          {t('citizen.report.step2.addressLabel')}
         </label>
         <input
           value={form.address}
           onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-          placeholder="e.g. Near the church, Purok 3, beside the basketball court"
+          placeholder={t('citizen.report.step2.addressPlaceholder')}
           className="incident-step2-address-input"
         />
       </div>
@@ -857,11 +868,19 @@ function Step3({
   setForm: React.Dispatch<React.SetStateAction<ReportForm>>;
   validationError?: string;
 }) {
+  const { t } = useTranslation();
   const MAX = 500;
   const QUICK_TAGS = [
-    'People in danger', 'Property damage', 'Road blocked', 'Spreading rapidly',
-    'Multiple victims', 'Ongoing situation', 'Needs evacuation', 'Structural damage',
-    'Children involved', 'Elderly at risk',
+    { key: 'citizen.report.tag.peopleDanger',    en: 'People in danger' },
+    { key: 'citizen.report.tag.propertyDamage',  en: 'Property damage' },
+    { key: 'citizen.report.tag.roadBlocked',     en: 'Road blocked' },
+    { key: 'citizen.report.tag.spreadingRapidly',en: 'Spreading rapidly' },
+    { key: 'citizen.report.tag.multipleVictims', en: 'Multiple victims' },
+    { key: 'citizen.report.tag.ongoingSituation',en: 'Ongoing situation' },
+    { key: 'citizen.report.tag.needsEvacuation', en: 'Needs evacuation' },
+    { key: 'citizen.report.tag.structuralDamage',en: 'Structural damage' },
+    { key: 'citizen.report.tag.childrenInvolved',en: 'Children involved' },
+    { key: 'citizen.report.tag.elderlyAtRisk',   en: 'Elderly at risk' },
   ];
 
   const toggleTag = (tag: string) => {
@@ -879,12 +898,12 @@ function Step3({
   return (
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-[18px]">
-        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 3 of 5</div>
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step3.badge')}</div>
         <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
-          Describe the Incident
+          {t('citizen.report.step3.heading')}
         </h2>
         <p className="text-[13px] text-[#64748B] leading-relaxed">
-          Provide as much detail as possible to help responders act quickly and effectively.
+          {t('citizen.report.step3.desc')}
         </p>
       </div>
 
@@ -892,7 +911,7 @@ function Step3({
       <div className="bg-[#FFFBEB] rounded-xl p-[12px_14px] border border-[#FDE68A] mb-[18px] flex gap-2.5 items-start">
         <Info size={14} color="var(--severity-medium)" className="shrink-0 mt-px" />
         <div className="text-xs text-[#92400E] leading-relaxed">
-          <strong>Good description:</strong> What is happening, how many people are involved, any immediate danger, and what has already been done.
+          <strong>{t('citizen.report.step3.tipLabel')}</strong> {t('citizen.report.step3.tipBody')}
         </div>
       </div>
 
@@ -900,7 +919,7 @@ function Step3({
       <div className="mb-[18px]">
         <div className="flex justify-between mb-[7px]">
           <label className="text-[11px] font-bold text-[#475569] uppercase tracking-[0.07em]">
-            Incident Description *
+            {t('citizen.report.step3.fieldLabel')}
           </label>
           <span
             className={[
@@ -918,7 +937,7 @@ function Step3({
         <textarea
           value={form.description}
           onChange={e => { if (e.target.value.length <= MAX) setForm(p => ({ ...p, description: e.target.value })); }}
-          placeholder="Describe clearly what you can see or hear. Include any urgent details that responders should know immediately..."
+          placeholder={t('citizen.report.step3.textareaPlaceholder')}
           rows={6}
           className={[
             'w-full p-[13px_14px] rounded-[14px] border-[1.5px] text-[13px] font-roboto outline-none resize-none box-border text-[#1E293B] leading-[1.65] transition-colors bg-white focus:border-[#3B82F6]',
@@ -930,15 +949,15 @@ function Step3({
       {/* Quick tags */}
       <div className="mb-5">
         <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
-          Quick Tags - tap to add
+          {t('citizen.report.step3.quickTagsLabel')}
         </div>
         <div className="flex flex-wrap gap-[7px]">
           {QUICK_TAGS.map(tag => {
-            const added = form.quickTags.includes(tag);
+            const added = form.quickTags.includes(tag.en);
             return (
               <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
+                key={tag.en}
+                onClick={() => toggleTag(tag.en)}
                 className={[
                   'py-1.5 px-[11px] rounded-[20px] border-[1.5px] text-[11px] font-semibold transition-all duration-200',
                   added
@@ -946,7 +965,7 @@ function Step3({
                     : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]',
                 ].join(' ')}
               >
-                {added ? 'Selected ' : '+ '}{tag}
+                {added ? 'Selected ' : '+ '}{t(tag.key)}
               </button>
             );
           })}
@@ -954,7 +973,7 @@ function Step3({
 
         {form.quickTags.length > 0 ? (
           <div className="mt-2.5 text-[11px] text-primary font-semibold">
-            Selected tags: {form.quickTags.join(', ')}
+            {t('citizen.report.step3.selectedTags', { tags: form.quickTags.join(', ') })}
           </div>
         ) : null}
       </div>
@@ -968,14 +987,14 @@ function Step3({
       {/* Affected persons */}
       <div>
         <label className="text-[11px] font-bold text-[#475569] block mb-2 uppercase tracking-[0.07em]">
-          Estimated People Affected
+          {t('citizen.report.step3.affectedLabel')}
         </label>
         <div className="incident-affected-grid grid grid-cols-4 gap-2">
           {[
-            { val: '1-5', label: '1-5', sublabel: 'Few' },
-            { val: '6-20', label: '6-20', sublabel: 'Several' },
-            { val: '21-50', label: '21-50', sublabel: 'Many' },
-            { val: '50+', label: '50+', sublabel: 'Large' },
+            { val: '1-5', label: '1-5', sublabelKey: 'citizen.report.step3.affected.few' },
+            { val: '6-20', label: '6-20', sublabelKey: 'citizen.report.step3.affected.several' },
+            { val: '21-50', label: '21-50', sublabelKey: 'citizen.report.step3.affected.many' },
+            { val: '50+', label: '50+', sublabelKey: 'citizen.report.step3.affected.large' },
           ].map(opt => {
             const sel = form.affectedCount === opt.val;
             return (
@@ -990,7 +1009,7 @@ function Step3({
                 ].join(' ')}
               >
                 <div className={['text-sm font-extrabold', sel ? 'text-primary' : 'text-[#1E293B]'].join(' ')}>{opt.label}</div>
-                <div className={['mt-0.5 text-[9px] font-semibold', sel ? 'text-[#3B82F6]' : 'text-[#94A3B8]'].join(' ')}>{opt.sublabel}</div>
+                <div className={['mt-0.5 text-[9px] font-semibold', sel ? 'text-[#3B82F6]' : 'text-[#94A3B8]'].join(' ')}>{t(opt.sublabelKey)}</div>
               </button>
             );
           })}
@@ -1022,6 +1041,7 @@ function Step4({
   validationError?: string;
   showVoiceRecorder: boolean;
 }) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [recording, setRecording] = useState(false);
   const [recTime, setRecTime] = useState(0);
@@ -1087,9 +1107,9 @@ function Step4({
       mediaRecRef.current = rec;
       setRecording(true);
       setRecTime(0);
-      timerRef.current = setInterval(() => setRecTime(t => t + 1), 1000);
+      timerRef.current = setInterval(() => setRecTime(prev => prev + 1), 1000);
     } catch {
-      setMicError('Microphone access denied. Please allow microphone access in your browser settings to record audio.');
+      setMicError(t('citizen.report.step4.micError'));
     }
   };
 
@@ -1105,12 +1125,12 @@ function Step4({
   return (
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-[18px]">
-        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 4 of 5 - Optional</div>
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step4.badge')}</div>
         <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
-          Add Evidence
+          {t('citizen.report.step4.heading')}
         </h2>
         <p className="text-[13px] text-[#64748B] leading-relaxed">
-          Photo evidence is required. Voice recording is only available for noise-related incidents.
+          {t('citizen.report.step4.desc')}
         </p>
       </div>
 
@@ -1127,8 +1147,8 @@ function Step4({
             <Camera size={17} />
           </div>
           <div>
-            <div className="font-bold text-[14px] text-[#1E293B]">Photo Evidence</div>
-            <div className="text-[11px] text-[#94A3B8]">Up to 4 photos - JPG, PNG</div>
+            <div className="font-bold text-[14px] text-[#1E293B]">{t('citizen.report.step4.photoTitle')}</div>
+            <div className="text-[11px] text-[#94A3B8]">{t('citizen.report.step4.photoSubtitle')}</div>
           </div>
         </div>
 
@@ -1175,7 +1195,7 @@ function Step4({
             >
               <Camera size={24} color="#94A3B8" />
               <span className="incident-step4-photo-add-text">
-                {form.photoPreviews.length === 0 ? 'Add\nPhoto' : 'Add\nMore'}
+                {form.photoPreviews.length === 0 ? t('citizen.report.step4.addPhoto') : t('citizen.report.step4.addMore')}
               </span>
             </button>
           )}
@@ -1184,8 +1204,10 @@ function Step4({
         {form.photoPreviews.length > 0 && (
           <div className="mt-2.5 text-[11px] text-[#64748B] flex items-center gap-[5px]">
             <CheckCircle2 size={12} color="#059669" />
-            {form.photoPreviews.length} photo{form.photoPreviews.length > 1 ? 's' : ''} attached
-            {form.photoPreviews.length < 4 && ` - ${4 - form.photoPreviews.length} remaining`}
+            {form.photoPreviews.length > 1
+              ? t('citizen.report.step4.photosAttachedPlural', { count: form.photoPreviews.length })
+              : t('citizen.report.step4.photosAttached', { count: form.photoPreviews.length })}
+            {form.photoPreviews.length < 4 && ` - ${t('citizen.report.step4.photosRemaining', { count: 4 - form.photoPreviews.length })}`}
           </div>
         )}
 
@@ -1199,8 +1221,8 @@ function Step4({
             <Mic size={17} />
           </div>
           <div>
-            <div className="font-bold text-[14px] text-[#1E293B]">Voice Recording</div>
-            <div className="text-[11px] text-[#94A3B8]">Describe the situation verbally</div>
+            <div className="font-bold text-[14px] text-[#1E293B]">{t('citizen.report.step4.voiceTitle')}</div>
+            <div className="text-[11px] text-[#94A3B8]">{t('citizen.report.step4.voiceSubtitle')}</div>
           </div>
         </div>
 
@@ -1229,7 +1251,7 @@ function Step4({
                   </div>
                   <div className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-[5px]">
                     <span className="incident-step4-recording-dot" />
-                    Recording in progress
+                    {t('citizen.report.step4.recordingInProgress')}
                   </div>
                 </div>
 
@@ -1237,7 +1259,7 @@ function Step4({
                   onClick={stopRecording}
                   className="incident-step4-rec-stop-btn"
                 >
-                  <Square size={14} fill="white" /> Stop Recording
+                  <Square size={14} fill="white" /> {t('citizen.report.step4.stopRecording')}
                 </button>
               </>
             ) : (
@@ -1246,14 +1268,14 @@ function Step4({
                   <Mic size={26} color="#94A3B8" />
                 </div>
                 <div className="text-center">
-                  <div className="text-[14px] font-bold text-[#1E293B]">Record a Voice Note</div>
-                  <div className="text-xs text-[#94A3B8] mt-[3px]">Tap to start recording</div>
+                  <div className="text-[14px] font-bold text-[#1E293B]">{t('citizen.report.step4.recordVoiceNote')}</div>
+                  <div className="text-xs text-[#94A3B8] mt-[3px]">{t('citizen.report.step4.tapToRecord')}</div>
                 </div>
                 <button
                   onClick={startRecording}
                   className="incident-step4-rec-start-btn"
                 >
-                  <Mic size={14} /> Start Recording
+                  <Mic size={14} /> {t('citizen.report.step4.startRecording')}
                 </button>
               </>
             )}
@@ -1266,7 +1288,7 @@ function Step4({
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-[13px] text-[#1E293B] mb-1.5">
-                Voice Recording Attached
+                {t('citizen.report.step4.voiceAttached')}
               </div>
               <audio
                 ref={audioElRef}
@@ -1288,7 +1310,7 @@ function Step4({
       </div>
       ) : (
         <div className="bg-[#F8FAFC] rounded-[14px] border border-[#E2E8F0] p-[12px_14px] text-[#475569] text-xs leading-relaxed">
-          Voice recording is only available for noise-related incidents.
+          {t('citizen.report.step4.voiceUnavailable')}
         </div>
       )}
 
@@ -1315,7 +1337,7 @@ function Step4({
               alt={`preview-${previewIndex + 1}`}
             />
             <div className="citizen-photo-preview-count">
-              Photo {previewIndex + 1} of {form.photoPreviews.length}
+              {t('citizen.report.step4.photoPreviewCount', { current: previewIndex + 1, total: form.photoPreviews.length })}
             </div>
           </div>
         </div>
@@ -1347,6 +1369,7 @@ function Step5({
   reporterName: string;
   reporterBarangayCode: string | null;
 }) {
+  const { t } = useTranslation();
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const cat = CATEGORIES.find(c => c.type === form.category);
   const Icon = cat?.icon ?? MoreHorizontal;
@@ -1363,46 +1386,50 @@ function Step5({
 
   const details = [
     {
-      label: 'Category',
+      label: t('citizen.report.step5.fieldCategory'),
       icon: <Icon size={14} />,
-      value: cat ? `${cat.label} - ${form.subcategory ?? 'Subcategory not set'}` : 'Not set',
+      value: cat ? `${cat.label} - ${form.subcategory ?? t('citizen.report.step5.subcategoryNotSet')}` : t('citizen.report.step5.categoryNotSet'),
       accentClass: 'is-category',
     },
     {
-      label: 'Location',
+      label: t('citizen.report.step5.fieldLocation'),
       icon: <MapPin size={14} />,
-      value: form.address || (form.pin ? `${form.pin.barangay}, ${form.pin.district}` : 'Location not set'),
+      value: form.address || (form.pin ? `${form.pin.barangay}, ${form.pin.district}` : t('citizen.report.step5.locationNotSet')),
       accentClass: 'is-location',
     },
     {
-      label: 'Description',
+      label: t('citizen.report.step5.fieldDescription'),
       icon: <FileText size={14} />,
-      value: form.description || 'No description provided',
+      value: form.description || t('citizen.report.step5.noDescription'),
       accentClass: 'is-description',
     },
     {
-      label: 'Affected Persons',
+      label: t('citizen.report.step5.fieldAffected'),
       icon: <User size={14} />,
-      value: form.affectedCount ? `Approx. ${form.affectedCount} persons` : 'Not specified',
+      value: form.affectedCount ? t('citizen.report.step5.affectedValue', { count: form.affectedCount }) : t('citizen.report.step5.affectedNotSpecified'),
       accentClass: 'is-affected',
     },
     {
-      label: 'Evidence',
+      label: t('citizen.report.step5.fieldEvidence'),
       icon: <Camera size={14} />,
       value: [
-        form.photoPreviews.length > 0 ? `${form.photoPreviews.length} photo${form.photoPreviews.length > 1 ? 's' : ''}` : null,
-        form.audioUrl ? '1 voice recording' : null,
-      ].filter(Boolean).join(' - ') || 'None attached',
+        form.photoPreviews.length > 0
+          ? (form.photoPreviews.length > 1
+            ? t('citizen.report.step5.photoCountPlural', { count: form.photoPreviews.length })
+            : t('citizen.report.step5.photoCount', { count: form.photoPreviews.length }))
+          : null,
+        form.audioUrl ? t('citizen.report.step5.voiceRecording') : null,
+      ].filter(Boolean).join(' - ') || t('citizen.report.step5.noEvidence'),
       accentClass: 'is-evidence',
     },
     {
-      label: 'Reporter',
+      label: t('citizen.report.step5.fieldReporter'),
       icon: <User size={14} />,
-      value: `${reporterName} - ${reporterBarangayCode ? `Barangay ${reporterBarangayCode}` : 'Registered barangay not set'}`,
+      value: `${reporterName} - ${reporterBarangayCode ? `Barangay ${reporterBarangayCode}` : t('citizen.report.step5.barangayNotSet')}`,
       accentClass: 'is-neutral',
     },
     {
-      label: 'Date & Time',
+      label: t('citizen.report.step5.fieldDateTime'),
       icon: <Clock size={14} />,
       value: new Date().toLocaleString('en-PH', { dateStyle: 'long', timeStyle: 'short' }),
       accentClass: 'is-neutral',
@@ -1427,12 +1454,12 @@ function Step5({
   return (
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-5">
-        <div className="inline-flex items-center gap-1.5 bg-[#FEF3C7] rounded-[20px] px-3 py-1 text-[#92400E] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">Step 5 of 5 - Final Review</div>
+        <div className="inline-flex items-center gap-1.5 bg-[#FEF3C7] rounded-[20px] px-3 py-1 text-[#92400E] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step5.badge')}</div>
         <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
-          Review & Submit
+          {t('citizen.report.step5.heading')}
         </h2>
         <p className="text-[13px] text-[#64748B] leading-relaxed">
-          Please verify all details before submitting. You can go back to make changes.
+          {t('citizen.report.step5.desc')}
         </p>
       </div>
 
@@ -1445,10 +1472,10 @@ function Step5({
           </div>
           <div>
             <div className="font-extrabold text-[17px] text-[#1E293B] leading-tight">
-              {cat?.label ?? 'Incident'} Report
+              {(cat?.label ?? t('citizen.report.step5.categoryNotSet'))} {t('citizen.report.step5.reportSuffix')}
             </div>
             <div className="text-xs text-[#64748B] mt-0.5">
-              Submitted by {reporterName} - {new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+              {t('citizen.report.step5.submittedBy', { name: reporterName, date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) })}
             </div>
           </div>
           {/* Severity pill */}
@@ -1492,7 +1519,7 @@ function Step5({
       {form.photoPreviews.length > 0 && (
         <div className="mb-4">
           <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
-            Attached Photos
+            {t('citizen.report.step5.attachedPhotos')}
           </div>
           <div className="flex gap-2">
             {form.photoPreviews.map((src, i) => (
@@ -1520,7 +1547,7 @@ function Step5({
       <div className="bg-[#FFFBEB] rounded-[14px] p-3.5 border border-[#FDE68A] mb-1 flex gap-2.5 items-start">
         <Info size={15} color="var(--severity-medium)" className="incident-step5-disclaimer-icon" />
         <p className="text-xs text-[#78350F] leading-[1.65] m-0">
-          By submitting this report, you certify that the information provided is <strong>true and accurate</strong> to the best of your knowledge. Filing a false incident report is a punishable offense under Philippine law (RA 10173, LGU ordinances).
+          {t('citizen.report.step5.disclaimer')}
         </p>
       </div>
 
@@ -1547,7 +1574,7 @@ function Step5({
               alt={`review-preview-${previewIndex + 1}`}
             />
             <div className="citizen-photo-preview-count">
-              Photo {previewIndex + 1} of {form.photoPreviews.length}
+              {t('citizen.report.step5.photoPreviewCount', { current: previewIndex + 1, total: form.photoPreviews.length })}
             </div>
           </div>
         </div>
@@ -1560,23 +1587,24 @@ function Step5({
    SUCCESS SCREEN
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: string }) {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState(6);
 
   useEffect(() => {
-    const t = setInterval(() => {
+    const timer = setInterval(() => {
       setCountdown(c => {
-        if (c <= 1) { clearInterval(t); onDone(); }
+        if (c <= 1) { clearInterval(timer); onDone(); }
         return c - 1;
       });
     }, 1000);
-    return () => clearInterval(t);
+    return () => clearInterval(timer);
   }, [onDone]);
 
   const steps = [
-    { label: 'Report received by system', done: true },
-    { label: 'Forwarded to barangay officials', done: true },
-    { label: 'Response unit notified', done: true },
-    { label: 'On-site assessment pending', done: false },
+    { labelKey: 'citizen.report.success.step1', done: true },
+    { labelKey: 'citizen.report.success.step2', done: true },
+    { labelKey: 'citizen.report.success.step3', done: true },
+    { labelKey: 'citizen.report.success.step4', done: false },
   ];
 
   return (
@@ -1594,29 +1622,29 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
         </div>
 
         <div className="font-black text-[28px] text-white mb-2 text-center leading-[1.15]">
-          Report Submitted!
+          {t('citizen.report.success.heading')}
         </div>
         <div className="text-[14px] text-[#93C5FD] mb-6 text-center leading-[1.65] max-w-[320px]">
-          Your incident report has been received and routed to the appropriate response units in your barangay.
+          {t('citizen.report.success.subtext')}
         </div>
 
         {/* Report ID card */}
         <div className="w-full bg-white/[0.08] border-[1.5px] border-white/[0.18] rounded-[18px] p-[18px_20px] mb-[22px] text-center backdrop-blur-[10px]">
           <div className="text-[10px] text-[#93C5FD] font-bold tracking-[0.12em] uppercase mb-1.5">
-            Your Report ID
+            {t('citizen.report.success.reportIdLabel')}
           </div>
           <div className="text-[28px] font-black text-white tracking-[0.06em] tabular-nums">
             {reportId}
           </div>
           <div className="text-[11px] text-white/50 mt-1.5">
-            Use this ID to track your report under "My Reports"
+            {t('citizen.report.success.reportIdHint')}
           </div>
         </div>
 
         {/* Response timeline */}
         <div className="w-full bg-white/[0.06] rounded-2xl p-4 mb-[22px] border border-white/[0.10]">
           <div className="text-[11px] font-bold text-[#93C5FD] tracking-[0.08em] uppercase mb-3">
-            Response Status
+            {t('citizen.report.success.responseStatusLabel')}
           </div>
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-2.5${i < steps.length - 1 ? ' mb-2.5' : ''}`}>
@@ -1627,7 +1655,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
                 }
               </div>
               <span className={`incident-success-step-label ${s.done ? 'is-done' : 'is-pending'}`}>
-                {s.label}
+                {t(s.labelKey)}
               </span>
             </div>
           ))}
@@ -1637,7 +1665,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
         <div className="w-full bg-[rgba(185,28,28,0.15)] border border-[rgba(185,28,28,0.3)] rounded-xl p-[12px_14px] mb-[22px] flex items-center gap-2.5">
           <Phone size={16} color="#FCA5A5" className="incident-success-note-icon" />
           <span className="text-xs text-[#FCA5A5] leading-[1.5]">
-            <strong>In immediate danger?</strong> Call <strong>911</strong> now without waiting for a response.
+            {t('citizen.report.success.emergencyNote')}
           </span>
         </div>
 
@@ -1646,7 +1674,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
           onClick={onDone}
           className="w-full bg-white border-none rounded-2xl p-4 text-primary font-extrabold text-[15px] cursor-pointer transition-opacity duration-150 shadow-[0_4px_20px_rgba(0,0,0,0.25)]"
         >
-          Back to Citizen Portal ({countdown}s)
+          {t('citizen.report.success.backBtn', { countdown })}
         </button>
       </div>
 
@@ -1661,6 +1689,7 @@ function SuccessScreen({ onDone, reportId }: { onDone: () => void; reportId: str
 }
 
 function SubmissionLoadingOverlay() {
+  const { t } = useTranslation();
   return (
     <div
       className="incident-submit-overlay"
@@ -1685,7 +1714,7 @@ function SubmissionLoadingOverlay() {
           />
         </div>
         <p className="m-0 text-[#DBEAFE] text-[13px] font-bold tracking-[0.02em]">
-          Submitting your incident report...
+          {t('citizen.report.submitting')}
         </p>
       </div>
       <style>{`@keyframes incidentSubmitSpin { to { transform: rotate(360deg); } }`}</style>
@@ -1723,6 +1752,7 @@ const STEP_REQUIREMENTS: Record<number, (f: ReportForm) => string | null> = {
 };
 
 export default function IncidentReport() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen User';
@@ -2035,7 +2065,7 @@ export default function IncidentReport() {
                         }}
                         className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-[#F1F5F9] text-[#1E293B] text-[13px] font-semibold cursor-pointer"
                       >
-                        Open profile page
+                        {t('citizen.dashboard.openProfilePage')}
                       </button>
                       <button
                         type="button"
@@ -2046,7 +2076,7 @@ export default function IncidentReport() {
                         }}
                         className="w-full text-left px-3 py-[11px] bg-white border-none text-severity-critical text-[13px] font-bold cursor-pointer"
                       >
-                        Sign out
+                        {t('common.signOut')}
                       </button>
                     </div>
                   )}
@@ -2077,7 +2107,7 @@ export default function IncidentReport() {
                   onClick={goBack}
                   className="flex-1 p-[14px] rounded-[14px] border-[1.5px] border-[#E2E8F0] bg-[#F8FAFC] text-[#475569] font-bold text-[14px] cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <ChevronLeft size={16} /> Back
+                  <ChevronLeft size={16} /> {t('common.back')}
                 </button>
               )}
 
@@ -2095,13 +2125,13 @@ export default function IncidentReport() {
                 ].join(' ')}
               >
                 {submitting ? (
-                  <>Submitting...</>
+                  <>{t('citizen.report.submitting')}</>
                 ) : step === 5 ? (
-                  <>Submit Report</>
+                  <>{t('citizen.report.step5.confirm')}</>
                 ) : step === 4 ? (
-                  <>Continue to Review {'->'}</>
+                  <>{t('citizen.report.footer.continueToReview')} {'->'}</>
                 ) : (
-                  <>Continue {'->'}</>
+                  <>{t('citizen.report.footer.continue')} {'->'}</>
                 )}
               </button>
               </div>

@@ -4,33 +4,35 @@ import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck, House } 
 import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
+import { useTranslation } from '../../i18n';
 
 interface StrengthRule {
-  label: string;
+  key: string;
   test: (pw: string) => boolean;
 }
 
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 const RULES: StrengthRule[] = [
-  { label: 'At least 8 characters', test: pw => pw.length >= 8 },
-  { label: 'One uppercase letter (A–Z)', test: pw => /[A-Z]/.test(pw) },
-  { label: 'One lowercase letter (a–z)', test: pw => /[a-z]/.test(pw) },
-  { label: 'One number (0–9)', test: pw => /\d/.test(pw) },
+  { key: 'auth.createPassword.rule.length', test: pw => pw.length >= 8 },
+  { key: 'auth.createPassword.rule.upper', test: pw => /[A-Z]/.test(pw) },
+  { key: 'auth.createPassword.rule.lower', test: pw => /[a-z]/.test(pw) },
+  { key: 'auth.createPassword.rule.number', test: pw => /\d/.test(pw) },
 ];
 
-function getStrength(pw: string): { level: number; label: string; color: string } {
+function getStrength(pw: string): { level: number; key: string; color: string } {
   const passed = RULES.filter(r => r.test(pw)).length;
-  if (pw.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-  if (passed <= 1) return { level: 1, label: 'Weak', color: 'var(--severity-critical)' };
-  if (passed === 2) return { level: 2, label: 'Fair', color: 'var(--severity-medium)' };
-  if (passed === 3) return { level: 3, label: 'Good', color: '#0891B2' };
-  return { level: 4, label: 'Strong', color: '#059669' };
+  if (pw.length === 0) return { level: 0, key: '', color: '#E2E8F0' };
+  if (passed <= 1) return { level: 1, key: 'auth.createPassword.strength.weak', color: 'var(--severity-critical)' };
+  if (passed === 2) return { level: 2, key: 'auth.createPassword.strength.fair', color: 'var(--severity-medium)' };
+  if (passed === 3) return { level: 3, key: 'auth.createPassword.strength.good', color: '#0891B2' };
+  return { level: 4, key: 'auth.createPassword.strength.strong', color: '#059669' };
 }
 
 export default function CreatePassword() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const state = (location.state as { phone?: string; fullName?: string; barangay?: string; flow?: 'registration' | 'password-reset' }) || {};
   const flow = state.flow === 'password-reset' ? 'password-reset' : 'registration';
 
@@ -49,7 +51,7 @@ export default function CreatePassword() {
     if (!password) e.password = 'Please create a password.';
     else if (strength.level < 2) e.password = 'Password is too weak. Please follow the strength requirements.';
     if (!confirm) e.confirm = 'Please confirm your password.';
-    else if (password !== confirm) e.confirm = 'Passwords do not match.';
+    else if (password !== confirm) e.confirm = t('auth.createPassword.noMatch');
     return e;
   };
 
@@ -111,10 +113,8 @@ export default function CreatePassword() {
         @keyframes fadeSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
       <AuthLayout
-        title={flow === 'password-reset' ? 'Set A New Password' : 'Create Your Password'}
-        subtitle={flow === 'password-reset'
-          ? 'Set a new password to regain access to your TUGON account.'
-          : 'Almost done! Set a strong password to secure your TUGON account.'}
+        title={flow === 'password-reset' ? t('auth.createPassword.titleReset') : t('auth.createPassword.title')}
+        subtitle={flow === 'password-reset' ? t('auth.createPassword.subtitleReset') : t('auth.createPassword.subtitleRegister')}
         topAction={(
           <button
             type="button"
@@ -123,16 +123,16 @@ export default function CreatePassword() {
           >
             <ArrowLeft size={14} />
             <House size={14} />
-            Back to Homepage
+            {t('auth.backToHome')}
           </button>
         )}
       >
         {/* Step indicator */}
         <div className="flex items-center gap-0 mb-7">
           {[
-            { n: 1, label: 'Details', done: true },
-            { n: 2, label: 'Verify', done: true },
-            { n: 3, label: 'Password', active: true },
+            { n: 1, label: t('auth.steps.details'), done: true },
+            { n: 2, label: t('auth.steps.verify'), done: true },
+            { n: 3, label: t('auth.steps.password'), active: true },
           ].flatMap((step, idx) => {
             const items = [
               <div key={`step-${step.n}`} className="flex flex-col items-center flex-1">
@@ -185,8 +185,10 @@ export default function CreatePassword() {
             <div className="w-[72px] h-[72px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4" style={{ animation: 'checkPop 0.4s ease' }}>
               <CheckCircle2 size={36} className="text-emerald-600" />
             </div>
-            <div className="text-emerald-900 text-lg font-extrabold mb-1.5">Account Created!</div>
-            <div className="text-emerald-600 text-[13px] mb-1">Redirecting to your dashboard…</div>
+            <div className="text-emerald-900 text-lg font-extrabold mb-1.5">
+              {flow === 'password-reset' ? t('auth.createPassword.successReset') : t('auth.createPassword.success')}
+            </div>
+            <div className="text-emerald-600 text-[13px] mb-1">{t('auth.createPassword.redirecting')}</div>
           </div>
         ) : (
           <form onSubmit={e => { e.preventDefault(); handleCreate(); }}>
@@ -198,9 +200,9 @@ export default function CreatePassword() {
 
             {/* New password */}
             <InputField
-              label="New Password"
+              label={t('auth.createPassword.newPassword')}
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a strong password"
+              placeholder={t('auth.createPassword.newPasswordPlaceholder')}
               value={password}
               onChange={v => { setPassword(v); if (errors.password) setErrors(p => ({ ...p, password: undefined })); }}
               icon={<Lock size={17} />}
@@ -232,8 +234,8 @@ export default function CreatePassword() {
                   ))}
                 </div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-[11px] text-slate-400">Password strength:</span>
-                  <span className="text-[11px] font-bold" style={{ color: strength.color }}>{strength.label}</span>
+                  <span className="text-[11px] text-slate-400">{t('auth.createPassword.strengthLabel')}</span>
+                  <span className="text-[11px] font-bold" style={{ color: strength.color }}>{strength.key ? t(strength.key) : ''}</span>
                 </div>
 
                 {/* Rules checklist */}
@@ -241,13 +243,13 @@ export default function CreatePassword() {
                   {RULES.map(rule => {
                     const passed = rule.test(password);
                     return (
-                      <div key={rule.label} className="flex items-center gap-[5px]">
+                      <div key={rule.key} className="flex items-center gap-[5px]">
                         <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                           passed ? 'bg-emerald-100' : 'bg-slate-100'
                         }`}>
                           <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-slate-300'} />
                         </div>
-                        <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-slate-400'}`}>{rule.label}</span>
+                        <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-slate-400'}`}>{t(rule.key)}</span>
                       </div>
                     );
                   })}
@@ -257,9 +259,9 @@ export default function CreatePassword() {
 
             {/* Confirm password */}
             <InputField
-              label="Confirm Password"
+              label={t('auth.createPassword.confirmPassword')}
               type={showConfirm ? 'text' : 'password'}
-              placeholder="Re-enter your password"
+              placeholder={t('auth.createPassword.confirmPlaceholder')}
               value={confirm}
               onChange={v => { setConfirm(v); if (errors.confirm) setErrors(p => ({ ...p, confirm: undefined })); }}
               icon={<Lock size={17} />}
@@ -285,7 +287,7 @@ export default function CreatePassword() {
                   <CheckCircle2 size={10} className={password === confirm ? 'text-emerald-600' : 'text-red-700'} />
                 </div>
                 <span className={`text-[11px] font-medium ${password === confirm ? 'text-emerald-600' : 'text-red-700'}`}>
-                  {password === confirm ? 'Passwords match' : 'Passwords do not match'}
+                  {password === confirm ? t('auth.createPassword.match') : t('auth.createPassword.noMatch')}
                 </span>
               </div>
             )}
@@ -294,12 +296,12 @@ export default function CreatePassword() {
             <div className="rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 mb-6 flex gap-2.5">
               <Shield size={15} className="text-amber-700 shrink-0 mt-px" />
               <div className="text-[11px] text-amber-900 leading-[1.55]">
-                Your password is encrypted and never stored in plain text. Never share your password with anyone, including barangay officials.
+                {t('auth.createPassword.securityNotice')}
               </div>
             </div>
 
             <PrimaryButton loading={loading} type="submit" color="#059669">
-              {!loading && <><CheckCircle2 size={16} /> {flow === 'password-reset' ? 'Reset Password' : 'Create Account'}</>}
+              {!loading && <><CheckCircle2 size={16} /> {flow === 'password-reset' ? t('auth.createPassword.resetButton') : t('auth.createPassword.createButton')}</>}
             </PrimaryButton>
           </form>
         )}
@@ -311,7 +313,7 @@ export default function CreatePassword() {
               onClick={() => navigate('/auth/verify', { state })}
               className="bg-transparent border-none text-slate-400 text-xs cursor-pointer inline-flex items-center gap-1 font-[inherit]"
             >
-              <ArrowLeft size={13} /> Back to OTP Verification
+              <ArrowLeft size={13} /> {t('auth.createPassword.backToVerify')}
             </button>
           </div>
         )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../i18n';
 import {
   FileText, Download, Printer,
   TrendingUp, Brain, ShieldAlert,
@@ -354,6 +355,7 @@ function DSSCard({
   onDismiss: (rec: DSSRecommendation) => void;
   busy: boolean;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const pStyle = priorityStyle[rec.priority as keyof typeof priorityStyle];
 
@@ -384,7 +386,7 @@ function DSSCard({
             </div>
             {/* Confidence meter */}
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-[10px] text-slate-400">Confidence</span>
+              <span className="text-[10px] text-slate-400">{t('official.reports.confidence')}</span>
               <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-slate-100">
                 <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
               </div>
@@ -394,14 +396,14 @@ function DSSCard({
           <p className="mb-2 text-xs leading-[1.6] text-slate-600">{rec.description}</p>
           <div className="flex flex-wrap items-center justify-between gap-1.5">
             <span className="flex items-center gap-1 text-[10px] text-slate-400">
-              <Brain size={10} /> Source: {rec.source}
+              <Brain size={10} /> {t('official.reports.source')} {rec.source}
             </span>
             <button
               onClick={() => setExpanded(v => !v)}
               className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer"
               style={{ color: rec.color }}
             >
-              {expanded ? 'Hide' : 'View'} Recommended Actions <ChevronDown size={13} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+              {expanded ? t('official.reports.hideActions') : t('official.reports.viewActions')} <ChevronDown size={13} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
@@ -409,7 +411,7 @@ function DSSCard({
 
       {expanded && (
         <div className="px-4 py-3" style={{ borderTop: `1px solid ${rec.bg}`, background: rec.bg + '40' }}>
-          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">Recommended Actions</div>
+          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">{t('official.reports.recommendedActions')}</div>
           <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
               <div key={i} className="flex items-start gap-2">
@@ -431,7 +433,7 @@ function DSSCard({
                 busy ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               }`}
             >
-              {busy ? 'Submitting...' : 'Dismiss Recommendation'}
+              {busy ? t('official.reports.submitting') : t('official.reports.dismissRecommendation')}
             </button>
           </div>
         </div>
@@ -441,6 +443,7 @@ function DSSCard({
 }
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ReportsTabKey>('dss');
   const [generating, setGenerating] = useState<string | null>(null);
   const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
@@ -730,7 +733,7 @@ export default function Reports() {
   }, [incidentData]);
   const latestIncidentTime = React.useMemo(() => {
     if (incidentData.length === 0) {
-      return 'No data yet';
+      return t('official.dashboard.noDataYet');
     }
     const latestTs = Math.max(...incidentData.map((incident) => new Date(incident.reportedAt).getTime()));
     return new Date(latestTs).toLocaleString('en-PH', {
@@ -741,7 +744,7 @@ export default function Reports() {
       minute: '2-digit',
       hour12: false,
     });
-  }, [incidentData]);
+  }, [incidentData, t]);
 
   if (initialLoadPending) {
     return (
@@ -766,8 +769,8 @@ export default function Reports() {
     <div className="min-h-full px-5 py-4">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="mb-0.5 text-xl font-bold text-slate-800">Reports & Decision Support</h1>
-        <p className="text-xs text-slate-500">AI-assisted decision support and standardized reporting — TUGON DSS Module</p>
+        <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.reports.pageTitle')}</h1>
+        <p className="text-xs text-slate-500">{t('official.reports.pageSubtitle')}</p>
       </div>
 
       {/* Status messages */}
@@ -785,9 +788,9 @@ export default function Reports() {
       {/* Tabs */}
       <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-[10px] border border-slate-100 bg-white p-1 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
         {[
-          { key: 'dss', label: 'Decision Support', icon: <Brain size={14} /> },
-          { key: 'templates', label: 'Report Templates', icon: <FileText size={14} /> },
-          { key: 'history', label: 'Report History', icon: <FileClock size={14} /> },
+          { key: 'dss', label: t('official.reports.decisionSupport'), icon: <Brain size={14} /> },
+          { key: 'templates', label: t('official.reports.reportTemplates'), icon: <FileText size={14} /> },
+          { key: 'history', label: t('official.reports.reportHistory'), icon: <FileClock size={14} /> },
         ].map(tab => (
           <button
             key={tab.key}
@@ -811,19 +814,19 @@ export default function Reports() {
             <div>
               <div className="mb-1.5 flex items-center gap-2">
                 <Sparkles size={16} color="#FDE68A" />
-                <span className="text-xs font-bold uppercase tracking-wide text-amber-200">AI-Assisted Decision Support</span>
+                <span className="text-xs font-bold uppercase tracking-wide text-amber-200">{t('official.reports.aiAssisted')}</span>
               </div>
-              <div className="mb-1 text-base font-bold text-white">TUGON Intelligence Engine</div>
+              <div className="mb-1 text-base font-bold text-white">{t('official.reports.intelligenceEngine')}</div>
               <div className="text-xs text-blue-300">
                 {analysisWindowDays > 0
-                  ? `Analyzing ${analysisWindowDays} day${analysisWindowDays > 1 ? 's' : ''} of incident data to surface actionable recommendations.`
-                  : 'Waiting for incident data to generate recommendations.'}
+                  ? (analysisWindowDays === 1 ? t('official.reports.analyzingDays', { count: analysisWindowDays }) : t('official.reports.analyzingDaysPlural', { count: analysisWindowDays }))
+                  : t('official.reports.waitingData')}
               </div>
               <div className="mt-1 text-[11px] text-blue-300">
-                Recommendation source: {dssRecommendationSource === 'ai' ? 'AI model' : 'Fallback rules engine'}
+                {t('official.reports.recommendationSource', { source: dssRecommendationSource === 'ai' ? t('official.reports.sourceAI') : t('official.reports.sourceFallback') })}
               </div>
               <div className="mt-1.5 text-[11px] text-blue-200">
-                Last refreshed:{' '}
+                {t('official.reports.lastRefreshed')}{' '}
                 {dssLastRefreshedAt
                   ? new Date(dssLastRefreshedAt).toLocaleString('en-PH', {
                       year: 'numeric',
@@ -834,7 +837,7 @@ export default function Reports() {
                       second: '2-digit',
                       hour12: false,
                     })
-                  : 'Not yet'}
+                  : t('official.reports.notYetRefreshed')}
               </div>
             </div>
             <button
@@ -845,17 +848,17 @@ export default function Reports() {
               }`}
             >
               <RefreshCw size={13} className={dssRefreshing ? 'animate-spin' : ''} />
-              {dssRefreshing ? 'Refreshing...' : 'Refresh Analysis'}
+              {dssRefreshing ? t('official.reports.refreshing') : t('official.reports.refreshAnalysis')}
             </button>
           </div>
 
           {/* Stats row */}
           <div className="mb-4 flex flex-wrap gap-2.5">
             {[
-              { label: 'Active Recommendations', value: visibleDssRecommendations.length, color: 'var(--primary)', bg: '#EFF6FF' },
-              { label: 'Pending Actions', value: dssActionCount, color: 'var(--severity-medium)', bg: '#FEF3C7' },
-              { label: 'Resolved This Week', value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
-              { label: 'Avg. Confidence Score', value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
+              { label: t('official.reports.activeRecommendations'), value: visibleDssRecommendations.length, color: 'var(--primary)', bg: '#EFF6FF' },
+              { label: t('official.reports.pendingActions'), value: dssActionCount, color: 'var(--severity-medium)', bg: '#FEF3C7' },
+              { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
+              { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
               <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
                 <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
@@ -868,7 +871,7 @@ export default function Reports() {
           <div>
             <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
               <Lightbulb size={15} color="var(--severity-medium)" />
-              Current Recommendations
+              {t('official.reports.currentRecommendations')}
             </div>
               {visibleDssRecommendations.length > 0 ? (
               visibleDssRecommendations.map((rec) => (
@@ -881,7 +884,7 @@ export default function Reports() {
               ))
             ) : (
               <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-500">
-                No live recommendation available yet. Submit or process incidents to unlock DSS insights.
+                {t('official.reports.noRecommendations')}
               </div>
             )}
           </div>
@@ -892,62 +895,62 @@ export default function Reports() {
       {activeTab === 'templates' && (
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
-            {REPORT_TEMPLATES.map(t => (
-              <div key={t.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+            {REPORT_TEMPLATES.map(tmpl => (
+              <div key={tmpl.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
                 <div className="border-b border-slate-50 px-4 py-3.5">
                   <div className="flex items-start gap-2.5">
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
-                      style={{ background: t.bg, color: t.color }}
+                      style={{ background: tmpl.bg, color: tmpl.color }}
                     >
-                      {t.icon}
+                      {tmpl.icon}
                     </div>
                     <div className="flex-1">
-                      <div className="mb-1 text-[13px] font-bold text-slate-800">{t.title}</div>
+                      <div className="mb-1 text-[13px] font-bold text-slate-800">{tmpl.title}</div>
                       <span
                         className="rounded text-[9px] font-bold uppercase tracking-wide"
-                        style={{ background: t.bg, color: t.color, padding: '2px 7px' }}
+                        style={{ background: tmpl.bg, color: tmpl.color, padding: '2px 7px' }}
                       >
-                        {t.category}
+                        {tmpl.category}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2.5 text-xs leading-[1.5] text-slate-500">{t.description}</p>
+                  <p className="mt-2.5 text-xs leading-[1.5] text-slate-500">{tmpl.description}</p>
                 </div>
                 <div className="bg-[#FAFBFF] px-4 py-2.5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <div>
-                      <div className="mb-0.5 text-[10px] text-slate-400">Last Generated</div>
+                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.lastGenerated')}</div>
                       <div className="text-[11px] font-medium text-slate-600">{latestIncidentTime}</div>
                     </div>
                     <div className="text-right">
-                      <div className="mb-0.5 text-[10px] text-slate-400">Frequency</div>
-                      <div className="text-[11px] font-medium text-slate-600">{t.frequency}</div>
+                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.frequency')}</div>
+                      <div className="text-[11px] font-medium text-slate-600">{tmpl.frequency}</div>
                     </div>
                   </div>
                   <div className="report-template-actions flex flex-col items-stretch gap-2">
                     <div className="report-template-secondary-actions grid grid-cols-2 gap-2">
-                      <button onClick={() => { void handleTemplateDownload(t.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-primary cursor-pointer">
-                        <Download size={14} /> Download
+                      <button onClick={() => { void handleTemplateDownload(tmpl.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-primary cursor-pointer">
+                        <Download size={14} /> {t('official.reports.download')}
                       </button>
-                      <button onClick={() => { void handleTemplatePrint(t.id, t.title); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                        <Printer size={14} /> Print
+                      <button onClick={() => { void handleTemplatePrint(tmpl.id, tmpl.title); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <Printer size={14} /> {t('official.reports.print')}
                       </button>
                     </div>
                     <button
-                      onClick={() => handleGenerate(t.id)}
-                      disabled={generating === t.id}
+                      onClick={() => handleGenerate(tmpl.id)}
+                      disabled={generating === tmpl.id}
                       className={`flex flex-1 items-center justify-center gap-[5px] rounded-lg border-none p-2 text-xs font-semibold ${
-                        generating === t.id
+                        generating === tmpl.id
                           ? 'cursor-not-allowed bg-slate-100 text-slate-400'
                           : 'cursor-pointer text-white'
                       }`}
-                      style={generating !== t.id ? { background: t.color } : undefined}
+                      style={generating !== tmpl.id ? { background: tmpl.color } : undefined}
                     >
-                      {generating === t.id ? (
-                        <><RefreshCw size={12} className="animate-spin" /> Generating...</>
+                      {generating === tmpl.id ? (
+                        <><RefreshCw size={12} className="animate-spin" /> {t('official.reports.generating')}</>
                       ) : (
-                        <><FileText size={12} /> Generate New Report</>
+                        <><FileText size={12} /> {t('official.reports.generateNew')}</>
                       )}
                     </button>
                   </div>
@@ -959,15 +962,15 @@ export default function Reports() {
           {/* Template generation history */}
           <div className="mt-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-              <span className="text-[13px] font-bold text-slate-800">Past Generated Template Reports</span>
-              <span className="text-[11px] text-slate-500">{templateHistory.length} record{templateHistory.length === 1 ? '' : 's'}</span>
+              <span className="text-[13px] font-bold text-slate-800">{t('official.reports.pastTemplates')}</span>
+              <span className="text-[11px] text-slate-500">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
             </div>
 
             <div className="report-history-table-wrapper overflow-x-auto">
               <table className="w-full border-collapse text-xs" style={{ minWidth: 680 }}>
                 <thead>
                   <tr className="bg-slate-50">
-                    {['Template', 'Generated At', 'Generated By', 'File Name', 'Quick Actions'].map((heading) => (
+                    {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
                       <th key={heading} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{heading}</th>
                     ))}
                   </tr>
@@ -976,7 +979,7 @@ export default function Reports() {
                   {templateHistory.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-3.5 py-3 text-slate-500">
-                        No generated templates yet. Use any template card above to generate your first report.
+                        {t('official.reports.noTemplatesYet')}
                       </td>
                     </tr>
                   ) : templateHistory.map((historyItem) => (
@@ -988,10 +991,10 @@ export default function Reports() {
                       <td className="px-3.5 py-[11px]">
                         <div className="flex gap-1.5">
                           <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
-                            <Download size={11} /> Download
+                            <Download size={11} /> {t('official.reports.download')}
                           </button>
                           <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] text-[11px] font-semibold text-slate-700 cursor-pointer">
-                            <Printer size={11} /> Print
+                            <Printer size={11} /> {t('official.reports.print')}
                           </button>
                         </div>
                       </td>
@@ -1004,22 +1007,22 @@ export default function Reports() {
             <div className="report-history-mobile-list p-3">
               {templateHistory.length === 0 ? (
                 <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
-                  No generated templates yet. Use any template card above to generate your first report.
+                  {t('official.reports.noTemplatesYet')}
                 </div>
               ) : templateHistory.map((historyItem) => (
                 <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
                   <div className="mb-1.5 text-[13px] font-bold text-slate-800">{historyItem.templateName}</div>
                   <div className="mb-2.5 grid gap-1">
-                    <div className="text-[11px] text-slate-500"><strong>Generated:</strong> {formatDateTime(historyItem.generatedAt)}</div>
-                    <div className="text-[11px] text-slate-500"><strong>By:</strong> {historyItem.generatedBy}</div>
-                    <div className="break-words text-[11px] text-slate-500"><strong>File:</strong> {historyItem.fileName}</div>
+                    <div className="text-[11px] text-slate-500"><strong>{t('official.reports.generatedLabel')}</strong> {formatDateTime(historyItem.generatedAt)}</div>
+                    <div className="text-[11px] text-slate-500"><strong>{t('official.reports.byLabel')}</strong> {historyItem.generatedBy}</div>
+                    <div className="break-words text-[11px] text-slate-500"><strong>{t('official.reports.fileLabel')}</strong> {historyItem.fileName}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
-                      <Download size={12} /> Download
+                      <Download size={12} /> {t('official.reports.download')}
                     </button>
                     <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <Printer size={12} /> Print
+                      <Printer size={12} /> {t('official.reports.print')}
                     </button>
                   </div>
                 </div>
@@ -1033,16 +1036,16 @@ export default function Reports() {
       {activeTab === 'history' && (
         <div className="overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <span className="text-[13px] font-bold text-slate-800">Generated Report History</span>
+            <span className="text-[13px] font-bold text-slate-800">{t('official.reports.generatedReportHistory')}</span>
             <button onClick={() => { void handleHistoryExportAll(); }} className="flex items-center gap-[5px] rounded-[7px] border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 cursor-pointer">
-              <Download size={12} /> Export All CSV
+              <Download size={12} /> {t('official.reports.exportAllCsv')}
             </button>
           </div>
           <div className="report-history-table-wrapper overflow-x-auto">
           <table className="w-full border-collapse text-xs" style={{ minWidth: 760 }}>
             <thead>
               <tr className="bg-slate-50">
-                {['Report Name', 'Category', 'Generated', 'Generated By', 'Size', 'Actions'].map(h => (
+                {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
                   <th key={h} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{h}</th>
                 ))}
               </tr>
@@ -1060,7 +1063,7 @@ export default function Reports() {
                 </tr>
               ) : recentReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3.5 py-3 text-slate-500">No report history available.</td>
+                  <td colSpan={6} className="px-3.5 py-3 text-slate-500">{t('official.reports.noHistoryAvailable')}</td>
                 </tr>
               ) : recentReports.map((r, i) => (
                 <tr
@@ -1080,7 +1083,7 @@ export default function Reports() {
                   <td className="px-3.5 py-[11px]">
                     <div className="flex gap-1.5">
                       <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
-                        <Download size={11} /> Download
+                        <Download size={11} /> {t('official.reports.download')}
                       </button>
                       <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer">
                         <Printer size={12} color="#64748B" />
@@ -1104,7 +1107,7 @@ export default function Reports() {
               </div>
             ) : recentReports.length === 0 ? (
               <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
-                No report history available.
+                {t('official.reports.noHistoryAvailable')}
               </div>
             ) : recentReports.map((reportItem, index) => (
               <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
@@ -1113,17 +1116,17 @@ export default function Reports() {
                   <div className="text-[13px] font-bold leading-[1.4] text-slate-800">{reportItem.name}</div>
                 </div>
                 <div className="mb-2.5 grid gap-1">
-                  <div className="text-[11px] text-slate-500"><strong>Category:</strong> {reportItem.type}</div>
-                  <div className="text-[11px] text-slate-500"><strong>Generated:</strong> {reportItem.time}</div>
-                  <div className="text-[11px] text-slate-500"><strong>By:</strong> {reportItem.by}</div>
-                  <div className="text-[11px] text-slate-500"><strong>Evidence:</strong> {reportItem.size}</div>
+                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.categoryLabel')}</strong> {reportItem.type}</div>
+                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.generatedLabel')}</strong> {reportItem.time}</div>
+                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.byLabel')}</strong> {reportItem.by}</div>
+                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.evidenceLabel')}</strong> {reportItem.size}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
-                    <Download size={12} /> Download
+                    <Download size={12} /> {t('official.reports.download')}
                   </button>
                   <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                    <Printer size={12} /> Print
+                    <Printer size={12} /> {t('official.reports.print')}
                   </button>
                 </div>
               </div>

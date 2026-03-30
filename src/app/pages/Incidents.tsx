@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from '../i18n';
 import {
   Search, Edit2, Printer, RefreshCw,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
@@ -127,6 +128,7 @@ function IncidentDetailModal({
   onUpdateStatus: (nextStatus: ApiTicketStatus) => Promise<void>;
   isUpdating: boolean;
 }) {
+  const { t } = useTranslation();
   const cfg = incidentTypeConfig[incident.type];
   const [statusSelectorOpen, setStatusSelectorOpen] = useState(false);
   const [nextStatus, setNextStatus] = useState<ApiTicketStatus | ''>('');
@@ -177,7 +179,7 @@ function IncidentDetailModal({
                 {typeIcons[incident.type]}
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-200">Incident Details</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-200">{t('official.incidents.details')}</div>
                 <div className="text-base font-extrabold text-white">{incident.id}</div>
               </div>
             </div>
@@ -186,7 +188,7 @@ function IncidentDetailModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close incident details"
+            aria-label={t('official.incidents.closeDetails')}
             className="icon-btn-square rounded-lg border-none bg-white/[0.16] text-white cursor-pointer"
           >
             <X size={16} color="white" />
@@ -204,7 +206,7 @@ function IncidentDetailModal({
         <div className="px-5 pt-[18px] pb-5">
           {/* Description */}
           <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Description</div>
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.descriptionLabel')}</div>
             <div className="text-[13px] leading-[1.65] text-slate-700">
               {incident.description}
             </div>
@@ -213,19 +215,19 @@ function IncidentDetailModal({
           {/* Evidence */}
           <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
             <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-              Evidence Attachments
+              {t('official.incidents.evidenceAttachments')}
             </div>
 
             {photoEvidence.length === 0 && audioEvidence.length === 0 ? (
               <div className="text-xs text-slate-500">
-                No evidence files are available for this report.
+                {t('official.incidents.noEvidence')}
               </div>
             ) : (
               <div className="grid gap-3">
                 {photoEvidence.length > 0 ? (
                   <div>
                     <div className="mb-2 text-[11px] font-bold text-slate-600">
-                      Photos ({photoEvidence.length})
+                      {t('official.incidents.photos', { count: photoEvidence.length })}
                     </div>
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
                       {photoEvidence.map((item) => (
@@ -255,7 +257,7 @@ function IncidentDetailModal({
                 {audioEvidence.length > 0 ? (
                   <div>
                     <div className="mb-2 text-[11px] font-bold text-slate-600">
-                      Audio ({audioEvidence.length})
+                      {t('official.incidents.audio', { count: audioEvidence.length })}
                     </div>
                     <div className="grid gap-2">
                       {audioEvidence.map((item) => (
@@ -274,11 +276,11 @@ function IncidentDetailModal({
           {/* Info grid */}
           <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5">
             {[
-              { label: 'Barangay', value: incident.barangay, icon: <MapPin size={13} /> },
-              { label: 'Reported By', value: incident.reportedBy, icon: <Users size={13} /> },
-              { label: 'Reporter Verification', value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
-              { label: 'Affected Persons', value: incident.affectedPersons !== undefined ? `${incident.affectedPersons} individual(s)` : 'Under assessment', icon: <Info size={13} /> },
-              { label: 'Response Time', value: responseTime ? `${responseTime} minutes` : 'Not yet responded', icon: <Clock size={13} /> },
+              { label: t('official.incidents.barangayLabel'), value: incident.barangay, icon: <MapPin size={13} /> },
+              { label: t('official.incidents.reportedByLabel'), value: incident.reportedBy, icon: <Users size={13} /> },
+              { label: t('official.incidents.reporterVerification'), value: incident.source.reporterVerificationStatus.toUpperCase(), icon: <ShieldIcon size={13} /> },
+              { label: t('official.incidents.affectedPersons'), value: incident.affectedPersons !== undefined ? t('official.incidents.affectedValue', { count: incident.affectedPersons }) : t('official.incidents.underAssessment'), icon: <Info size={13} /> },
+              { label: t('official.incidents.responseTime'), value: responseTime ? t('official.incidents.responseTimeValue', { minutes: responseTime }) : t('official.incidents.notYetResponded'), icon: <Clock size={13} /> },
             ].map((item) => (
               <div key={item.label} className="rounded-[10px] border border-slate-200 bg-white px-3 py-2.5">
                 <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-slate-400">
@@ -291,7 +293,7 @@ function IncidentDetailModal({
 
           {/* Timeline */}
           <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Ticket Timeline</div>
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.ticketTimeline')}</div>
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
                 <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[#DBE4EE] pl-2.5">
@@ -337,7 +339,7 @@ function IncidentDetailModal({
                   isUpdating || !canUpdateStatus ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
-                <span>{nextStatus || 'Select new status'}</span>
+                <span>{nextStatus || t('official.incidents.selectNewStatus')}</span>
                 <ChevronUp size={14} color="#64748B" />
               </button>
 
@@ -353,7 +355,7 @@ function IncidentDetailModal({
                   !nextStatus || isUpdating || !canUpdateStatus ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                 }`}
               >
-                <Edit2 size={13} /> {isUpdating ? 'Updating...' : 'Update Status'}
+                <Edit2 size={13} /> {isUpdating ? t('official.incidents.updating') : t('official.incidents.updateStatus')}
               </button>
             </div>
           ) : null}
@@ -362,7 +364,7 @@ function IncidentDetailModal({
             className="flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer"
             style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
           >
-            <Printer size={13} /> Print Report
+            <Printer size={13} /> {t('official.incidents.printReport')}
           </button>
         </div>
 
@@ -371,7 +373,7 @@ function IncidentDetailModal({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Evidence photo preview"
+            aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
             className="fixed inset-0 z-[140] flex items-center justify-center p-[18px]"
             style={{ background: 'rgba(2,6,23,0.86)' }}
@@ -380,7 +382,7 @@ function IncidentDetailModal({
               type="button"
               onClick={() => setPreviewPhotoUrl(null)}
               className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-slate-900/70 text-white cursor-pointer"
-              aria-label="Close photo preview"
+              aria-label={t('official.incidents.closePhotoPreview')}
             >
               <X size={16} />
             </button>
@@ -403,6 +405,7 @@ function IncidentDetailModal({
 }
 
 export default function Incidents() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [incidents, setIncidents] = useState<IncidentView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -705,11 +708,17 @@ export default function Incidents() {
       {/* Page header */}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <h1 className="mb-0.5 text-xl font-bold text-slate-800">Incident Management</h1>
+          <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.incidents.pageTitle')}</h1>
           <p className="text-xs text-slate-500">
             {loading
-              ? 'Loading reports...'
-              : `${filtered.length} ${listView === 'open' ? 'active' : 'archived'} report${filtered.length !== 1 ? 's' : ''} found${hasFilter ? ' (filtered)' : ''}`}
+              ? t('official.incidents.loadingReports')
+              : listView === 'open'
+                ? (filtered.length === 1
+                  ? (hasFilter ? t('official.incidents.activeReportsFound', { count: filtered.length }) : t('official.incidents.activeReportsFoundUnfiltered', { count: filtered.length }))
+                  : (hasFilter ? t('official.incidents.activeReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.activeReportsFoundPlural', { count: filtered.length })))
+                : (filtered.length === 1
+                  ? (hasFilter ? t('official.incidents.archivedReportsFound', { count: filtered.length }) : t('official.incidents.archivedReportsFoundUnfiltered', { count: filtered.length }))
+                  : (hasFilter ? t('official.incidents.archivedReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.archivedReportsFoundPlural', { count: filtered.length })))}
           </p>
         </div>
       </div>
@@ -726,7 +735,7 @@ export default function Incidents() {
             listView === 'open' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
-          Open Incidents ({openCount})
+          {t('official.incidents.openIncidents', { count: openCount })}
         </button>
         <button
           type="button"
@@ -738,7 +747,7 @@ export default function Incidents() {
             listView === 'archived' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
-          Archived ({archivedCount})
+          {t('official.incidents.archived', { count: archivedCount })}
         </button>
       </div>
 
@@ -758,14 +767,14 @@ export default function Incidents() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search reports, barangays..."
+            placeholder={t('official.incidents.searchPlaceholderTable')}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-8 text-[13px] text-slate-800 outline-none"
           />
         </div>
 
         {[
           {
-            label: 'All Categories',
+            label: t('official.incidents.allCategories'),
             value: filterCategory,
             setter: (v: string) => {
               setFilterCategory(v);
@@ -774,7 +783,7 @@ export default function Incidents() {
             options: CATEGORY_FILTER_OPTIONS.map((label) => ({ value: label, label })),
           },
           {
-            label: 'All Severity',
+            label: t('official.incidents.allSeverity'),
             value: filterSeverity,
             setter: (v: string) => {
               setFilterSeverity(v as Severity | '');
@@ -783,7 +792,7 @@ export default function Incidents() {
             options: Object.entries(severityConfig).map(([k, v]) => ({ value: k, label: v.label })),
           },
           {
-            label: 'All Status',
+            label: t('official.incidents.allStatus'),
             value: filterStatus,
             setter: (v: string) => {
               setFilterStatus(v as IncidentStatus | '');
@@ -826,7 +835,7 @@ export default function Incidents() {
             }}
             className="flex items-center gap-1 whitespace-nowrap rounded-lg border-none bg-red-100 px-3.5 py-2.5 text-[13px] font-semibold text-red-700 cursor-pointer"
           >
-            <X size={14} /> Clear
+            <X size={14} /> {t('official.incidents.clear')}
           </button>
         ) : null}
 
@@ -836,7 +845,7 @@ export default function Incidents() {
           }}
           className="ml-auto flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer"
         >
-          <RefreshCw size={14} /> Refresh
+          <RefreshCw size={14} /> {t('common.refresh')}
         </button>
       </div>
 
@@ -847,13 +856,13 @@ export default function Incidents() {
             <thead>
               <tr className="bg-slate-50">
                 {[
-                  { key: 'id' as keyof IncidentView, label: 'Incident ID' },
-                  { key: 'type' as keyof IncidentView, label: 'Type' },
-                  { key: 'barangay' as keyof IncidentView, label: 'Location' },
-                  { key: 'severity' as keyof IncidentView, label: 'Severity' },
-                  { key: 'status' as keyof IncidentView, label: 'Status' },
-                  { key: 'reportedAt' as keyof IncidentView, label: 'Reported' },
-                  { key: null, label: 'Actions' },
+                  { key: 'id' as keyof IncidentView, label: t('official.incidents.incidentIdCol') },
+                  { key: 'type' as keyof IncidentView, label: t('official.incidents.typeCol') },
+                  { key: 'barangay' as keyof IncidentView, label: t('official.incidents.locationCol') },
+                  { key: 'severity' as keyof IncidentView, label: t('official.incidents.severityCol') },
+                  { key: 'status' as keyof IncidentView, label: t('official.incidents.statusCol') },
+                  { key: 'reportedAt' as keyof IncidentView, label: t('official.incidents.reportedCol') },
+                  { key: null, label: t('official.incidents.actionsCol') },
                 ].map((col) => (
                   <th
                     key={col.label}
@@ -879,7 +888,7 @@ export default function Incidents() {
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-[13px] text-slate-400">No reports match your filters.</td>
+                  <td colSpan={7} className="py-10 text-center text-[13px] text-slate-400">{t('official.incidents.noMatchFilters')}</td>
                 </tr>
               ) : paginated.map((inc) => (
                 <tr
@@ -926,7 +935,7 @@ export default function Incidents() {
                       }}
                       className="flex items-center gap-[3px] rounded-md border-none bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-primary cursor-pointer"
                     >
-                      <Edit2 size={12} /> Edit
+                      <Edit2 size={12} /> {t('official.incidents.editBtn')}
                     </button>
                   </td>
                 </tr>
@@ -953,7 +962,7 @@ export default function Incidents() {
             }}
             className="flex w-full items-center gap-1.5 rounded-lg border-none bg-white px-2.5 py-[9px] text-left text-xs font-semibold text-slate-700 cursor-pointer"
           >
-            <Edit2 size={13} /> Open / Edit Incident
+            <Edit2 size={13} /> {t('official.incidents.openEditIncident')}
           </button>
 
           <button
@@ -973,7 +982,7 @@ export default function Incidents() {
             }`}
           >
             <Clock size={13} />
-            {updatingIncidentId === contextMenu.incident.id ? 'Archiving...' : 'Archive Incident'}
+            {updatingIncidentId === contextMenu.incident.id ? t('official.incidents.archiving') : t('official.incidents.archiveIncident')}
           </button>
         </div>
       ) : null}
@@ -984,7 +993,7 @@ export default function Incidents() {
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
           <div className="rounded-xl bg-white px-4 py-[22px] text-center text-[13px] text-slate-400 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-            No reports match your filters.
+            {t('official.incidents.noMatchFilters')}
           </div>
         ) : (
           paginated.map((inc) => (
@@ -1032,7 +1041,7 @@ export default function Incidents() {
                 }}
                 className="flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-blue-50 px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer"
               >
-                <ChevronRight size={13} /> View Details
+                <ChevronRight size={13} /> {t('official.incidents.viewDetails')}
               </button>
             </article>
           ))
@@ -1052,7 +1061,7 @@ export default function Incidents() {
       {!loading && filtered.length > 0 ? (
         <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
           <div className="text-xs text-slate-500">
-            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} of {filtered.length}
+            {t('official.incidents.showingRange', { from: (page - 1) * perPage + 1, to: Math.min(page * perPage, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -1063,10 +1072,10 @@ export default function Incidents() {
                 page === 1 ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
               }`}
             >
-              Previous
+              {t('official.incidents.previous')}
             </button>
             <div className="min-w-[72px] text-center text-xs font-bold text-slate-700">
-              Page {page} / {totalPages}
+              {t('official.incidents.page', { page, total: totalPages })}
             </div>
             <button
               type="button"
@@ -1076,7 +1085,7 @@ export default function Incidents() {
                 page === totalPages ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
               }`}
             >
-              Next
+              {t('official.incidents.next')}
             </button>
           </div>
         </div>

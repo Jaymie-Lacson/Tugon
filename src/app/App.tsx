@@ -7,6 +7,7 @@ import { RouterProvider } from 'react-router';
 import CardSkeleton from './components/ui/CardSkeleton';
 import TableSkeleton from './components/ui/TableSkeleton';
 import TextSkeleton from './components/ui/TextSkeleton';
+import { TranslationProvider } from './i18n';
 import { router } from './routes';
 
 function AppSkeletonFallback() {
@@ -26,10 +27,12 @@ function AppSkeletonFallback() {
 
 export default function App() {
   return (
-    <Suspense
-      fallback={<AppSkeletonFallback />}
-    >
-      <RouterProvider router={router} />
-    </Suspense>
+    <TranslationProvider>
+      <Suspense
+        fallback={<AppSkeletonFallback />}
+      >
+        <RouterProvider router={router} />
+      </Suspense>
+    </TranslationProvider>
   );
 }

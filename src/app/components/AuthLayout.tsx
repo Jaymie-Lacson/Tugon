@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { MapPin, Radio } from 'lucide-react';
+import { LanguageToggle } from '../i18n';
 
 const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
 
@@ -78,10 +79,15 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
       </aside>
 
       {/* Right form panel */}
-      <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:px-8">
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:px-8">
+        {/* Desktop language toggle — top-right */}
+        <div className="absolute right-6 top-6 hidden lg:block">
+          <LanguageToggle />
+        </div>
+
         <div className="w-full max-w-[440px]">
           {/* Mobile logo */}
-          <div className="mb-6 flex justify-center lg:hidden">
+          <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
             <button
               onClick={() => navigate('/')}
               className="border-none bg-transparent p-0"
@@ -92,6 +98,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
                 className="h-9"
               />
             </button>
+            <LanguageToggle />
           </div>
 
           {/* Card */}
