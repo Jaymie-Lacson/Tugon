@@ -21,27 +21,25 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-dvh w-full bg-gradient-to-br from-blue-100 via-blue-50 to-slate-100">
-      {/* Left branding panel (hidden on mobile) */}
-      <aside className="relative hidden w-[440px] shrink-0 overflow-hidden lg:block">
+    <div className="flex min-h-dvh w-full bg-[#f8f9ff]">
+      {/* ── Left branding panel (hidden on mobile) — Stitch "primary_container" weighted panel */}
+      <aside className="relative hidden w-[440px] shrink-0 overflow-hidden lg:flex lg:flex-col" style={{ background: 'linear-gradient(160deg, #00236f 0%, #1e3a8a 55%, #0b1c30 100%)' }}>
         <img
           src={BG_IMAGE}
           alt="Tondo aerial"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover mix-blend-overlay opacity-20"
         />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/85 via-primary/75 to-[#0F172A]/90" />
-        {/* Grid lines */}
+        {/* Architectural grid — Stitch signature texture */}
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.05]"
           style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
           }}
         />
 
         {/* Content */}
-        <div className="relative z-10 flex h-full flex-col justify-between p-8">
+        <div className="relative z-10 flex h-full flex-col justify-between p-9">
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
@@ -54,29 +52,39 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
             />
           </button>
 
-          {/* Middle content */}
+          {/* Editorial headline block */}
           <div>
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
-              <Radio size={11} className="text-red-400" />
-              <span className="text-[11px] font-semibold tracking-wide text-white/80">Live Monitoring Active</span>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.10] px-4 py-1.5 backdrop-blur-sm">
+              <Radio size={11} className="text-[#b6c4ff]" />
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-white/75">Live System Active</span>
             </div>
 
-            <h2 className="text-[28px] font-bold leading-tight text-white">
+            <h2 className="text-[30px] font-bold leading-[1.2] text-white tracking-[-0.02em]">
               Community Safety<br />
-              <span className="text-blue-300">Powered by Data.</span>
+              <span style={{ color: '#b6c4ff' }}>Powered by Data.</span>
             </h2>
-            <p className="mt-4 max-w-[340px] text-[13px] leading-relaxed text-white/70">
+            <p className="mt-4 max-w-[340px] text-[13.5px] leading-relaxed text-white/65">
               Report incidents, track emergency response, and keep Barangays 251, 252, and 256 in Tondo safe — in real time.
             </p>
+
+            {/* Tonal stat cluster */}
+            <div className="mt-8 grid grid-cols-3 gap-3">
+              {[{ label: 'Reports filed', value: '2,400+' }, { label: 'Resolved', value: '94%' }, { label: 'Avg response', value: '18 min' }].map((s) => (
+                <div key={s.label} className="rounded-xl bg-white/[0.08] p-3">
+                  <div className="text-[20px] font-bold text-white leading-tight">{s.value}</div>
+                  <div className="mt-0.5 text-[10px] text-white/50">{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Footer */}
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
-              <MapPin size={11} className="text-blue-300" />
-              <span className="text-[11px] text-white/60">Barangays 251, 252, 256 — Tondo, Manila</span>
+              <MapPin size={11} className="text-[#b6c4ff]" />
+              <span className="text-[11px] text-white/55">Barangays 251, 252, 256 — Tondo, Manila</span>
             </div>
-            <div className="text-[10px] text-white/40">
+            <div className="text-[10px] text-white/35">
               &copy; 2026 TUGON Incident Management System
             </div>
           </div>
@@ -106,11 +114,11 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
             <LanguageToggle />
           </div>
 
-          {/* Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_rgba(30,58,138,0.08)] sm:p-8 lg:p-10">
+          {/* Card — surface-container-lowest lifted on surface-container-low */}
+          <div className="rounded-2xl bg-white p-6 shadow-[0_12px_40px_rgba(13,28,46,0.08)] sm:p-8 lg:p-10">
             <div className="mb-6">
-              <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{subtitle}</p>
+              <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em]" style={{ color: '#0d1c2e', fontFamily: 'var(--font-headline)' }}>{title}</h1>
+              <p className="mt-1.5 text-sm leading-relaxed" style={{ color: '#444651' }}>{subtitle}</p>
             </div>
             {children}
           </div>
@@ -151,25 +159,28 @@ export function InputField({
 
   return (
     <div className="mb-5">
-      <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#444651' }}>
         {label}
       </label>
+      {/* Stitch input: surface-container-low fill, 2px primary bottom border on focus, no box border */}
       <div
-        className={`flex items-center gap-2 rounded-[var(--radius-md)] border-[1.5px] bg-slate-50 px-3.5 py-3 transition-all ${
+        className={`flex items-center gap-2 rounded-[var(--radius-md)] px-3.5 py-3 transition-all ${
           error
-            ? 'border-red-500 bg-red-50'
+            ? 'shadow-[inset_0_-2px_0_0_#ba1a1a]'
             : focused
-              ? 'border-primary shadow-[0_0_0_3px_rgba(30,58,138,0.10)]'
-              : 'border-slate-200'
+              ? 'shadow-[inset_0_-2px_0_0_#00236f]'
+              : 'shadow-[inset_0_-1px_0_0_rgba(197,197,211,0.5)]'
         }`}
+        style={{ background: error ? '#fff1f1' : '#eff4ff' }}
       >
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-slate-400'}`}>
+          <div className={`shrink-0 transition-colors ${focused ? 'text-[#00236f]' : 'text-[#757682]'}`}>
             {icon}
           </div>
         )}
         <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
+          className="min-w-0 flex-1 border-none bg-transparent text-[15px] outline-none placeholder:text-[#9099a8]"
+          style={{ color: '#0d1c2e' }}
           type={type}
           placeholder={placeholder}
           value={value}
@@ -185,16 +196,17 @@ export function InputField({
         {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
       {error && <div className="mt-1.5 text-[11px] font-medium text-red-600">&#9888; {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-slate-400">{hint}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px]" style={{ color: '#757682' }}>{hint}</div>}
     </div>
   );
 }
 
+/* Stitch gradient CTA map — primary → primary-container at 135° */
 const BUTTON_COLORS: Record<string, string> = {
-  '#1e3a8a': 'bg-primary hover:bg-[#1E40AF] shadow-[0_2px_8px_rgba(30,58,138,0.18)] hover:shadow-[0_6px_20px_rgba(30,58,138,0.28)]',
-  '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_2px_8px_rgba(5,150,105,0.18)] hover:shadow-[0_6px_20px_rgba(5,150,105,0.28)]',
-  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_2px_8px_rgba(180,115,10,0.18)] hover:shadow-[0_6px_20px_rgba(180,115,10,0.28)]',
-  '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_2px_8px_rgba(185,28,28,0.18)] hover:shadow-[0_6px_20px_rgba(185,28,28,0.28)]',
+  '#1e3a8a': 'shadow-[0_4px_16px_rgba(0,35,111,0.22)] hover:shadow-[0_8px_24px_rgba(0,35,111,0.32)]',
+  '#059669': 'shadow-[0_4px_16px_rgba(5,150,105,0.20)] hover:shadow-[0_8px_24px_rgba(5,150,105,0.30)]',
+  '#b4730a': 'shadow-[0_4px_16px_rgba(134,83,0,0.20)] hover:shadow-[0_8px_24px_rgba(134,83,0,0.30)]',
+  '#b91c1c': 'shadow-[0_4px_16px_rgba(186,26,26,0.20)] hover:shadow-[0_8px_24px_rgba(186,26,26,0.30)]',
 };
 
 interface PrimaryButtonProps {
@@ -209,9 +221,18 @@ interface PrimaryButtonProps {
 export function PrimaryButton({ children, onClick, loading = false, disabled = false, type = 'button', color = '#1E3A8A' }: PrimaryButtonProps) {
   const colorClasses = BUTTON_COLORS[color.toLowerCase()] || BUTTON_COLORS['#1e3a8a'];
 
+  const bgGradient = color.toLowerCase() === '#059669'
+    ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+    : color.toLowerCase() === '#b4730a'
+      ? 'linear-gradient(135deg, #865300 0%, #b4730a 100%)'
+      : color.toLowerCase() === '#b91c1c'
+        ? 'linear-gradient(135deg, #5d0004 0%, #ba1a1a 100%)'
+        : 'linear-gradient(135deg, #00236f 0%, #1e3a8a 100%)';
+
   return (
     <button
-      className={`flex w-full items-center justify-center gap-2 rounded-[var(--radius-lg)] px-5 py-3.5 text-sm font-bold text-white transition-all ${colorClasses} disabled:cursor-not-allowed disabled:opacity-50`}
+      className={`flex w-full items-center justify-center gap-2 rounded-[var(--radius-lg)] px-5 py-3.5 text-sm font-bold text-white transition-all duration-200 ${colorClasses} disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110 active:scale-[0.98]`}
+      style={{ background: bgGradient }}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
@@ -229,48 +250,48 @@ interface AuthProgressStepperProps {
 export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressStepperProps) {
   return (
     <div className={`${className} flex items-center`}>
-      {steps.flatMap((step, idx) => {
-        const isDone = step.status === 'done';
-        const isActive = step.status === 'active';
-
-        const items = [
-          <div key={`step-${idx}`} className="flex flex-1 flex-col items-center">
+      {/* Stitch tonal progress bar — no numbered circles */}
+      <div className="relative h-1.5 w-full rounded-full" style={{ background: '#d5e3fc' }}>
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+          style={{
+            background: 'linear-gradient(90deg, #00236f 0%, #1e3a8a 100%)',
+            width: `${Math.round((steps.filter(s => s.status === 'done').length / Math.max(steps.length - 1, 1)) * 100)}%`,
+          }}
+        />
+        {steps.map((step, idx) => (
+          <div
+            key={`node-${idx}`}
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+            style={{ left: `${idx === 0 ? 0 : idx === steps.length - 1 ? 100 : Math.round(idx / (steps.length - 1) * 100)}%` }}
+          >
             <div
-              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13px] font-bold ${
-                isDone
-                  ? 'bg-emerald-600 text-white'
-                  : isActive
-                    ? 'bg-primary text-white'
-                    : 'bg-slate-200 text-slate-400'
+              className={`size-3 rounded-full border-2 border-white transition-all ${
+                step.status === 'done'
+                  ? 'bg-[#00236f]'
+                  : step.status === 'active'
+                    ? 'bg-[#1e3a8a] ring-2 ring-[#b6c4ff]'
+                    : 'bg-[#d5e3fc]'
               }`}
-            >
-              {isDone ? <CheckCircle2 size={15} /> : idx + 1}
-            </div>
-            <span
-              className={`text-[10px] ${
-                isDone
-                  ? 'text-emerald-600'
-                  : isActive
-                    ? 'font-bold text-primary'
-                    : 'text-slate-400'
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>,
-        ];
-
-        if (idx < steps.length - 1) {
-          items.push(
-            <div
-              key={`connector-${idx}`}
-              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-slate-200'}`}
-            />,
-          );
-        }
-
-        return items;
-      })}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between">
+        {steps.map((step, idx) => (
+          <span
+            key={`label-${idx}`}
+            className={`text-[10px] ${
+              step.status === 'done' ? 'text-[#00236f] font-semibold'
+              : step.status === 'active' ? 'text-[#1e3a8a] font-bold'
+              : 'font-normal'
+            }`}
+            style={{ color: step.status === 'upcoming' ? '#757682' : undefined }}
+          >
+            {step.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

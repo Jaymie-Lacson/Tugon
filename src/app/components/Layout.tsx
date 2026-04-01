@@ -165,22 +165,23 @@ function Layout() {
   return (
     <div className="flex h-dvh overflow-hidden bg-app-bg">
 
-      {/* ── Desktop Sidebar ── */}
-      <aside className="hidden lg:flex w-60 flex-col shrink-0 relative z-10 bg-primary">
+      {/* ── Desktop Sidebar — Stitch: surface-container-low + primary-container accents */}
+      <aside className="hidden lg:flex w-60 flex-col shrink-0 relative z-10" style={{ background: '#eff4ff', borderRight: '1px solid rgba(197,197,211,0.2)' }}>
         {/* Logo */}
-        <div className="px-5 pt-5 pb-4 border-b border-white/10">
+        <div className="px-5 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(197,197,211,0.25)' }}>
           <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="inline-flex mb-2">
             <img
-              src="/tugon-header-logo.svg"
+              src="/tugon-header-logo-dark.svg"
               alt="TUGON Tondo Emergency Response"
               className="w-[166px] max-w-full h-auto"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/tugon-header-logo.svg'; }}
             />
           </NavLink>
         </div>
 
         {/* Nav items */}
         <nav className="flex-1 p-3 overflow-y-auto">
-          <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+          <div className="text-[10px] font-bold tracking-widest uppercase px-2 mb-2" style={{ color: '#757682' }}>
             {t('nav.navigation')}
           </div>
           {NAV_ITEMS.map((item) => {
@@ -194,43 +195,47 @@ function Layout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
-                  active ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[var(--radius-md)] no-underline mb-0.5 transition-all duration-150 ${
+                  active
+                    ? 'font-semibold'
+                    : 'hover:bg-[#dce9ff]'
                 }`}
+                style={active ? { background: '#1e3a8a', color: '#ffffff' } : { color: '#444651' }}
               >
-                <item.icon size={17} className={active ? 'text-white' : 'text-blue-300'} />
-                <span className={`text-[13px] flex-1 ${active ? 'font-semibold text-white' : 'text-blue-200'}`}>
+                <item.icon size={17} style={active ? { color: '#ffffff' } : { color: '#4059aa' }} />
+                <span className={`text-[13px] flex-1`}>
                   {item.label}
                 </span>
               </NavLink>
             );
           })}
 
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+          <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(197,197,211,0.25)' }}>
+            <div className="text-[10px] font-bold tracking-widest uppercase px-2 mb-2" style={{ color: '#757682' }}>
               {t('nav.system')}
             </div>
             <NavLink
               to="/app/settings"
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
-                settingsActive ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-[var(--radius-md)] no-underline mb-0.5 transition-all duration-150 ${
+                settingsActive ? 'font-semibold' : 'hover:bg-[#dce9ff]'
               }`}
+              style={settingsActive ? { background: '#1e3a8a', color: '#ffffff' } : { color: '#444651' }}
             >
-              <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
-              <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>{t('common.settings')}</span>
+              <Settings size={16} style={settingsActive ? { color: '#ffffff' } : { color: '#4059aa' }} />
+              <span className={`text-[13px]`}>{t('common.settings')}</span>
             </NavLink>
           </div>
         </nav>
 
-        {/* User profile */}
-        <div className="px-4 py-3 border-t border-white/10 bg-black/15">
+        {/* User profile — tonal strip */}
+        <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(197,197,211,0.25)', background: '#eff4ff' }}>
           <div className="flex items-center gap-2.5">
-            <div className="size-[34px] rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
+            <div className="size-[34px] rounded-full bg-gradient-to-br from-[#865300] to-[#b4730a] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
               {userInitials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
-              <div className="text-blue-300 text-[10px]">{userRoleLabel}</div>
+              <div className="text-[13px] font-semibold truncate" style={{ color: '#0d1c2e' }}>{userFullName}</div>
+              <div className="text-[10px]" style={{ color: '#757682' }}>{userRoleLabel}</div>
             </div>
             <button
               type="button"
@@ -239,7 +244,7 @@ function Layout() {
               title={t('common.signOut')}
               className="border-none bg-transparent p-0 cursor-pointer inline-flex items-center justify-center shrink-0"
             >
-              <LogOut size={15} className="text-blue-300" />
+              <LogOut size={15} style={{ color: '#757682' }} />
             </button>
           </div>
         </div>
@@ -259,20 +264,23 @@ function Layout() {
             id="layout-mobile-drawer"
             role="navigation"
             aria-label="Main navigation"
-            className="absolute inset-y-0 left-0 w-[270px] bg-primary flex flex-col shadow-2xl"
+            className="absolute inset-y-0 left-0 w-[270px] flex flex-col shadow-2xl"
+            style={{ background: '#eff4ff' }}
           >
             {/* Drawer header */}
-            <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/10">
+            <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid rgba(197,197,211,0.25)' }}>
               <img
-                src="/tugon-header-logo.svg"
+                src="/tugon-header-logo-dark.svg"
                 alt="TUGON Tondo Emergency Response"
                 className="w-[140px] h-auto"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/tugon-header-logo.svg'; }}
               />
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(false)}
                 aria-label="Close navigation drawer"
-                className="flex size-8 items-center justify-center rounded-lg bg-white/10 text-white border-none cursor-pointer"
+                className="flex size-8 items-center justify-center rounded-lg cursor-pointer border-none"
+                style={{ background: '#dce9ff', color: '#00236f' }}
               >
                 <X size={16} />
               </button>
@@ -280,7 +288,7 @@ function Layout() {
 
             {/* Drawer nav items */}
             <div className="flex-1 overflow-y-auto p-3">
-              <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+              <div className="text-[10px] font-bold tracking-widest uppercase px-2 mb-2" style={{ color: '#757682' }}>
                 {t('nav.navigation')}
               </div>
               {NAV_ITEMS.map((item) => {
@@ -295,44 +303,46 @@ function Layout() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setMobileDrawerOpen(false)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
-                      active ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[var(--radius-md)] no-underline mb-0.5 transition-all duration-150 ${
+                      active ? 'font-semibold' : 'hover:bg-[#dce9ff]'
                     }`}
+                    style={active ? { background: '#1e3a8a', color: '#ffffff' } : { color: '#444651' }}
                   >
-                    <item.icon size={17} className={active ? 'text-white' : 'text-blue-300'} />
-                    <span className={`text-[13px] flex-1 ${active ? 'font-semibold text-white' : 'text-blue-200'}`}>
+                    <item.icon size={17} style={active ? { color: '#ffffff' } : { color: '#4059aa' }} />
+                    <span className={`text-[13px] flex-1`}>
                       {item.label}
                     </span>
                   </NavLink>
                 );
               })}
 
-              <div className="mt-4 pt-3 border-t border-white/10">
-                <div className="text-blue-300 text-[9px] font-bold tracking-widest uppercase px-2 mb-1">
+              <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(197,197,211,0.25)' }}>
+                <div className="text-[10px] font-bold tracking-widest uppercase px-2 mb-2" style={{ color: '#757682' }}>
                   {t('nav.system')}
                 </div>
                 <NavLink
                   to="/app/settings"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg no-underline mb-0.5 border-l-[3px] transition-colors duration-150 ${
-                    settingsActive ? 'border-white/50 bg-white/[0.14]' : 'border-transparent hover:bg-white/[0.08]'
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-[var(--radius-md)] no-underline mb-0.5 transition-all duration-150 ${
+                    settingsActive ? 'font-semibold' : 'hover:bg-[#dce9ff]'
                   }`}
+                  style={settingsActive ? { background: '#1e3a8a', color: '#ffffff' } : { color: '#444651' }}
                 >
-                  <Settings size={16} className={settingsActive ? 'text-white' : 'text-blue-300'} />
-                  <span className={`text-[13px] ${settingsActive ? 'font-semibold text-white' : 'text-blue-200'}`}>{t('common.settings')}</span>
+                  <Settings size={16} style={settingsActive ? { color: '#ffffff' } : { color: '#4059aa' }} />
+                  <span className="text-[13px]">{t('common.settings')}</span>
                 </NavLink>
               </div>
             </div>
 
-            {/* Drawer user profile */}
-            <div className="px-4 py-3 border-t border-white/10 bg-black/15">
+            {/* Drawer user profile — tonal strip */}
+            <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(197,197,211,0.25)', background: '#eff4ff' }}>
               <div className="flex items-center gap-2.5">
-                <div className="size-[34px] rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
+                <div className="size-[34px] rounded-full bg-gradient-to-br from-[#865300] to-[#b4730a] flex items-center justify-center shrink-0 font-bold text-white text-[13px]">
                   {userInitials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white text-xs font-semibold truncate">{userFullName}</div>
-                  <div className="text-blue-300 text-[10px]">{userRoleLabel}</div>
+                  <div className="text-[13px] font-semibold truncate" style={{ color: '#0d1c2e' }}>{userFullName}</div>
+                  <div className="text-[10px]" style={{ color: '#757682' }}>{userRoleLabel}</div>
                 </div>
                 <button
                   type="button"
@@ -340,7 +350,7 @@ function Layout() {
                   aria-label={t('common.signOut')}
                   className="border-none bg-transparent p-0 cursor-pointer inline-flex"
                 >
-                  <LogOut size={15} className="text-blue-300" />
+                  <LogOut size={15} style={{ color: '#757682' }} />
                 </button>
               </div>
             </div>
@@ -351,11 +361,18 @@ function Layout() {
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-        {/* Header */}
+        {/* Header — Stitch surface-container-lowest glass + primary-container breadcrumb text */}
         <header
-          className={`bg-primary px-4 h-14 flex items-center gap-3 shrink-0 border-b border-white/10 shadow-[0_2px_8px_rgba(30,58,138,0.3)] relative ${
+          className={`px-4 h-14 flex items-center gap-3 shrink-0 relative ${
             isMapRoute ? 'z-[2500]' : 'z-[90]'
           }`}
+          style={{
+            background: 'rgba(248,249,255,0.92)',
+            borderBottom: '1px solid rgba(197,197,211,0.3)',
+            boxShadow: '0 1px 12px rgba(13,28,46,0.06)',
+            backdropFilter: 'saturate(110%) blur(12px)',
+            WebkitBackdropFilter: 'saturate(110%) blur(12px)',
+          }}
         >
           {/* Mobile hamburger + logo */}
           <div className="flex items-center gap-2 lg:hidden">
@@ -369,15 +386,17 @@ function Layout() {
                 setProfileMenuOpen(false);
                 setNotificationsOpen(false);
               }}
-              className="flex size-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white cursor-pointer"
+              className="flex size-9 items-center justify-center rounded-lg cursor-pointer border-none"
+              style={{ background: '#dce9ff', color: '#00236f' }}
             >
               <Menu size={18} />
             </button>
             <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="inline-flex">
               <img
-                src="/tugon-header-logo.svg"
+                src="/tugon-header-logo-dark.svg"
                 alt="TUGON Tondo Emergency Response"
                 className="w-[124px] max-w-full h-auto"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/tugon-header-logo.svg'; }}
               />
             </NavLink>
           </div>
@@ -385,15 +404,15 @@ function Layout() {
           {/* Desktop breadcrumb */}
           <div className="hidden lg:block flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-blue-300 text-xs">TUGON</span>
-              <ChevronRight size={12} className="text-blue-300" />
-              <span className="text-white text-[13px] font-semibold">{currentPage?.label}</span>
+              <span className="text-[11px] font-medium" style={{ color: '#757682' }}>TUGON</span>
+              <ChevronRight size={12} style={{ color: '#c5c5d3' }} />
+              <span className="text-[13px] font-semibold" style={{ color: '#0d1c2e' }}>{currentPage?.label}</span>
             </div>
           </div>
 
           {/* Mobile page label */}
           <div className="flex flex-1 min-w-0 items-center lg:hidden">
-            <span className="text-white text-[17px] font-bold leading-[56px]">
+            <span className="text-[17px] font-bold leading-[56px]" style={{ color: '#0d1c2e' }}>
               {currentPage?.label}
             </span>
           </div>
@@ -402,8 +421,8 @@ function Layout() {
           <div className="flex items-center gap-2.5 ml-auto">
             {/* Date / Time — desktop only */}
             <div className="hidden lg:block text-right">
-              <div className="text-white text-[13px] font-semibold"><LiveClock /></div>
-              <div className="text-blue-300 text-[10px]">
+              <div className="text-[13px] font-semibold" style={{ color: '#0d1c2e' }}><LiveClock /></div>
+              <div className="text-[10px]" style={{ color: '#757682' }}>
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
@@ -439,7 +458,7 @@ function Layout() {
                 }}
                 aria-label="Open profile actions"
                 aria-haspopup="menu"
-                className="size-9 rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] flex items-center justify-center font-bold text-white text-xs cursor-pointer shrink-0 border-none"
+                className="size-9 rounded-full bg-gradient-to-br from-[#865300] to-[#b4730a] flex items-center justify-center font-bold text-white text-xs cursor-pointer shrink-0 border-none"
               >
                 {userInitials}
               </button>
@@ -448,13 +467,17 @@ function Layout() {
                 <div
                   role="menu"
                   aria-label="Profile actions"
-                  className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-elevated border border-slate-200 overflow-hidden z-[2300] divide-y divide-slate-100"
+                  className="absolute top-11 right-0 w-[190px] rounded-xl overflow-hidden z-[2300] divide-y"
+                  style={{ background: '#ffffff', boxShadow: '0 8px 32px rgba(13,28,46,0.12)', border: '1px solid rgba(197,197,211,0.3)', ['--tw-divide-opacity' as string]: '1' }}
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
-                    className="w-full text-left px-3 py-[11px] bg-white border-none text-slate-800 text-[13px] font-semibold cursor-pointer hover:bg-slate-50"
+                    className="w-full text-left px-3 py-[11px] border-none text-[13px] font-semibold cursor-pointer transition-colors"
+                    style={{ background: '#ffffff', color: '#0d1c2e' }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = '#eff4ff'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = '#ffffff'; }}
                   >
                     {t('common.profile')}
                   </button>
@@ -462,7 +485,10 @@ function Layout() {
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
-                    className="w-full text-left px-3 py-[11px] bg-white border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
+                    className="w-full text-left px-3 py-[11px] border-none text-[13px] font-bold cursor-pointer transition-colors"
+                    style={{ background: '#ffffff', color: '#ba1a1a' }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = '#ffdad6'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = '#ffffff'; }}
                   >
                     {t('common.signOut')}
                   </button>

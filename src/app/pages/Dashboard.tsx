@@ -89,18 +89,18 @@ function KPICard({ title, value, subtitle, icon, accent, trend }: KPICardProps) 
   const iconClass = KPI_ICON_CLASS_MAP[accent] ?? 'bg-slate-100 text-slate-600';
   const trendClass = KPI_TREND_CLASS_MAP[accent] ?? 'text-slate-600';
   return (
-    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl bg-white px-5 py-[18px] shadow-sm border border-slate-200">
+    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl px-5 py-[18px]" style={{ background: '#ffffff', boxShadow: '0 2px 8px rgba(13,28,46,0.07)', border: '1px solid rgba(197,197,211,0.35)' }}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mb-1.5">{title}</div>
-          <div className="text-[30px] font-bold text-slate-800 leading-none">{value}</div>
+          <div className="text-[11px] font-semibold tracking-wide uppercase mb-1.5" style={{ color: '#757682' }}>{title}</div>
+          <div className="text-[30px] font-bold leading-none" style={{ color: '#0d1c2e' }}>{value}</div>
         </div>
         <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 ${iconClass}`}>
           {icon}
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] text-slate-400">{subtitle}</span>
+        <span className="text-[11px]" style={{ color: '#c5c5d3' }}>{subtitle}</span>
         {trend && (
           <span className={`flex items-center gap-[3px] text-[11px] font-semibold ${trendClass}`}>
             <TrendIcon size={12} />
@@ -123,10 +123,16 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div className="grid gap-2 rounded-[10px] border border-[#F2C8C8] bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1] px-3.5 py-3 mb-3">
+    <div
+      className="grid gap-2 rounded-[10px] px-3.5 py-3 mb-3"
+      style={{
+        background: 'linear-gradient(to bottom, #fff8f7, #fff1f1)',
+        border: '1px solid rgba(186,26,26,0.2)',
+      }}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-md border border-[#E8B4B4] bg-[#FDE8E8] flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: '#fde8e8', border: '1px solid rgba(186,26,26,0.25)' }}>
             <Radio size={13} color="var(--severity-critical)" />
           </div>
           <div className="text-severity-critical font-bold text-xs tracking-wide">
@@ -142,21 +148,22 @@ const AlertBanner = ({
         </button>
       </div>
 
-      <div className="text-[#7F1D1D] text-xs leading-[1.45]">
+      <div className="text-xs leading-[1.45]" style={{ color: '#7f1d1d' }}>
         {critical.length > 1
           ? t('official.dashboard.criticalMessagePlural', { count: critical.length })
           : t('official.dashboard.criticalMessage', { count: critical.length })}
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-[#991B1B] text-[11px] font-bold">{t('official.dashboard.criticalIncidentsLabel')}</span>
+        <span className="text-[11px] font-bold" style={{ color: '#991b1b' }}>{t('official.dashboard.criticalIncidentsLabel')}</span>
         <div className="flex flex-wrap gap-1.5 w-full">
           {critical.map((incident) => (
             <button
               key={incident.id}
               type="button"
               onClick={() => onOpenIncident(incident.id)}
-              className="border border-[#E8B4B4] rounded-md px-2 py-1.5 m-0 bg-white text-[#7F1D1D] text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
+              className="rounded-md px-2 py-1.5 m-0 bg-white text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
+              style={{ border: '1px solid rgba(186,26,26,0.2)', color: '#7f1d1d' }}
             >
               {incident.id}
             </button>
@@ -452,21 +459,20 @@ export default function Dashboard() {
       ) : null}
 
       {/* Cross-Border Alerts */}
-      <div className="mb-4 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+      <div className="mb-4 overflow-hidden rounded-xl" style={{ background: '#ffffff', boxShadow: '0 2px 8px rgba(13,28,46,0.07)' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-3" style={{ borderBottom: '1px solid rgba(197,197,211,0.3)' }}>
           <div className="flex items-center gap-2">
             <Bell size={15} color="var(--severity-medium)" />
-            <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.crossBorderAlerts')}</span>
+            <span className="text-[13px] font-bold" style={{ color: '#0d1c2e' }}>{t('official.dashboard.crossBorderAlerts')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : 'text-slate-500'}`}>
+            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : ''}`} style={unreadAlerts === 0 ? { color: '#757682' } : undefined}>
               {t('official.dashboard.unread', { count: unreadAlerts })}
             </span>
             <button
-              onClick={() => {
-                void loadAlerts();
-              }}
-              className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer"
+              onClick={() => { void loadAlerts(); }}
+              className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold cursor-pointer border-none"
+              style={{ background: '#eff4ff', color: '#4059aa', border: '1px solid rgba(197,197,211,0.4)' }}
             >
               <RefreshCw size={12} /> {t('common.refresh')}
             </button>
@@ -487,22 +493,26 @@ export default function Dashboard() {
               className="rounded-none border-0 bg-transparent p-0 shadow-none"
             />
           ) : alerts.length === 0 ? (
-            <div className="py-2 text-xs text-slate-500">{t('official.dashboard.noAlerts')}</div>
+            <div className="py-2 text-xs" style={{ color: '#757682' }}>{t('official.dashboard.noAlerts')}</div>
           ) : (
             <div className="flex flex-col gap-2">
               {alerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className={`flex items-start justify-between gap-2.5 rounded-lg border border-slate-200 px-2.5 py-[9px] ${alert.readAt ? 'bg-slate-50' : 'bg-amber-50'}`}
+                  className={`flex items-start justify-between gap-2.5 rounded-lg px-2.5 py-[9px]`}
+                  style={{
+                    border: '1px solid rgba(197,197,211,0.35)',
+                    background: alert.readAt ? '#f8f9ff' : '#fffbeb',
+                  }}
                 >
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-slate-800">
+                    <div className="text-xs font-bold" style={{ color: '#0d1c2e' }}>
                       Incident {alert.report.id} near Barangay {alert.sourceBarangayCode}
                     </div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
+                    <div className="mt-0.5 text-[11px]" style={{ color: '#757682' }}>
                       {alert.alertReason}
                     </div>
-                    <div className="mt-1 text-[10px] text-slate-400">
+                    <div className="mt-1 text-[10px]" style={{ color: '#c5c5d3' }}>
                       {new Date(alert.createdAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} · {alert.report.location}
                     </div>
                   </div>
@@ -510,11 +520,10 @@ export default function Dashboard() {
                     <span className="whitespace-nowrap text-[10px] font-bold text-emerald-600">{t('official.dashboard.read')}</span>
                   ) : (
                     <button
-                      onClick={() => {
-                        void handleMarkAlertRead(alert.id);
-                      }}
+                      onClick={() => { void handleMarkAlertRead(alert.id); }}
                       disabled={markingReadAlertId === alert.id}
-                      className={`whitespace-nowrap rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-bold text-primary ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      className={`whitespace-nowrap rounded-md px-2 py-1.5 text-[10px] font-bold text-primary ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      style={{ border: '1px solid rgba(197,197,211,0.4)', background: '#ffffff' }}
                     >
                       {markingReadAlertId === alert.id ? t('official.dashboard.saving') : t('official.dashboard.markRead')}
                     </button>

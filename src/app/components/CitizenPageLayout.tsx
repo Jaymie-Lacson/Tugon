@@ -58,7 +58,7 @@ export function CitizenPageLayout({
 
   return (
     <div
-      className="citizen-page-layout min-h-dvh bg-citizen-bg flex flex-col w-full font-['Roboto',sans-serif] relative tracking-[-0.004em]"
+      className="citizen-page-layout min-h-dvh bg-citizen-bg flex flex-col w-full relative tracking-[-0.004em]"
       style={cssVars}
     >
       {header}
@@ -132,8 +132,8 @@ export function CitizenPageLayout({
         }
 
         .citizen-web-header {
-          backdrop-filter: saturate(115%) blur(6px);
-          -webkit-backdrop-filter: saturate(115%) blur(6px);
+          -webkit-backdrop-filter: saturate(115%) blur(8px);
+          backdrop-filter: saturate(115%) blur(8px);
         }
 
         .citizen-web-strip {

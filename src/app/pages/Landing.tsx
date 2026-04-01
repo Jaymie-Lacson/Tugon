@@ -38,23 +38,25 @@ function SectionHeading({
       <span
         className={`mb-2.5 inline-block rounded-[9px] border px-[11px] py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
           light
-            ? 'border-white/[0.22] bg-white/[0.14] text-blue-200'
-            : 'border-slate-300 bg-[#E8EEF9] text-primary'
+            ? 'border-white/[0.22] bg-white/[0.14] text-[#b6c4ff]'
+            : 'border-[rgba(197,197,211,0.5)] bg-[#dce9ff] text-[#00236f]'
         }`}
       >
         {label}
       </span>
       <h2
-        className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.01em] ${
-          light ? 'text-white' : 'text-slate-800'
+        className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.02em] ${
+          light ? 'text-white' : ''
         }`}
+        style={light ? undefined : { color: '#0d1c2e', fontFamily: 'var(--font-headline)' }}
       >
         {title}
       </h2>
       <p
         className={`mx-auto max-w-[620px] text-sm leading-relaxed ${
-          light ? 'text-blue-200' : 'text-slate-500'
+          light ? 'text-[#b6c4ff]' : ''
         }`}
+        style={light ? undefined : { color: '#444651' }}
       >
         {subtitle}
       </p>
@@ -402,7 +404,7 @@ function Hero() {
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(30,58,138,0.86) 55%, rgba(15,23,42,0.92) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,35,111,0.94) 0%, rgba(30,58,138,0.88) 50%, rgba(11,28,48,0.93) 100%)',
             }}
           />
         </div>
@@ -438,7 +440,8 @@ function Hero() {
             <div className="mb-[22px] flex flex-wrap gap-3">
               <button
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none bg-severity-critical px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                style={{ background: 'linear-gradient(135deg, #5d0004 0%, #b91c1c 100%)' }}
               >
                 <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
               </button>
@@ -538,7 +541,7 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal className="bg-white px-6 py-14">
+      <section id="quick-actions" data-reveal className="px-6 py-14" style={{ background: '#f8f9ff' }}>
       <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.quickActions.label')}
@@ -797,7 +800,7 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" data-reveal className="bg-[#F8FAFF] px-6 py-[88px]">
+    <section id="how" data-reveal className="px-6 py-[88px]" style={{ background: '#eff4ff' }}>
       <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.howItWorks.label')}
