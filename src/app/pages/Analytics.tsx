@@ -302,13 +302,13 @@ export default function Analytics() {
           <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.analytics.pageTitle')}</h1>
           <p className="text-slate-500 text-xs">{t('official.analytics.pageSubtitle')}</p>
         </div>
-        <div className="analytics-header-controls flex gap-2 items-center flex-wrap">
-          <div className="analytics-period-tabs flex bg-white rounded-lg border border-slate-200 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] sm:flex">
             {PERIODS.map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`analytics-period-tab-btn px-[13px] py-[7px] border-none border-r border-r-slate-100 text-[11px] cursor-pointer transition-all duration-150 ${
+                className={`min-h-[44px] border-none border-b border-b-slate-100 px-[13px] py-[7px] text-[11px] sm:min-h-0 sm:border-b-0 sm:border-r sm:border-r-slate-100 cursor-pointer transition-all duration-150 ${
                   period === p ? 'bg-primary text-white font-bold' : 'bg-transparent text-slate-500'
                 }`}
               >
@@ -316,7 +316,7 @@ export default function Analytics() {
               </button>
             ))}
           </div>
-          <button className="bg-white border border-slate-200 rounded-lg px-3.5 py-[7px] text-xs text-slate-600 font-semibold cursor-pointer flex items-center gap-[5px] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+          <button className="flex w-full items-center justify-center gap-[5px] rounded-lg border border-slate-200 bg-white px-3.5 py-[7px] text-xs font-semibold text-slate-600 shadow-[0_1px_4px_rgba(0,0,0,0.06)] sm:w-auto cursor-pointer">
             <Download size={13} /> {t('official.analytics.export')}
           </button>
         </div>
@@ -343,12 +343,12 @@ export default function Analytics() {
             <div className="font-bold text-slate-800 text-lg md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
             <div className="text-slate-400 text-sm md:text-[11px] mt-0.5">{t('official.analytics.dailyCount', { period })}</div>
           </div>
-          <div className="analytics-chart-toggle flex gap-1.5">
+          <div className="flex w-full gap-1.5 sm:w-auto">
             {(['area', 'bar'] as const).map(chartTypeBtn => (
               <button
                 key={chartTypeBtn}
                 onClick={() => setChartType(chartTypeBtn)}
-                className={`px-3 py-[5px] md:px-3 md:py-[5px] rounded-md border text-[11px] font-semibold cursor-pointer ${
+                className={`min-h-[42px] flex-1 rounded-md border px-3 py-[5px] text-[11px] font-semibold sm:min-h-0 sm:flex-none cursor-pointer ${
                   chartType === chartTypeBtn
                     ? 'border-primary bg-primary text-white'
                     : 'border-slate-200 bg-white text-slate-500'
@@ -545,36 +545,6 @@ export default function Analytics() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .analytics-header-controls {
-            width: 100%;
-            align-items: stretch !important;
-          }
-          .analytics-period-tabs {
-            width: 100%;
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
-          }
-          .analytics-period-tab-btn {
-            width: 100%;
-            border-right: none !important;
-            border-bottom: 1px solid #F1F5F9;
-            min-height: 44px;
-          }
-          .analytics-header-controls > button {
-            width: 100%;
-            justify-content: center;
-          }
-          .analytics-chart-toggle {
-            width: 100%;
-          }
-          .analytics-chart-toggle > button {
-            flex: 1;
-            min-height: 42px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

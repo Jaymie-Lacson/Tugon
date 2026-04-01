@@ -164,8 +164,7 @@ function IncidentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[3px]"
-      style={{ background: 'rgba(15,23,42,0.68)' }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/[0.68] p-3.5 backdrop-blur-[3px]"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -175,7 +174,14 @@ function IncidentDetailModal({
         <div className="flex items-start justify-between rounded-t-2xl bg-primary px-5 py-[18px]">
           <div>
             <div className="mb-2 flex items-center gap-2.5">
-              <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white" style={{ color: cfg.color }}>
+              <div className={`flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white ${
+                cfg.label === 'Flood' ? 'text-blue-700' :
+                cfg.label === 'Accident' ? 'text-severity-medium' :
+                cfg.label === 'Medical' ? 'text-teal-700' :
+                cfg.label === 'Crime' ? 'text-violet-700' :
+                cfg.label === 'Infrastructure' ? 'text-slate-600' :
+                'text-sky-700'
+              }`}>
                 {typeIcons[incident.type]}
               </div>
               <div>
@@ -361,8 +367,7 @@ function IncidentDetailModal({
           ) : null}
 
           <button
-            className="flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer"
-            style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
+            className={`flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer ${canUpdateStatus ? 'flex-1' : 'flex-[1_1_100%]'}`}
           >
             <Printer size={13} /> {t('official.incidents.printReport')}
           </button>
@@ -375,8 +380,7 @@ function IncidentDetailModal({
             aria-modal="true"
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
-            className="fixed inset-0 z-[140] flex items-center justify-center p-[18px]"
-            style={{ background: 'rgba(2,6,23,0.86)' }}
+            className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/[0.86] p-[18px]"
           >
             <button
               type="button"
@@ -390,8 +394,8 @@ function IncidentDetailModal({
               <img
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
-                className="rounded-xl"
-                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)' }}
+                className="max-w-full rounded-xl"
+                style={{ maxHeight: 'calc(100dvh - 92px)' }}
               />
               <div className="text-center text-xs font-semibold text-slate-200">
                 {previewPhotoName}
@@ -805,6 +809,7 @@ export default function Incidents() {
             <select
               value={f.value}
               onChange={(e) => f.setter(e.target.value)}
+              aria-label={f.label}
               className={`w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none ${
                 f.value ? 'text-slate-800' : 'text-slate-400'
               }`}

@@ -1,3 +1,64 @@
+# Session Handoff — 2026-04-01 (UI/UX Redesign — Official Portal Cleanup)
+
+**Branch:** `redesign`
+
+## What was accomplished
+
+Completed the **official portal inline-style elimination and accessibility hardening** pass across all 6 remaining official portal pages:
+
+### `Dashboard.tsx`
+- Replaced `style={{ background: bgLight, color: accent }}` on KPI icon divs with a `KPI_ICON_CLASS_MAP` (4 deterministic accent colors → Tailwind classes)
+- Replaced `style={{ color: trendColor }}` on trend span with `KPI_TREND_CLASS_MAP`
+- Added `TYPE_ICON_CLASS_MAP` for the live feed incident type icon div (replaces `incidentTypeConfig[inc.type].bgColor/color`)
+- Replaced `style={{ minWidth: 580 }}` on table with `min-w-[580px]`
+- Added `aria-label` to both heatmap tuning range inputs (`Heatmap radius`, `Heatmap opacity`)
+
+### `Analytics.tsx`
+- **Removed the entire embedded `<style>` block** (30 lines of media queries)
+- Replaced all `.analytics-header-controls`, `.analytics-period-tabs`, `.analytics-period-tab-btn`, `.analytics-chart-toggle` class-based media query styles with Tailwind responsive utilities (`grid-cols-2/sm:flex`, `min-h-[44px]/sm:min-h-0`, `sm:w-auto`, etc.)
+
+### `Incidents.tsx`
+- Modal backdrop: `background: rgba(15,23,42,0.68)` → `bg-slate-900/[0.68]`
+- Lightbox backdrop: `background: rgba(2,6,23,0.86)` → `bg-slate-950/[0.86]`  
+- Type icon in modal header: `style={{ color: cfg.color }}` → inline conditional Tailwind class chain based on `cfg.label`
+- Print button conditional flex: `style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}` → `flex-1` / `flex-[1_1_100%]`
+- Lightbox image `maxWidth` migrated to `max-w-full` class; `maxHeight: calc(100dvh - 92px)` kept inline (no Tailwind equivalent)
+- Added `aria-label={f.label}` to each dynamically-rendered filter `<select>`
+
+### `Reports.tsx`
+- Added `DSS_PRIORITY_CLASSES` record (4 priorities: critical/high/medium/info) replacing 7 inline styles in `DSSCard`
+- Added `TEMPLATE_ICON_CLASSES` record (6 templates) replacing template card icon/badge `style={{ background, color }}`
+- Added `TEMPLATE_GENERATE_CLASSES` record replacing the Generate button conditional `style={{ background: tmpl.color }}`
+- DSS header gradient: `style={{ background: 'linear-gradient(135deg, ...)' }}` → `bg-gradient-to-br from-[#1E3A8A] to-[#1D4ED8]`
+- Stats row value color: `style={{ color: s.color }}` → inline conditional class chain (4 known colors)
+- History tables: `style={{ minWidth: 680 }}` and `style={{ minWidth: 760 }}` → `min-w-[680px]` / `min-w-[760px]`
+- Added `aria-label` to the icon-only Print button in the history table
+
+### `MapView.tsx`
+- Skeleton wrapper: `style={{ padding, marginTop }}` → `px-4 py-3.5`, `mt-4`
+- Heatmap tuning panel: **entire panel refactored** from `style={{ position, top, right, zIndex, width, background, border, borderRadius, boxShadow, padding }}` to `absolute right-3 top-14 z-[1200] w-[230px] rounded-xl border border-blue-100 bg-white/[0.98] p-3 shadow-[...]`
+- All labels and button spans inside tuning panel: migrated from `style={{ color, fontSize, fontWeight }}` to Tailwind text utilities
+- `style={{ width: '100%' }}` on range inputs → `className="w-full"` + `aria-label` added
+
+### `Verifications.tsx`
+- No changes needed; already clean (confirmed in analysis)
+
+## Intentionally kept inline (documented exceptions)
+- `Analytics.tsx` — chart series/severity dot colors (runtime data from Recharts config)
+- `Analytics.tsx` — resource utilization bar colors (computed from % threshold)
+- `Reports.tsx` — confidence bar width `${rec.confidence}%` (dynamic %)
+- `Incidents.tsx` — lightbox `maxHeight: calc(100dvh - 92px)` (no Tailwind utility)
+- `Incidents.tsx` — context menu `top`/`left` (dynamic pointer position)
+
+## Validation
+- `npx vitest run src/app/accessibility-layouts.test.ts` → **3/3 passed**
+- `npm run build` → **exit code 0**, 2412 modules transformed, 15.35s
+
+## Pre-existing issues (not introduced by this session)
+- `Incidents.tsx` L954: `role="menu"` contains `<button tabindex>` children — ARIA spec technically requires `role="menuitem"` on children; pre-existing pattern, architectural fix needed separately
+
+---
+
 # Session Handoff — 2026-03-30 (UI/UX Redesign, Session 33 Continuation)
 
 **Branch:** `redesign`

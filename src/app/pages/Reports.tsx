@@ -346,6 +346,66 @@ const priorityStyle = {
   info: { color: '#065F46', bg: '#D1FAE5', label: 'INSIGHT' },
 };
 
+const DSS_PRIORITY_CLASSES: Record<string, {
+  outerBorder: string;
+  iconBg: string;
+  badgeBg: string; badgeText: string;
+  accentText: string;
+  expandedBg: string; expandedBorder: string;
+  actionDot: string;
+}> = {
+  critical: {
+    outerBorder: 'border-red-100',
+    iconBg: 'bg-red-100 text-severity-critical',
+    badgeBg: 'bg-red-100', badgeText: 'text-severity-critical',
+    accentText: 'text-severity-critical',
+    expandedBg: 'bg-red-50/40', expandedBorder: 'border-t border-red-100',
+    actionDot: 'bg-severity-critical',
+  },
+  high: {
+    outerBorder: 'border-orange-100',
+    iconBg: 'bg-orange-50 text-orange-700',
+    badgeBg: 'bg-orange-50', badgeText: 'text-orange-700',
+    accentText: 'text-orange-700',
+    expandedBg: 'bg-orange-50/40', expandedBorder: 'border-t border-orange-100',
+    actionDot: 'bg-orange-700',
+  },
+  medium: {
+    outerBorder: 'border-amber-100',
+    iconBg: 'bg-amber-50 text-amber-800',
+    badgeBg: 'bg-amber-50', badgeText: 'text-amber-800',
+    accentText: 'text-amber-800',
+    expandedBg: 'bg-amber-50/40', expandedBorder: 'border-t border-amber-100',
+    actionDot: 'bg-amber-800',
+  },
+  info: {
+    outerBorder: 'border-emerald-100',
+    iconBg: 'bg-emerald-50 text-emerald-800',
+    badgeBg: 'bg-emerald-50', badgeText: 'text-emerald-800',
+    accentText: 'text-emerald-800',
+    expandedBg: 'bg-emerald-50/40', expandedBorder: 'border-t border-emerald-100',
+    actionDot: 'bg-emerald-800',
+  },
+};
+
+const TEMPLATE_ICON_CLASSES: Record<string, string> = {
+  'daily-ops': 'bg-blue-50 text-primary',
+  'incident-summary': 'bg-amber-50 text-severity-medium',
+  'resource-deployment': 'bg-emerald-50 text-emerald-700',
+  'critical-incidents': 'bg-red-100 text-severity-critical',
+  'barangay-profile': 'bg-sky-50 text-sky-700',
+  'trend-analysis': 'bg-violet-50 text-violet-700',
+};
+
+const TEMPLATE_GENERATE_CLASSES: Record<string, string> = {
+  'daily-ops': 'bg-primary',
+  'incident-summary': 'bg-severity-medium',
+  'resource-deployment': 'bg-emerald-600',
+  'critical-incidents': 'bg-severity-critical',
+  'barangay-profile': 'bg-sky-700',
+  'trend-analysis': 'bg-violet-700',
+};
+
 function DSSCard({
   rec,
   onDismiss,
@@ -358,28 +418,20 @@ function DSSCard({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const pStyle = priorityStyle[rec.priority as keyof typeof priorityStyle];
+  const pc = DSS_PRIORITY_CLASSES[rec.priority as keyof typeof DSS_PRIORITY_CLASSES] ?? DSS_PRIORITY_CLASSES.info;
 
   return (
-    <div
-      className="mb-3 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
-      style={{ border: `1px solid ${rec.bg}` }}
-    >
+    <div className={`mb-3 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)] border ${pc.outerBorder}`}>
       <div className="flex items-start gap-3 px-4 py-3.5">
         {/* Icon */}
-        <div
-          className="mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px]"
-          style={{ background: rec.bg, color: rec.color }}
-        >
+        <div className={`mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] ${pc.iconBg}`}>
           {rec.icon}
         </div>
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2.5">
             <div>
-              <span
-                className="mr-2 rounded text-[9px] font-bold tracking-widest"
-                style={{ background: pStyle.bg, color: pStyle.color, padding: '2px 7px' }}
-              >
+              <span className={`mr-2 rounded px-[7px] py-[2px] text-[9px] font-bold tracking-widest ${pc.badgeBg} ${pc.badgeText}`}>
                 {pStyle.label}
               </span>
               <span className="text-[13px] font-bold text-slate-800">{rec.title}</span>
@@ -390,7 +442,7 @@ function DSSCard({
               <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-slate-100">
                 <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
               </div>
-              <span className="text-[11px] font-bold" style={{ color: rec.color }}>{rec.confidence}%</span>
+              <span className={`text-[11px] font-bold ${pc.accentText}`}>{rec.confidence}%</span>
             </div>
           </div>
           <p className="mb-2 text-xs leading-[1.6] text-slate-600">{rec.description}</p>
@@ -400,8 +452,7 @@ function DSSCard({
             </span>
             <button
               onClick={() => setExpanded(v => !v)}
-              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer"
-              style={{ color: rec.color }}
+              className={`flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer ${pc.accentText}`}
             >
               {expanded ? t('official.reports.hideActions') : t('official.reports.viewActions')} <ChevronDown size={13} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
@@ -410,15 +461,12 @@ function DSSCard({
       </div>
 
       {expanded && (
-        <div className="px-4 py-3" style={{ borderTop: `1px solid ${rec.bg}`, background: rec.bg + '40' }}>
+        <div className={`px-4 py-3 ${pc.expandedBorder} ${pc.expandedBg}`}>
           <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">{t('official.reports.recommendedActions')}</div>
           <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
               <div key={i} className="flex items-start gap-2">
-                <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                  style={{ background: rec.color }}
-                >
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${pc.actionDot}`}>
                   {i + 1}
                 </div>
                 <span className="pt-0.5 text-xs text-slate-700">{action}</span>
@@ -810,7 +858,7 @@ export default function Reports() {
       {activeTab === 'dss' && (
         <div>
           {/* DSS Header */}
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-xl px-5 py-4" style={{ background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)' }}>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#1D4ED8] px-5 py-4">
             <div>
               <div className="mb-1.5 flex items-center gap-2">
                 <Sparkles size={16} color="#FDE68A" />
@@ -861,7 +909,12 @@ export default function Reports() {
               { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
               <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
-                <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
+                <div className={`mb-0.5 text-[22px] font-bold ${
+                  s.color === 'var(--primary)' ? 'text-primary' :
+                  s.color === 'var(--severity-medium)' ? 'text-severity-medium' :
+                  s.color === '#059669' ? 'text-emerald-600' :
+                  'text-violet-700'
+                }`}>{s.value}</div>
                 <div className="text-[11px] text-slate-500">{s.label}</div>
               </div>
             ))}
@@ -899,18 +952,12 @@ export default function Reports() {
               <div key={tmpl.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
                 <div className="border-b border-slate-50 px-4 py-3.5">
                   <div className="flex items-start gap-2.5">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
-                      style={{ background: tmpl.bg, color: tmpl.color }}
-                    >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] ${TEMPLATE_ICON_CLASSES[tmpl.id] ?? 'bg-slate-100 text-slate-600'}`}>
                       {tmpl.icon}
                     </div>
                     <div className="flex-1">
                       <div className="mb-1 text-[13px] font-bold text-slate-800">{tmpl.title}</div>
-                      <span
-                        className="rounded text-[9px] font-bold uppercase tracking-wide"
-                        style={{ background: tmpl.bg, color: tmpl.color, padding: '2px 7px' }}
-                      >
+                      <span className={`rounded px-[7px] py-[2px] text-[9px] font-bold uppercase tracking-wide ${TEMPLATE_ICON_CLASSES[tmpl.id] ?? 'bg-slate-100 text-slate-600'}`}>
                         {tmpl.category}
                       </span>
                     </div>
@@ -943,9 +990,8 @@ export default function Reports() {
                       className={`flex flex-1 items-center justify-center gap-[5px] rounded-lg border-none p-2 text-xs font-semibold ${
                         generating === tmpl.id
                           ? 'cursor-not-allowed bg-slate-100 text-slate-400'
-                          : 'cursor-pointer text-white'
+                          : `cursor-pointer text-white ${TEMPLATE_GENERATE_CLASSES[tmpl.id] ?? 'bg-primary'}`
                       }`}
-                      style={generating !== tmpl.id ? { background: tmpl.color } : undefined}
                     >
                       {generating === tmpl.id ? (
                         <><RefreshCw size={12} className="animate-spin" /> {t('official.reports.generating')}</>
@@ -967,7 +1013,7 @@ export default function Reports() {
             </div>
 
             <div className="report-history-table-wrapper overflow-x-auto">
-              <table className="w-full border-collapse text-xs" style={{ minWidth: 680 }}>
+              <table className="w-full min-w-[680px] border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50">
                     {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
@@ -1042,7 +1088,7 @@ export default function Reports() {
             </button>
           </div>
           <div className="report-history-table-wrapper overflow-x-auto">
-          <table className="w-full border-collapse text-xs" style={{ minWidth: 760 }}>
+          <table className="w-full min-w-[760px] border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50">
                 {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
@@ -1085,7 +1131,11 @@ export default function Reports() {
                       <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
                         <Download size={11} /> {t('official.reports.download')}
                       </button>
-                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer">
+                      <button
+                        onClick={() => { void handleHistoryPrint(r.reportId); }}
+                        aria-label={t('official.reports.print')}
+                        className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer"
+                      >
                         <Printer size={12} color="#64748B" />
                       </button>
                     </div>

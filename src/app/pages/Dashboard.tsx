@@ -35,6 +35,15 @@ const typeIcons: Record<string, React.ReactNode> = {
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
 };
 
+const TYPE_ICON_CLASS_MAP: Record<string, string> = {
+  flood: 'bg-blue-100 text-blue-700',
+  accident: 'bg-amber-100 text-severity-medium',
+  medical: 'bg-teal-100 text-teal-700',
+  crime: 'bg-violet-100 text-violet-700',
+  infrastructure: 'bg-slate-100 text-slate-600',
+  typhoon: 'bg-sky-100 text-sky-700',
+};
+
 function formatDurationFromMinutes(totalMinutes: number): string {
   if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
     return '0m';
@@ -56,15 +65,29 @@ function formatDurationFromMinutes(totalMinutes: number): string {
   return `${minutes}m`;
 }
 
+const KPI_ICON_CLASS_MAP: Record<string, string> = {
+  'var(--severity-critical)': 'bg-red-100 text-severity-critical',
+  'var(--primary)': 'bg-blue-100 text-primary',
+  '#059669': 'bg-emerald-100 text-emerald-700',
+  'var(--severity-medium)': 'bg-amber-100 text-severity-medium',
+};
+
+const KPI_TREND_CLASS_MAP: Record<string, string> = {
+  'var(--severity-critical)': 'text-severity-critical',
+  '#059669': 'text-emerald-600',
+  'var(--severity-medium)': 'text-severity-medium',
+};
+
 interface KPICardProps {
   title: string; value: string | number; subtitle: string;
   icon: React.ReactNode; accent: string; trend?: { dir: 'up' | 'down' | 'flat'; val: string };
-  bgLight: string;
+  bgLight?: string;
 }
 
-function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICardProps) {
+function KPICard({ title, value, subtitle, icon, accent, trend }: KPICardProps) {
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
-  const trendColor = accent === 'var(--severity-critical)' ? 'var(--severity-critical)' : accent === '#059669' ? '#059669' : 'var(--severity-medium)';
+  const iconClass = KPI_ICON_CLASS_MAP[accent] ?? 'bg-slate-100 text-slate-600';
+  const trendClass = KPI_TREND_CLASS_MAP[accent] ?? 'text-slate-600';
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl bg-white px-5 py-[18px] shadow-sm border border-slate-200">
       <div className="flex items-start justify-between gap-2">
@@ -72,17 +95,14 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
           <div className="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mb-1.5">{title}</div>
           <div className="text-[30px] font-bold text-slate-800 leading-none">{value}</div>
         </div>
-        <div
-          className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0"
-          style={{ background: bgLight, color: accent }}
-        >
+        <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 ${iconClass}`}>
           {icon}
         </div>
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-400">{subtitle}</span>
         {trend && (
-          <span className="flex items-center gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
+          <span className={`flex items-center gap-[3px] text-[11px] font-semibold ${trendClass}`}>
             <TrendIcon size={12} />
             {trend.val}
           </span>
@@ -567,7 +587,6 @@ export default function Dashboard() {
           subtitle={t('official.dashboard.criticalResponding', { critical: criticalCount, responding: activeIncidents.filter(i => i.status === 'responding').length })}
           icon={<AlertTriangle size={20} />}
           accent="var(--severity-critical)"
-          bgLight="#FEE2E2"
           trend={{ dir: 'flat', val: t('official.dashboard.liveTotal') }}
         />
         <KPICard
@@ -576,7 +595,6 @@ export default function Dashboard() {
           subtitle={staffedActiveIncidents > 0 ? t('official.dashboard.staffedCases', { count: staffedActiveIncidents }) : t('official.dashboard.noResponders')}
           icon={<Users size={20} />}
           accent="var(--primary)"
-          bgLight="#DBEAFE"
           trend={{ dir: 'flat', val: t('official.dashboard.activeCases', { count: activeIncidents.length }) }}
         />
         <KPICard
@@ -585,7 +603,6 @@ export default function Dashboard() {
           subtitle={t('official.dashboard.sincePhT')}
           icon={<CheckCircle2 size={20} />}
           accent="#059669"
-          bgLight="#D1FAE5"
           trend={resolvedTrend}
         />
         <KPICard
@@ -594,7 +611,6 @@ export default function Dashboard() {
           subtitle={avgResponseMinutes !== null ? t('official.dashboard.basedOnResponded') : t('official.dashboard.waitingTimestamps')}
           icon={<Clock size={20} />}
           accent="var(--severity-medium)"
-          bgLight="#FEF3C7"
           trend={{ dir: 'flat', val: t('official.dashboard.liveMetric') }}
         />
       </div>
@@ -693,6 +709,7 @@ export default function Dashboard() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
+                    aria-label="Heatmap radius"
                     className="w-full"
                   />
                 </div>
@@ -715,6 +732,7 @@ export default function Dashboard() {
                     onTouchMove={(event) => event.stopPropagation()}
                     onPointerDown={(event) => event.stopPropagation()}
                     onPointerMove={(event) => event.stopPropagation()}
+                    aria-label="Heatmap opacity"
                     className="w-full"
                   />
                 </div>
@@ -774,13 +792,7 @@ export default function Dashboard() {
                   onClick={() => navigate('/app/incidents')}
                   className="flex items-start gap-2.5 border-b border-slate-50 px-3.5 py-2.5 cursor-pointer transition-colors hover:bg-slate-50"
                 >
-                  <div
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                    style={{
-                      background: incidentTypeConfig[inc.type].bgColor,
-                      color: incidentTypeConfig[inc.type].color,
-                    }}
-                  >
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${TYPE_ICON_CLASS_MAP[inc.type] ?? 'bg-slate-100 text-slate-600'}`}>
                     {typeIcons[inc.type]}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -882,7 +894,7 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs" style={{ minWidth: 580 }}>
+          <table className="w-full min-w-[580px] border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50">
                 {[t('official.dashboard.incidentId'), t('official.dashboard.type'), t('official.dashboard.location'), t('official.dashboard.severity'), t('official.dashboard.status'), t('official.dashboard.reportedCol'), t('official.dashboard.responders')].map(col => (

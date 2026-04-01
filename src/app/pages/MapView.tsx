@@ -23,7 +23,7 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
 function IncidentCard({ incident, selected, onClick }: { incident: Incident; selected: boolean; onClick: () => void }) {
   const cardClass = selected ? 'map-incident-card is-selected' : 'map-incident-card';
   const iconClass = `map-incident-type-icon map-incident-type-${incident.type}`;
-
+  
   return (
     <div onClick={onClick} className={cardClass}>
       <div className="map-incident-card-row">
@@ -289,17 +289,17 @@ export default function MapView() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '14px 16px', minHeight: '100%' }}>
+      <div className="min-h-full px-4 py-3.5">
         <CardSkeleton
           count={3}
           lines={2}
           showImage={false}
           gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
         />
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TextSkeleton rows={3} title={false} />
         </div>
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <TableSkeleton rows={6} columns={3} showHeader={false} />
         </div>
       </div>
@@ -472,46 +472,26 @@ export default function MapView() {
         <div className="map-canvas-wrap">
           {!isPublicCommunityMap && showHeatmapTuning && (
             <div
-              style={{
-                position: 'absolute',
-                top: 56,
-                right: 12,
-                zIndex: 1200,
-                width: 230,
-                background: 'rgba(255,255,255,0.98)',
-                border: '1px solid #DBEAFE',
-                borderRadius: 12,
-                boxShadow: '0 6px 24px rgba(15,23,42,.16)',
-                padding: 12,
-              }}
+              className="absolute right-3 top-14 z-[1200] w-[230px] rounded-xl border border-blue-100 bg-white/[0.98] p-3 shadow-[0_6px_24px_rgba(15,23,42,.16)]"
               onMouseDown={(event) => event.stopPropagation()}
               onTouchStart={(event) => event.stopPropagation()}
               onPointerDown={(event) => event.stopPropagation()}
               onWheel={(event) => event.stopPropagation()}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Heatmap Settings</span>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[12px] font-bold text-slate-800">Heatmap Settings</span>
                 <button
                   onClick={handleResetHeatmapTuning}
-                  style={{
-                    border: '1px solid #CBD5E1',
-                    background: '#FFFFFF',
-                    color: '#475569',
-                    borderRadius: 6,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: '3px 6px',
-                    cursor: 'pointer',
-                  }}
+                  className="rounded-md border border-slate-300 bg-white px-1.5 py-[3px] text-[10px] font-bold text-slate-500 cursor-pointer"
                 >
                   Reset
                 </button>
               </div>
 
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Radius</span>
-                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+              <div className="mb-2.5">
+                <div className="mb-1 flex justify-between">
+                  <span className="text-[10px] font-semibold text-slate-500">Radius</span>
+                  <span className="text-[10px] font-bold text-slate-800">{heatRadiusPercent}%</span>
                 </div>
                 <input
                   type="range"
@@ -523,14 +503,15 @@ export default function MapView() {
                   onMouseDown={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
                   onPointerDown={(event) => event.stopPropagation()}
-                  style={{ width: '100%' }}
+                  aria-label="Heatmap radius"
+                  className="w-full"
                 />
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Opacity</span>
-                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatOpacityPercent}%</span>
+                <div className="mb-1 flex justify-between">
+                  <span className="text-[10px] font-semibold text-slate-500">Opacity</span>
+                  <span className="text-[10px] font-bold text-slate-800">{heatOpacityPercent}%</span>
                 </div>
                 <input
                   type="range"
@@ -542,7 +523,8 @@ export default function MapView() {
                   onMouseDown={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
                   onPointerDown={(event) => event.stopPropagation()}
-                  style={{ width: '100%' }}
+                  aria-label="Heatmap opacity"
+                  className="w-full"
                 />
               </div>
             </div>
