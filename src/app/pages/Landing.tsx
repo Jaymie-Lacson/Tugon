@@ -34,43 +34,27 @@ function SectionHeading({
   light?: boolean;
 }) {
   return (
-    <div style={{ textAlign: 'center', marginBottom: 36 }}>
+    <div className="mb-9 text-center">
       <span
-        style={{
-          display: 'inline-block',
-          background: light ? 'rgba(255,255,255,0.14)' : '#E8EEF9',
-          border: light ? '1px solid rgba(255,255,255,0.22)' : '1px solid #CBD5E1',
-          color: light ? '#DBEAFE' : 'var(--primary)',
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          padding: '6px 11px',
-          borderRadius: 9,
-          marginBottom: 10,
-        }}
+        className={`mb-2.5 inline-block rounded-[9px] border px-[11px] py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
+          light
+            ? 'border-white/[0.22] bg-white/[0.14] text-blue-200'
+            : 'border-slate-300 bg-[#E8EEF9] text-primary'
+        }`}
       >
         {label}
       </span>
       <h2
-        style={{
-          color: light ? '#FFFFFF' : '#1E293B',
-          fontSize: 'clamp(24px,4vw,32px)',
-          letterSpacing: '-0.01em',
-          fontWeight: 800,
-          marginBottom: 8,
-        }}
+        className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.01em] ${
+          light ? 'text-white' : 'text-slate-800'
+        }`}
       >
         {title}
       </h2>
       <p
-        style={{
-          color: light ? '#DBEAFE' : '#64748B',
-          fontSize: 14,
-          maxWidth: 620,
-          margin: '0 auto',
-          lineHeight: 1.6,
-        }}
+        className={`mx-auto max-w-[620px] text-sm leading-relaxed ${
+          light ? 'text-blue-200' : 'text-slate-500'
+        }`}
       >
         {subtitle}
       </p>
@@ -212,85 +196,41 @@ function Navbar() {
           WebkitBackfaceVisibility: 'hidden',
         }}
       >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '0 24px',
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
           <button
             onClick={() => navigate('/')}
             aria-label="Go to TUGON home"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
+            className="flex cursor-pointer items-center border-none bg-transparent p-0"
           >
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
-              style={{ height: 38, width: 'auto', display: 'block' }}
+              className="block h-[38px] w-auto"
             />
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="nav-desktop">
+          <div className="nav-desktop flex items-center gap-1">
             {navLinks.map((link) => (
               <button
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.82)',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  padding: '8px 14px',
-                  borderRadius: 6,
-                }}
+                className="cursor-pointer rounded-[6px] border-none bg-transparent px-[14px] py-2 text-[13px] font-medium text-white/[0.82]"
               >
                 {link.label}
               </button>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} className="nav-cta">
+          <div className="nav-cta flex items-center gap-2">
             <button
               onClick={() => navigateAuthWithOverlay('/auth/login')}
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 8,
-                padding: '8px 16px',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
+              className="cursor-pointer rounded-lg border border-white/25 bg-white/[0.12] px-4 py-2 text-xs font-semibold text-white"
             >
               {t('landing.nav.login')}
             </button>
             <button
               onClick={() => navigateAuthWithOverlay('/auth/register')}
-              style={{
-                background: 'var(--severity-critical)',
-                border: 'none',
-                borderRadius: 8,
-                padding: '8px 16px',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
+              className="cursor-pointer rounded-lg border-none bg-severity-critical px-4 py-2 text-xs font-bold text-white"
             >
               {t('landing.nav.register')}
             </button>
@@ -301,24 +241,10 @@ function Navbar() {
             className={mobileOpen ? 'nav-mobile-btn is-open' : 'nav-mobile-btn'}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileOpen}
+            aria-expanded={mobileOpen ? 'true' : 'false'}
             aria-controls="landing-mobile-nav"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: 'none',
-              borderRadius: 6,
-              width: 44,
-              height: 44,
-              padding: 0,
-              cursor: 'pointer',
-              display: 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 0,
-              transition: 'background 180ms ease, transform 180ms ease',
-            }}
           >
-            <span className={mobileOpen ? 'nav-mobile-icon is-open' : 'nav-mobile-icon'}>
+            <span className="nav-mobile-icon">
               {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
             </span>
           </button>
@@ -327,7 +253,7 @@ function Navbar() {
         <div
           id="landing-mobile-nav"
           className={mobileOpen ? 'nav-mobile-panel is-open' : 'nav-mobile-panel'}
-          aria-hidden={!mobileOpen}
+          aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
             background: 'rgba(15,23,42,0.98)',
             borderTop: '1px solid rgba(255,255,255,0.08)',
@@ -347,16 +273,6 @@ function Navbar() {
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
                 style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 14,
-                  padding: '12px 0',
-                  cursor: 'pointer',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
                   opacity: mobileOpen ? 1 : 0,
                   transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
                   transition: 'opacity 180ms ease, transform 180ms ease',
@@ -366,11 +282,8 @@ function Navbar() {
               </button>
             ))}
             <div
-              className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
+              className={`grid gap-2 mt-3.5 ${mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}`}
               style={{
-                display: 'grid',
-                gap: 8,
-                marginTop: 14,
                 opacity: mobileOpen ? 1 : 0,
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
                 transition: 'opacity 180ms ease, transform 180ms ease',
@@ -378,33 +291,13 @@ function Navbar() {
             >
               <button
                 onClick={() => navigateAuthWithOverlay('/auth/login')}
-                style={{
-                  width: '100%',
-                  background: 'var(--severity-critical)',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '10px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                className="w-full cursor-pointer rounded-lg border-none bg-severity-critical py-2.5 text-[13px] font-bold text-white"
               >
                 {t('landing.nav.loginToContinue')}
               </button>
               <button
                 onClick={() => navigateAuthWithOverlay('/auth/register')}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.22)',
-                  borderRadius: 8,
-                  padding: '10px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                className="w-full cursor-pointer rounded-lg border border-white/[0.22] bg-white/[0.12] py-2.5 text-[13px] font-bold text-white"
               >
                 {t('landing.nav.register')}
               </button>
@@ -418,18 +311,54 @@ function Navbar() {
           max-width: 100%;
         }
 
+        /* Hidden on desktop; shown only inside the mobile media query */
+        .nav-mobile-btn {
+          display: none;
+          width: 40px;
+          height: 40px;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 150ms ease, transform 150ms ease;
+        }
+
         .nav-mobile-icon {
           display: inline-flex;
+          align-items: center;
+          justify-content: center;
           transition: transform 180ms ease;
+        }
+
+        /* Each link/item inside the mobile panel */
+        .nav-mobile-item {
+          display: block;
+          width: 100%;
+          text-align: left;
+          background: none;
+          border: none;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.82);
+          font-size: 15px;
+          font-weight: 600;
+          padding: 12px 0;
+          cursor: pointer;
+          opacity: 0;
+          transform: translateY(-6px);
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .nav-mobile-item.is-open {
+          opacity: 1;
+          transform: translateY(0);
         }
 
         .hero-wordmark-red {
           transform: translateY(0.16em);
           max-width: min(35vw, 248px);
-        }
-
-        .nav-mobile-icon.is-open {
-          transform: rotate(90deg);
         }
 
         @media (max-width: 768px) {
@@ -502,20 +431,13 @@ function Hero() {
       <AuthRedirectOverlay visible={authRedirecting} />
       <section
         data-reveal
-        style={{
-          position: 'relative',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-        }}
+        className="relative flex min-h-screen items-center overflow-hidden"
       >
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <img src={HERO_IMAGE} alt="City aerial" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="absolute inset-0">
+          <img src={HERO_IMAGE} alt="City aerial" className="h-full w-full object-cover" />
           <div
+            className="absolute inset-0"
             style={{
-              position: 'absolute',
-              inset: 0,
               background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(30,58,138,0.86) 55%, rgba(15,23,42,0.92) 100%)',
             }}
           />
@@ -523,108 +445,61 @@ function Hero() {
 
         <div
           data-reveal
-          className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
-          style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
+          className={`relative z-[2] mx-auto w-full max-w-[1100px] px-6 pb-14 pt-[100px] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
+          style={{ transitionDelay: '90ms' }}
         >
           <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'rgba(185,28,28,0.2)',
-                border: '1px solid rgba(185,28,28,0.4)',
-                borderRadius: 9,
-                padding: '6px 14px',
-                marginBottom: 24,
-              }}
-            >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-[9px] border border-red-700/40 bg-red-700/20 px-[14px] py-1.5">
               <Radio size={12} color="#F87171" />
-              <span style={{ color: '#FCA5A5', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-red-300">
                 {t('landing.hero.liveIn')}
               </span>
             </div>
 
-            <h1
-              style={{
-                color: '#FFFFFF',
-                fontSize: 'clamp(30px,6vw,56px)',
-                fontWeight: 900,
-                lineHeight: 1.1,
-                marginBottom: 14,
-                maxWidth: 760,
-              }}
-            >
-              EMPOWERING <span style={{ color: '#60A5FA' }}>TONDO</span> WITH INSTANT{' '}
-              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <h1 className="mb-3.5 max-w-[760px] text-[clamp(30px,6vw,56px)] font-black leading-[1.1] text-white">
+              EMPOWERING <span className="text-blue-400">TONDO</span> WITH INSTANT{' '}
+              <span className="inline-flex items-center">
                 <img
                   src="/tugon-wordmark-red.svg"
                   alt="TUGON"
-                  className="hero-wordmark-red"
-                  style={{ height: '1.2em', width: 'auto', display: 'inline-block' }}
+                  className="hero-wordmark-red inline-block h-[1.2em] w-auto"
                 />
               </span>
             </h1>
 
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 'clamp(14px,2vw,18px)', lineHeight: 1.55, maxWidth: 540, marginBottom: 22 }}>
+            <p className="mb-[22px] max-w-[540px] text-[clamp(14px,2vw,18px)] leading-[1.55] text-white/[0.88]">
               {t('landing.hero.subtagline')}
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
+            <div className="mb-[22px] flex flex-wrap gap-3">
               <button
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-                style={{
-                  background: 'var(--severity-critical)',
-                  border: 'none',
-                  borderRadius: 10,
-                  padding: '13px 24px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none bg-severity-critical px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
               </button>
               <button
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-                style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1.5px solid rgba(255,255,255,0.35)',
-                  borderRadius: 10,
-                  padding: '13px 24px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] border-white/35 bg-white/[0.12] px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 <CheckCircle2 size={16} /> {t('landing.hero.trackStatus')}
               </button>
             </div>
 
             {/* Hero stats strip */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 20, marginTop: 4 }}>
+            <div className="mb-5 mt-1 flex flex-wrap">
               {([
                 { val: '3', labelKey: 'landing.hero.statBarangays' as const },
                 { val: '5', labelKey: 'landing.hero.statCategories' as const },
                 { val: '24/7', labelKey: 'landing.hero.statReporting' as const },
               ]).map((stat, i, arr) => (
                 <React.Fragment key={stat.val}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingRight: 20 }}>
-                    <span style={{ fontSize: 22, fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>{stat.val}</span>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>{t(stat.labelKey)}</span>
+                  <div className="flex items-center gap-2.5 pr-5">
+                    <span className="text-[22px] font-black tracking-[-0.02em] text-white">{stat.val}</span>
+                    <span className="whitespace-pre-line text-[11px] leading-[1.35] text-white/55">{t(stat.labelKey)}</span>
                   </div>
                   {i < arr.length - 1 && (
-                    <div style={{ width: 1, background: 'rgba(255,255,255,0.15)', margin: '0 20px 0 0', alignSelf: 'stretch' }} />
+                    <div className="mr-5 w-px self-stretch bg-white/[0.15]" />
                   )}
                 </React.Fragment>
               ))}
@@ -632,19 +507,7 @@ function Hero() {
 
             <button
               onClick={() => navigateWithTransition('community', '/community-map', true)}
-              className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#FCD34D',
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                padding: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
+              className={`inline-flex cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-[13px] font-bold text-amber-300 ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
             >
               <MapIcon size={14} /> {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
             </button>
@@ -711,52 +574,37 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <section id="quick-actions" data-reveal className="bg-white px-6 py-14">
+      <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.quickActions.label')}
           title={t('landing.quickActions.title')}
           subtitle={t('landing.quickActions.subtitle')}
         />
 
-        <div
-          className="quick-actions-desktop"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            gap: 12,
-          }}
-        >
+        <div className="quick-actions-desktop grid grid-cols-3 gap-3">
           {actions.map((item, index) => (
             <button
-              className="quick-action-btn"
+              className="quick-action-btn flex cursor-pointer flex-col rounded-xl border border-white/[0.38] px-[18px] pb-4 pt-[18px] text-left shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
-                textAlign: 'left',
-                padding: '18px 18px 16px',
-                minHeight: 176,
-                border: '1px solid rgba(255,255,255,0.38)',
-                borderRadius: 12,
                 background: item.color,
-                cursor: 'pointer',
+                minHeight: 176,
                 transitionDelay: `${index * 90}ms`,
-                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
-                display: 'flex',
-                flexDirection: 'column',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div className="mb-2.5 flex items-center gap-2.5">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-white/20">
                   <item.icon size={16} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
+                <div className="text-[15px] font-extrabold text-white">{item.title}</div>
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>{item.desc}</div>
-              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+              <div className="text-xs leading-[1.5] text-white/90">{item.desc}</div>
+              <div className="mt-auto flex justify-end">
                 <span className="quick-action-open">
                   {t('landing.quickActions.open')} <ArrowRight size={12} />
                 </span>
@@ -765,37 +613,28 @@ function QuickActions() {
           ))}
         </div>
 
-        <div className="quick-actions-mobile" style={{ display: 'none', gap: 12 }}>
+        <div className="quick-actions-mobile hidden gap-3">
           {actions.map((item) => (
             <button
-              className="quick-action-btn"
+              className="quick-action-btn flex min-h-[162px] w-full cursor-pointer flex-col rounded-xl border border-white/[0.38] p-[14px] shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.title}
               onClick={item.action}
               style={{
-                width: '100%',
-                borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.38)',
                 background: item.color,
-                padding: '14px',
-                cursor: 'pointer',
                 transitionDelay: '100ms',
-                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 162,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div className="mb-2 flex items-center gap-2.5">
+                <div className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white/20">
                   <item.icon size={15} color="#FFFFFF" />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
+                <div className="text-sm font-extrabold text-white">{item.title}</div>
               </div>
-              <div style={{ textAlign: 'left', fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45 }}>{item.desc}</div>
-              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+              <div className="text-left text-xs leading-[1.45] text-white/90">{item.desc}</div>
+              <div className="mt-auto flex justify-end">
                 <span className="quick-action-open">
                   {t('landing.quickActions.open')} <ArrowRight size={12} />
                 </span>
@@ -868,93 +707,94 @@ function MapTeaser() {
       <AuthRedirectOverlay visible={authRedirecting} />
       <section
         data-reveal
-        style={{ position: 'relative', background: '#0F172A', overflow: 'hidden', padding: '72px 24px' }}
+        className="relative overflow-hidden bg-[#0F172A] px-6 py-[72px]"
       >
         {/* Background grid */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: 'linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 48, alignItems: 'center' }}>
+        <div className="relative z-[1] mx-auto max-w-[1100px]">
+          <div className="flex flex-wrap items-center gap-12">
 
             {/* Left: text */}
-            <div style={{ flex: '1 1 300px' }}>
-              <span style={{
-                display: 'inline-block',
-                background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)',
-                color: '#93C5FD', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
-                textTransform: 'uppercase', padding: '6px 12px', borderRadius: 8, marginBottom: 16,
-              }}>
+            <div className="flex-[1_1_300px]">
+              <span className="mb-4 inline-block rounded-lg border border-blue-500/30 bg-blue-500/[0.15] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-blue-300">
                 {t('landing.map.label')}
               </span>
-              <h2 style={{ color: '#FFFFFF', fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, lineHeight: 1.25, marginBottom: 12 }}>
+              <h2 className="mb-3 text-[clamp(22px,4vw,30px)] font-extrabold leading-[1.25] text-white">
                 {t('landing.map.title').split('\n').map((line, i) => (
                   <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
                 ))}
               </h2>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.65, marginBottom: 24, maxWidth: 380 }}>
+              <p className="mb-6 max-w-[380px] text-sm leading-[1.65] text-white/60">
                 {t('landing.map.desc')}
               </p>
               <button
                 onClick={go}
-                style={{
-                  background: 'var(--primary)', border: 'none', borderRadius: 10,
-                  padding: '12px 22px', color: 'white', fontSize: 14, fontWeight: 700,
-                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
-                }}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none bg-primary px-[22px] py-3 text-sm font-bold text-white"
               >
                 <MapIcon size={16} /> {t('landing.map.exploreBtn')} <ArrowRight size={14} />
               </button>
             </div>
 
             {/* Right: map preview visual */}
-            <div style={{ flex: '1 1 280px', position: 'relative' }}>
-              <div style={{
-                background: 'rgba(30,58,138,0.25)', border: '1px solid rgba(59,130,246,0.18)',
-                borderRadius: 20, padding: 28, position: 'relative', overflow: 'hidden', minHeight: 230,
-              }}>
+            <div className="relative flex-[1_1_280px]">
+              <div
+                className="relative min-h-[230px] overflow-hidden rounded-[20px] p-7"
+                style={{
+                  background: 'rgba(30,58,138,0.25)',
+                  border: '1px solid rgba(59,130,246,0.18)',
+                }}
+              >
                 {/* Inner grid */}
-                <div style={{
-                  position: 'absolute', inset: 0, borderRadius: 20, pointerEvents: 'none',
-                  backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
-                  backgroundSize: '28px 28px',
-                }} />
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-[20px]"
+                  style={{
+                    backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                  }}
+                />
 
                 {/* Incident pins */}
                 {pins.map((pin) => (
                   <div
                     key={pin.label}
+                    className="absolute flex flex-col items-center gap-[3px]"
                     style={{
-                      position: 'absolute', left: pin.x, top: pin.y,
+                      left: pin.x, top: pin.y,
                       transform: 'translate(-50%, -50%)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
                       animation: `mapPinPulse 2.8s ease-in-out ${pin.delay} infinite alternate`,
                     }}
                   >
-                    <div style={{
-                      width: 13, height: 13, borderRadius: '50%',
-                      background: pin.color, border: '2px solid rgba(255,255,255,0.5)',
-                      boxShadow: `0 0 10px ${pin.color}90`,
-                    }} />
-                    <span style={{
-                      background: 'rgba(15,23,42,0.82)', color: 'rgba(255,255,255,0.85)',
-                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap',
-                    }}>
+                    <div
+                      className="size-[13px] rounded-full border-2 border-white/50"
+                      style={{
+                        background: pin.color,
+                        boxShadow: `0 0 10px ${pin.color}90`,
+                      }}
+                    />
+                    <span
+                      className="whitespace-nowrap rounded-[4px] px-1.5 py-0.5 text-[9px] font-bold text-white/85"
+                      style={{ background: 'rgba(15,23,42,0.82)' }}
+                    >
                       {pin.label}
                     </span>
                   </div>
                 ))}
 
                 {/* Footer label */}
-                <div style={{
-                  position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
-                  background: 'rgba(15,23,42,0.88)', border: '1px solid rgba(59,130,246,0.35)',
-                  borderRadius: 8, padding: '5px 14px', color: '#93C5FD',
-                  fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
-                }}>
+                <div
+                  className="absolute bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-[14px] py-[5px] text-[11px] font-bold text-blue-300"
+                  style={{
+                    background: 'rgba(15,23,42,0.88)',
+                    border: '1px solid rgba(59,130,246,0.35)',
+                  }}
+                >
                   {t('landing.map.footer')}
                 </div>
               </div>
@@ -998,58 +838,52 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="how" data-reveal className="bg-[#F8FAFF] px-6 py-[88px]">
+      <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.howItWorks.label')}
           title={t('landing.howItWorks.threeSteps')}
           subtitle={t('landing.howItWorks.tagline')}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
+        <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {steps.map((step, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={step.title}
-              style={{
-                background: 'white',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 22,
-                transitionDelay: `${index * 90}ms`,
-                display: 'grid',
-                gap: 14,
-              }}
+              className="grid gap-3.5 rounded-2xl border border-slate-200 bg-white p-[22px]"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 12,
-                    background: step.bg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
+              <div className="flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="flex size-[50px] items-center justify-center rounded-xl"
+                    style={{ background: step.bg }}
+                  >
                     <step.icon size={24} color={step.color} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-slate-500">
                       {t('landing.howItWorks.step', { number: String(index + 1) })}
                     </div>
-                    <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '2px 0 0' }}>{step.title}</h3>
+                    <h3 className="mt-0.5 text-[17px] font-extrabold text-slate-800">{step.title}</h3>
                   </div>
                 </div>
-                <span style={{ fontSize: 11, color: step.color, background: step.bg, borderRadius: 7, padding: '5px 9px', fontWeight: 800, border: `1px solid ${step.color}33` }}>
+                <span
+                  className="rounded-[7px] px-[9px] py-[5px] text-[11px] font-extrabold"
+                  style={{ color: step.color, background: step.bg, border: `1px solid ${step.color}33` }}
+                >
                   {step.visual}
                 </span>
               </div>
-              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.55, margin: 0 }}>{step.detail}</p>
-              <div style={{ marginTop: 2, height: 8, borderRadius: 5, background: '#E2E8F0', overflow: 'hidden' }}>
-                <span style={{ display: 'block', height: '100%', width: `${(index + 1) * 33}%`, borderRadius: 5, background: step.color }} />
+              <p className="m-0 text-sm leading-[1.55] text-slate-600">{step.detail}</p>
+              <div className="mt-0.5 h-2 overflow-hidden rounded-[5px] bg-slate-200">
+                <span
+                  className="block h-full rounded-[5px]"
+                  style={{ width: `${(index + 1) * 33}%`, background: step.color }}
+                />
               </div>
             </div>
           ))}
@@ -1094,8 +928,8 @@ function SupportedBarangays() {
 ];
 
   return (
-    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: 'var(--primary)' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="barangays" data-reveal className="bg-primary px-6 py-[88px]">
+      <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.barangays.label')}
           title={t('landing.barangays.subtitle')}
@@ -1103,59 +937,33 @@ function SupportedBarangays() {
           light
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
           {barangays.map((item, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                borderRadius: 18,
-                padding: 28,
-                transitionDelay: `${index * 90}ms`,
-                textAlign: 'center',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
+              className="relative overflow-hidden rounded-[18px] border-2 border-white/20 bg-white/[0.1] p-7 text-center"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{
-                marginBottom: 18,
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
-                <div style={{
-                  width: 74,
-                  height: 74,
-                  borderRadius: 16,
-                  background: 'rgba(255,255,255,0.13)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid rgba(255,255,255,0.22)'
-                }}>
+              <div className="mb-[18px] flex justify-center">
+                <div className="flex size-[74px] items-center justify-center rounded-2xl border-2 border-white/[0.22] bg-white/[0.13]">
                   <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
                 </div>
               </div>
 
-              <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
-              <p style={{ margin: '0 0 6px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 700 }}>{t('landing.barangays.captain', { name: item.captain })}</p>
-              <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#DBEAFE', fontWeight: 600 }}>{item.district}</p>
-              <p style={{ margin: '0 0 18px 0', fontSize: 12, color: '#BFDBFE', fontWeight: 500 }}>{item.hallAddress}</p>
+              <h3 className="mb-1.5 text-xl font-extrabold text-white">{item.name}</h3>
+              <p className="mb-1.5 text-[13px] font-bold text-blue-100">{t('landing.barangays.captain', { name: item.captain })}</p>
+              <p className="mb-1 text-xs font-semibold text-blue-100">{item.district}</p>
+              <p className="mb-[18px] text-xs font-medium text-blue-200">{item.hallAddress}</p>
 
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }}>
+              <div className="mb-5 flex flex-wrap justify-center gap-1.5">
                 {item.responders.map(r => (
-                  <span key={r} style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    border: '1px solid rgba(255,255,255,0.2)'
-                  }}>
+                  <span
+                    key={r}
+                    className="rounded-[6px] border border-white/20 bg-white/[0.15] px-3 py-1.5 text-[11px] font-bold text-white"
+                  >
                     {r}
                   </span>
                 ))}
@@ -1163,30 +971,7 @@ function SupportedBarangays() {
 
               <button
                 onClick={() => navigate('/auth/register')}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1.5px solid rgba(255,255,255,0.3)',
-                  borderRadius: 9,
-                  padding: '12px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)';
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)';
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-                }}
+                className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[9px] border-[1.5px] border-white/30 bg-white/[0.12] py-3 text-[13px] font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white/20"
               >
                 {t('landing.barangays.startReporting')} <ChevronRight size={15} />
               </button>
@@ -1226,56 +1011,41 @@ function SafetyTips() {
   ];
 
   return (
-    <section id="safety" data-reveal style={{ padding: '88px 24px', background: '#FFFFFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="safety" data-reveal className="bg-white px-6 py-[88px]">
+      <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.safety.label')}
           title={t('landing.safety.subtitle')}
           subtitle={t('landing.safety.tagline')}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
+        <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {tips.map((tip, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={tip.title}
-              style={{
-                border: '2px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 24,
-                background: 'white',
-                transitionDelay: `${index * 90}ms`,
-                textAlign: 'center'
-              }}
+              className="rounded-2xl border-2 border-slate-200 bg-white p-6 text-center"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}>
-                <div style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 14,
-                  background: tip.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
+              <div className="mb-3.5 flex justify-center">
+                <div
+                  className="flex size-16 shrink-0 items-center justify-center rounded-[14px]"
+                  style={{ background: tip.bg }}
+                >
                   <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
                 </div>
               </div>
-              <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '0 0 12px 0' }}>{tip.title}</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+              <h3 className="mb-3 text-[17px] font-extrabold text-slate-800">{tip.title}</h3>
+              <div className="mb-3 flex flex-wrap justify-center gap-2">
                 {tip.actions.map((action) => (
                   <span
                     key={action}
+                    className="rounded-lg px-2.5 py-1.5 text-xs font-bold"
                     style={{
-                      fontSize: 12,
-                      fontWeight: 700,
                       color: tip.color,
                       background: tip.bg,
-                      padding: '6px 10px',
-                      borderRadius: 8,
                       border: `1px solid ${tip.color}33`,
                     }}
                   >
@@ -1283,7 +1053,7 @@ function SafetyTips() {
                   </span>
                 ))}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, color: '#475569', fontSize: 12, fontWeight: 700 }}>
+              <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-600">
                 <CheckCircle2 size={14} color={tip.color} />
                 {t('landing.safety.reportTugon')}
               </div>
@@ -1305,8 +1075,8 @@ function EmergencyHotlines() {
   ];
 
   return (
-    <section id="hotlines" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="hotlines" data-reveal className="bg-[#F8FAFF] px-6 py-[88px]">
+      <div className="mx-auto max-w-[1100px]">
         <SectionHeading
           label={t('landing.emergency.label')}
           title={t('landing.emergency.subtitle')}
@@ -1315,74 +1085,54 @@ function EmergencyHotlines() {
 
         <div
           data-reveal
-          style={{
-            background: 'var(--severity-critical)',
-            border: '1px solid #991B1B',
-            borderRadius: 12,
-            padding: '20px 22px',
-            marginBottom: 18,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 14,
-            flexWrap: 'wrap',
-            transitionDelay: '80ms',
-          }}
+          className="mb-[18px] flex flex-wrap items-center justify-between gap-3.5 rounded-xl border border-red-800 bg-severity-critical px-[22px] py-5"
+          style={{ transitionDelay: '80ms' }}
         >
           <div>
-            <div style={{ color: 'white', fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{t('landing.emergency.callNow')}</div>
-            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>{t('landing.emergency.callThenFile')}</div>
+            <div className="mb-1 text-xl font-extrabold text-white">{t('landing.emergency.callNow')}</div>
+            <div className="text-sm text-white/90">{t('landing.emergency.callThenFile')}</div>
           </div>
           <a
             href="tel:911"
-            style={{
-              background: 'white',
-              color: 'var(--severity-critical)',
-              textDecoration: 'none',
-              borderRadius: 8,
-              padding: '10px 16px',
-              fontSize: 14,
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2.5 text-sm font-extrabold text-severity-critical no-underline"
           >
             <Phone size={14} /> {t('landing.emergency.callNowBtn')}
           </a>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
           {hotlines.map((item, index) => (
             <div
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16, transitionDelay: `${index * 90}ms` }}
+              className="rounded-xl border border-slate-200 bg-white p-4"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="mb-2 flex items-center gap-2">
+                <div
+                  className="flex size-[34px] items-center justify-center rounded-[10px]"
+                  style={{ background: item.bg }}
+                >
                   <Phone size={15} color={item.color} />
                 </div>
-                <h3 style={{ margin: 0, fontSize: 15, color: '#1E293B', fontWeight: 700 }}>{item.name}</h3>
+                <h3 className="m-0 text-[15px] font-bold text-slate-800">{item.name}</h3>
               </div>
-              <div style={{ fontSize: 24, lineHeight: 1.1, color: item.color, fontWeight: 800, marginBottom: 6 }}>{item.number}</div>
-              <p style={{ margin: '0 0 10px', fontSize: 13, color: '#64748B' }}>{item.note}</p>
+              <div
+                className="mb-1.5 text-2xl font-extrabold leading-[1.1]"
+                style={{ color: item.color }}
+              >
+                {item.number}
+              </div>
+              <p className="mb-2.5 text-[13px] text-slate-500">{item.note}</p>
               <a
                 href={`tel:${item.number}`}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-extrabold no-underline"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  textDecoration: 'none',
                   color: item.color,
                   border: `1px solid ${item.color}33`,
                   background: item.bg,
-                  borderRadius: 8,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontWeight: 800,
                 }}
               >
                 <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
@@ -1418,52 +1168,36 @@ function Footer() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '38px 24px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 22, marginBottom: 22 }}>
+      <footer className="bg-[#0F172A] text-white/70">
+      <div className="mx-auto max-w-[1100px] px-6 pb-6 pt-[38px]">
+        <div className="mb-[22px] grid gap-[22px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           <div>
             <button
               onClick={() => navigate('/')}
               aria-label="Go to TUGON home"
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                marginBottom: 12,
-              }}
+              className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
             >
               <img
                 src="/tugon-header-logo.svg"
                 alt="TUGON Tondo Emergency Response"
-                style={{ height: 36, width: 'auto', display: 'block' }}
+                className="block h-9 w-auto"
               />
             </button>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.74)', lineHeight: 1.62, margin: 0, maxWidth: 500 }}>
+            <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-white/[0.74]">
               {t('landing.footer.desc')}
             </p>
           </div>
 
           <div>
-            <div style={{ color: 'white', fontSize: 12, fontWeight: 700, marginBottom: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <div className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-white">
               {t('landing.footer.citizenAccess')}
             </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+            <div className="mb-3 flex flex-wrap gap-2.5">
               {quickLinks.map((link) => (
                 <button
                   key={link.label}
                   onClick={link.action}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    color: '#DBEAFE',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
+                  className="cursor-pointer rounded-lg border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-[13px] font-semibold text-blue-100"
                 >
                   {link.label}
                 </button>
@@ -1471,40 +1205,16 @@ function Footer() {
             </div>
             <a
               href="tel:911"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                background: 'rgba(185,28,28,0.18)',
-                border: '1px solid rgba(239,68,68,0.35)',
-                color: '#FCA5A5',
-                padding: '7px 10px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/35 bg-red-800/[0.18] px-2.5 py-[7px] text-xs font-bold tracking-[0.04em] text-red-300 no-underline"
             >
               <Phone size={13} /> {t('landing.footer.emergencyCall')}
             </a>
           </div>
         </div>
 
-        <div
-          style={{
-            borderTop: '1px solid rgba(255,255,255,0.08)',
-            paddingTop: 14,
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.45)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            gap: 8,
-          }}
-        >
+        <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-white/45">
           <span>© {year} TUGON. {t('landing.footer.tagline')}</span>
-          <span style={{ color: 'rgba(255,255,255,0.55)' }}>{t('landing.footer.location')}</span>
+          <span className="text-white/55">{t('landing.footer.location')}</span>
         </div>
       </div>
 
@@ -1584,15 +1294,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div
-      style={{
-        fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
-        width: '100%',
-        maxWidth: '100vw',
-        overflowX: 'clip',
-        touchAction: 'pan-y',
-      }}
-    >
+    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:'Roboto','Helvetica_Neue',Arial,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>
