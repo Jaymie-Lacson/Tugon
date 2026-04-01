@@ -1,3 +1,69 @@
+# Session Handoff — 2026-04-01 (UI/UX Redesign — Landing.tsx Style Migration)
+
+**Branch:** `redesign`
+
+## What was accomplished
+
+Completed the **Landing.tsx inline-style → Tailwind utility migration** pass, targeting the 3 embedded `<style>` blocks with migratable media-query rules.
+
+### `Landing.tsx` changes
+
+#### Navbar (`<Navbar />`)
+- `nav-desktop` CSS class (`.nav-desktop { display: none }` at mobile) → removed; replaced with `hidden items-center gap-1 md:flex` directly on the div
+- `nav-cta` CSS class (`.nav-cta { display: none }` at mobile) → removed; replaced with `hidden items-center gap-2 md:flex` directly on the div
+- `.nav-mobile-btn` CSS class block (20+ CSS lines) → removed; replaced with full Tailwind classes inline: `flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[8px] border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden` + conditional `scale-[0.97] !bg-white/20` for open state
+- `.nav-mobile-icon` CSS class → removed; replaced with `inline-flex items-center justify-center transition-transform duration-[180ms] ease-out` on the span
+- Mobile panel: `style={{ background, borderTop, overflow }}` → migrated to `bg-[rgba(15,23,42,0.98)] border-t border-white/[0.08] overflow-hidden` Tailwind classes; animation-critical properties (`maxHeight`, `opacity`, `transform`, `padding`, `pointerEvents`, `transition`) kept inline
+- Remaining `<style>` block: removed 15 lines of redundant responsive/show-hide CSS; kept `.nav-mobile-item`, `.nav-mobile-item.is-open`, `.hero-wordmark-red` (uses `min()` functional values), and the reduced-motion rule
+
+#### QuickActions (`<QuickActions />`)
+- `quick-actions-desktop` class (`.quick-actions-desktop { display: none }` at mobile) → replaced with `hidden gap-3 md:grid md:grid-cols-3`
+- `quick-actions-mobile` class (`.quick-actions-mobile { display: grid }` at mobile) → replaced with `grid gap-3 md:hidden`
+- `@media (max-width: 768px)` block with both class show/hide rules → removed from embedded `<style>`
+
+#### Footer (`<Footer />`)
+- `<style>` block with `footer button, footer a { min-height: 40px }` at mobile → removed entirely
+- Applied `min-h-[40px]` directly to the 3 footer quick-link buttons and the `tel:911` anchor
+
+## Intentionally kept inline (consistent with prior session policy)
+- Nav: `position`, `top`, `left`, `width` on `<nav>` (CSS custom properties set by viewport sync effect — cannot be Tailwind)
+- Nav: `background`, `backdropFilter`, `borderBottom`, `transition` on `<nav>` (scroll-reactive runtime state)
+- Mobile panel: `maxHeight`, `opacity`, `transform`, `pointerEvents`, `padding`, `transition` (animation state values)
+- Mobile nav items: `opacity`, `transform`, `transition` (staggered animation state)
+- Hero overlay: `linear-gradient(...)` (multi-stop complex gradient — no Tailwind equivalent)
+- `transitionDelay` on reveal items (dynamic per index)
+- MapTeaser grid backgrounds (complex RGBA gradients)
+- Pin positions/colors/shadow in MapTeaser (runtime data)
+- Step/tip/hotline icon bg/color in HowToUse, SafetyTips, EmergencyHotlines (runtime data)
+- QuickActions `style={{ background: item.color }}` (CSS custom variable — runtime)
+- `<style>` animation blocks (`.skip-link`, `.auth-redirect-overlay/loader/ring/logo`, `@keyframes authRedirectSpin`, `.landing-scroll-cue`, `@keyframes scrollCuePulse/scrollCueArrow`, `.hero-transition-scope`, `.hero-action-btn/hero-link-action`, `[data-reveal]`, `@keyframes mapPinPulse`) — all kept; no Tailwind equivalent for keyframe animations or complex pseudo-class state
+
+## Validation
+- `npx vitest run src/app/accessibility-layouts.test.ts` → **3/3 passed**
+- `npm run build` → **exit code 0**, 19.86s
+- Manual responsive QA (browser preview at `http://127.0.0.1:4173`):
+  - Desktop: desktop nav links + Log In/Register buttons visible; hamburger hidden ✅
+  - Mobile (375px): desktop nav hidden; hamburger button visible and functional; mobile nav panel opens ✅
+  - Quick actions: 3-col grid on desktop; vertical stack on mobile ✅
+  - Footer: touch targets met via `min-h-[40px]` on interactive elements ✅
+
+## Files touched this session
+- `src/app/pages/Landing.tsx`
+- `redesign/session-handoff.md`
+
+## Next steps / remaining work
+- Landing.tsx still has a large consolidated `<style>` block (lines ~1270–1465 in current file) containing animation keyframes, scroll-cue, auth-overlay, hero-transitions, data-reveal system — these are intentionally kept (no Tailwind equivalents for keyframes/complex pseudo-states)
+- No further inline-style or `<style>` block migration is required for `Landing.tsx` — the remaining CSS is legitimately non-migratable
+- **Consider committing the full redesign branch now** — all official portal pages, citizen pages, super-admin pages, and Landing page have been cleaned up through multiple sessions
+- Remaining optional polish: manual responsive QA pass for Landing at all breakpoints in a real browser DevTools environment
+
+## Traps to avoid next session
+- Do not remove the animation `<style>` block from `Landing.tsx` — it is intentionally kept per the documented exceptions
+- Do not alter role route boundaries while making any remaining visual cleanup
+- `nav-mobile-item` and `hero-wordmark-red` CSS classes still needed in the remaining `<style>` block — do not remove them
+
+---
+
 # Session Handoff — 2026-04-01 (UI/UX Redesign — Official Portal Cleanup)
 
 **Branch:** `redesign`

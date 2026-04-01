@@ -209,7 +209,7 @@ function Navbar() {
             />
           </button>
 
-          <div className="nav-desktop flex items-center gap-1">
+          <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
               <button
                 key={link.label}
@@ -221,7 +221,7 @@ function Navbar() {
             ))}
           </div>
 
-          <div className="nav-cta flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
             <button
               onClick={() => navigateAuthWithOverlay('/auth/login')}
               className="cursor-pointer rounded-lg border border-white/25 bg-white/[0.12] px-4 py-2 text-xs font-semibold text-white"
@@ -238,13 +238,13 @@ function Navbar() {
 
           <button
             type="button"
-            className={mobileOpen ? 'nav-mobile-btn is-open' : 'nav-mobile-btn'}
+            className={`flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[8px] border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileOpen ? 'true' : 'false'}
             aria-controls="landing-mobile-nav"
           >
-            <span className="nav-mobile-icon">
+            <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
               {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
             </span>
           </button>
@@ -252,17 +252,14 @@ function Navbar() {
 
         <div
           id="landing-mobile-nav"
-          className={mobileOpen ? 'nav-mobile-panel is-open' : 'nav-mobile-panel'}
+          className="nav-mobile-panel border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)] overflow-hidden"
           aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
-            background: 'rgba(15,23,42,0.98)',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
             padding: mobileOpen ? '12px 20px 20px' : '0 20px',
             maxHeight: mobileOpen ? 360 : 0,
             opacity: mobileOpen ? 1 : 0,
             transform: mobileOpen ? 'translateY(0)' : 'translateY(-10px)',
             pointerEvents: mobileOpen ? 'auto' : 'none',
-            overflow: 'hidden',
             transition:
               'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
           }}
@@ -311,28 +308,6 @@ function Navbar() {
           max-width: 100%;
         }
 
-        /* Hidden on desktop; shown only inside the mobile media query */
-        .nav-mobile-btn {
-          display: none;
-          width: 40px;
-          height: 40px;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 150ms ease, transform 150ms ease;
-        }
-
-        .nav-mobile-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 180ms ease;
-        }
-
         /* Each link/item inside the mobile panel */
         .nav-mobile-item {
           display: block;
@@ -373,15 +348,6 @@ function Navbar() {
             transition: none !important;
           }
 
-          .nav-desktop { display: none !important; }
-          .nav-cta { display: none !important; }
-          .nav-mobile-btn { display: flex !important; }
-
-          .nav-mobile-btn.is-open {
-            transform: scale(0.97);
-            background: rgba(255,255,255,0.2) !important;
-          }
-
           .nav-mobile-panel .nav-mobile-item:nth-child(1) { transition-delay: 40ms; }
           .nav-mobile-panel .nav-mobile-item:nth-child(2) { transition-delay: 80ms; }
           .nav-mobile-panel .nav-mobile-item:nth-child(3) { transition-delay: 120ms; }
@@ -394,10 +360,8 @@ function Navbar() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .nav-mobile-icon,
           .nav-mobile-panel,
-          .nav-mobile-item,
-          .nav-mobile-btn {
+          .nav-mobile-item {
             transition: none !important;
           }
         }
@@ -582,7 +546,7 @@ function QuickActions() {
           subtitle={t('landing.quickActions.subtitle')}
         />
 
-        <div className="quick-actions-desktop grid grid-cols-3 gap-3">
+        <div className="hidden gap-3 md:grid md:grid-cols-3">
           {actions.map((item, index) => (
             <button
               className="quick-action-btn flex cursor-pointer flex-col rounded-xl border border-white/[0.38] px-[18px] pb-4 pt-[18px] text-left shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
@@ -613,7 +577,7 @@ function QuickActions() {
           ))}
         </div>
 
-        <div className="quick-actions-mobile hidden gap-3">
+        <div className="grid gap-3 md:hidden">
           {actions.map((item) => (
             <button
               className="quick-action-btn flex min-h-[162px] w-full cursor-pointer flex-col rounded-xl border border-white/[0.38] p-[14px] shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
@@ -672,11 +636,6 @@ function QuickActions() {
           .quick-action-btn:active {
             transform: translateY(0) scale(0.99);
             box-shadow: 0 5px 12px rgba(15,23,42,0.12) !important;
-          }
-
-          @media (max-width: 768px) {
-            .quick-actions-desktop { display: none !important; }
-            .quick-actions-mobile { display: grid !important; }
           }
         `}</style>
       </div>
@@ -1197,7 +1156,7 @@ function Footer() {
                 <button
                   key={link.label}
                   onClick={link.action}
-                  className="cursor-pointer rounded-lg border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-[13px] font-semibold text-blue-100"
+                  className="min-h-[40px] cursor-pointer rounded-lg border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-[13px] font-semibold text-blue-100"
                 >
                   {link.label}
                 </button>
@@ -1205,7 +1164,7 @@ function Footer() {
             </div>
             <a
               href="tel:911"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/35 bg-red-800/[0.18] px-2.5 py-[7px] text-xs font-bold tracking-[0.04em] text-red-300 no-underline"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-red-500/35 bg-red-800/[0.18] px-2.5 py-[7px] text-xs font-bold tracking-[0.04em] text-red-300 no-underline"
             >
               <Phone size={13} /> {t('landing.footer.emergencyCall')}
             </a>
@@ -1218,11 +1177,7 @@ function Footer() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          footer button, footer a { min-height: 40px; }
-        }
-      `}</style>
+
       </footer>
     </>
   );
