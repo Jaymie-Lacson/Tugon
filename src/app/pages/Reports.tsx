@@ -421,7 +421,7 @@ function DSSCard({
   const pc = DSS_PRIORITY_CLASSES[rec.priority as keyof typeof DSS_PRIORITY_CLASSES] ?? DSS_PRIORITY_CLASSES.info;
 
   return (
-    <div className={`mb-3 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)] border ${pc.outerBorder}`}>
+    <div className={`mb-3 overflow-hidden rounded-xl bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)] border ${pc.outerBorder}`}>
       <div className="flex items-start gap-3 px-4 py-3.5">
         {/* Icon */}
         <div className={`mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] ${pc.iconBg}`}>
@@ -434,20 +434,20 @@ function DSSCard({
               <span className={`mr-2 rounded px-[7px] py-[2px] text-[9px] font-bold tracking-widest ${pc.badgeBg} ${pc.badgeText}`}>
                 {pStyle.label}
               </span>
-              <span className="text-[13px] font-bold text-slate-800">{rec.title}</span>
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{rec.title}</span>
             </div>
             {/* Confidence meter */}
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-[10px] text-slate-400">{t('official.reports.confidence')}</span>
-              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-slate-100">
+              <span className="text-[10px] text-[var(--outline-variant)]">{t('official.reports.confidence')}</span>
+              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-[var(--surface-container-low)]">
                 <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
               </div>
               <span className={`text-[11px] font-bold ${pc.accentText}`}>{rec.confidence}%</span>
             </div>
           </div>
-          <p className="mb-2 text-xs leading-[1.6] text-slate-600">{rec.description}</p>
+          <p className="mb-2 text-xs leading-[1.6] text-[var(--on-surface-variant)]">{rec.description}</p>
           <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <span className="flex items-center gap-1 text-[10px] text-slate-400">
+            <span className="flex items-center gap-1 text-[10px] text-[var(--outline-variant)]">
               <Brain size={10} /> {t('official.reports.source')} {rec.source}
             </span>
             <button
@@ -462,14 +462,14 @@ function DSSCard({
 
       {expanded && (
         <div className={`px-4 py-3 ${pc.expandedBorder} ${pc.expandedBg}`}>
-          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">{t('official.reports.recommendedActions')}</div>
+          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.reports.recommendedActions')}</div>
           <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
               <div key={i} className="flex items-start gap-2">
                 <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${pc.actionDot}`}>
                   {i + 1}
                 </div>
-                <span className="pt-0.5 text-xs text-slate-700">{action}</span>
+                <span className="pt-0.5 text-xs text-[var(--on-surface-variant)]">{action}</span>
               </div>
             ))}
           </div>
@@ -477,7 +477,7 @@ function DSSCard({
             <button
               onClick={() => onDismiss(rec)}
               disabled={busy}
-              className={`w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-500 ${
+              className={`w-full rounded-lg border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] px-3.5 py-2 text-xs font-semibold text-[var(--outline)] ${
                 busy ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               }`}
             >
@@ -817,8 +817,8 @@ export default function Reports() {
     <div className="min-h-full px-5 py-4">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.reports.pageTitle')}</h1>
-        <p className="text-xs text-slate-500">{t('official.reports.pageSubtitle')}</p>
+        <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.reports.pageTitle')}</h1>
+        <p className="text-xs text-[var(--outline)]">{t('official.reports.pageSubtitle')}</p>
       </div>
 
       {/* Status messages */}
@@ -834,7 +834,7 @@ export default function Reports() {
       ) : null}
 
       {/* Tabs */}
-      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-[10px] border border-slate-100 bg-white p-1 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-[10px] border border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] p-1 shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
         {[
           { key: 'dss', label: t('official.reports.decisionSupport'), icon: <Brain size={14} /> },
           { key: 'templates', label: t('official.reports.reportTemplates'), icon: <FileText size={14} /> },
@@ -846,7 +846,7 @@ export default function Reports() {
             className={`flex items-center gap-1.5 whitespace-nowrap rounded-[7px] border-none px-4 py-2 text-xs transition-all duration-150 cursor-pointer ${
               activeTab === tab.key
                 ? 'bg-primary font-bold text-white'
-                : 'bg-transparent font-medium text-slate-500'
+                : 'bg-transparent font-medium text-[var(--outline)]'
             }`}
           >
             {tab.icon} {tab.label}
@@ -908,21 +908,21 @@ export default function Reports() {
               { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
-              <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+              <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-sm">
                 <div className={`mb-0.5 text-[22px] font-bold ${
                   s.color === 'var(--primary)' ? 'text-primary' :
                   s.color === 'var(--severity-medium)' ? 'text-severity-medium' :
                   s.color === '#059669' ? 'text-emerald-600' :
                   'text-violet-700'
                 }`}>{s.value}</div>
-                <div className="text-[11px] text-slate-500">{s.label}</div>
+                <div className="text-[11px] text-[var(--outline)]">{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* Recommendations */}
           <div>
-            <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
+            <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-[var(--on-surface)]">
               <Lightbulb size={15} color="var(--severity-medium)" />
               {t('official.reports.currentRecommendations')}
             </div>
@@ -936,7 +936,7 @@ export default function Reports() {
                 />
               ))
             ) : (
-              <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-500">
+              <div className="rounded-xl border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-3.5 py-3 text-xs text-[var(--outline)]">
                 {t('official.reports.noRecommendations')}
               </div>
             )}
@@ -949,30 +949,30 @@ export default function Reports() {
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(tmpl => (
-              <div key={tmpl.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-                <div className="border-b border-slate-50 px-4 py-3.5">
+              <div key={tmpl.id} className="overflow-hidden rounded-xl border border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+                <div className="border-b border-[var(--outline-variant)]/20 px-4 py-3.5">
                   <div className="flex items-start gap-2.5">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] ${TEMPLATE_ICON_CLASSES[tmpl.id] ?? 'bg-slate-100 text-slate-600'}`}>
                       {tmpl.icon}
                     </div>
                     <div className="flex-1">
-                      <div className="mb-1 text-[13px] font-bold text-slate-800">{tmpl.title}</div>
+                      <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{tmpl.title}</div>
                       <span className={`rounded px-[7px] py-[2px] text-[9px] font-bold uppercase tracking-wide ${TEMPLATE_ICON_CLASSES[tmpl.id] ?? 'bg-slate-100 text-slate-600'}`}>
                         {tmpl.category}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2.5 text-xs leading-[1.5] text-slate-500">{tmpl.description}</p>
+                  <p className="mt-2.5 text-xs leading-[1.5] text-[var(--outline)]">{tmpl.description}</p>
                 </div>
-                <div className="bg-[#FAFBFF] px-4 py-2.5">
+                <div className="bg-[var(--surface-container-low)] px-4 py-2.5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <div>
-                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.lastGenerated')}</div>
-                      <div className="text-[11px] font-medium text-slate-600">{latestIncidentTime}</div>
+                      <div className="mb-0.5 text-[10px] text-[var(--outline-variant)]">{t('official.reports.lastGenerated')}</div>
+                      <div className="text-[11px] font-medium text-[var(--on-surface-variant)]">{latestIncidentTime}</div>
                     </div>
                     <div className="text-right">
-                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.frequency')}</div>
-                      <div className="text-[11px] font-medium text-slate-600">{tmpl.frequency}</div>
+                      <div className="mb-0.5 text-[10px] text-[var(--outline-variant)]">{t('official.reports.frequency')}</div>
+                      <div className="text-[11px] font-medium text-[var(--on-surface-variant)]">{tmpl.frequency}</div>
                     </div>
                   </div>
                   <div className="report-template-actions flex flex-col items-stretch gap-2">
@@ -1006,18 +1006,18 @@ export default function Reports() {
           </div>
 
           {/* Template generation history */}
-          <div className="mt-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-              <span className="text-[13px] font-bold text-slate-800">{t('official.reports.pastTemplates')}</span>
-              <span className="text-[11px] text-slate-500">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
+          <div className="mt-3.5 overflow-hidden rounded-xl bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--outline-variant)]/20 px-4 py-3">
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.pastTemplates')}</span>
+              <span className="text-[11px] text-[var(--outline)]">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
             </div>
 
             <div className="report-history-table-wrapper overflow-x-auto">
               <table className="w-full min-w-[680px] border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50">
+                  <tr className="bg-[var(--surface-container-low)]">
                     {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
-                      <th key={heading} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{heading}</th>
+                      <th key={heading} className="whitespace-nowrap border-b border-[var(--outline-variant)]/20 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--outline)]">{heading}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1029,11 +1029,11 @@ export default function Reports() {
                       </td>
                     </tr>
                   ) : templateHistory.map((historyItem) => (
-                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="border-b border-slate-50">
-                      <td className="px-3.5 py-[11px] font-semibold text-slate-800">{historyItem.templateName}</td>
-                      <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{formatDateTime(historyItem.generatedAt)}</td>
-                      <td className="px-3.5 py-[11px] text-slate-500">{historyItem.generatedBy}</td>
-                      <td className="px-3.5 py-[11px] text-slate-600">{historyItem.fileName}</td>
+                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="border-b border-[var(--outline-variant)]/15">
+                      <td className="px-3.5 py-[11px] font-semibold text-[var(--on-surface)]">{historyItem.templateName}</td>
+                      <td className="whitespace-nowrap px-3.5 py-[11px] text-[var(--outline)]">{formatDateTime(historyItem.generatedAt)}</td>
+                      <td className="px-3.5 py-[11px] text-[var(--outline)]">{historyItem.generatedBy}</td>
+                      <td className="px-3.5 py-[11px] text-[var(--on-surface-variant)]">{historyItem.fileName}</td>
                       <td className="px-3.5 py-[11px]">
                         <div className="flex gap-1.5">
                           <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
@@ -1080,19 +1080,19 @@ export default function Reports() {
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div className="overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <span className="text-[13px] font-bold text-slate-800">{t('official.reports.generatedReportHistory')}</span>
-            <button onClick={() => { void handleHistoryExportAll(); }} className="flex items-center gap-[5px] rounded-[7px] border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 cursor-pointer">
+        <div className="overflow-hidden rounded-xl bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/20 px-4 py-3">
+            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.generatedReportHistory')}</span>
+            <button onClick={() => { void handleHistoryExportAll(); }} className="flex items-center gap-[5px] rounded-[7px] border border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-3 py-1.5 text-xs font-semibold text-[var(--on-surface-variant)] cursor-pointer">
               <Download size={12} /> {t('official.reports.exportAllCsv')}
             </button>
           </div>
           <div className="report-history-table-wrapper overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50">
+              <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
-                  <th key={h} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{h}</th>
+                  <th key={h} className="whitespace-nowrap border-b border-[var(--outline-variant)]/20 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--outline)]">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1114,18 +1114,18 @@ export default function Reports() {
               ) : recentReports.map((r, i) => (
                 <tr
                   key={i}
-                  className="border-b border-slate-50 transition-colors hover:bg-[#FAFBFF]"
+                  className="border-b border-[var(--outline-variant)]/15 transition-colors hover:bg-[var(--surface-container-low)]"
                 >
-                  <td className="px-3.5 py-[11px] font-medium text-slate-800">
+                  <td className="px-3.5 py-[11px] font-medium text-[var(--on-surface)]">
                     <div className="flex items-center gap-2">
-                      <FileText size={14} color="#94A3B8" />
+                      <FileText size={14} color="var(--outline-variant)" />
                       {r.name}
                     </div>
                   </td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.type}</td>
-                  <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{r.time}</td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.by}</td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.size}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.type}</td>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-[var(--outline)]">{r.time}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.by}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.size}</td>
                   <td className="px-3.5 py-[11px]">
                     <div className="flex gap-1.5">
                       <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">

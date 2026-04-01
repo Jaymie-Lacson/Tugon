@@ -99,15 +99,15 @@ export default function Verifications() {
     <div className="p-4 px-5 min-h-full">
       <div className="flex items-start justify-between gap-3 mb-3.5 flex-wrap">
         <div>
-          <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.verifications.pageTitle')}</h1>
-          <p className="text-slate-500 text-xs">
+          <h1 className="text-[var(--on-surface)] text-xl font-bold mb-0.5">{t('official.verifications.pageTitle')}</h1>
+          <p className="text-[var(--outline)] text-xs">
             {t('official.verifications.pageSubtitle')}
           </p>
         </div>
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="border border-slate-300 bg-white rounded-[10px] px-3 py-2 font-bold text-xs text-slate-700 inline-flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+          className="border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] rounded-[10px] px-3 py-2 font-bold text-xs text-[var(--on-surface-variant)] inline-flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
         >
           <RefreshCw size={14} /> {t('common.refresh')}
         </button>
@@ -119,14 +119,14 @@ export default function Verifications() {
         </div>
       )}
 
-      <div className="mb-2.5 inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-[5px] text-[11px] font-bold text-primary">
+      <div className="mb-2.5 inline-flex items-center gap-2 rounded-full bg-[var(--surface-container-high)] border border-primary/20 px-2.5 py-[5px] text-[11px] font-bold text-primary">
         <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
       </div>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-4 text-slate-500 text-[13px]">
+        <div className="bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/35 rounded-xl p-4 text-[var(--outline)] text-[13px]">
           {t('official.verifications.noPending')}
         </div>
       ) : (
@@ -134,11 +134,11 @@ export default function Verifications() {
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <section key={row.citizenUserId} className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
-                <div className="px-3.5 py-3 border-b border-slate-100 flex justify-between items-center gap-2 flex-wrap">
+              <section key={row.citizenUserId} className="bg-[var(--surface-container-lowest)] rounded-xl border border-[var(--outline-variant)]/35 shadow-[0_2px_10px_rgba(13,28,46,0.06)] overflow-hidden">
+                <div className="px-3.5 py-3 border-b border-[var(--outline-variant)]/20 flex justify-between items-center gap-2 flex-wrap">
                   <div>
-                    <div className="font-extrabold text-slate-800 text-sm">{row.fullName}</div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="font-extrabold text-[var(--on-surface)] text-sm">{row.fullName}</div>
+                    <div className="text-[11px] text-[var(--outline)]">
                       {row.phoneNumber} • {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
                     </div>
                   </div>
@@ -178,12 +178,12 @@ export default function Verifications() {
                   )}
 
                   <div className="grid gap-2">
-                    <label className="text-[11px] font-bold text-slate-600">{t('official.verifications.reasonLabel')}</label>
+                    <label className="text-[11px] font-bold text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 bg-white"
+                      className="w-full border border-[var(--outline-variant)]/40 rounded-lg px-2.5 py-2 text-xs text-[var(--on-surface)] bg-[var(--surface-container-lowest)]"
                     >
                       <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
@@ -196,7 +196,7 @@ export default function Verifications() {
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 resize-y box-border"
+                      className="w-full border border-[var(--outline-variant)]/40 rounded-lg px-2.5 py-2 text-xs text-[var(--on-surface)] resize-y box-border bg-[var(--surface-container-lowest)]"
                     />
                   </div>
 
@@ -252,14 +252,14 @@ export default function Verifications() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-[min(980px,100%)] max-h-[92vh] bg-white border border-slate-300 rounded-xl shadow-[0_20px_50px_rgba(15,23,42,0.35)] overflow-hidden grid grid-rows-[auto_1fr]"
+            className="w-[min(980px,100%)] max-h-[92vh] bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/40 rounded-xl shadow-[0_20px_50px_rgba(13,28,46,0.3)] overflow-hidden grid grid-rows-[auto_1fr]"
           >
-            <div className="px-3 py-2.5 flex items-center justify-between border-b border-slate-200 bg-slate-50">
-              <div className="text-[13px] font-extrabold text-slate-900">{previewTitle}</div>
+            <div className="px-3 py-2.5 flex items-center justify-between border-b border-[var(--outline-variant)]/20 bg-[var(--surface-container-low)]">
+              <div className="text-[13px] font-extrabold text-[var(--on-surface)]">{previewTitle}</div>
               <button
                 type="button"
                 onClick={() => setPreviewUrl(null)}
-                className="border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-700 cursor-pointer"
+                className="border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] cursor-pointer"
               >
                 {t('official.verifications.closeBtn')}
               </button>

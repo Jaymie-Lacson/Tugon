@@ -89,18 +89,18 @@ function KPICard({ title, value, subtitle, icon, accent, trend }: KPICardProps) 
   const iconClass = KPI_ICON_CLASS_MAP[accent] ?? 'bg-slate-100 text-slate-600';
   const trendClass = KPI_TREND_CLASS_MAP[accent] ?? 'text-slate-600';
   return (
-    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl px-5 py-[18px]" style={{ background: '#ffffff', boxShadow: '0 2px 8px rgba(13,28,46,0.07)', border: '1px solid rgba(197,197,211,0.35)' }}>
+    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl px-5 py-[18px] bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)] border border-[var(--outline-variant)]/35">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="text-[11px] font-semibold tracking-wide uppercase mb-1.5" style={{ color: '#757682' }}>{title}</div>
-          <div className="text-[30px] font-bold leading-none" style={{ color: '#0d1c2e' }}>{value}</div>
+          <div className="text-[11px] font-semibold tracking-wide uppercase mb-1.5 text-[var(--outline)]">{title}</div>
+          <div className="text-[30px] font-bold leading-none text-[var(--on-surface)]">{value}</div>
         </div>
         <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 ${iconClass}`}>
           {icon}
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[11px]" style={{ color: '#c5c5d3' }}>{subtitle}</span>
+        <span className="text-[11px] text-[var(--outline-variant)]">{subtitle}</span>
         {trend && (
           <span className={`flex items-center gap-[3px] text-[11px] font-semibold ${trendClass}`}>
             <TrendIcon size={12} />
@@ -124,15 +124,11 @@ const AlertBanner = ({
   if (critical.length === 0) return null;
   return (
     <div
-      className="grid gap-2 rounded-[10px] px-3.5 py-3 mb-3"
-      style={{
-        background: 'linear-gradient(to bottom, #fff8f7, #fff1f1)',
-        border: '1px solid rgba(186,26,26,0.2)',
-      }}
+      className="grid gap-2 rounded-[10px] px-3.5 py-3 mb-3 bg-gradient-to-b from-[#fff8f7] to-[#fff1f1] border border-[var(--error)]/20"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: '#fde8e8', border: '1px solid rgba(186,26,26,0.25)' }}>
+          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-[#fde8e8] border border-[var(--error)]/25">
             <Radio size={13} color="var(--severity-critical)" />
           </div>
           <div className="text-severity-critical font-bold text-xs tracking-wide">
@@ -148,22 +144,21 @@ const AlertBanner = ({
         </button>
       </div>
 
-      <div className="text-xs leading-[1.45]" style={{ color: '#7f1d1d' }}>
+      <div className="text-xs leading-[1.45] text-red-900">
         {critical.length > 1
           ? t('official.dashboard.criticalMessagePlural', { count: critical.length })
           : t('official.dashboard.criticalMessage', { count: critical.length })}
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-[11px] font-bold" style={{ color: '#991b1b' }}>{t('official.dashboard.criticalIncidentsLabel')}</span>
+        <span className="text-[11px] font-bold text-red-800">{t('official.dashboard.criticalIncidentsLabel')}</span>
         <div className="flex flex-wrap gap-1.5 w-full">
           {critical.map((incident) => (
             <button
               key={incident.id}
               type="button"
               onClick={() => onOpenIncident(incident.id)}
-              className="rounded-md px-2 py-1.5 m-0 bg-white text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
-              style={{ border: '1px solid rgba(186,26,26,0.2)', color: '#7f1d1d' }}
+              className="rounded-md px-2 py-1.5 m-0 bg-white text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer border border-[var(--error)]/20 text-red-900"
             >
               {incident.id}
             </button>
