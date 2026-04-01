@@ -73,14 +73,14 @@ function formatDurationFromMinutes(totalMinutes: number): string {
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-xl px-[18px] py-4 shadow-[0_1px_5px_rgba(15,23,42,0.06)] border border-slate-200">
-      <div className="text-slate-500 text-[11px] font-semibold tracking-[0.06em] uppercase mb-2">{title}</div>
-      <div className="text-[28px] font-bold text-slate-800 mb-1.5">{value}</div>
+    <div className="rounded-xl px-[18px] py-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)] border border-[var(--outline-variant)]/35">
+      <div className="text-[11px] font-semibold tracking-[0.06em] uppercase mb-2 text-[var(--outline)]">{title}</div>
+      <div className="text-[28px] font-bold mb-1.5 text-[var(--on-surface)]">{value}</div>
       <div className="flex items-center gap-1.5">
         <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${up ? 'text-emerald-600' : 'text-destructive'}`}>
           {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />} {change}
         </span>
-        <span className="text-slate-400 text-[11px]">{sub}</span>
+        <span className="text-[11px] text-[var(--outline-variant)]">{sub}</span>
       </div>
     </div>
   );
@@ -299,24 +299,24 @@ export default function Analytics() {
       {/* Header */}
       <div className="analytics-header flex items-start justify-between mb-4 flex-wrap gap-2.5">
         <div>
-          <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.analytics.pageTitle')}</h1>
-          <p className="text-slate-500 text-xs">{t('official.analytics.pageSubtitle')}</p>
+          <h1 className="text-xl font-bold mb-0.5 text-[var(--on-surface)]">{t('official.analytics.pageTitle')}</h1>
+          <p className="text-xs text-[var(--outline)]">{t('official.analytics.pageSubtitle')}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] sm:flex">
+          <div className="grid grid-cols-2 overflow-hidden rounded-lg sm:flex bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/40 shadow-[0_1px_4px_rgba(13,28,46,0.06)]">
             {PERIODS.map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`min-h-[44px] border-none border-b border-b-slate-100 px-[13px] py-[7px] text-[11px] sm:min-h-0 sm:border-b-0 sm:border-r sm:border-r-slate-100 cursor-pointer transition-all duration-150 ${
-                  period === p ? 'bg-primary text-white font-bold' : 'bg-transparent text-slate-500'
+                className={`min-h-[44px] border-none px-[13px] py-[7px] text-[11px] sm:min-h-0 cursor-pointer transition-all duration-150 ${
+                  period === p ? 'bg-primary text-white font-bold' : 'bg-transparent text-[var(--outline)]'
                 }`}
               >
                 {p}
               </button>
             ))}
           </div>
-          <button className="flex w-full items-center justify-center gap-[5px] rounded-lg border border-slate-200 bg-white px-3.5 py-[7px] text-xs font-semibold text-slate-600 shadow-[0_1px_4px_rgba(0,0,0,0.06)] sm:w-auto cursor-pointer">
+          <button className="flex w-full items-center justify-center gap-[5px] rounded-lg px-3.5 py-[7px] text-xs font-semibold sm:w-auto cursor-pointer bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/40 shadow-[0_1px_4px_rgba(13,28,46,0.06)] text-[var(--primary-container)]">
             <Download size={13} /> {t('official.analytics.export')}
           </button>
         </div>
@@ -337,11 +337,11 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div className="analytics-card analytics-trend-card bg-white rounded-xl shadow-card p-3.5 px-4 mb-3.5">
+      <div className="analytics-card analytics-trend-card rounded-xl p-3.5 px-4 mb-3.5 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
-            <div className="font-bold text-slate-800 text-lg md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
-            <div className="text-slate-400 text-sm md:text-[11px] mt-0.5">{t('official.analytics.dailyCount', { period })}</div>
+            <div className="font-bold text-lg md:text-[13px] text-[var(--on-surface)]">{t('official.analytics.incidentTrendByCategory')}</div>
+            <div className="text-sm md:text-[11px] mt-0.5 text-[var(--outline-variant)]">{t('official.analytics.dailyCount', { period })}</div>
           </div>
           <div className="flex w-full gap-1.5 sm:w-auto">
             {(['area', 'bar'] as const).map(chartTypeBtn => (
@@ -351,7 +351,7 @@ export default function Analytics() {
                 className={`min-h-[42px] flex-1 rounded-md border px-3 py-[5px] text-[11px] font-semibold sm:min-h-0 sm:flex-none cursor-pointer ${
                   chartType === chartTypeBtn
                     ? 'border-primary bg-primary text-white'
-                    : 'border-slate-200 bg-white text-slate-500'
+                    : 'border-[var(--outline-variant)]/40 bg-[var(--surface-container-low)] text-[var(--outline)]'
                 }`}
               >
                 {chartTypeBtn === 'area' ? t('official.analytics.areaChart') : t('official.analytics.barChart')}
@@ -403,9 +403,9 @@ export default function Analytics() {
       {/* Middle row charts */}
       <div className="analytics-middle-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-3.5">
         {/* Response time */}
-        <div className="analytics-card flex-[2_1_280px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.avgResponseByCategory')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.responseFromReport')}</div>
+        <div className="analytics-card flex-[2_1_280px] rounded-xl p-3.5 px-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="font-bold text-lg md:text-[13px] mb-1 text-[var(--on-surface)]">{t('official.analytics.avgResponseByCategory')}</div>
+          <div className="text-sm md:text-[11px] mb-3 text-[var(--outline-variant)]">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
             <div className="text-slate-500 text-xs px-0.5 py-2.5">
               {t('official.analytics.noRespondedPeriod')}
@@ -436,9 +436,9 @@ export default function Analytics() {
         </div>
 
         {/* Severity Distribution */}
-        <div className="analytics-card flex-[1_1_200px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.severityDistribution')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-2.5">{t('official.analytics.severityByPeriod', { period })}</div>
+        <div className="analytics-card flex-[1_1_200px] rounded-xl p-3.5 px-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="font-bold text-lg md:text-[13px] mb-1 text-[var(--on-surface)]">{t('official.analytics.severityDistribution')}</div>
+          <div className="text-sm md:text-[11px] mb-2.5 text-[var(--outline-variant)]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -451,20 +451,20 @@ export default function Analytics() {
             <div key={s.name} className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full inline-block shrink-0" style={{ background: s.color }} />
-                <span className="text-xs text-slate-600">{s.name}</span>
+                <span className="text-xs text-[var(--on-surface-variant)]">{s.name}</span>
               </div>
               <div className="flex gap-2 items-center">
-                <span className="text-xs font-bold text-slate-800">{s.value}</span>
-                <span className="text-[10px] text-slate-400">{totalSeverityCount > 0 ? Math.round((s.value / totalSeverityCount) * 100) : 0}%</span>
+                <span className="text-xs font-bold text-[var(--on-surface)]">{s.value}</span>
+                <span className="text-[10px] text-[var(--outline-variant)]">{totalSeverityCount > 0 ? Math.round((s.value / totalSeverityCount) * 100) : 0}%</span>
               </div>
             </div>
           ))}
         </div>
 
         {/* Hourly pattern */}
-        <div className="analytics-card flex-[2_1_260px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.hourlyPattern')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
+        <div className="analytics-card flex-[2_1_260px] rounded-xl p-3.5 px-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="font-bold text-lg md:text-[13px] mb-1 text-[var(--on-surface)]">{t('official.analytics.hourlyPattern')}</div>
+          <div className="text-sm md:text-[11px] mb-3 text-[var(--outline-variant)]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -493,9 +493,9 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-2">
         {/* Barangay comparison */}
-        <div className="analytics-card flex-[3_1_300px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.barangayComparison')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
+        <div className="analytics-card flex-[3_1_300px] rounded-xl p-3.5 px-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="font-bold text-lg md:text-[13px] mb-1 text-[var(--on-surface)]">{t('official.analytics.barangayComparison')}</div>
+          <div className="text-sm md:text-[11px] mb-3.5 text-[var(--outline-variant)]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: isMobile ? 42 : 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -511,9 +511,9 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div className="analytics-card flex-[2_1_240px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.resourceUtilization')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.respondersByType')}</div>
+        <div className="analytics-card flex-[2_1_240px] rounded-xl p-3.5 px-4 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+          <div className="font-bold text-lg md:text-[13px] mb-1 text-[var(--on-surface)]">{t('official.analytics.resourceUtilization')}</div>
+          <div className="text-sm md:text-[11px] mb-3.5 text-[var(--outline-variant)]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
             const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
@@ -524,22 +524,22 @@ export default function Analytics() {
             return (
               <div key={r.type} className="mb-3">
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs md:text-xs text-slate-600 font-medium">{isMobile ? r.mobileName : r.name}</span>
-                  <div className="flex gap-2 text-[11px] text-slate-500">
+                  <span className="text-xs font-medium text-[var(--on-surface-variant)]">{isMobile ? r.mobileName : r.name}</span>
+                  <div className="flex gap-2 text-[11px] text-[var(--outline)]">
                     <span style={{ color }} className="font-bold">{r.deployed}</span>
                     <span>/</span>
                     <span>{r.total}</span>
                     <span style={{ color }} className="font-bold">{pct}%</span>
                   </div>
                 </div>
-                <div className="h-2 bg-slate-100 rounded overflow-hidden">
+                <div className="h-2 rounded overflow-hidden bg-[var(--surface-container-low)]">
                   <div className="h-full rounded transition-[width] duration-500" style={{ width: `${pct}%`, background: color }} />
                 </div>
               </div>
             );
           })}
-          <div className="mt-3.5 px-3 py-2.5 bg-amber-100 rounded-lg border border-amber-200">
-            <div className="text-[11px] font-bold text-amber-800 mb-0.5">{t('official.analytics.operationalNote')}</div>
+          <div className="mt-3.5 px-3 py-2.5 rounded-lg bg-[#fffbeb] border border-amber-200/50">
+            <div className="text-[11px] font-bold mb-0.5 text-amber-900">{t('official.analytics.operationalNote')}</div>
             <div className="text-[11px] text-amber-800">{t('official.analytics.operationalNoteText')}</div>
           </div>
         </div>
