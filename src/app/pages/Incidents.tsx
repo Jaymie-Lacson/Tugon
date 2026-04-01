@@ -164,24 +164,18 @@ function IncidentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/[0.68] p-3.5 backdrop-blur-[3px]"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[3px]"
+      style={{ background: 'rgba(15,23,42,0.68)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-[760px] max-h-[92vh] overflow-auto rounded-2xl shadow-[0_24px_70px_rgba(13,28,46,0.3)] bg-[var(--surface)]">
+      <div className="w-full max-w-[760px] max-h-[92vh] overflow-auto rounded-2xl bg-slate-50 shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
-        <div className="flex items-start justify-between rounded-t-2xl px-5 py-[18px] bg-[var(--primary-container)]">
+        <div className="flex items-start justify-between rounded-t-2xl bg-primary px-5 py-[18px]">
           <div>
             <div className="mb-2 flex items-center gap-2.5">
-              <div className={`flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white ${
-                cfg.label === 'Flood' ? 'text-blue-700' :
-                cfg.label === 'Accident' ? 'text-severity-medium' :
-                cfg.label === 'Medical' ? 'text-teal-700' :
-                cfg.label === 'Crime' ? 'text-violet-700' :
-                cfg.label === 'Infrastructure' ? 'text-slate-600' :
-                'text-sky-700'
-              }`}>
+              <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white" style={{ color: cfg.color }}>
                 {typeIcons[incident.type]}
               </div>
               <div>
@@ -202,7 +196,7 @@ function IncidentDetailModal({
         </div>
 
         {/* Badge bar */}
-        <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container)]">
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-100 px-5 py-3">
           <TypeBadge type={incident.type} />
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} pulse={incident.status === 'active'} />
@@ -211,16 +205,16 @@ function IncidentDetailModal({
         {/* Body */}
         <div className="px-5 pt-[18px] pb-5">
           {/* Description */}
-          <div className="mb-4 rounded-xl px-3.5 py-3 border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)]">
-            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.descriptionLabel')}</div>
-            <div className="text-[13px] leading-[1.65] text-[var(--on-surface-variant)]">
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.descriptionLabel')}</div>
+            <div className="text-[13px] leading-[1.65] text-slate-700">
               {incident.description}
             </div>
           </div>
 
           {/* Evidence */}
-          <div className="mb-4 rounded-xl px-3.5 py-3 border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)]">
-            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
               {t('official.incidents.evidenceAttachments')}
             </div>
 
@@ -288,25 +282,25 @@ function IncidentDetailModal({
               { label: t('official.incidents.affectedPersons'), value: incident.affectedPersons !== undefined ? t('official.incidents.affectedValue', { count: incident.affectedPersons }) : t('official.incidents.underAssessment'), icon: <Info size={13} /> },
               { label: t('official.incidents.responseTime'), value: responseTime ? t('official.incidents.responseTimeValue', { minutes: responseTime }) : t('official.incidents.notYetResponded'), icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} className="rounded-[10px] px-3 py-2.5 border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)]">
-                <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-[var(--outline-variant)]">
+              <div key={item.label} className="rounded-[10px] border border-slate-200 bg-white px-3 py-2.5">
+                <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-slate-400">
                   {item.icon} {item.label}
                 </div>
-                <div className="text-xs font-medium text-[var(--on-surface-variant)]">{item.value}</div>
+                <div className="text-xs font-medium text-slate-700">{item.value}</div>
               </div>
             ))}
           </div>
 
           {/* Timeline */}
-          <div className="rounded-xl px-3.5 py-3 border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)]">
-            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.ticketTimeline')}</div>
+          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.ticketTimeline')}</div>
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
-                <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[var(--outline-variant)]/50 pl-2.5">
-                  <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full bg-primary border-2 border-white" />
-                  <div className="text-xs font-bold text-[var(--on-surface)]">{entry.label}</div>
-                  <div className="mt-[1px] text-[11px] text-[var(--outline)]">{entry.description}</div>
-                  <div className="mt-0.5 text-[11px] text-[var(--outline-variant)]">{formatTime(entry.timestamp)} • {entry.actor}</div>
+                <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[#DBE4EE] pl-2.5">
+                  <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full border-2 border-white bg-primary" />
+                  <div className="text-xs font-bold text-slate-800">{entry.label}</div>
+                  <div className="mt-[1px] text-[11px] text-slate-500">{entry.description}</div>
+                  <div className="mt-0.5 text-[11px] text-slate-400">{formatTime(entry.timestamp)} • {entry.actor}</div>
                 </div>
               ))}
             </div>
@@ -367,7 +361,8 @@ function IncidentDetailModal({
           ) : null}
 
           <button
-            className={`flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer ${canUpdateStatus ? 'flex-1' : 'flex-[1_1_100%]'}`}
+            className="flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer"
+            style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
           >
             <Printer size={13} /> {t('official.incidents.printReport')}
           </button>
@@ -380,7 +375,8 @@ function IncidentDetailModal({
             aria-modal="true"
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
-            className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/[0.86] p-[18px]"
+            className="fixed inset-0 z-[140] flex items-center justify-center p-[18px]"
+            style={{ background: 'rgba(2,6,23,0.86)' }}
           >
             <button
               type="button"
@@ -394,8 +390,8 @@ function IncidentDetailModal({
               <img
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
-                className="max-w-full rounded-xl"
-                style={{ maxHeight: 'calc(100dvh - 92px)' }}
+                className="rounded-xl"
+                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)' }}
               />
               <div className="text-center text-xs font-semibold text-slate-200">
                 {previewPhotoName}
@@ -712,7 +708,7 @@ export default function Incidents() {
       {/* Page header */}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <h1 className="mb-0.5 text-xl font-bold" style={{ color: '#0d1c2e' }}>{t('official.incidents.pageTitle')}</h1>
+          <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.incidents.pageTitle')}</h1>
           <p className="text-xs text-slate-500">
             {loading
               ? t('official.incidents.loadingReports')
@@ -731,18 +727,24 @@ export default function Incidents() {
       <div className="mb-3 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => { setListView('open'); setPage(1); }}
-          className={`rounded-full px-3 py-2 text-xs font-bold cursor-pointer border ${
-            listView === 'open' ? 'bg-primary text-white border-primary' : 'bg-[var(--surface-container-lowest)] text-[var(--on-surface-variant)] border-[var(--outline-variant)]/40'
+          onClick={() => {
+            setListView('open');
+            setPage(1);
+          }}
+          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
+            listView === 'open' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
           {t('official.incidents.openIncidents', { count: openCount })}
         </button>
         <button
           type="button"
-          onClick={() => { setListView('archived'); setPage(1); }}
-          className={`rounded-full px-3 py-2 text-xs font-bold cursor-pointer border ${
-            listView === 'archived' ? 'bg-primary text-white border-primary' : 'bg-[var(--surface-container-lowest)] text-[var(--on-surface-variant)] border-[var(--outline-variant)]/40'
+          onClick={() => {
+            setListView('archived');
+            setPage(1);
+          }}
+          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
+            listView === 'archived' ? 'bg-primary text-white' : 'bg-white text-slate-700'
           }`}
         >
           {t('official.incidents.archived', { count: archivedCount })}
@@ -756,7 +758,7 @@ export default function Incidents() {
       ) : null}
 
       {/* Filter bar */}
-      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-xl px-3.5 py-3 bg-[var(--surface-container-lowest)] shadow-[0_2px_8px_rgba(13,28,46,0.07)]">
+      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-xl bg-white px-3.5 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
         <div className="relative flex-[2_1_200px]">
           <Search size={14} color="#94A3B8" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
@@ -803,7 +805,6 @@ export default function Incidents() {
             <select
               value={f.value}
               onChange={(e) => f.setter(e.target.value)}
-              aria-label={f.label}
               className={`w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none ${
                 f.value ? 'text-slate-800' : 'text-slate-400'
               }`}
