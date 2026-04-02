@@ -77,7 +77,7 @@ export default function Register() {
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--outline)] hover:text-primary"
         >
           <ArrowLeft size={14} />
           <House size={14} />
@@ -129,57 +129,57 @@ export default function Register() {
 
         {/* Barangay selector */}
         <div className="mb-[18px] relative">
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
             {t('auth.register.barangay')}
           </label>
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={`w-full flex items-center gap-2.5 rounded-[10px] px-3.5 py-3.5 cursor-pointer text-left font-[inherit] border-[1.5px] transition-[border-color,box-shadow] duration-150 ${
+            className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-3.5 text-left font-[inherit] transition-all duration-150 ${
               errors.barangay
-                ? 'border-red-700 bg-red-50'
+                ? 'bg-red-50 shadow-[inset_0_-2px_0_#dc2626]'
                 : dropdownOpen
-                  ? 'border-primary bg-[#F8FAFF] shadow-[0_0_0_3px_rgba(30,58,138,0.12)]'
-                  : 'border-slate-200 bg-[#F8FAFF]'
+                  ? 'bg-[var(--surface-container-low)] shadow-[inset_0_-2px_0_var(--primary),0_0_0_2px_rgba(0,35,111,0.12)]'
+                  : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_rgba(68,70,81,0.22)]'
             }`}
           >
-            <MapPin size={17} className={`shrink-0 ${dropdownOpen ? 'text-primary' : 'text-slate-400'}`} />
+            <MapPin size={17} className={`shrink-0 ${dropdownOpen ? 'text-primary' : 'text-[var(--outline)]'}`} />
             <div className="flex-1">
               {selectedBarangay ? (
                 <div>
-                  <div className="text-[15px] text-slate-800 font-medium">{selectedBarangay.label}</div>
-                  <div className="text-[10px] text-slate-500 mt-px">{selectedBarangay.sub}</div>
+                  <div className="text-[15px] font-medium text-[var(--on-surface)]">{selectedBarangay.label}</div>
+                  <div className="mt-px text-[10px] text-[var(--outline)]">{selectedBarangay.sub}</div>
                 </div>
               ) : (
-                <span className="text-[15px] text-slate-400">{t('auth.register.selectBarangayPlaceholder')}</span>
+                <span className="text-[15px] text-[var(--outline)]">{t('auth.register.selectBarangayPlaceholder')}</span>
               )}
             </div>
             <ChevronDown
               size={17}
-              className={`shrink-0 text-slate-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+              className={`shrink-0 text-[var(--outline)] transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
             />
           </button>
 
           {/* Dropdown */}
           {dropdownOpen && (
-            <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border-[1.5px] border-primary rounded-xl shadow-[0_8px_24px_rgba(30,58,138,0.15)] z-50 overflow-hidden">
+            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-xl border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] shadow-[0_10px_30px_rgba(13,28,46,0.16)]">
               {BARANGAYS.map(b => (
                 <button
                   key={b.value}
                   type="button"
                   onClick={() => { setBarangay(b.value); setDropdownOpen(false); if (errors.barangay) setErrors(p => ({ ...p, barangay: undefined })); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 border-none cursor-pointer text-left font-[inherit] transition-colors duration-100 hover:bg-blue-50 ${
-                    b.value === barangay ? 'bg-blue-50' : 'bg-transparent'
-                  } ${b.value !== '256' ? 'border-b border-solid border-slate-100' : ''}`}
+                  className={`flex w-full cursor-pointer items-center gap-3 border-none px-4 py-3.5 text-left font-[inherit] transition-colors duration-100 hover:bg-[var(--surface-container-low)] ${
+                    b.value === barangay ? 'bg-[var(--surface-container-low)]' : 'bg-transparent'
+                  } ${b.value !== '256' ? 'border-b border-solid border-[var(--outline-variant)]/30' : ''}`}
                 >
-                  <div className={`size-[34px] rounded-lg flex items-center justify-center shrink-0 ${
-                    b.value === barangay ? 'bg-primary' : 'bg-blue-50'
+                  <div className={`flex size-[34px] shrink-0 items-center justify-center rounded-lg ${
+                    b.value === barangay ? 'bg-primary' : 'bg-[var(--surface-container-low)]'
                   }`}>
                     <MapPin size={15} className={b.value === barangay ? 'text-white' : 'text-primary'} />
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm text-slate-800 font-semibold">{b.label}</div>
-                    <div className="text-[11px] text-slate-500 mt-px">{b.sub}</div>
+                    <div className="text-sm font-semibold text-[var(--on-surface)]">{b.label}</div>
+                    <div className="mt-px text-[11px] text-[var(--outline)]">{b.sub}</div>
                   </div>
                   {b.value === barangay && <CheckCircle2 size={16} className="text-primary" />}
                 </button>
@@ -191,7 +191,7 @@ export default function Register() {
         </div>
 
         {/* Info box */}
-        <div className="rounded-[var(--radius-lg)] border border-sky-200 bg-sky-50 p-3 mb-6 flex items-start gap-2.5">
+        <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-[var(--outline-variant)]/35 bg-[var(--surface-container-low)] p-3">
           <Phone size={15} className="shrink-0 mt-px text-sky-600" />
           <div>
             <div className="text-xs font-semibold text-sky-900 mb-0.5">{t('auth.register.smsTitle')}</div>
@@ -210,7 +210,7 @@ export default function Register() {
       <div className="text-center mt-5">
         <button
           onClick={() => navigate('/auth/login')}
-          className="bg-transparent border-none text-slate-500 text-sm inline-flex items-center gap-1.5 cursor-pointer font-[inherit]"
+          className="inline-flex cursor-pointer items-center gap-1.5 border-none bg-transparent text-sm text-[var(--outline)] font-[inherit]"
         >
           <ArrowLeft size={14} /> {t('auth.register.backToLogin')} <span className="text-primary font-bold">{t('auth.register.login')}</span>
         </button>

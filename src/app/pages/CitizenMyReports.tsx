@@ -183,34 +183,34 @@ const statusToneClass: Record<CitizenReportStatus, {
   text: string;
 }> = {
   submitted: {
-    badge: 'bg-blue-50 border-blue-200 text-primary',
-    footer: 'bg-blue-50 border-t border-blue-200',
-    text: 'text-primary',
+    badge: 'bg-[var(--primary-fixed)] border-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    footer: 'bg-[var(--primary-fixed)] border-t border-[var(--primary-fixed-dim)]',
+    text: 'text-[var(--primary)]',
   },
   under_review: {
-    badge: 'bg-amber-50 border-amber-200 text-amber-700',
-    footer: 'bg-amber-50 border-t border-amber-200',
-    text: 'text-amber-700',
+    badge: 'bg-[var(--secondary-fixed)] border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    footer: 'bg-[var(--secondary-fixed)] border-t border-[var(--secondary-fixed-dim)]',
+    text: 'text-[var(--secondary)]',
   },
   in_progress: {
-    badge: 'bg-teal-50 border-teal-200 text-teal-700',
-    footer: 'bg-teal-50 border-t border-teal-200',
-    text: 'text-teal-700',
+    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    footer: 'bg-[var(--surface-container-high)] border-t border-[var(--surface-container-highest)]',
+    text: 'text-[var(--primary-container)]',
   },
   resolved: {
-    badge: 'bg-emerald-50 border-emerald-300 text-emerald-600',
-    footer: 'bg-emerald-50 border-t border-emerald-300',
-    text: 'text-emerald-600',
+    badge: 'bg-[var(--severity-low-bg)] border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
+    footer: 'bg-[var(--severity-low-bg)] border-t border-[rgba(5,150,105,0.28)]',
+    text: 'text-[var(--severity-low)]',
   },
   closed: {
-    badge: 'bg-slate-50 border-slate-300 text-slate-600',
-    footer: 'bg-slate-50 border-t border-slate-300',
-    text: 'text-slate-600',
+    badge: 'bg-surface-container-high border-[var(--outline-variant)] text-[var(--outline)]',
+    footer: 'bg-surface-container-high border-t border-[var(--outline-variant)]',
+    text: 'text-[var(--outline)]',
   },
   unresolvable: {
-    badge: 'bg-red-50 border-red-200 text-severity-critical',
-    footer: 'bg-red-50 border-t border-red-200',
-    text: 'text-severity-critical',
+    badge: 'bg-[var(--error-container)] border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    footer: 'bg-[var(--error-container)] border-t border-[rgba(186,26,26,0.22)]',
+    text: 'text-[var(--error)]',
   },
 };
 
@@ -221,66 +221,66 @@ const typeToneClass: Record<CitizenReportType, {
   fieldIcon: string;
 }> = {
   pollution: {
-    iconChip: 'bg-teal-100 text-teal-700',
-    detailHeader: 'border-b-[3px] border-b-teal-700',
-    detailIcon: 'bg-teal-100 text-teal-700 shadow-[0_2px_10px_rgba(15,118,110,0.18)]',
-    fieldIcon: 'text-teal-700',
+    iconChip: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--severity-low)]',
+    detailIcon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)] shadow-[0_2px_10px_rgba(5,150,105,0.18)]',
+    fieldIcon: 'text-[var(--severity-low)]',
   },
   noise: {
-    iconChip: 'bg-violet-100 text-violet-700',
-    detailHeader: 'border-b-[3px] border-b-violet-700',
-    detailIcon: 'bg-violet-100 text-violet-700 shadow-[0_2px_10px_rgba(124,58,237,0.18)]',
-    fieldIcon: 'text-violet-700',
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    fieldIcon: 'text-[var(--primary-container)]',
   },
   crime: {
-    iconChip: 'bg-blue-100 text-primary',
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
     detailHeader: 'border-b-[3px] border-b-primary',
-    detailIcon: 'bg-blue-100 text-primary shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
     fieldIcon: 'text-primary',
   },
   road_hazard: {
-    iconChip: 'bg-amber-100 text-amber-700',
-    detailHeader: 'border-b-[3px] border-b-amber-700',
-    detailIcon: 'bg-amber-100 text-amber-700 shadow-[0_2px_10px_rgba(180,115,10,0.2)]',
-    fieldIcon: 'text-amber-700',
+    iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    fieldIcon: 'text-[var(--secondary)]',
   },
   flood: {
-    iconChip: 'bg-sky-100 text-sky-700',
-    detailHeader: 'border-b-[3px] border-b-sky-700',
-    detailIcon: 'bg-sky-100 text-sky-700 shadow-[0_2px_10px_rgba(3,105,161,0.2)]',
-    fieldIcon: 'text-sky-700',
+    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.16)]',
+    fieldIcon: 'text-[var(--primary-container)]',
   },
   accident: {
-    iconChip: 'bg-orange-100 text-orange-700',
-    detailHeader: 'border-b-[3px] border-b-orange-700',
-    detailIcon: 'bg-orange-100 text-orange-700 shadow-[0_2px_10px_rgba(194,65,12,0.2)]',
-    fieldIcon: 'text-orange-700',
+    iconChip: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.22)]',
+    fieldIcon: 'text-[var(--secondary)]',
   },
   medical: {
-    iconChip: 'bg-red-100 text-severity-critical',
+    iconChip: 'bg-[var(--error-container)] text-[var(--error)]',
     detailHeader: 'border-b-[3px] border-b-severity-critical',
-    detailIcon: 'bg-red-100 text-severity-critical shadow-[0_2px_10px_rgba(185,28,28,0.2)]',
-    fieldIcon: 'text-severity-critical',
+    detailIcon: 'bg-[var(--error-container)] text-[var(--error)] shadow-[0_2px_10px_rgba(186,26,26,0.2)]',
+    fieldIcon: 'text-[var(--error)]',
   },
   infrastructure: {
-    iconChip: 'bg-amber-100 text-amber-800',
-    detailHeader: 'border-b-[3px] border-b-amber-800',
-    detailIcon: 'bg-amber-100 text-amber-800 shadow-[0_2px_10px_rgba(146,64,14,0.2)]',
-    fieldIcon: 'text-amber-800',
+    iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    fieldIcon: 'text-[var(--secondary)]',
   },
   other: {
-    iconChip: 'bg-slate-100 text-slate-600',
-    detailHeader: 'border-b-[3px] border-b-slate-600',
-    detailIcon: 'bg-slate-100 text-slate-600 shadow-[0_2px_10px_rgba(71,85,105,0.2)]',
-    fieldIcon: 'text-slate-600',
+    iconChip: 'bg-surface-container-high text-[var(--outline)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--outline)]',
+    detailIcon: 'bg-surface-container-high text-[var(--outline)] shadow-[0_2px_10px_rgba(117,118,130,0.2)]',
+    fieldIcon: 'text-[var(--outline)]',
   },
 };
 
 const severityToneClass: Record<CitizenReport['severity'], string> = {
-  critical: 'bg-red-100 text-severity-critical',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-emerald-100 text-emerald-600',
+  critical: 'bg-[var(--error-container)] text-[var(--error)]',
+  high: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+  medium: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+  low: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
 };
 
 const timelineToneClass: Record<string, {
@@ -289,39 +289,39 @@ const timelineToneClass: Record<string, {
   actorBadge: string;
 }> = {
   created: {
-    iconShell: 'bg-slate-100 border-2 border-slate-300 text-slate-600',
-    latestBadge: 'bg-slate-100 text-slate-600',
-    actorBadge: 'bg-slate-100 text-slate-600',
+    iconShell: 'bg-surface-container-high border-2 border-[var(--outline-variant)] text-[var(--outline)]',
+    latestBadge: 'bg-surface-container-high text-[var(--outline)]',
+    actorBadge: 'bg-surface-container-high text-[var(--outline)]',
   },
   submitted: {
-    iconShell: 'bg-blue-50 border-2 border-blue-200 text-primary',
-    latestBadge: 'bg-blue-50 text-primary',
-    actorBadge: 'bg-blue-50 text-primary',
+    iconShell: 'bg-[var(--primary-fixed)] border-2 border-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    latestBadge: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    actorBadge: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   },
   under_review: {
-    iconShell: 'bg-amber-50 border-2 border-amber-200 text-amber-700',
-    latestBadge: 'bg-amber-50 text-amber-700',
-    actorBadge: 'bg-amber-50 text-amber-700',
+    iconShell: 'bg-[var(--secondary-fixed)] border-2 border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    latestBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    actorBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   in_progress: {
-    iconShell: 'bg-teal-50 border-2 border-teal-200 text-teal-700',
-    latestBadge: 'bg-teal-50 text-teal-700',
-    actorBadge: 'bg-teal-50 text-teal-700',
+    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
   },
   resolved: {
-    iconShell: 'bg-emerald-50 border-2 border-emerald-200 text-emerald-600',
-    latestBadge: 'bg-emerald-50 text-emerald-600',
-    actorBadge: 'bg-emerald-50 text-emerald-600',
+    iconShell: 'bg-[var(--severity-low-bg)] border-2 border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
+    latestBadge: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    actorBadge: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
   },
   closed: {
-    iconShell: 'bg-slate-50 border-2 border-slate-300 text-slate-600',
-    latestBadge: 'bg-slate-50 text-slate-600',
-    actorBadge: 'bg-slate-50 text-slate-600',
+    iconShell: 'bg-surface-container-high border-2 border-[var(--outline-variant)] text-[var(--outline)]',
+    latestBadge: 'bg-surface-container-high text-[var(--outline)]',
+    actorBadge: 'bg-surface-container-high text-[var(--outline)]',
   },
   unresolvable: {
-    iconShell: 'bg-red-50 border-2 border-red-200 text-severity-critical',
-    latestBadge: 'bg-red-50 text-severity-critical',
-    actorBadge: 'bg-red-50 text-severity-critical',
+    iconShell: 'bg-[var(--error-container)] border-2 border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    latestBadge: 'bg-[var(--error-container)] text-[var(--error)]',
+    actorBadge: 'bg-[var(--error-container)] text-[var(--error)]',
   },
 };
 
@@ -824,8 +824,8 @@ function DetailView({
             </section>
           )}
 
-          <section className="mb-2 rounded-xl border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
-            <div className="font-bold text-[13px] text-[var(--on-surface)] mb-4 flex items-center gap-[7px]">
+          <section className="mb-2 rounded-xl border border-slate-200 bg-white p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+            <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
               <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
 
@@ -845,7 +845,7 @@ function DetailView({
 
                   <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-5'}`}>
                     <div className="flex items-start justify-between gap-2 mb-[2px]">
-                      <div className="font-bold text-[13px] text-[var(--on-surface)] leading-[1.2]">
+                      <div className="font-bold text-[13px] text-slate-900 leading-[1.2]">
                         {event.label}
                       </div>
                       {isLast && (
@@ -854,7 +854,7 @@ function DetailView({
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-[var(--outline)] mb-1 leading-[1.5]">
+                    <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
                       {event.description}
                     </div>
                     {event.note && event.note !== event.description && (
@@ -863,10 +863,10 @@ function DetailView({
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <time className="text-[10px] text-[var(--outline-variant)] [font-variant-numeric:tabular-nums]">
+                      <time className="text-[10px] text-slate-400 [font-variant-numeric:tabular-nums]">
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span className="text-[var(--outline-variant)]/30 text-[10px]"> - </span>
+                      <span className="text-slate-200 text-[10px]"> - </span>
                       <span className={`text-[10px] font-semibold rounded-[4px] px-[6px] py-[1px] ${timelineTone.actorBadge}`}>
                         {event.actor} - {event.actorRole}
                       </span>
@@ -904,7 +904,7 @@ function DetailView({
           />
 
           <article
-            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
+            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-white shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
           >
             <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -929,7 +929,7 @@ function DetailView({
             </header>
 
             <div className="px-4 pt-[14px] pb-[10px]">
-              <p className="m-0 text-[13px] text-[var(--on-surface-variant)] leading-[1.65]">
+              <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
                 {t('citizen.myReports.confirmCancelBody')}
               </p>
             </div>
@@ -939,7 +939,7 @@ function DetailView({
                 type="button"
                 onClick={() => setConfirmCancelOpen(false)}
                 disabled={cancelling}
-                className={`h-[38px] rounded-[10px] border border-[var(--outline-variant)]/50 bg-[var(--surface-container-low)] px-[14px] text-xs font-bold text-[var(--on-surface-variant)] ${
+                className={`h-[38px] rounded-[10px] border border-slate-300 bg-slate-50 px-[14px] text-xs font-bold text-slate-600 ${
                   cancelling ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
@@ -1027,13 +1027,13 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
         : t('citizen.myReports.emptyDefaultDesc');
   return (
     <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
-      <div className="w-20 h-20 rounded-full bg-[var(--surface-container-low)] flex items-center justify-center mb-[18px] text-[var(--outline-variant)]">
+      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
         <FileText size={36} />
       </div>
-      <div className="font-extrabold text-[17px] text-[var(--on-surface)] mb-2">
+      <div className="font-extrabold text-[17px] text-slate-900 mb-2">
         {headingText}
       </div>
-      <div className="text-[13px] text-[var(--outline)] leading-[1.7] max-w-[260px]">
+      <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
         {bodyText}
       </div>
     </div>
@@ -1588,4 +1588,3 @@ export default function CitizenMyReports() {
     </div>
   );
 }
-

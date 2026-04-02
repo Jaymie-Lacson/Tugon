@@ -5,7 +5,7 @@ import {
   TrendingDown, Minus, Radio, MapPin, ArrowRight,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   ChevronRight, RefreshCw, Navigation2, Bell,
-  SlidersHorizontal,
+  SlidersHorizontal, Download,
 } from 'lucide-react';
 import {
   LineChart, Line, PieChart, Pie, Cell,
@@ -66,21 +66,21 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
   const trendColor = accent === 'var(--severity-critical)' ? 'var(--severity-critical)' : accent === '#059669' ? '#059669' : 'var(--severity-medium)';
   return (
-    <div className="flex flex-1 min-w-0 flex-col gap-2.5 rounded-xl bg-white px-5 py-[18px] shadow-sm border border-slate-200">
+    <div className="card-lifted flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl px-5 py-[18px]">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <div className="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mb-1.5">{title}</div>
-          <div className="text-[30px] font-bold text-slate-800 leading-none">{value}</div>
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--on-surface-variant)]">{title}</div>
+          <div className="text-[30px] font-black leading-none text-[var(--on-surface)]">{value}</div>
         </div>
         <div
-          className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0"
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px]"
           style={{ background: bgLight, color: accent }}
         >
           {icon}
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] text-slate-400">{subtitle}</span>
+        <span className="text-[11px] text-[var(--outline)]">{subtitle}</span>
         {trend && (
           <span className="flex items-center gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
             <TrendIcon size={12} />
@@ -199,6 +199,7 @@ export default function Dashboard() {
   }, [incidents]);
   const unreadAlerts = alerts.filter((alert) => !alert.readAt).length;
   const strongestHeatCluster = heatmapClusters[0];
+  const unresolvedCount = incidents.filter((incident) => incident.status !== 'resolved').length;
 
   const trendData = React.useMemo(() => {
     const base = Array.from({ length: 7 }).map((_, offset) => {
@@ -416,7 +417,7 @@ export default function Dashboard() {
   const hotspotDisabled = heatmapLoading || heatmapClusters.length === 0;
 
   return (
-    <div className="px-4 py-3.5 min-h-full">
+    <div className="min-h-full bg-[var(--surface)] px-4 py-4">
       {/* Alert banner */}
       <AlertBanner
         incidents={incidents}
@@ -426,27 +427,79 @@ export default function Dashboard() {
       />
 
       {incidentsError ? (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
+        <div className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">
           {incidentsError}
         </div>
       ) : null}
 
+      {/* District focus hero */}
+      <section className="mb-4 overflow-hidden rounded-2xl bg-[linear-gradient(140deg,#001f65_0%,#1e3a8a_100%)] p-5 text-white shadow-ambient">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-blue-200">
+              District Focus
+            </div>
+            <h1 className="mb-1 text-[28px] font-black leading-[1.05] tracking-[-0.03em]">
+              Tondo Patrol Cluster
+            </h1>
+            <p className="text-xs text-blue-100">
+              {activeIncidents.length} active incidents, {deployedUnits} responder units deployed, {unresolvedCount} unresolved queue entries.
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/app/incidents')}
+              className="cursor-pointer rounded-xl border-none bg-white px-4 py-2.5 text-xs font-bold text-primary"
+            >
+              Dispatch Responder
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/app/reports')}
+              className="cursor-pointer rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-xs font-bold text-white"
+            >
+              Request Support
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {strongestHeatCluster ? (
+        <section className="mb-4 rounded-2xl bg-[linear-gradient(140deg,#fff2d8_0%,#ffe4b0_100%)] px-4 py-3 text-[var(--secondary)] shadow-[0_10px_24px_rgba(134,83,0,0.12)]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-bold uppercase tracking-[0.12em]">Geofencing Warning</div>
+            <button
+              type="button"
+              onClick={() => navigate('/app/map')}
+              className="cursor-pointer rounded-lg border border-[var(--secondary)]/30 bg-white/70 px-2.5 py-1 text-[11px] font-bold text-[var(--secondary)]"
+            >
+              Open Map
+            </button>
+          </div>
+          <div className="mt-1 text-sm font-semibold text-[var(--on-surface)]">
+            Elevated {strongestHeatCluster.category} activity detected near cluster center ({strongestHeatCluster.incidentCount} incidents).
+          </div>
+        </section>
+      ) : null}
+
       {/* Cross-Border Alerts */}
-      <div className="mb-4 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+      <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--outline-variant)]/30 px-4 py-3">
           <div className="flex items-center gap-2">
             <Bell size={15} color="var(--severity-medium)" />
-            <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.crossBorderAlerts')}</span>
+            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.crossBorderAlerts')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : 'text-slate-500'}`}>
+            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : 'text-[var(--outline)]'}`}>
               {t('official.dashboard.unread', { count: unreadAlerts })}
             </span>
             <button
               onClick={() => {
                 void loadAlerts();
               }}
-              className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer"
+              className="flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--on-surface-variant)]"
             >
               <RefreshCw size={12} /> {t('common.refresh')}
             </button>
@@ -467,22 +520,22 @@ export default function Dashboard() {
               className="rounded-none border-0 bg-transparent p-0 shadow-none"
             />
           ) : alerts.length === 0 ? (
-            <div className="py-2 text-xs text-slate-500">{t('official.dashboard.noAlerts')}</div>
+            <div className="py-2 text-xs text-[var(--outline)]">{t('official.dashboard.noAlerts')}</div>
           ) : (
             <div className="flex flex-col gap-2">
               {alerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className={`flex items-start justify-between gap-2.5 rounded-lg border border-slate-200 px-2.5 py-[9px] ${alert.readAt ? 'bg-slate-50' : 'bg-amber-50'}`}
+                  className={`flex items-start justify-between gap-2.5 rounded-xl px-2.5 py-[9px] ${alert.readAt ? 'bg-[var(--surface-container-low)]' : 'bg-amber-50'}`}
                 >
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-slate-800">
+                    <div className="text-xs font-bold text-[var(--on-surface)]">
                       Incident {alert.report.id} near Barangay {alert.sourceBarangayCode}
                     </div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
+                    <div className="mt-0.5 text-[11px] text-[var(--on-surface-variant)]">
                       {alert.alertReason}
                     </div>
-                    <div className="mt-1 text-[10px] text-slate-400">
+                    <div className="mt-1 text-[10px] text-[var(--outline)]">
                       {new Date(alert.createdAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} · {alert.report.location}
                     </div>
                   </div>
@@ -494,7 +547,7 @@ export default function Dashboard() {
                         void handleMarkAlertRead(alert.id);
                       }}
                       disabled={markingReadAlertId === alert.id}
-                      className={`whitespace-nowrap rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-bold text-primary ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      className={`whitespace-nowrap rounded-lg border-none bg-[var(--surface-container-lowest)] px-2 py-1.5 text-[10px] font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.14)] ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       {markingReadAlertId === alert.id ? t('official.dashboard.saving') : t('official.dashboard.markRead')}
                     </button>
@@ -507,17 +560,17 @@ export default function Dashboard() {
       </div>
 
       {/* Heatmap Hotspots */}
-      <div className="mb-4 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+      <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--outline-variant)]/30 px-4 py-3">
           <div className="flex items-center gap-2">
             <TrendingUp size={15} color="var(--primary)" />
-            <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.heatmapHotspots')}</span>
+            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.heatmapHotspots')}</span>
           </div>
           <button
             onClick={() => {
               void loadHeatmap();
             }}
-            className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--on-surface-variant)]"
           >
             <RefreshCw size={12} /> {t('common.refresh')}
           </button>
@@ -534,24 +587,24 @@ export default function Dashboard() {
               className="rounded-none border-0 bg-transparent p-0 shadow-none"
             />
           ) : heatmapClusters.length === 0 ? (
-            <div className="py-2 text-xs text-slate-500">
-              {t('official.dashboard.noHotspots')}
-            </div>
+              <div className="py-2 text-xs text-[var(--outline)]">
+                {t('official.dashboard.noHotspots')}
+              </div>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div>
-                <div className="text-[13px] font-bold text-slate-800">
+                  <div className="text-[13px] font-bold text-[var(--on-surface)]">
                   {heatmapClusters.length > 1
                     ? t('official.dashboard.hotspotDetectedPlural', { count: heatmapClusters.length })
                     : t('official.dashboard.hotspotDetected', { count: heatmapClusters.length })}
                 </div>
                 {strongestHeatCluster ? (
-                  <div className="mt-[3px] text-[11px] text-slate-500">
+                  <div className="mt-[3px] text-[11px] text-[var(--on-surface-variant)]">
                     {t('official.dashboard.strongestCluster', { category: strongestHeatCluster.category, count: strongestHeatCluster.incidentCount })}
                   </div>
                 ) : null}
               </div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-[var(--outline)]">
                 {heatmapClusters.length > 0 ? t('official.dashboard.hotspotFocusAvailable') : t('official.dashboard.switchesToPins')}
               </div>
             </div>
@@ -571,13 +624,13 @@ export default function Dashboard() {
           trend={{ dir: 'flat', val: t('official.dashboard.liveTotal') }}
         />
         <KPICard
-          title={t('official.dashboard.deployedUnits')}
-          value={deployedUnits}
+          title="Unresolved"
+          value={unresolvedCount}
           subtitle={staffedActiveIncidents > 0 ? t('official.dashboard.staffedCases', { count: staffedActiveIncidents }) : t('official.dashboard.noResponders')}
           icon={<Users size={20} />}
           accent="var(--primary)"
           bgLight="#DBEAFE"
-          trend={{ dir: 'flat', val: t('official.dashboard.activeCases', { count: activeIncidents.length }) }}
+          trend={{ dir: 'flat', val: `${deployedUnits} units deployed` }}
         />
         <KPICard
           title={t('official.dashboard.resolvedToday')}
@@ -600,13 +653,13 @@ export default function Dashboard() {
       </div>
 
       {/* Map + Live Feed Row — stacks on mobile */}
-      <div className="flex flex-wrap gap-3.5 mb-[18px]">
+      <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Map Preview */}
-        <div className="flex flex-col flex-[3_1_340px] overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-[3_1_340px] flex-col overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+          <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/30 px-4 py-3">
             <div className="flex items-center gap-2">
               <MapPin size={16} color="var(--primary)" />
-              <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.incidentOverviewMap')}</span>
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.incidentOverviewMap')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
@@ -754,11 +807,11 @@ export default function Dashboard() {
         </div>
 
         {/* Live Feed */}
-        <div className="flex flex-[2_1_260px] flex-col overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-[2_1_260px] flex-col overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+          <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/30 px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.2)]" />
-              <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.liveIncidentFeed')}</span>
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.liveIncidentFeed')}</span>
             </div>
             <RefreshCw size={13} className="text-slate-400 cursor-pointer" />
           </div>
@@ -810,13 +863,13 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Row — stacks on mobile */}
-      <div className="flex flex-wrap gap-3.5 mb-[18px]">
+      <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Trend Chart */}
-        <div className="flex-[3_1_300px] rounded-xl bg-white px-4 py-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+        <div className="flex-[3_1_300px] rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
           <div className="mb-3.5 flex items-center justify-between">
             <div>
-              <div className="text-[13px] font-bold text-slate-800">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
-              <div className="text-[11px] text-slate-400">{trendWindowLabel}</div>
+              <div className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
+              <div className="text-[11px] text-[var(--outline)]">{trendWindowLabel}</div>
             </div>
             <div className="flex gap-3 text-[11px]">
               <span className="flex items-center gap-1">
@@ -844,9 +897,9 @@ export default function Dashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="flex-[2_1_220px] rounded-xl bg-white px-4 py-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-          <div className="mb-1 text-[13px] font-bold text-slate-800">{t('official.dashboard.incidentByCategory')}</div>
-          <div className="mb-2.5 text-[11px] text-slate-400">{t('official.dashboard.categoryDistribution')}</div>
+        <div className="flex-[2_1_220px] rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
+          <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.incidentByCategory')}</div>
+          <div className="mb-2.5 text-[11px] text-[var(--outline)]">{t('official.dashboard.categoryDistribution')}</div>
           <div className="flex items-center gap-2.5 max-md:flex-col max-md:items-stretch max-md:gap-2">
             <PieChart className="max-md:self-center" width={120} height={120}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
@@ -871,22 +924,36 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Incidents Table */}
-      <div className="mb-2 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <span className="text-[13px] font-bold text-slate-800">{t('official.dashboard.recentIncidentsLive')}</span>
-          <button
-            onClick={() => navigate('/app/incidents')}
-            className="flex items-center gap-1 rounded-lg border-none bg-blue-50 px-3 py-2 text-xs font-semibold text-primary cursor-pointer min-h-[40px]"
-          >
-            {t('official.dashboard.viewAll')} <ChevronRight size={13} />
-          </button>
+      <div className="mb-2 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--outline-variant)]/30 px-4 py-3">
+          <span className="text-[13px] font-bold text-[var(--on-surface)]">Incident Queue</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--on-surface-variant)]"
+            >
+              <SlidersHorizontal size={12} /> Filter
+            </button>
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--on-surface-variant)]"
+            >
+              <Download size={12} /> Export
+            </button>
+            <button
+              onClick={() => navigate('/app/incidents')}
+              className="flex min-h-[40px] cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-3 py-2 text-xs font-semibold text-primary"
+            >
+              {t('official.dashboard.viewAll')} <ChevronRight size={13} />
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs" style={{ minWidth: 580 }}>
             <thead>
-              <tr className="bg-slate-50">
+              <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.dashboard.incidentId'), t('official.dashboard.type'), t('official.dashboard.location'), t('official.dashboard.severity'), t('official.dashboard.status'), t('official.dashboard.reportedCol'), t('official.dashboard.responders')].map(col => (
-                  <th key={col} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{col}</th>
+                  <th key={col} className="whitespace-nowrap border-b border-[var(--outline-variant)]/30 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{col}</th>
                 ))}
               </tr>
             </thead>
@@ -894,18 +961,31 @@ export default function Dashboard() {
               {incidents.slice(0, 8).map((inc) => (
                 <tr
                   key={inc.id}
-                  className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50"
+                  className="cursor-pointer border-b border-[var(--outline-variant)]/20 transition-colors odd:bg-[var(--surface-container-lowest)] even:bg-[var(--surface-container-low)]/45 hover:bg-[var(--surface-container-low)]"
                   onClick={() => navigate('/app/incidents')}
                 >
                   <td className="whitespace-nowrap px-3.5 py-2.5 font-semibold text-primary">{inc.id}</td>
                   <td className="px-3.5 py-2.5"><TypeBadge type={inc.type} size="sm" /></td>
-                  <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-2.5 text-slate-600">{inc.barangay}</td>
+                  <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-2.5 text-[var(--on-surface-variant)]">{inc.barangay}</td>
                   <td className="px-3.5 py-2.5"><SeverityBadge severity={inc.severity} size="sm" /></td>
-                  <td className="px-3.5 py-2.5"><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
-                  <td className="whitespace-nowrap px-3.5 py-2.5 text-slate-500">
+                  <td className="px-3.5 py-2.5">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--on-surface)]">
+                      <span
+                        className={`inline-block h-2 w-2 rounded-full ${
+                          inc.status === 'active'
+                            ? 'bg-red-500'
+                            : inc.status === 'responding'
+                              ? 'bg-blue-500'
+                              : 'bg-emerald-500'
+                        }`}
+                      />
+                      {inc.status === 'active' ? 'New' : inc.status === 'responding' ? 'Acting' : 'Resolved'}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3.5 py-2.5 text-[var(--outline)]">
                     {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
                   </td>
-                  <td className="px-3.5 py-2.5 font-medium text-slate-800">{t('official.dashboard.responderUnits', { count: inc.responders })}</td>
+                  <td className="px-3.5 py-2.5 font-medium text-[var(--on-surface)]">{t('official.dashboard.responderUnits', { count: inc.responders })}</td>
                 </tr>
               ))}
             </tbody>

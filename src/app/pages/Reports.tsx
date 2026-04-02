@@ -122,7 +122,7 @@ function printTextContent(title: string, content: string) {
     throw new Error('Popup blocked. Allow popups to print this report.');
   }
 
-  popup.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Roboto,sans-serif;padding:16px;color:#0f172a}pre{white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px}</style></head><body><h2>${title}</h2><pre>${escaped}</pre></body></html>`);
+  popup.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Inter,system-ui,sans-serif;padding:20px;background:#f8f9ff;color:#0d1c2e}h2{margin:0 0 12px;font-size:20px;line-height:1.35}pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid rgba(197,197,211,0.45);border-radius:12px;padding:14px;line-height:1.55;color:#444651}</style></head><body><h2>${title}</h2><pre>${escaped}</pre></body></html>`);
   popup.document.close();
   popup.focus();
   popup.print();
@@ -361,10 +361,10 @@ function DSSCard({
 
   return (
     <div
-      className="mb-3 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
+      className="mb-3 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient"
       style={{ border: `1px solid ${rec.bg}` }}
     >
-      <div className="flex items-start gap-3 px-4 py-3.5">
+      <div className="flex items-start gap-3 bg-[var(--surface-container-lowest)] px-4 py-3.5">
         {/* Icon */}
         <div
           className="mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px]"
@@ -382,20 +382,20 @@ function DSSCard({
               >
                 {pStyle.label}
               </span>
-              <span className="text-[13px] font-bold text-slate-800">{rec.title}</span>
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{rec.title}</span>
             </div>
             {/* Confidence meter */}
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-[10px] text-slate-400">{t('official.reports.confidence')}</span>
-              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-slate-100">
+              <span className="text-[10px] text-[var(--outline)]">{t('official.reports.confidence')}</span>
+              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-[var(--surface-container-high)]">
                 <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
               </div>
               <span className="text-[11px] font-bold" style={{ color: rec.color }}>{rec.confidence}%</span>
             </div>
           </div>
-          <p className="mb-2 text-xs leading-[1.6] text-slate-600">{rec.description}</p>
+          <p className="mb-2 text-xs leading-[1.6] text-[var(--on-surface-variant)]">{rec.description}</p>
           <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <span className="flex items-center gap-1 text-[10px] text-slate-400">
+            <span className="flex items-center gap-1 text-[10px] text-[var(--outline)]">
               <Brain size={10} /> {t('official.reports.source')} {rec.source}
             </span>
             <button
@@ -411,7 +411,7 @@ function DSSCard({
 
       {expanded && (
         <div className="px-4 py-3" style={{ borderTop: `1px solid ${rec.bg}`, background: rec.bg + '40' }}>
-          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">{t('official.reports.recommendedActions')}</div>
+          <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--on-surface-variant)]">{t('official.reports.recommendedActions')}</div>
           <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
               <div key={i} className="flex items-start gap-2">
@@ -421,7 +421,7 @@ function DSSCard({
                 >
                   {i + 1}
                 </div>
-                <span className="pt-0.5 text-xs text-slate-700">{action}</span>
+                <span className="pt-0.5 text-xs text-[var(--on-surface-variant)]">{action}</span>
               </div>
             ))}
           </div>
@@ -429,7 +429,7 @@ function DSSCard({
             <button
               onClick={() => onDismiss(rec)}
               disabled={busy}
-              className={`w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-500 ${
+              className={`w-full rounded-lg border-none bg-[var(--surface-container-lowest)] px-3.5 py-2 text-xs font-semibold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)] ${
                 busy ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
               }`}
             >
@@ -748,7 +748,7 @@ export default function Reports() {
 
   if (initialLoadPending) {
     return (
-      <div className="min-h-full px-5 py-4">
+      <div className="min-h-full bg-[var(--surface)] px-5 py-4">
         <CardSkeleton
           count={3}
           lines={2}
@@ -766,27 +766,27 @@ export default function Reports() {
   }
 
   return (
-    <div className="min-h-full px-5 py-4">
+    <div className="min-h-full bg-[var(--surface)] px-5 py-4">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.reports.pageTitle')}</h1>
-        <p className="text-xs text-slate-500">{t('official.reports.pageSubtitle')}</p>
+      <div className="mb-4 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
+        <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.reports.pageTitle')}</h1>
+        <p className="text-xs text-[var(--on-surface-variant)]">{t('official.reports.pageSubtitle')}</p>
       </div>
 
       {/* Status messages */}
       {actionError ? (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
           {actionError}
         </div>
       ) : null}
       {actionSuccess ? (
-        <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-2.5 py-2 text-xs text-green-800">
+        <div className="mb-3 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700">
           {actionSuccess}
         </div>
       ) : null}
 
       {/* Tabs */}
-      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-[10px] border border-slate-100 bg-white p-1 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-2xl bg-[var(--surface-container-lowest)] p-1.5 shadow-ambient">
         {[
           { key: 'dss', label: t('official.reports.decisionSupport'), icon: <Brain size={14} /> },
           { key: 'templates', label: t('official.reports.reportTemplates'), icon: <FileText size={14} /> },
@@ -795,10 +795,10 @@ export default function Reports() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as ReportsTabKey)}
-            className={`flex items-center gap-1.5 whitespace-nowrap rounded-[7px] border-none px-4 py-2 text-xs transition-all duration-150 cursor-pointer ${
+            className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border-none px-4 py-2 text-xs transition-all duration-150 ${
               activeTab === tab.key
-                ? 'bg-primary font-bold text-white'
-                : 'bg-transparent font-medium text-slate-500'
+                ? 'bg-primary font-bold text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
+                : 'bg-[var(--surface-container-low)] font-medium text-[var(--on-surface-variant)]'
             }`}
           >
             {tab.icon} {tab.label}
@@ -810,7 +810,7 @@ export default function Reports() {
       {activeTab === 'dss' && (
         <div>
           {/* DSS Header */}
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-xl px-5 py-4" style={{ background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)' }}>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-[linear-gradient(135deg,#0f2f86,#1e3a8a)] px-5 py-4 shadow-ambient">
             <div>
               <div className="mb-1.5 flex items-center gap-2">
                 <Sparkles size={16} color="#FDE68A" />
@@ -860,16 +860,16 @@ export default function Reports() {
               { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
-              <div key={s.label} className="flex-[1_1_120px] rounded-[10px] border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+              <div key={s.label} className="flex-[1_1_120px] rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient">
                 <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
-                <div className="text-[11px] text-slate-500">{s.label}</div>
+                <div className="text-[11px] text-[var(--outline)]">{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* Recommendations */}
           <div>
-            <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
+            <div className="mb-3 flex items-center gap-1.5 text-[13px] font-bold text-[var(--on-surface)]">
               <Lightbulb size={15} color="var(--severity-medium)" />
               {t('official.reports.currentRecommendations')}
             </div>
@@ -883,7 +883,7 @@ export default function Reports() {
                 />
               ))
             ) : (
-              <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-500">
+              <div className="rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 text-xs text-[var(--on-surface-variant)] shadow-ambient">
                 {t('official.reports.noRecommendations')}
               </div>
             )}
@@ -896,8 +896,8 @@ export default function Reports() {
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(tmpl => (
-              <div key={tmpl.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-                <div className="border-b border-slate-50 px-4 py-3.5">
+              <div key={tmpl.id} className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+                <div className="bg-[var(--surface-container-low)] px-4 py-3.5">
                   <div className="flex items-start gap-2.5">
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
@@ -906,7 +906,7 @@ export default function Reports() {
                       {tmpl.icon}
                     </div>
                     <div className="flex-1">
-                      <div className="mb-1 text-[13px] font-bold text-slate-800">{tmpl.title}</div>
+                      <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{tmpl.title}</div>
                       <span
                         className="rounded text-[9px] font-bold uppercase tracking-wide"
                         style={{ background: tmpl.bg, color: tmpl.color, padding: '2px 7px' }}
@@ -915,25 +915,25 @@ export default function Reports() {
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2.5 text-xs leading-[1.5] text-slate-500">{tmpl.description}</p>
+                  <p className="mt-2.5 text-xs leading-[1.5] text-[var(--outline)]">{tmpl.description}</p>
                 </div>
-                <div className="bg-[#FAFBFF] px-4 py-2.5">
+                <div className="bg-[var(--surface-container-lowest)] px-4 py-2.5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <div>
-                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.lastGenerated')}</div>
-                      <div className="text-[11px] font-medium text-slate-600">{latestIncidentTime}</div>
+                      <div className="mb-0.5 text-[10px] text-[var(--outline)]">{t('official.reports.lastGenerated')}</div>
+                      <div className="text-[11px] font-medium text-[var(--on-surface-variant)]">{latestIncidentTime}</div>
                     </div>
                     <div className="text-right">
-                      <div className="mb-0.5 text-[10px] text-slate-400">{t('official.reports.frequency')}</div>
-                      <div className="text-[11px] font-medium text-slate-600">{tmpl.frequency}</div>
+                      <div className="mb-0.5 text-[10px] text-[var(--outline)]">{t('official.reports.frequency')}</div>
+                      <div className="text-[11px] font-medium text-[var(--on-surface-variant)]">{tmpl.frequency}</div>
                     </div>
                   </div>
                   <div className="report-template-actions flex flex-col items-stretch gap-2">
                     <div className="report-template-secondary-actions grid grid-cols-2 gap-2">
-                      <button onClick={() => { void handleTemplateDownload(tmpl.id); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-semibold text-primary cursor-pointer">
+                      <button onClick={() => { void handleTemplateDownload(tmpl.id); }} className="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-high)] p-2 text-xs font-semibold text-primary">
                         <Download size={14} /> {t('official.reports.download')}
                       </button>
-                      <button onClick={() => { void handleTemplatePrint(tmpl.id, tmpl.title); }} className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <button onClick={() => { void handleTemplatePrint(tmpl.id, tmpl.title); }} className="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-low)] p-2 text-xs font-semibold text-[var(--on-surface-variant)]">
                         <Printer size={14} /> {t('official.reports.print')}
                       </button>
                     </div>
@@ -942,7 +942,7 @@ export default function Reports() {
                       disabled={generating === tmpl.id}
                       className={`flex flex-1 items-center justify-center gap-[5px] rounded-lg border-none p-2 text-xs font-semibold ${
                         generating === tmpl.id
-                          ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                          ? 'cursor-not-allowed bg-[var(--surface-container-high)] text-[var(--outline)]'
                           : 'cursor-pointer text-white'
                       }`}
                       style={generating !== tmpl.id ? { background: tmpl.color } : undefined}
@@ -960,40 +960,40 @@ export default function Reports() {
           </div>
 
           {/* Template generation history */}
-          <div className="mt-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-              <span className="text-[13px] font-bold text-slate-800">{t('official.reports.pastTemplates')}</span>
-              <span className="text-[11px] text-slate-500">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
+          <div className="mt-3.5 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+            <div className="flex items-center justify-between gap-2 bg-[var(--surface-container-low)] px-4 py-3">
+              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.pastTemplates')}</span>
+              <span className="text-[11px] text-[var(--outline)]">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
             </div>
 
             <div className="report-history-table-wrapper overflow-x-auto">
               <table className="w-full border-collapse text-xs" style={{ minWidth: 680 }}>
                 <thead>
-                  <tr className="bg-slate-50">
+                  <tr className="bg-[var(--surface-container-low)]">
                     {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
-                      <th key={heading} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{heading}</th>
+                      <th key={heading} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{heading}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {templateHistory.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-3.5 py-3 text-slate-500">
+                      <td colSpan={5} className="px-3.5 py-3 text-[var(--outline)]">
                         {t('official.reports.noTemplatesYet')}
                       </td>
                     </tr>
                   ) : templateHistory.map((historyItem) => (
-                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="border-b border-slate-50">
-                      <td className="px-3.5 py-[11px] font-semibold text-slate-800">{historyItem.templateName}</td>
-                      <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{formatDateTime(historyItem.generatedAt)}</td>
-                      <td className="px-3.5 py-[11px] text-slate-500">{historyItem.generatedBy}</td>
-                      <td className="px-3.5 py-[11px] text-slate-600">{historyItem.fileName}</td>
+                    <tr key={`${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="border-b border-[var(--outline-variant)]/18">
+                      <td className="px-3.5 py-[11px] font-semibold text-[var(--on-surface)]">{historyItem.templateName}</td>
+                      <td className="whitespace-nowrap px-3.5 py-[11px] text-[var(--outline)]">{formatDateTime(historyItem.generatedAt)}</td>
+                      <td className="px-3.5 py-[11px] text-[var(--outline)]">{historyItem.generatedBy}</td>
+                      <td className="px-3.5 py-[11px] text-[var(--on-surface-variant)]">{historyItem.fileName}</td>
                       <td className="px-3.5 py-[11px]">
                         <div className="flex gap-1.5">
-                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
+                          <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-high)] px-2.5 py-[5px] text-[11px] font-semibold text-primary">
                             <Download size={11} /> {t('official.reports.download')}
                           </button>
-                          <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] text-[11px] font-semibold text-slate-700 cursor-pointer">
+                          <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-low)] px-2 py-[5px] text-[11px] font-semibold text-[var(--on-surface-variant)]">
                             <Printer size={11} /> {t('official.reports.print')}
                           </button>
                         </div>
@@ -1006,22 +1006,22 @@ export default function Reports() {
 
             <div className="report-history-mobile-list p-3">
               {templateHistory.length === 0 ? (
-                <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
+                <div className="rounded-2xl bg-[var(--surface-container-low)] px-3.5 py-3 text-xs text-[var(--on-surface-variant)]">
                   {t('official.reports.noTemplatesYet')}
                 </div>
               ) : templateHistory.map((historyItem) => (
-                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
-                  <div className="mb-1.5 text-[13px] font-bold text-slate-800">{historyItem.templateName}</div>
+                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.22)]">
+                  <div className="mb-1.5 text-[13px] font-bold text-[var(--on-surface)]">{historyItem.templateName}</div>
                   <div className="mb-2.5 grid gap-1">
-                    <div className="text-[11px] text-slate-500"><strong>{t('official.reports.generatedLabel')}</strong> {formatDateTime(historyItem.generatedAt)}</div>
-                    <div className="text-[11px] text-slate-500"><strong>{t('official.reports.byLabel')}</strong> {historyItem.generatedBy}</div>
-                    <div className="break-words text-[11px] text-slate-500"><strong>{t('official.reports.fileLabel')}</strong> {historyItem.fileName}</div>
+                    <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.generatedLabel')}</strong> {formatDateTime(historyItem.generatedAt)}</div>
+                    <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.byLabel')}</strong> {historyItem.generatedBy}</div>
+                    <div className="break-words text-[11px] text-[var(--outline)]"><strong>{t('official.reports.fileLabel')}</strong> {historyItem.fileName}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
+                    <button onClick={() => { void handleTemplateDownload(historyItem.templateId); }} className="flex cursor-pointer items-center justify-center gap-1 rounded-[7px] border-none bg-[var(--surface-container-high)] px-2.5 py-2 text-xs font-semibold text-primary">
                       <Download size={12} /> {t('official.reports.download')}
                     </button>
-                    <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <button onClick={() => { void handleTemplatePrint(historyItem.templateId, historyItem.templateName); }} className="flex cursor-pointer items-center justify-center gap-1 rounded-[7px] border-none bg-[var(--surface-container-low)] px-2.5 py-2 text-xs font-semibold text-[var(--on-surface-variant)]">
                       <Printer size={12} /> {t('official.reports.print')}
                     </button>
                   </div>
@@ -1034,19 +1034,19 @@ export default function Reports() {
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div className="overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <span className="text-[13px] font-bold text-slate-800">{t('official.reports.generatedReportHistory')}</span>
-            <button onClick={() => { void handleHistoryExportAll(); }} className="flex items-center gap-[5px] rounded-[7px] border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 cursor-pointer">
+        <div className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+          <div className="flex items-center justify-between bg-[var(--surface-container-low)] px-4 py-3">
+            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.generatedReportHistory')}</span>
+            <button onClick={() => { void handleHistoryExportAll(); }} className="flex cursor-pointer items-center gap-[5px] rounded-[7px] border-none bg-[var(--surface-container-high)] px-3 py-1.5 text-xs font-semibold text-primary">
               <Download size={12} /> {t('official.reports.exportAllCsv')}
             </button>
           </div>
           <div className="report-history-table-wrapper overflow-x-auto">
           <table className="w-full border-collapse text-xs" style={{ minWidth: 760 }}>
             <thead>
-              <tr className="bg-slate-50">
+              <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
-                  <th key={h} className="whitespace-nowrap border-b border-slate-100 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-slate-500">{h}</th>
+                  <th key={h} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1063,29 +1063,29 @@ export default function Reports() {
                 </tr>
               ) : recentReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3.5 py-3 text-slate-500">{t('official.reports.noHistoryAvailable')}</td>
+                  <td colSpan={6} className="px-3.5 py-3 text-[var(--outline)]">{t('official.reports.noHistoryAvailable')}</td>
                 </tr>
               ) : recentReports.map((r, i) => (
                 <tr
                   key={i}
-                  className="border-b border-slate-50 transition-colors hover:bg-[#FAFBFF]"
+                  className="border-b border-[var(--outline-variant)]/18 transition-colors odd:bg-[var(--surface-container-lowest)] even:bg-[var(--surface-container-low)]/55 hover:bg-[var(--surface-container-high)]/45"
                 >
-                  <td className="px-3.5 py-[11px] font-medium text-slate-800">
+                  <td className="px-3.5 py-[11px] font-medium text-[var(--on-surface)]">
                     <div className="flex items-center gap-2">
                       <FileText size={14} color="#94A3B8" />
                       {r.name}
                     </div>
                   </td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.type}</td>
-                  <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{r.time}</td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.by}</td>
-                  <td className="px-3.5 py-[11px] text-slate-500">{r.size}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.type}</td>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-[var(--outline)]">{r.time}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.by}</td>
+                  <td className="px-3.5 py-[11px] text-[var(--outline)]">{r.size}</td>
                   <td className="px-3.5 py-[11px]">
                     <div className="flex gap-1.5">
-                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex items-center gap-1 rounded-md border-none bg-blue-50 px-2.5 py-[5px] text-[11px] font-semibold text-primary cursor-pointer">
+                      <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-high)] px-2.5 py-[5px] text-[11px] font-semibold text-primary">
                         <Download size={11} /> {t('official.reports.download')}
                       </button>
-                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-[5px] cursor-pointer">
+                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-low)] px-2 py-[5px]">
                         <Printer size={12} color="#64748B" />
                       </button>
                     </div>
@@ -1098,34 +1098,34 @@ export default function Reports() {
 
           <div className="report-history-mobile-list p-3">
             {reportsError ? (
-              <div className="rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-3 text-xs text-red-700">
+              <div className="rounded-2xl bg-[var(--error-container)] px-3.5 py-3 text-xs text-[var(--error)]">
                 {reportsError}
               </div>
             ) : reportsLoading ? (
-              <div className="rounded-[10px] border border-slate-200 px-3 py-2.5">
+              <div className="rounded-2xl bg-[var(--surface-container-low)] px-3 py-2.5">
                 <TableSkeleton rows={4} columns={1} showHeader={false} className="border-0" />
               </div>
             ) : recentReports.length === 0 ? (
-              <div className="rounded-[10px] border border-slate-200 px-3.5 py-3 text-xs text-slate-500">
+              <div className="rounded-2xl bg-[var(--surface-container-low)] px-3.5 py-3 text-xs text-[var(--on-surface-variant)]">
                 {t('official.reports.noHistoryAvailable')}
               </div>
             ) : recentReports.map((reportItem, index) => (
-              <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-[10px] border border-slate-200 bg-white p-3">
+              <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.22)]">
                 <div className="mb-2 flex items-start gap-2">
                   <FileText size={14} color="#94A3B8" className="mt-0.5 shrink-0" />
-                  <div className="text-[13px] font-bold leading-[1.4] text-slate-800">{reportItem.name}</div>
+                  <div className="text-[13px] font-bold leading-[1.4] text-[var(--on-surface)]">{reportItem.name}</div>
                 </div>
                 <div className="mb-2.5 grid gap-1">
-                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.categoryLabel')}</strong> {reportItem.type}</div>
-                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.generatedLabel')}</strong> {reportItem.time}</div>
-                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.byLabel')}</strong> {reportItem.by}</div>
-                  <div className="text-[11px] text-slate-500"><strong>{t('official.reports.evidenceLabel')}</strong> {reportItem.size}</div>
+                  <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.categoryLabel')}</strong> {reportItem.type}</div>
+                  <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.generatedLabel')}</strong> {reportItem.time}</div>
+                  <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.byLabel')}</strong> {reportItem.by}</div>
+                  <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.evidenceLabel')}</strong> {reportItem.size}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border-none bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary cursor-pointer">
+                  <button onClick={() => { void handleHistoryDownload(reportItem.reportId); }} className="flex cursor-pointer items-center justify-center gap-1 rounded-[7px] border-none bg-[var(--surface-container-high)] px-2.5 py-2 text-xs font-semibold text-primary">
                     <Download size={12} /> {t('official.reports.download')}
                   </button>
-                  <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} className="flex items-center justify-center gap-1 rounded-[7px] border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                  <button onClick={() => { void handleHistoryPrint(reportItem.reportId); }} className="flex cursor-pointer items-center justify-center gap-1 rounded-[7px] border-none bg-[var(--surface-container-low)] px-2.5 py-2 text-xs font-semibold text-[var(--on-surface-variant)]">
                     <Printer size={12} /> {t('official.reports.print')}
                   </button>
                 </div>
@@ -1169,3 +1169,5 @@ export default function Reports() {
     </div>
   );
 }
+
+

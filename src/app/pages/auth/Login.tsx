@@ -66,13 +66,13 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title={t('auth.login.title')}
+      title="Welcome Back"
       subtitle={t('auth.login.subtitle')}
       topAction={
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--outline)] hover:text-primary"
         >
           <ArrowLeft size={14} />
           <House size={14} />
@@ -115,7 +115,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="flex items-center border-none bg-transparent p-1 text-slate-400 hover:text-slate-600"
+              className="flex items-center border-none bg-transparent p-1 text-[var(--outline)] hover:text-[var(--on-surface)]"
             >
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
@@ -139,19 +139,19 @@ export default function Login() {
 
       {/* Divider */}
       <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs text-slate-400">{t('auth.login.newToTugon')}</span>
-        <div className="h-px flex-1 bg-slate-200" />
+        <div className="h-px flex-1 bg-[var(--surface-container-high)]" />
+        <span className="text-xs text-[var(--outline)]">{t('auth.login.newToTugon')}</span>
+        <div className="h-px flex-1 bg-[var(--surface-container-high)]" />
       </div>
 
       <button
         onClick={() => navigate('/auth/register')}
-        className="w-full rounded-[var(--radius-lg)] border-[1.5px] border-primary/20 bg-blue-50/50 py-3 text-sm font-bold text-primary transition-colors hover:bg-blue-50"
+        className="w-full rounded-xl border-none bg-[var(--surface-container-low)] py-3 text-sm font-bold text-primary shadow-[inset_0_-1px_0_rgba(0,35,111,0.3)] transition-colors hover:bg-[var(--surface-container-high)]"
       >
         {t('auth.login.registerNew')}
       </button>
 
-      <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-400">
+      <p className="mt-4 text-center text-[10px] leading-relaxed text-[var(--outline)]">
         {t('auth.login.termsNotice')}
       </p>
     </AuthLayout>

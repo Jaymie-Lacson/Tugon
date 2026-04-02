@@ -1,4 +1,139 @@
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 33 Continuation)
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Responsive QA + Citizen/Superadmin Parity Cleanup)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Read the latest handoff section (`2026-04-02 ... Official Tonal Parity Polish`) and `implementation_plan.md` before continuing.
+- Completed focused responsive QA coverage for official routes at mobile widths `375/390/428`:
+  - `/app/incidents`
+  - `/app/analytics`
+  - `/app/reports`
+  - `/app/verifications`
+- QA result for all `12` route/width combinations: no horizontal overflow (`overflow=0`) and no responsive layout break requiring fixes.
+- Continued visual parity cleanup for remaining legacy icon/micro-state tones (class-only, behavior-preserving) in citizen + superadmin pages:
+  - `src/app/pages/CitizenMyReports.tsx`
+  - `src/app/pages/CitizenDashboard.tsx`
+  - `src/app/pages/superadmin/SABarangayMap.tsx`
+  - `src/app/pages/superadmin/SAOverview.tsx`
+- Replaced hardcoded color utilities and icon-tone micro-states in status chips, severity badges, timeline/icon shells, quick-action tiles, barangay indicators, and superadmin accent states with design-token-driven classes.
+- Preserved role route boundaries (`/citizen`, `/app`, `/superadmin`) and did not change backend/reporting/geofencing semantics.
+- No new user-facing strings were added (EN/FIL parity unaffected).
+
+## Validation run (latest)
+- Responsive QA (scripted Playwright pass, authenticated `OFFICIAL` session + mocked official API routes to prevent auth-expiry false negatives):
+  - `/app/incidents` @ `375/390/428` -> overflow `0`
+  - `/app/analytics` @ `375/390/428` -> overflow `0`
+  - `/app/reports` @ `375/390/428` -> overflow `0`
+  - `/app/verifications` @ `375/390/428` -> overflow `0`
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+- `npm run build` -> passed.
+
+## Current working tree files touched this continuation
+- `src/app/pages/CitizenMyReports.tsx`
+- `src/app/pages/CitizenDashboard.tsx`
+- `src/app/pages/superadmin/SABarangayMap.tsx`
+- `src/app/pages/superadmin/SAOverview.tsx`
+- `redesign/session-handoff.md`
+
+## Next steps
+1. Continue parity cleanup in remaining citizen/superadmin surfaces where old literal color utilities are still present (especially secondary buttons and less-used modal/detail states).
+2. Do a follow-up responsive QA sweep for updated citizen/superadmin views at `375/390/428` after the next cleanup batch.
+3. Stage/commit this continuation and update PR notes with QA + validation outputs.
+
+## Traps to avoid next session
+- Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) during visual-only cleanup.
+- Do not change backend/reporting/geofencing logic while polishing UI states.
+- If responsive QA is script-driven on protected routes, ensure auth/session + mocked official API responses are stable to avoid false redirect regressions.
+- Keep EN/FIL translation parity if any new strings are introduced in later passes.
+
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Official Tonal Parity Polish)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Continued from the latest official redesign handoff + `implementation_plan.md` and completed a targeted parity-polish pass on:
+  - `src/app/pages/Incidents.tsx`
+  - `src/app/pages/Analytics.tsx`
+  - `src/app/pages/Reports.tsx`
+  - `src/app/pages/Verifications.tsx`
+- Replaced remaining legacy slate/gray utility usage in these four official pages with design-token-driven tonal classes.
+- Upgraded modal/lightbox micro-states to match the Stitch light-shell language:
+  - `Verifications` ID preview dialog now uses light tonal stacking with ghost-outline insets instead of dark slate panels.
+  - `Incidents` evidence photo lightbox controls now follow tokenized surfaces and contrast hierarchy.
+- Updated report print popup styling in `Reports` to align with the Institutional Elegance palette and typography direction.
+- Preserved all role boundaries, routes, data workflows, sorting/filtering, status transitions, and verification decision behavior.
+
+## Validation run (latest)
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+- `npm run build` -> passed.
+
+## Current working tree (this continuation)
+- Modified tracked files:
+  - `src/app/pages/Incidents.tsx`
+  - `src/app/pages/Analytics.tsx`
+  - `src/app/pages/Reports.tsx`
+  - `src/app/pages/Verifications.tsx`
+  - `redesign/session-handoff.md`
+
+## Next steps
+1. Run focused manual responsive QA at `375/390/428` widths for:
+   - `/app/incidents`
+   - `/app/analytics`
+   - `/app/reports`
+   - `/app/verifications`
+2. Continue remaining citizen/superadmin parity cleanup where hardcoded icon colors and legacy micro-states are still present.
+3. If visual QA is clean, stage/commit this official polish pass and update PR notes with validation output.
+
+## Traps to avoid next session
+- Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) while continuing visual-only polish.
+- Do not change backend/reporting/geofencing semantics.
+- Keep EN/FIL translation parity if any new UI strings are introduced.
+
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Official Stitch Continuation)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Continued the official-portal Stitch redesign pass from `implementation_plan.md` and latest handoff context.
+- Completed class-first, behavior-preserving visual refactors for:
+  - `src/app/pages/Incidents.tsx`
+  - `src/app/pages/Analytics.tsx`
+  - `src/app/pages/Reports.tsx`
+  - `src/app/pages/Verifications.tsx`
+- Applied consistent light-shell visual language across all four pages:
+  - Tonal surface stacking (`surface`, `surface-container-low`, `surface-container-lowest`) with ambient shadows.
+  - Reduced hard border emphasis in favor of layered backgrounds and ghost-style inset outlines.
+  - Updated pills/chips/action controls to match Stitch-style light hierarchy and spacing.
+  - Preserved all existing data loading, filters/sorts, status transitions, DSS/template/history actions, and verification decision workflows.
+- No route, role boundary, API, or workflow semantics were changed.
+
+## Validation run (latest)
+- `npm run build` -> passed.
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+
+## Current working tree (this continuation)
+- Modified tracked files:
+  - `src/app/pages/Incidents.tsx`
+  - `src/app/pages/Analytics.tsx`
+  - `src/app/pages/Reports.tsx`
+  - `src/app/pages/Verifications.tsx`
+  - `redesign/session-handoff.md`
+
+## Next steps
+1. Continue remaining official/citizen polish for full visual parity where older slate-heavy treatments remain (modals, secondary buttons, and micro-states).
+2. Run focused manual responsive QA on updated official routes at `375/390/428` widths:
+   - `/app/incidents`
+   - `/app/analytics`
+   - `/app/reports`
+   - `/app/verifications`
+3. If visual QA is clean, stage/commit this official redesign batch and update PR notes with validation results.
+
+## Traps to avoid next session
+- Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) while finishing redesign polish.
+- Do not modify backend/reporting/geofencing semantics during visual-only passes.
+- Preserve translation key parity if any new UI copy is introduced.
+
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 33 Continuation)
 
 **Branch:** `redesign`
 
@@ -40,7 +175,7 @@
 - Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) while finishing responsive sign-off.
 - Do not change geofencing/routing semantics during visual-only follow-up tweaks.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 32 Turnover)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 32 Turnover)
 
 **Branch:** `redesign`
 
@@ -72,7 +207,7 @@
 - Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) while final QA is in progress.
 - Do not change geofencing/routing semantics while making any visual-only follow-up tweaks.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 31 Continuation)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 31 Continuation)
 
 **Branch:** `redesign`
 
@@ -112,7 +247,7 @@
 - Do not modify geofencing/routing semantics or map data flow while polishing styles.
 - Keep EN/FIL parity if any new user-facing text is introduced.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 30 Turnover)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 30 Turnover)
 
 **Branch:** `redesign`
 
@@ -149,7 +284,7 @@
 - Do not change backend role mapping/status semantics in `SAUsers`.
 - Avoid introducing new i18n keys unless both `en.ts` and `fil.ts` are updated in parity.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 29)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 29)
 
 **Branch:** `redesign`
 
@@ -183,7 +318,7 @@
 2. Re-run `npx vitest run src/app/accessibility-layouts.test.ts` and `npm run build` before commit/PR update.
 3. Do focused responsive QA on updated super-admin pages at mobile breakpoints (`375/390/428`) before sign-off.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 28)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 28)
 
 **Branch:** `redesign`
 
@@ -218,7 +353,7 @@
 2. Keep refactors class-first and avoid route/role behavior changes.
 3. Re-run `npx vitest run src/app/accessibility-layouts.test.ts` and `npm run build` before commit/PR update.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 27)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 27)
 
 **Branch:** `redesign`
 
@@ -260,7 +395,7 @@
 2. Continue broader token normalization in remaining official/super-admin surfaces.
 3. Re-run `npx vitest run src/app/accessibility-layouts.test.ts` and `npm run build` before commit/PR update.
 
-# Session Handoff — 2026-03-30 (UI/UX Redesign, Session 26)
+# Session Handoff â€” 2026-03-30 (UI/UX Redesign, Session 26)
 
 **Branch:** `redesign`
 

@@ -214,14 +214,14 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         <div className="p-5">
           {/* Avatar */}
           {user && (
-            <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[var(--surface-container-low)] rounded-[10px]">
+            <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[#F9FAFB] rounded-[10px]">
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
               >{user.initials}</div>
               <div>
-                <div className="text-[var(--on-surface)] text-base font-bold">{user.name}</div>
-                <div className="text-[var(--outline)] text-xs">{user.email}</div>
-                <div className="text-[var(--outline-variant)] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
+                <div className="text-[#0F172A] text-base font-bold">{user.name}</div>
+                <div className="text-[#6B7280] text-xs">{user.email}</div>
+                <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
               </div>
             </div>
           )}
@@ -332,9 +332,9 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     { label: t('superadmin.users.status'), value: user.status },
                     { label: t('superadmin.users.lastActiveLabel'), value: formatLastActive(user.lastActive) },
                   ].map(f => (
-                    <div key={f.label} className="bg-[var(--surface-container-low)] rounded-lg px-3 py-[10px]">
-                      <div className="text-[var(--outline-variant)] text-[10px] mb-[3px]">{f.label}</div>
-                      <div className="text-[var(--on-surface)] text-[13px] font-semibold capitalize">{f.value}</div>
+                    <div key={f.label} className="bg-[#F9FAFB] rounded-lg px-3 py-[10px]">
+                      <div className="text-[#9CA3AF] text-[10px] mb-[3px]">{f.label}</div>
+                      <div className="text-[#0F172A] text-[13px] font-semibold capitalize">{f.value}</div>
                     </div>
                   ))}
                 </div>
@@ -347,7 +347,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         <div className="px-5 py-[14px] border-t border-[#F3F4F6] flex justify-end gap-[10px]">
           <button
             onClick={onClose}
-            className="px-[18px] py-[9px] border border-[var(--outline-variant)]/40 rounded-lg bg-[var(--surface-container-lowest)] cursor-pointer text-[13px] font-semibold text-[var(--on-surface-variant)]"
+            className="px-[18px] py-[9px] border border-[#E5E7EB] rounded-lg bg-white cursor-pointer text-[13px] font-semibold text-[#374151]"
           >
             {mode === 'view' ? t('common.close') : t('common.cancel')}
           </button>
@@ -577,19 +577,19 @@ export default function SAUsers() {
   };
 
   return (
-    <div className="p-5 bg-[var(--surface-container-lowest)] min-h-full">
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
       {/* Header */}
       <div className="sa-users-header flex items-center justify-between mb-[18px] gap-[10px]">
         <div>
-          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
-          <p className="text-[var(--outline)] text-xs m-0 mt-[2px]">
+          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
+          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
             {t('superadmin.users.subtitle')}
           </p>
         </div>
         <div className="sa-users-header-actions flex gap-[10px]">
           <button
             onClick={() => { void loadUsers(); }}
-            className="flex items-center gap-[6px] bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/30 rounded-lg px-[14px] py-2 cursor-pointer text-xs font-semibold text-[var(--on-surface-variant)]"
+            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-xs font-semibold text-[#374151]"
           >
             <Download size={13} color="#6B7280" /> {loading ? t('common.refreshing') : t('common.refresh')}
           </button>
@@ -620,20 +620,20 @@ export default function SAUsers() {
           { label: t('superadmin.users.active'), value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
           { label: t('superadmin.users.inactive'), value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
         ].map(stat => (
-          <div key={stat.label} className="bg-[var(--surface-container-lowest)] rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[var(--outline-variant)]/30 flex items-center gap-3 flex-1 min-w-[130px]">
+          <div key={stat.label} className="bg-white rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-3 flex-1 min-w-[130px]">
             <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
               {stat.icon}
             </div>
             <div>
-              <div className="text-[var(--on-surface)] text-[20px] font-bold">{stat.value}</div>
-              <div className="text-[var(--outline-variant)] text-[11px]">{stat.label}</div>
+              <div className="text-[#0F172A] text-[20px] font-bold">{stat.value}</div>
+              <div className="text-[#9CA3AF] text-[11px]">{stat.label}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters bar */}
-      <div className="sa-users-filter-bar bg-[var(--surface-container-lowest)] rounded-xl px-4 py-[14px] mb-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[var(--outline-variant)]/30 flex items-center gap-[10px] flex-wrap">
+      <div className="sa-users-filter-bar bg-white rounded-xl px-4 py-[14px] mb-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} color="#9CA3AF" className="absolute left-[11px] top-1/2 -translate-y-1/2" />
@@ -641,7 +641,7 @@ export default function SAUsers() {
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder={t('superadmin.users.searchPlaceholder')}
-            className="w-full px-[10px] py-2 pl-8 border border-[var(--outline-variant)]/40 rounded-lg text-[13px] outline-none box-border"
+            className="w-full px-[10px] py-2 pl-8 border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
           />
         </div>
 
@@ -651,7 +651,7 @@ export default function SAUsers() {
           value={roleFilter}
           onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.role')}
-          className="px-3 py-2 border border-[var(--outline-variant)]/40 rounded-lg text-xs outline-none bg-[var(--surface-container-lowest)] cursor-pointer text-[var(--on-surface)]"
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -660,7 +660,7 @@ export default function SAUsers() {
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.status')}
-          className="px-3 py-2 border border-[var(--outline-variant)]/40 rounded-lg text-xs outline-none bg-[var(--surface-container-lowest)] cursor-pointer text-[var(--on-surface)]"
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SupportedUiStatus].label}</option>)}
         </select>
@@ -669,12 +669,12 @@ export default function SAUsers() {
           value={barangayFilter}
           onChange={e => { setBarangayFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.barangay')}
-          className="px-3 py-2 border border-[var(--outline-variant)]/40 rounded-lg text-xs outline-none bg-[var(--surface-container-lowest)] cursor-pointer text-[var(--on-surface)]"
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
         </select>
 
-        <span className="text-[var(--outline-variant)] text-xs ml-auto">
+        <span className="text-[#9CA3AF] text-xs ml-auto">
           {filtered.length !== 1 ? t('superadmin.users.userCountPlural', { count: filtered.length }) : t('superadmin.users.userCount', { count: filtered.length })}
         </span>
       </div>
@@ -707,11 +707,11 @@ export default function SAUsers() {
       )}
 
       {/* Table */}
-      <div className="bg-[var(--surface-container-lowest)] rounded-2xl overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[var(--outline-variant)]/30 mb-[14px]">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] mb-[14px]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="bg-[var(--surface-container-low)] border-b border-[var(--outline-variant)]/20">
+              <tr className="bg-[#F8FAFC] border-b border-[#F3F4F6]">
                 <th className="px-[14px] py-3 text-left w-8">
                   <input
                     type="checkbox"
@@ -721,7 +721,7 @@ export default function SAUsers() {
                   />
                 </th>
                 {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
-                  <th key={h} className="px-[14px] py-3 text-left text-[var(--outline)] text-[11px] font-bold tracking-[0.03em] uppercase whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-[14px] py-3 text-left text-[#6B7280] text-[11px] font-bold tracking-[0.03em] uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -729,7 +729,7 @@ export default function SAUsers() {
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-[40px] text-center">
-                    <div className="text-[var(--outline-variant)] text-[13px]">{t('superadmin.users.noUsersFound')}</div>
+                    <div className="text-[#9CA3AF] text-[13px]">{t('superadmin.users.noUsersFound')}</div>
                   </td>
                 </tr>
               ) : paginated.map((user, i) => {
@@ -759,8 +759,8 @@ export default function SAUsers() {
                           className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
                         >{user.initials}</div>
                         <div>
-                          <div className="text-[var(--on-surface)] font-semibold text-[13px]">{user.name}</div>
-                          <div className="text-[var(--outline-variant)] text-[11px]">{user.email}</div>
+                          <div className="text-[#0F172A] font-semibold text-[13px]">{user.name}</div>
+                          <div className="text-[#9CA3AF] text-[11px]">{user.email}</div>
                         </div>
                       </div>
                     </td>
@@ -775,7 +775,7 @@ export default function SAUsers() {
                     </td>
 
                     {/* Barangay */}
-                    <td className="px-[14px] py-3 text-[var(--on-surface-variant)] text-xs font-medium">{user.barangay}</td>
+                    <td className="px-[14px] py-3 text-[#374151] text-xs font-medium">{user.barangay}</td>
 
                     {/* Status */}
                     <td className="px-[14px] py-3">
@@ -787,7 +787,7 @@ export default function SAUsers() {
                     </td>
 
                     {/* Last active */}
-                    <td className="px-[14px] py-3 text-[var(--outline)] text-xs">
+                    <td className="px-[14px] py-3 text-[#6B7280] text-xs">
                       <div className="flex items-center gap-[5px]">
                         <Clock size={11} color="#9CA3AF" />
                         {formatLastActive(user.lastActive)}
@@ -804,7 +804,7 @@ export default function SAUsers() {
                             setModal({ user, mode: 'view' });
                           }}
                           title="View"
-                          className="w-7 h-7 border border-[var(--outline-variant)]/30 rounded-[6px] bg-[var(--surface-container-lowest)] cursor-pointer flex items-center justify-center"
+                          className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
                         >
                           <Eye size={13} color="#6B7280" />
                         </button>
@@ -815,7 +815,7 @@ export default function SAUsers() {
                             setModal({ user, mode: 'edit' });
                           }}
                           title="Edit"
-                          className="w-7 h-7 border border-[var(--outline-variant)]/30 rounded-[6px] bg-[var(--surface-container-lowest)] cursor-pointer flex items-center justify-center"
+                          className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
                         >
                           <Edit2 size={13} color="#6B7280" />
                         </button>
@@ -829,8 +829,8 @@ export default function SAUsers() {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col gap-2 px-4 py-3 border-t border-[var(--outline-variant)]/20 bg-[var(--surface-container-low)] sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-[var(--outline-variant)] text-xs">
+        <div className="flex flex-col gap-2 px-4 py-3 border-t border-[#F3F4F6] bg-[#FAFAFA] sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-[#9CA3AF] text-xs">
             {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-[6px] self-end sm:self-auto">
@@ -839,7 +839,7 @@ export default function SAUsers() {
               disabled={page === 1}
               title="Previous page"
               aria-label="Previous page"
-              className={`w-[30px] h-[30px] border border-[var(--outline-variant)]/30 rounded-[6px] bg-[var(--surface-container-lowest)] flex items-center justify-center ${page === 1 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
+              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === 1 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
             >
               <ChevronLeft size={14} color="#374151" />
             </button>
@@ -850,7 +850,7 @@ export default function SAUsers() {
                 className={`w-[30px] h-[30px] rounded-[6px] cursor-pointer text-xs ${
                   page === p
                     ? 'border border-primary bg-primary font-bold text-white'
-                    : 'border border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] font-normal text-[var(--on-surface-variant)]'
+                    : 'border border-[#E5E7EB] bg-white font-normal text-[#374151]'
                 }`}
               >{p}</button>
             ))}
@@ -859,7 +859,7 @@ export default function SAUsers() {
               disabled={page === totalPages}
               title="Next page"
               aria-label="Next page"
-              className={`w-[30px] h-[30px] border border-[var(--outline-variant)]/30 rounded-[6px] bg-[var(--surface-container-lowest)] flex items-center justify-center ${page === totalPages ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
+              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === totalPages ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
             >
               <ChevronRight size={14} color="#374151" />
             </button>

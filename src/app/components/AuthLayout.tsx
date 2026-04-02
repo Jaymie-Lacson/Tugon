@@ -1,9 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { CheckCircle2, MapPin, Radio } from 'lucide-react';
+import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
-
-const BG_IMAGE = 'https://images.unsplash.com/photo-1598258710957-db8614c2881e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b25kbyUyMG1hbmlsYSUyMHBoaWxpcHBpbmVzJTIwYWVyaWFsJTIwbmVpZ2hib3Job29kfGVufDF8fHx8MTc3Mjc4MjE4MXww&ixlib=rb-4.1.0&q=80&w=1080';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -21,82 +19,67 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-dvh w-full bg-gradient-to-br from-blue-100 via-blue-50 to-slate-100">
-      {/* Left branding panel (hidden on mobile) */}
-      <aside className="relative hidden w-[440px] shrink-0 overflow-hidden lg:block">
-        <img
-          src={BG_IMAGE}
-          alt="Tondo aerial"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/85 via-primary/75 to-[#0F172A]/90" />
-        {/* Grid lines */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
+    <div className="flex min-h-dvh w-full bg-[var(--surface)]">
+      {/* Left branding panel */}
+      <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[linear-gradient(150deg,#00194f_0%,#00236f_40%,#1e3a8a_100%)] lg:flex">
+        <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-16 right-[-80px] h-72 w-72 rounded-full bg-[#90a8ff]/25 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_40%)]" />
 
-        {/* Content */}
-        <div className="relative z-10 flex h-full flex-col justify-between p-8">
-          {/* Logo */}
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 border-none bg-transparent p-0"
-          >
+        <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 py-8 text-white">
+          <button onClick={() => navigate('/')} className="w-fit border-none bg-transparent p-0">
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
-              className="h-8"
+              className="h-9"
             />
           </button>
 
-          {/* Middle content */}
-          <div>
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
-              <Radio size={11} className="text-red-400" />
-              <span className="text-[11px] font-semibold tracking-wide text-white/80">Live Monitoring Active</span>
+          <div className="max-w-[380px]">
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold tracking-wide">
+              <Sparkles size={12} />
+              Crisis Command Network
             </div>
-
-            <h2 className="text-[28px] font-bold leading-tight text-white">
-              Community Safety<br />
-              <span className="text-blue-300">Powered by Data.</span>
+            <h2 className="text-[38px] font-black leading-[1.05] tracking-[-0.03em]">
+              Fast.
+              <br />
+              Reliable.
+              <br />
+              Community Focused.
             </h2>
-            <p className="mt-4 max-w-[340px] text-[13px] leading-relaxed text-white/70">
-              Report incidents, track emergency response, and keep Barangays 251, 252, and 256 in Tondo safe — in real time.
+            <p className="mt-4 text-sm leading-relaxed text-blue-100">
+              Coordinate reports, monitor active incidents, and help every barangay response team move with confidence.
             </p>
+
+            <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3 py-2 text-xs font-semibold text-blue-50">
+              <Shield size={14} />
+              Verified access keeps emergency operations secure.
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5">
-              <MapPin size={11} className="text-blue-300" />
-              <span className="text-[11px] text-white/60">Barangays 251, 252, 256 — Tondo, Manila</span>
+          <div className="text-[11px] text-blue-100">
+            <div className="mb-1">
+              Copyright 2026 TUGON Incident Management System
             </div>
-            <div className="text-[10px] text-white/40">
-              &copy; 2026 TUGON Incident Management System
+            <div className="flex gap-3 text-[10px] text-blue-200">
+              <span>Privacy</span>
+              <span>Terms</span>
+              <span>Contact</span>
+              <span>Emergency</span>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Right form panel */}
-      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:px-8">
-        {/* Desktop language toggle — top-right */}
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 sm:px-8 sm:py-10 lg:items-center">
         <div className="absolute right-6 top-6 hidden lg:block">
           <LanguageToggle />
         </div>
 
-        <div className="w-full max-w-[440px]">
-          {/* Mobile logo */}
+        <div className="w-full max-w-[500px]">
           <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
-            <button
-              onClick={() => navigate('/')}
-              className="border-none bg-transparent p-0"
-            >
+            <button onClick={() => navigate('/')} className="border-none bg-transparent p-0">
               <img
                 src="/tugon-header-logo.svg"
                 alt="TUGON Tondo Emergency Response"
@@ -106,11 +89,10 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
             <LanguageToggle />
           </div>
 
-          {/* Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_rgba(30,58,138,0.08)] sm:p-8 lg:p-10">
+          <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-6 shadow-ambient sm:p-8 lg:p-10">
             <div className="mb-6">
-              <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{subtitle}</p>
+              <h1 className="text-[28px] font-black tracking-[-0.03em] text-[var(--on-surface)]">{title}</h1>
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--on-surface-variant)]">{subtitle}</p>
             </div>
             {children}
           </div>
@@ -118,13 +100,21 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
           {topAction && (
             <div className="mt-4 flex justify-center">{topAction}</div>
           )}
+
+          <div className="mt-5 text-center text-[10px] text-[var(--outline)]">
+            <span>Privacy</span>
+            <span className="mx-2">|</span>
+            <span>Terms</span>
+            <span className="mx-2">|</span>
+            <span>Contact</span>
+            <span className="mx-2">|</span>
+            <span>Emergency</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-/* Shared form primitives */
 
 interface InputFieldProps {
   label: string;
@@ -151,29 +141,29 @@ export function InputField({
 
   return (
     <div className="mb-5">
-      <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+      <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
         {label}
       </label>
       <div
-        className={`flex items-center gap-2 rounded-[var(--radius-md)] border-[1.5px] bg-slate-50 px-3.5 py-3 transition-all ${
+        className={`flex items-center gap-2 rounded-xl px-3.5 py-3 transition-all ${
           error
-            ? 'border-red-500 bg-red-50'
+            ? 'bg-red-50 shadow-[inset_0_-2px_0_#dc2626]'
             : focused
-              ? 'border-primary shadow-[0_0_0_3px_rgba(30,58,138,0.10)]'
-              : 'border-slate-200'
+              ? 'bg-[var(--surface-container-low)] shadow-[inset_0_-2px_0_var(--primary),0_0_0_2px_rgba(0,35,111,0.12)]'
+              : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_rgba(68,70,81,0.22)]'
         }`}
       >
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-slate-400'}`}>
+          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--outline)]'}`}>
             {icon}
           </div>
         )}
         <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
+          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
           type={type}
           placeholder={placeholder}
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           maxLength={maxLength}
@@ -184,17 +174,17 @@ export function InputField({
         />
         {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
-      {error && <div className="mt-1.5 text-[11px] font-medium text-red-600">&#9888; {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-slate-400">{hint}</div>}
+      {error && <div className="mt-1.5 text-[11px] font-semibold text-red-700">! {error}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
     </div>
   );
 }
 
 const BUTTON_COLORS: Record<string, string> = {
-  '#1e3a8a': 'bg-primary hover:bg-[#1E40AF] shadow-[0_2px_8px_rgba(30,58,138,0.18)] hover:shadow-[0_6px_20px_rgba(30,58,138,0.28)]',
-  '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_2px_8px_rgba(5,150,105,0.18)] hover:shadow-[0_6px_20px_rgba(5,150,105,0.28)]',
-  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_2px_8px_rgba(180,115,10,0.18)] hover:shadow-[0_6px_20px_rgba(180,115,10,0.28)]',
-  '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_2px_8px_rgba(185,28,28,0.18)] hover:shadow-[0_6px_20px_rgba(185,28,28,0.28)]',
+  '#1e3a8a': 'btn-gradient-primary shadow-ambient',
+  '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_16px_rgba(5,150,105,0.24)]',
+  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_4px_16px_rgba(180,115,10,0.24)]',
+  '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_4px_16px_rgba(185,28,28,0.24)]',
 };
 
 interface PrimaryButtonProps {
@@ -211,12 +201,12 @@ export function PrimaryButton({ children, onClick, loading = false, disabled = f
 
   return (
     <button
-      className={`flex w-full items-center justify-center gap-2 rounded-[var(--radius-lg)] px-5 py-3.5 text-sm font-bold text-white transition-all ${colorClasses} disabled:cursor-not-allowed disabled:opacity-50`}
+      className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-all ${colorClasses} disabled:cursor-not-allowed disabled:opacity-55`}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
     >
-      {loading ? <span className="size-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : children}
+      {loading ? <span className="size-5 animate-spin rounded-full border-2 border-white/35 border-t-white" /> : children}
     </button>
   );
 }
@@ -236,12 +226,12 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
         const items = [
           <div key={`step-${idx}`} className="flex flex-1 flex-col items-center">
             <div
-              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13px] font-bold ${
+              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[12px] font-bold ${
                 isDone
                   ? 'bg-emerald-600 text-white'
                   : isActive
                     ? 'bg-primary text-white'
-                    : 'bg-slate-200 text-slate-400'
+                    : 'bg-[var(--surface-container-high)] text-[var(--outline)]'
               }`}
             >
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
@@ -252,7 +242,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'text-emerald-600'
                   : isActive
                     ? 'font-bold text-primary'
-                    : 'text-slate-400'
+                    : 'text-[var(--outline)]'
               }`}
             >
               {step.label}
@@ -264,7 +254,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
           items.push(
             <div
               key={`connector-${idx}`}
-              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-slate-200'}`}
+              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-[var(--surface-container-high)]'}`}
             />,
           );
         }

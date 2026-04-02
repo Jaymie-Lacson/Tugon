@@ -56,8 +56,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Restricted',
       color: '#991B1B',
       bg: '#FEE2E2',
-      surfaceClass: 'border border-red-200 bg-red-100',
-      titleClass: 'text-red-800',
+      surfaceClass: 'border border-[rgba(186,26,26,0.22)] bg-[var(--error-container)]',
+      titleClass: 'text-[var(--error)]',
     };
   }
 
@@ -68,8 +68,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Verified',
       color: '#065F46',
       bg: '#DCFCE7',
-      surfaceClass: 'border border-emerald-200 bg-emerald-100',
-      titleClass: 'text-emerald-800',
+      surfaceClass: 'border border-[rgba(5,150,105,0.24)] bg-[var(--severity-low-bg)]',
+      titleClass: 'text-[var(--severity-low)]',
     };
   }
 
@@ -80,8 +80,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Pending Review',
       color: '#92400E',
       bg: '#FEF3C7',
-      surfaceClass: 'border border-amber-200 bg-amber-100',
-      titleClass: 'text-amber-800',
+      surfaceClass: 'border border-[var(--secondary-fixed-dim)] bg-[var(--secondary-fixed)]',
+      titleClass: 'text-[var(--secondary)]',
     };
   }
 
@@ -94,8 +94,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
       statusLabel: 'Re-upload Required',
       color: 'var(--severity-critical)',
       bg: '#FEE2E2',
-      surfaceClass: 'border border-red-200 bg-red-100',
-      titleClass: 'text-severity-critical',
+      surfaceClass: 'border border-[rgba(186,26,26,0.22)] bg-[var(--error-container)]',
+      titleClass: 'text-[var(--error)]',
     };
   }
 
@@ -105,8 +105,8 @@ function getVerificationSummary(verification: CitizenVerificationPreview) {
     statusLabel: 'Not Submitted',
     color: 'var(--primary)',
     bg: '#DBEAFE',
-    surfaceClass: 'border border-blue-200 bg-blue-100',
-    titleClass: 'text-primary',
+    surfaceClass: 'border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)]',
+    titleClass: 'text-[var(--primary)]',
   };
 }
 
@@ -140,24 +140,24 @@ function resolveAccentTone(accent: string): AccentTone {
 
 const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
   critical: {
-    card: 'border-[1.5px] border-red-100',
-    icon: 'bg-red-100 text-severity-critical',
+    card: 'border-[1.5px] border-[rgba(186,26,26,0.2)]',
+    icon: 'bg-[var(--error-container)] text-[var(--error)]',
   },
   warning: {
-    card: 'border-[1.5px] border-amber-100',
-    icon: 'bg-amber-100 text-amber-700',
+    card: 'border-[1.5px] border-[var(--secondary-fixed-dim)]',
+    icon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   primary: {
-    card: 'border-[1.5px] border-blue-100',
-    icon: 'bg-blue-100 text-primary',
+    card: 'border-[1.5px] border-[var(--primary-fixed-dim)]',
+    icon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   },
   success: {
-    card: 'border-[1.5px] border-emerald-100',
-    icon: 'bg-emerald-100 text-emerald-600',
+    card: 'border-[1.5px] border-[rgba(5,150,105,0.24)]',
+    icon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
   },
   slate: {
-    card: 'border-[1.5px] border-slate-200',
-    icon: 'bg-slate-100 text-slate-600',
+    card: 'border-[1.5px] border-[var(--outline-variant)]',
+    icon: 'bg-surface-container-high text-[var(--outline)]',
   },
 };
 
@@ -167,39 +167,39 @@ const quickActionToneClass: Record<AccentTone, {
   cta: string;
 }> = {
   critical: {
-    card: 'bg-red-50 border border-red-200 text-severity-critical',
-    icon: 'bg-red-100 text-severity-critical',
-    cta: 'text-severity-critical',
+    card: 'bg-[var(--error-container)] border border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    icon: 'bg-[var(--error-container)] text-[var(--error)]',
+    cta: 'text-[var(--error)]',
   },
   warning: {
-    card: 'bg-amber-50 border border-amber-200 text-amber-700',
-    icon: 'bg-amber-100 text-amber-700',
-    cta: 'text-amber-700',
+    card: 'bg-[var(--secondary-fixed)] border border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    icon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    cta: 'text-[var(--secondary)]',
   },
   primary: {
-    card: 'bg-blue-50 border border-blue-200 text-primary',
-    icon: 'bg-blue-100 text-primary',
-    cta: 'text-primary',
+    card: 'bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    icon: 'bg-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    cta: 'text-[var(--primary)]',
   },
   success: {
-    card: 'bg-emerald-50 border border-emerald-200 text-emerald-600',
-    icon: 'bg-emerald-100 text-emerald-600',
-    cta: 'text-emerald-600',
+    card: 'bg-[var(--severity-low-bg)] border border-[rgba(5,150,105,0.24)] text-[var(--severity-low)]',
+    icon: 'bg-[rgba(5,150,105,0.16)] text-[var(--severity-low)]',
+    cta: 'text-[var(--severity-low)]',
   },
   slate: {
-    card: 'bg-slate-50 border border-slate-200 text-slate-700',
-    icon: 'bg-slate-200 text-slate-700',
-    cta: 'text-slate-700',
+    card: 'bg-surface-container-low border border-[var(--outline-variant)] text-[var(--on-surface-variant)]',
+    icon: 'bg-surface-container-high text-[var(--on-surface-variant)]',
+    cta: 'text-[var(--on-surface-variant)]',
   },
 };
 
 const incidentIconToneClass: Record<IncidentType, string> = {
-  flood: 'bg-sky-100 text-sky-700',
-  accident: 'bg-orange-100 text-orange-700',
-  medical: 'bg-red-100 text-severity-critical',
-  crime: 'bg-blue-100 text-primary',
-  infrastructure: 'bg-amber-100 text-amber-700',
-  typhoon: 'bg-cyan-100 text-cyan-700',
+  flood: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+  accident: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+  medical: 'bg-[var(--error-container)] text-[var(--error)]',
+  crime: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+  infrastructure: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+  typhoon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
 };
 
 /* ── sub-components ──────────────────────────────────────────────────── */
@@ -800,7 +800,7 @@ function HomeTab({
       </section>
 
       {/* Stats */}
-      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <section className="bg-white rounded-2xl border border-slate-200 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
@@ -851,11 +851,11 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div className="font-bold text-[var(--on-surface)] text-base">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-xs text-[var(--outline)]">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="font-bold text-slate-950 text-base">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-xs text-slate-500">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
@@ -867,15 +867,15 @@ function HomeTab({
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
-            <div className="bg-[var(--surface-container-low)] border border-[var(--outline-variant)]/35 rounded-[10px] px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
+            <div className="bg-slate-50 border border-slate-200 rounded-[10px] px-3 py-2.5">
+              <div className="text-[11px] font-semibold text-slate-600">{t('citizen.dashboard.mapSummary')}</div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <div className="text-[10px] text-[var(--outline)]">{t('citizen.dashboard.totalPins')}</div>
+                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.totalPins')}</div>
                   <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-[var(--outline)]">{t('citizen.dashboard.needsAttention')}</div>
+                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.needsAttention')}</div>
                   <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
                 </div>
               </div>
@@ -889,8 +889,8 @@ function HomeTab({
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-[var(--on-surface)] font-bold truncate">{selectedIncident.id}</div>
-                    <div className="text-[10px] text-[var(--outline)] truncate">{selectedIncident.location}</div>
+                    <div className="text-xs text-slate-900 font-bold truncate">{selectedIncident.id}</div>
+                    <div className="text-[10px] text-slate-500 truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
                 <div className="mt-1.5">
@@ -898,14 +898,14 @@ function HomeTab({
                 </div>
               </div>
             ) : (
-              <div className="bg-[var(--surface-container-low)] border border-dashed border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5 text-[11px] text-[var(--outline)]">
+              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[10px] px-3 py-2.5 text-[11px] text-slate-500">
                 {t('citizen.dashboard.tapPinHint')}
               </div>
             )}
           </aside>
 
           <div className="flex-[1_1_420px] min-w-0">
-            <div className="rounded-xl overflow-hidden border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] block w-full min-h-[360px]">
+            <div className="rounded-xl overflow-hidden border border-slate-200 bg-white block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}
                 height={360}
@@ -921,8 +921,8 @@ function HomeTab({
       </section>
 
       {/* Quick Actions */}
-      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.quickActions')}</div>
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5"
         >
@@ -959,9 +959,9 @@ function HomeTab({
       </section>
 
       {/* Recent activity */}
-      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <div className="font-bold text-base text-[var(--on-surface)]">{t('citizen.dashboard.recentReportActivity')}</div>
+          <div className="font-bold text-base text-slate-900">{t('citizen.dashboard.recentReportActivity')}</div>
           <button
             className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
@@ -969,7 +969,7 @@ function HomeTab({
             {t('common.viewAll')} <ChevronRight size={13} />
           </button>
         </div>
-        <div className="border border-[var(--outline-variant)]/20 rounded-xl px-3 py-1">
+        <div className="border border-slate-100 rounded-xl px-3 py-1">
           {myReports.slice(0, 3).map((report) => (
             <RecentIncidentRow key={report.id} report={report} />
           ))}
@@ -982,27 +982,27 @@ function HomeTab({
       </section>
 
       {/* Emergency contacts */}
-      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
         <div className="flex flex-col gap-2">
           {[
-            { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-severity-critical', iconTone: 'bg-red-100 text-severity-critical' },
-            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', tone: 'text-primary', iconTone: 'bg-blue-100 text-primary' },
-            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', tone: 'text-emerald-600', iconTone: 'bg-emerald-100 text-emerald-600' },
+            { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-[var(--error)]', iconTone: 'bg-[var(--error-container)] text-[var(--error)]' },
+            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', tone: 'text-[var(--primary)]', iconTone: 'bg-[var(--primary-fixed)] text-[var(--primary)]' },
+            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', tone: 'text-[var(--severity-low)]', iconTone: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]' },
           ].map((contact) => (
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
-              className="bg-[var(--surface-container-lowest)] rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-[var(--outline-variant)]/35"
+              className="bg-white rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-slate-200"
             >
               <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${contact.iconTone}`}>
                 <Phone size={17} />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-[13px] text-[var(--on-surface)]">{contact.label}</div>
+                <div className="font-semibold text-[13px] text-slate-900">{contact.label}</div>
                 <div className={`text-xs font-bold mt-px ${contact.tone}`}>{contact.number}</div>
               </div>
-              <ChevronRight size={16} color="#94A3B8" />
+              <ChevronRight size={16} className="text-[var(--outline)]" />
             </a>
           ))}
         </div>
@@ -1030,59 +1030,59 @@ const reportTypeToneClass: Record<IncidentType, {
   unselectedIcon: string;
 }> = {
   flood: {
-    selectedCard: 'bg-sky-700 border-sky-700 shadow-[0_4px_12px_rgba(3,105,161,0.28)]',
+    selectedCard: 'bg-primary-container border-primary-container shadow-[0_4px_12px_rgba(30,58,138,0.26)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-sky-100 text-sky-700',
+    unselectedIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
   },
   accident: {
-    selectedCard: 'bg-orange-700 border-orange-700 shadow-[0_4px_12px_rgba(194,65,12,0.28)]',
+    selectedCard: 'bg-secondary border-secondary shadow-[0_4px_12px_rgba(134,83,0,0.26)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-orange-100 text-orange-700',
+    unselectedIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
   },
   medical: {
     selectedCard: 'bg-severity-critical border-severity-critical shadow-[0_4px_12px_rgba(185,28,28,0.28)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-red-100 text-severity-critical',
+    unselectedIcon: 'bg-[var(--error-container)] text-[var(--error)]',
   },
   crime: {
     selectedCard: 'bg-primary border-primary shadow-[0_4px_12px_rgba(30,58,138,0.28)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-blue-100 text-primary',
+    unselectedIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   },
   infrastructure: {
-    selectedCard: 'bg-amber-700 border-amber-700 shadow-[0_4px_12px_rgba(180,115,10,0.28)]',
+    selectedCard: 'bg-secondary border-secondary shadow-[0_4px_12px_rgba(134,83,0,0.26)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-amber-100 text-amber-700',
+    unselectedIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   typhoon: {
-    selectedCard: 'bg-cyan-700 border-cyan-700 shadow-[0_4px_12px_rgba(14,116,144,0.28)]',
+    selectedCard: 'bg-primary-container border-primary-container shadow-[0_4px_12px_rgba(30,58,138,0.26)]',
     selectedIcon: 'bg-white/25 text-white',
     selectedLabel: 'text-white',
-    unselectedIcon: 'bg-cyan-100 text-cyan-700',
+    unselectedIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
   },
 };
 
 const severityToneClass: Record<string, { selected: string; unselected: string }> = {
   low: {
-    selected: 'border-emerald-600 bg-emerald-100 text-emerald-600',
-    unselected: 'border-slate-200 bg-white text-slate-400',
+    selected: 'border-[rgba(5,150,105,0.26)] bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    unselected: 'border-[var(--outline-variant)] bg-white text-[var(--outline)]',
   },
   medium: {
-    selected: 'border-amber-700 bg-amber-100 text-amber-700',
-    unselected: 'border-slate-200 bg-white text-slate-400',
+    selected: 'border-[var(--secondary-fixed-dim)] bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    unselected: 'border-[var(--outline-variant)] bg-white text-[var(--outline)]',
   },
   high: {
-    selected: 'border-orange-700 bg-orange-100 text-orange-700',
-    unselected: 'border-slate-200 bg-white text-slate-400',
+    selected: 'border-[var(--secondary)] bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    unselected: 'border-[var(--outline-variant)] bg-white text-[var(--outline)]',
   },
   critical: {
-    selected: 'border-severity-critical bg-red-100 text-severity-critical',
-    unselected: 'border-slate-200 bg-white text-slate-400',
+    selected: 'border-[rgba(186,26,26,0.24)] bg-[var(--error-container)] text-[var(--error)]',
+    unselected: 'border-[var(--outline-variant)] bg-white text-[var(--outline)]',
   },
 };
 
@@ -1487,8 +1487,8 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
       </div>
 
       {/* Status guide */}
-      <div className="bg-[var(--surface-container-low)] rounded-xl p-3.5 border border-[var(--outline-variant)]/35">
-        <div className="font-bold text-[13px] text-[var(--on-surface)] mb-2.5">Report Status Guide</div>
+      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+        <div className="font-bold text-[13px] text-slate-900 mb-2.5">Report Status Guide</div>
         {[
           { status: 'active' as const, desc: 'Received, awaiting assignment' },
           { status: 'responding' as const, desc: 'Responders have been deployed' },
@@ -1497,7 +1497,7 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
         ].map(({ status, desc }) => (
           <div key={status} className="flex items-center gap-2.5 mb-2">
             <StatusBadge status={status} size="sm" />
-            <span className="text-xs text-[var(--outline)]">{desc}</span>
+            <span className="text-xs text-slate-500">{desc}</span>
           </div>
         ))}
       </div>
@@ -1531,14 +1531,40 @@ function ProfileTab({
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
 
-  // Account settings navigation — inline, no external state needed
-  const handleSettingNav = (action: 'verification' | 'barangay' | 'map' | 'phone') => {
-    if (action === 'verification') navigate('/citizen/verification');
-    else if (action === 'barangay') navigate('/citizen?tab=map');
-    else if (action === 'map') navigate('/citizen?tab=map');
-    else if (action === 'phone') navigate('/auth/register');
+  const _handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
+    if (action === 'personal') {
+      setEditOpen(true);
+      setSettingMessage('');
+      return;
+    }
+
+    if (action === 'notifications') {
+      setSettingMessage('Use the bell icon on the top-right to view recent report updates and alerts.');
+      return;
+    }
+
+    if (action === 'verification') {
+      if (verificationPreview.isVerified) {
+        setSettingMessage('Your account is already ID-verified. No further action is required.');
+      } else {
+        navigate('/citizen/verification');
+      }
+      return;
+    }
+
+    if (action === 'barangay') {
+      navigate('/citizen?tab=map');
+      return;
+    }
+
+    if (action === 'contact') {
+      if (!phoneDigits) {
+        setSettingMessage('No valid contact number is available for this account.');
+        return;
+      }
+      window.location.href = `tel:${phoneDigits}`;
+    }
   };
-  void handleSettingNav;
 
   return (
     <div className="citizen-content-shell pt-4 pb-4">
@@ -1569,14 +1595,14 @@ function ProfileTab({
       </div>
 
       {/* Verification preview */}
-      <div className="font-bold text-sm text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
+      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
       <div
         className={`mb-4 rounded-[14px] px-3.5 py-3 ${verificationSummary.surfaceClass}`}
       >
         <div className={`font-bold text-[13px] ${verificationSummary.titleClass}`}>
           {verificationSummary.title}
         </div>
-        <div className="text-xs text-[var(--on-surface-variant)] mt-1 leading-[1.5]">{verificationSummary.detail}</div>
+        <div className="text-xs text-slate-600 mt-1 leading-[1.5]">{verificationSummary.detail}</div>
         {verificationPreview.idImageUrl ? (
           <a
             href={verificationPreview.idImageUrl}
@@ -1590,8 +1616,8 @@ function ProfileTab({
       </div>
 
       {/* Account info */}
-      <div className="font-bold text-sm text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
-      <div className="bg-[var(--surface-container-lowest)] rounded-[14px] overflow-hidden border border-[var(--outline-variant)]/20 mb-4">
+      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
+      <div className="bg-white rounded-[14px] overflow-hidden border border-slate-100 mb-4">
         {[
           { icon: <User size={16} />, label: t('settings.personalInfo'), sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: t('common.notifications'), sub: t('citizen.dashboard.alertsSubLabel'), action: 'notifications' as const },
@@ -1601,22 +1627,22 @@ function ProfileTab({
         ].map((item, idx, arr) => (
           <div
             key={item.label}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-[var(--surface-container-lowest)] ${
-              idx < arr.length - 1 ? 'border-b border-[var(--outline-variant)]/10' : ''
+            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white ${
+              idx < arr.length - 1 ? 'border-b border-slate-50' : ''
             }`}
           >
             <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-[13px] text-[var(--on-surface)]">{item.label}</div>
-              <div className="text-[11px] text-[var(--outline-variant)] mt-px">{item.sub}</div>
+              <div className="font-semibold text-[13px] text-slate-900">{item.label}</div>
+              <div className="text-[11px] text-slate-400 mt-px">{item.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-[var(--surface-container-low)] border border-[var(--outline-variant)]/35 rounded-xl px-3 py-2.5 mb-3.5 text-[var(--on-surface-variant)] text-xs leading-[1.5]">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 mb-3.5 text-slate-600 text-xs leading-[1.5]">
         Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
       </div>
 

@@ -164,13 +164,13 @@ function IncidentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[3px]"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[4px]"
       style={{ background: 'rgba(15,23,42,0.68)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-[760px] max-h-[92vh] overflow-auto rounded-2xl bg-slate-50 shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
+      <div className="max-h-[92vh] w-full max-w-[760px] overflow-auto rounded-2xl bg-[var(--surface-container-low)] shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
         <div className="flex items-start justify-between rounded-t-2xl bg-primary px-5 py-[18px]">
           <div>
@@ -196,7 +196,7 @@ function IncidentDetailModal({
         </div>
 
         {/* Badge bar */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-100 px-5 py-3">
+        <div className="flex flex-wrap gap-2 bg-[var(--surface-container-high)] px-5 py-3 shadow-[inset_0_-1px_0_rgba(197,197,211,0.22)]">
           <TypeBadge type={incident.type} />
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} pulse={incident.status === 'active'} />
@@ -205,28 +205,28 @@ function IncidentDetailModal({
         {/* Body */}
         <div className="px-5 pt-[18px] pb-5">
           {/* Description */}
-          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.descriptionLabel')}</div>
-            <div className="text-[13px] leading-[1.65] text-slate-700">
+          <div className="mb-4 rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.descriptionLabel')}</div>
+            <div className="text-[13px] leading-[1.65] text-[var(--on-surface-variant)]">
               {incident.description}
             </div>
           </div>
 
           {/* Evidence */}
-          <div className="mb-4 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+          <div className="mb-4 rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">
               {t('official.incidents.evidenceAttachments')}
             </div>
 
             {photoEvidence.length === 0 && audioEvidence.length === 0 ? (
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-[var(--on-surface-variant)]">
                 {t('official.incidents.noEvidence')}
               </div>
             ) : (
               <div className="grid gap-3">
                 {photoEvidence.length > 0 ? (
                   <div>
-                    <div className="mb-2 text-[11px] font-bold text-slate-600">
+                    <div className="mb-2 text-[11px] font-bold text-[var(--on-surface-variant)]">
                       {t('official.incidents.photos', { count: photoEvidence.length })}
                     </div>
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
@@ -238,14 +238,14 @@ function IncidentDetailModal({
                             setPreviewPhotoUrl(item.publicUrl);
                             setPreviewPhotoName(item.fileName);
                           }}
-                          className="cursor-[zoom-in] overflow-hidden rounded-[10px] border border-slate-200 bg-slate-50 p-0 m-0"
+                          className="cursor-[zoom-in] overflow-hidden rounded-[10px] border border-[var(--outline-variant)]/35 bg-[var(--surface-container-low)] p-0 m-0"
                         >
                           <img
                             src={item.publicUrl}
                             alt={item.fileName}
                             className="block h-[110px] w-full object-cover"
                           />
-                          <div className="overflow-hidden text-ellipsis whitespace-nowrap px-2 py-1.5 text-[10px] text-slate-600">
+                          <div className="overflow-hidden text-ellipsis whitespace-nowrap px-2 py-1.5 text-[10px] text-[var(--on-surface-variant)]">
                             {item.fileName}
                           </div>
                         </button>
@@ -256,13 +256,13 @@ function IncidentDetailModal({
 
                 {audioEvidence.length > 0 ? (
                   <div>
-                    <div className="mb-2 text-[11px] font-bold text-slate-600">
+                    <div className="mb-2 text-[11px] font-bold text-[var(--on-surface-variant)]">
                       {t('official.incidents.audio', { count: audioEvidence.length })}
                     </div>
                     <div className="grid gap-2">
                       {audioEvidence.map((item) => (
-                        <div key={item.id} className="rounded-[10px] border border-slate-200 bg-slate-50 p-2">
-                          <div className="mb-1.5 text-[10px] text-slate-600">{item.fileName}</div>
+                        <div key={item.id} className="rounded-[10px] bg-[var(--surface-container-low)] p-2">
+                          <div className="mb-1.5 text-[10px] text-[var(--on-surface-variant)]">{item.fileName}</div>
                           <audio controls src={item.publicUrl} className="w-full" />
                         </div>
                       ))}
@@ -282,25 +282,25 @@ function IncidentDetailModal({
               { label: t('official.incidents.affectedPersons'), value: incident.affectedPersons !== undefined ? t('official.incidents.affectedValue', { count: incident.affectedPersons }) : t('official.incidents.underAssessment'), icon: <Info size={13} /> },
               { label: t('official.incidents.responseTime'), value: responseTime ? t('official.incidents.responseTimeValue', { minutes: responseTime }) : t('official.incidents.notYetResponded'), icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} className="rounded-[10px] border border-slate-200 bg-white px-3 py-2.5">
-                <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-slate-400">
+              <div key={item.label} className="rounded-[10px] bg-[var(--surface-container-lowest)] px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+                <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-[var(--outline)]">
                   {item.icon} {item.label}
                 </div>
-                <div className="text-xs font-medium text-slate-700">{item.value}</div>
+                <div className="text-xs font-medium text-[var(--on-surface-variant)]">{item.value}</div>
               </div>
             ))}
           </div>
 
           {/* Timeline */}
-          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('official.incidents.ticketTimeline')}</div>
+          <div className="rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.ticketTimeline')}</div>
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
-                <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[#DBE4EE] pl-2.5">
+                <div key={`${entry.label}-${entry.timestamp}`} className="relative border-l-2 border-[var(--surface-container-high)] pl-2.5">
                   <div className="absolute -left-[6px] top-[3px] h-[9px] w-[9px] rounded-full border-2 border-white bg-primary" />
-                  <div className="text-xs font-bold text-slate-800">{entry.label}</div>
-                  <div className="mt-[1px] text-[11px] text-slate-500">{entry.description}</div>
-                  <div className="mt-0.5 text-[11px] text-slate-400">{formatTime(entry.timestamp)} • {entry.actor}</div>
+                  <div className="text-xs font-bold text-[var(--on-surface)]">{entry.label}</div>
+                  <div className="mt-[1px] text-[11px] text-[var(--outline)]">{entry.description}</div>
+                  <div className="mt-0.5 text-[11px] text-[var(--outline)]">{formatTime(entry.timestamp)} • {entry.actor}</div>
                 </div>
               ))}
             </div>
@@ -308,11 +308,11 @@ function IncidentDetailModal({
         </div>
 
         {/* Action bar */}
-        <div className="flex flex-wrap gap-2.5 border-t border-slate-100 px-5 py-3.5">
+        <div className="flex flex-wrap gap-2.5 bg-[var(--surface-container-high)] px-5 py-3.5">
           {canUpdateStatus ? (
             <div className="relative grid min-w-[180px] flex-1 gap-2">
               {statusSelectorOpen ? (
-                <div className="absolute inset-x-0 bottom-[calc(100%+8px)] z-[120] max-h-[200px] overflow-y-auto rounded-lg border border-slate-300 bg-white shadow-[0_16px_30px_rgba(15,23,42,0.2)]">
+                <div className="absolute inset-x-0 bottom-[calc(100%+8px)] z-[120] max-h-[200px] overflow-y-auto rounded-lg bg-[var(--surface-container-lowest)] shadow-[0_16px_30px_rgba(15,23,42,0.2)]">
                   {availableStatuses.map((status) => (
                     <button
                       key={status}
@@ -322,7 +322,7 @@ function IncidentDetailModal({
                         setStatusSelectorOpen(false);
                       }}
                       className={`w-full border-none px-3 py-[9px] text-left text-xs font-semibold cursor-pointer ${
-                        nextStatus === status ? 'bg-blue-50 text-primary' : 'bg-white text-slate-700'
+                        nextStatus === status ? 'bg-[var(--surface-container-high)] text-primary' : 'bg-white text-[var(--on-surface-variant)]'
                       }`}
                     >
                       {status}
@@ -335,12 +335,12 @@ function IncidentDetailModal({
                 type="button"
                 disabled={isUpdating || !canUpdateStatus}
                 onClick={() => setStatusSelectorOpen((value) => !value)}
-                className={`flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 ${
+                className={`flex w-full items-center justify-between rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-2 text-xs font-bold text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)] ${
                   isUpdating || !canUpdateStatus ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
                 <span>{nextStatus || t('official.incidents.selectNewStatus')}</span>
-                <ChevronUp size={14} color="#64748B" />
+                <ChevronUp size={14} className="text-[var(--outline)]" />
               </button>
 
               <button
@@ -361,7 +361,7 @@ function IncidentDetailModal({
           ) : null}
 
           <button
-            className="flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-[9px] text-xs font-semibold text-slate-600 cursor-pointer"
+            className="flex min-w-[100px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-low)] px-4 py-[9px] text-xs font-semibold text-[var(--on-surface-variant)]"
             style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
           >
             <Printer size={13} /> {t('official.incidents.printReport')}
@@ -375,13 +375,12 @@ function IncidentDetailModal({
             aria-modal="true"
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
-            className="fixed inset-0 z-[140] flex items-center justify-center p-[18px]"
-            style={{ background: 'rgba(2,6,23,0.86)' }}
+            className="fixed inset-0 z-[140] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px]"
           >
             <button
               type="button"
               onClick={() => setPreviewPhotoUrl(null)}
-              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-slate-900/70 text-white cursor-pointer"
+              className="absolute top-4 right-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[var(--surface-container-lowest)] text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.42)]"
               aria-label={t('official.incidents.closePhotoPreview')}
             >
               <X size={16} />
@@ -390,10 +389,10 @@ function IncidentDetailModal({
               <img
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
-                className="rounded-xl"
+                className="rounded-xl shadow-[0_20px_44px_rgba(13,28,46,0.36)]"
                 style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)' }}
               />
-              <div className="text-center text-xs font-semibold text-slate-200">
+              <div className="text-center text-xs font-semibold text-white/90">
                 {previewPhotoName}
               </div>
             </div>
@@ -685,8 +684,10 @@ export default function Incidents() {
   };
 
   const SortIcon = ({ k }: { k: keyof IncidentView }) => {
-    if (sortKey !== k) return <ChevronsUpDown size={12} color="#CBD5E1" />;
-    return sortDir === 'asc' ? <ChevronUp size={12} color="var(--primary)" /> : <ChevronDown size={12} color="var(--primary)" />;
+    if (sortKey !== k) return <ChevronsUpDown size={12} className="text-[var(--outline-variant)]" />;
+    return sortDir === 'asc'
+      ? <ChevronUp size={12} className="text-primary" />
+      : <ChevronDown size={12} className="text-primary" />;
   };
 
   const isVerifiedReporter = (incident: IncidentView) =>
@@ -694,7 +695,7 @@ export default function Incidents() {
 
   if (initialLoadPending) {
     return (
-      <div className="min-h-full px-4 py-3.5">
+      <div className="min-h-full bg-[var(--surface)] px-4 py-4">
         <TableSkeleton rows={8} columns={7} showHeader />
         <div className="mt-3.5">
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
@@ -704,12 +705,12 @@ export default function Incidents() {
   }
 
   return (
-    <div className="min-h-full px-4 py-3.5">
+    <div className="min-h-full bg-[var(--surface)] px-4 py-4">
       {/* Page header */}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <h1 className="mb-0.5 text-xl font-bold text-slate-800">{t('official.incidents.pageTitle')}</h1>
-          <p className="text-xs text-slate-500">
+          <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.incidents.pageTitle')}</h1>
+          <p className="text-xs text-[var(--on-surface-variant)]">
             {loading
               ? t('official.incidents.loadingReports')
               : listView === 'open'
@@ -724,15 +725,17 @@ export default function Incidents() {
       </div>
 
       {/* List view toggle */}
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-3 flex w-fit max-w-full flex-wrap gap-2 rounded-2xl bg-[var(--surface-container-lowest)] p-2 shadow-ambient">
         <button
           type="button"
           onClick={() => {
             setListView('open');
             setPage(1);
           }}
-          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
-            listView === 'open' ? 'bg-primary text-white' : 'bg-white text-slate-700'
+          className={`cursor-pointer rounded-full border-none px-3.5 py-2 text-xs font-bold ${
+            listView === 'open'
+              ? 'bg-primary text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
+              : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
           }`}
         >
           {t('official.incidents.openIncidents', { count: openCount })}
@@ -743,8 +746,10 @@ export default function Incidents() {
             setListView('archived');
             setPage(1);
           }}
-          className={`rounded-full border border-slate-300 px-3 py-2 text-xs font-bold cursor-pointer ${
-            listView === 'archived' ? 'bg-primary text-white' : 'bg-white text-slate-700'
+          className={`cursor-pointer rounded-full border-none px-3.5 py-2 text-xs font-bold ${
+            listView === 'archived'
+              ? 'bg-primary text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
+              : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
           }`}
         >
           {t('official.incidents.archived', { count: archivedCount })}
@@ -752,15 +757,15 @@ export default function Incidents() {
       </div>
 
       {error ? (
-        <div className="mb-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2.5 text-[13px] text-red-700">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-[13px] text-[var(--error)]">
           {error}
         </div>
       ) : null}
 
       {/* Filter bar */}
-      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-xl bg-white px-3.5 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient">
         <div className="relative flex-[2_1_200px]">
-          <Search size={14} color="#94A3B8" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--outline)]" />
           <input
             value={search}
             onChange={(e) => {
@@ -768,7 +773,7 @@ export default function Incidents() {
               setPage(1);
             }}
             placeholder={t('official.incidents.searchPlaceholderTable')}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-8 text-[13px] text-slate-800 outline-none"
+            className="w-full rounded-lg border-none bg-[var(--surface-container-low)] py-2.5 pr-3 pl-8 text-[13px] text-[var(--on-surface)] outline-none shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)]"
           />
         </div>
 
@@ -805,8 +810,8 @@ export default function Incidents() {
             <select
               value={f.value}
               onChange={(e) => f.setter(e.target.value)}
-              className={`w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none ${
-                f.value ? 'text-slate-800' : 'text-slate-400'
+              className={`w-full cursor-pointer appearance-none rounded-lg border-none bg-[var(--surface-container-low)] py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)] ${
+                f.value ? 'text-[var(--on-surface)]' : 'text-[var(--outline)]'
               }`}
             >
               <option value="">{f.label}</option>
@@ -818,8 +823,7 @@ export default function Incidents() {
             </select>
             <ChevronDown
               size={14}
-              color="#94A3B8"
-              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[var(--outline)]"
             />
           </div>
         ))}
@@ -833,7 +837,7 @@ export default function Incidents() {
               setFilterStatus('');
               setPage(1);
             }}
-            className="flex items-center gap-1 whitespace-nowrap rounded-lg border-none bg-red-100 px-3.5 py-2.5 text-[13px] font-semibold text-red-700 cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-lg border-none bg-[var(--error-container)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--error)]"
           >
             <X size={14} /> {t('official.incidents.clear')}
           </button>
@@ -843,18 +847,18 @@ export default function Incidents() {
           onClick={() => {
             void loadReports();
           }}
-          className="ml-auto flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer"
+          className="ml-auto flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-3.5 py-2.5 text-xs font-semibold text-[var(--on-surface-variant)]"
         >
           <RefreshCw size={14} /> {t('common.refresh')}
         </button>
       </div>
 
       {/* Desktop table */}
-      <div className="incidents-table-wrapper mb-3.5 overflow-hidden rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+      <div className="incidents-table-wrapper mb-3.5 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50">
+              <tr className="bg-[var(--surface-container-low)]">
                 {[
                   { key: 'id' as keyof IncidentView, label: t('official.incidents.incidentIdCol') },
                   { key: 'type' as keyof IncidentView, label: t('official.incidents.typeCol') },
@@ -867,8 +871,8 @@ export default function Incidents() {
                   <th
                     key={col.label}
                     onClick={() => col.key && handleSort(col.key)}
-                    className={`whitespace-nowrap border-b-2 border-slate-100 px-3.5 py-[11px] text-left text-[11px] font-semibold tracking-wide select-none ${
-                      sortKey === col.key ? 'text-primary' : 'text-slate-500'
+                    className={`whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-[11px] text-left text-[11px] font-semibold tracking-wide select-none ${
+                      sortKey === col.key ? 'text-primary' : 'text-[var(--outline)]'
                     } ${col.key ? 'cursor-pointer' : 'cursor-default'}`}
                   >
                     <span className="flex items-center gap-1">
@@ -888,7 +892,7 @@ export default function Incidents() {
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-[13px] text-slate-400">{t('official.incidents.noMatchFilters')}</td>
+                  <td colSpan={7} className="py-10 text-center text-[13px] text-[var(--outline)]">{t('official.incidents.noMatchFilters')}</td>
                 </tr>
               ) : paginated.map((inc) => (
                 <tr
@@ -907,7 +911,7 @@ export default function Incidents() {
                       y: event.clientY,
                     });
                   }}
-                  className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50"
+                  className="cursor-pointer transition-colors odd:bg-[var(--surface-container-lowest)] even:bg-[var(--surface-container-low)]/55 hover:bg-[var(--surface-container-high)]/55"
                 >
                   <td className="whitespace-nowrap px-3.5 py-[11px] text-xs">
                     <div className="inline-flex items-center gap-1.5">
@@ -921,19 +925,19 @@ export default function Incidents() {
                   </td>
                   <td className="px-3.5 py-[11px]"><TypeBadge type={inc.type} size="sm" /></td>
                   <td className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-[11px]">
-                    <div className="font-medium text-slate-800">{inc.barangay}</div>
-                    <div className="text-[10px] text-slate-400">{inc.district}</div>
+                    <div className="font-medium text-[var(--on-surface)]">{inc.barangay}</div>
+                    <div className="text-[10px] text-[var(--outline)]">{inc.district}</div>
                   </td>
                   <td className="px-3.5 py-[11px]"><SeverityBadge severity={inc.severity} size="sm" /></td>
                   <td className="px-3.5 py-[11px]"><StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} /></td>
-                  <td className="whitespace-nowrap px-3.5 py-[11px] text-slate-500">{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
+                  <td className="whitespace-nowrap px-3.5 py-[11px] text-[var(--outline)]">{new Date(inc.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</td>
                   <td className="px-3.5 py-[11px]">
                     <button
                       onClick={(event) => {
                         event.stopPropagation();
                         setSelectedIncident(inc);
                       }}
-                      className="flex items-center gap-[3px] rounded-md border-none bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-primary cursor-pointer"
+                      className="flex cursor-pointer items-center gap-[3px] rounded-md border-none bg-[var(--surface-container-high)] px-2.5 py-1.5 text-[11px] font-semibold text-primary"
                     >
                       <Edit2 size={12} /> {t('official.incidents.editBtn')}
                     </button>
@@ -951,7 +955,7 @@ export default function Incidents() {
           role="menu"
           aria-label={`Actions for ${contextMenu.incident.id}`}
           onClick={(event) => event.stopPropagation()}
-          className="fixed z-[160] min-w-[180px] rounded-[10px] border border-slate-300 bg-white p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
+          className="fixed z-[160] min-w-[180px] rounded-[10px] bg-[var(--surface-container-lowest)] p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button
@@ -960,7 +964,7 @@ export default function Incidents() {
               setSelectedIncident(contextMenu.incident);
               setContextMenu(null);
             }}
-            className="flex w-full items-center gap-1.5 rounded-lg border-none bg-white px-2.5 py-[9px] text-left text-xs font-semibold text-slate-700 cursor-pointer"
+            className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-[9px] text-left text-xs font-semibold text-[var(--on-surface)]"
           >
             <Edit2 size={13} /> {t('official.incidents.openEditIncident')}
           </button>
@@ -975,8 +979,8 @@ export default function Incidents() {
               }
               void updateIncidentStatus(contextMenu.incident, archiveStatus);
             }}
-            className={`flex w-full items-center gap-1.5 rounded-lg border-none bg-white px-2.5 py-[9px] text-left text-xs font-semibold ${
-              !getArchiveTargetStatus(contextMenu.incident) ? 'text-slate-400' : 'text-amber-700'
+            className={`flex w-full items-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-[9px] text-left text-xs font-semibold ${
+              !getArchiveTargetStatus(contextMenu.incident) ? 'text-[var(--outline)]' : 'text-amber-700'
             } ${
               !getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id ? 'cursor-not-allowed' : 'cursor-pointer'
             }`}
@@ -992,7 +996,7 @@ export default function Incidents() {
         {loading ? (
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
-          <div className="rounded-xl bg-white px-4 py-[22px] text-center text-[13px] text-slate-400 shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+          <div className="rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-[22px] text-center text-[13px] text-[var(--on-surface-variant)] shadow-ambient">
             {t('official.incidents.noMatchFilters')}
           </div>
         ) : (
@@ -1000,7 +1004,7 @@ export default function Incidents() {
             <article
               key={inc.id}
               onClick={() => setSelectedIncident(inc)}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 pb-2.5 pt-3 shadow-[0_2px_8px_rgba(0,0,0,0.07)]"
+              className="cursor-pointer rounded-2xl bg-[var(--surface-container-lowest)] px-3 pb-2.5 pt-3 shadow-ambient"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="grid gap-[5px]">
@@ -1019,11 +1023,11 @@ export default function Incidents() {
                 <SeverityBadge severity={inc.severity} size="sm" />
               </div>
 
-              <div className="mb-1 text-xs font-semibold text-slate-800">{inc.barangay}</div>
-              <div className="mb-1.5 text-xs text-slate-500">{inc.location}</div>
+              <div className="mb-1 text-xs font-semibold text-[var(--on-surface)]">{inc.barangay}</div>
+              <div className="mb-1.5 text-xs text-[var(--outline)]">{inc.location}</div>
 
               <div className="mb-2.5 flex items-center justify-between gap-2">
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-[var(--outline)]">
                   {new Date(inc.reportedAt).toLocaleString('en-PH', {
                     month: 'short',
                     day: 'numeric',
@@ -1039,7 +1043,7 @@ export default function Incidents() {
                   event.stopPropagation();
                   setSelectedIncident(inc);
                 }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border-none bg-blue-50 px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer"
+                className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-high)] px-3 py-[9px] text-xs font-semibold text-primary"
               >
                 <ChevronRight size={13} /> {t('official.incidents.viewDetails')}
               </button>
@@ -1059,8 +1063,8 @@ export default function Incidents() {
 
       {/* Pagination */}
       {!loading && filtered.length > 0 ? (
-        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-          <div className="text-xs text-slate-500">
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-3 py-2.5 shadow-ambient">
+          <div className="text-xs text-[var(--on-surface-variant)]">
             {t('official.incidents.showingRange', { from: (page - 1) * perPage + 1, to: Math.min(page * perPage, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-2">
@@ -1068,21 +1072,25 @@ export default function Incidents() {
               type="button"
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              className={`rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold ${
-                page === 1 ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
+              className={`rounded-lg border-none px-3 py-2 text-xs font-semibold ${
+                page === 1
+                  ? 'bg-[var(--surface-container-low)] text-[var(--outline)] cursor-not-allowed'
+                  : 'bg-[var(--surface-container-high)] text-[var(--on-surface)] cursor-pointer'
               }`}
             >
               {t('official.incidents.previous')}
             </button>
-            <div className="min-w-[72px] text-center text-xs font-bold text-slate-700">
+            <div className="min-w-[72px] text-center text-xs font-bold text-[var(--on-surface-variant)]">
               {t('official.incidents.page', { page, total: totalPages })}
             </div>
             <button
               type="button"
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page === totalPages}
-              className={`rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold ${
-                page === totalPages ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 cursor-pointer'
+              className={`rounded-lg border-none px-3 py-2 text-xs font-semibold ${
+                page === totalPages
+                  ? 'bg-[var(--surface-container-low)] text-[var(--outline)] cursor-not-allowed'
+                  : 'bg-[var(--surface-container-high)] text-[var(--on-surface)] cursor-pointer'
               }`}
             >
               {t('official.incidents.next')}
@@ -1093,3 +1101,5 @@ export default function Incidents() {
     </div>
   );
 }
+
+

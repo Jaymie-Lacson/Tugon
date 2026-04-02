@@ -71,16 +71,19 @@ function formatDurationFromMinutes(totalMinutes: number): string {
 }
 
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
-function MetricCard({ title, value, change, up, sub }: MetricCardProps) {
+function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-xl px-[18px] py-4 shadow-[0_1px_5px_rgba(15,23,42,0.06)] border border-slate-200">
-      <div className="text-slate-500 text-[11px] font-semibold tracking-[0.06em] uppercase mb-2">{title}</div>
-      <div className="text-[28px] font-bold text-slate-800 mb-1.5">{value}</div>
+    <div className="card-lifted rounded-2xl px-[18px] py-4 shadow-ambient">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">{title}</div>
+        <span className="inline-block h-2 w-2 rounded-full" style={{ background: color }} />
+      </div>
+      <div className="mb-1.5 text-[28px] font-black text-[var(--on-surface)]">{value}</div>
       <div className="flex items-center gap-1.5">
         <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${up ? 'text-emerald-600' : 'text-destructive'}`}>
           {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />} {change}
         </span>
-        <span className="text-slate-400 text-[11px]">{sub}</span>
+        <span className="text-[11px] text-[var(--outline)]">{sub}</span>
       </div>
     </div>
   );
@@ -279,7 +282,7 @@ export default function Analytics() {
 
   if (initialLoadPending) {
     return (
-      <div className="p-4 px-5 min-h-full">
+      <div className="min-h-full bg-[var(--surface)] p-4 px-5">
         <CardSkeleton count={4} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" />
         <div className="mt-4">
           <TextSkeleton rows={6} title={false} />
@@ -289,34 +292,34 @@ export default function Analytics() {
   }
 
   return (
-    <div className="analytics-page p-3.5 px-3 pb-5 md:p-4 md:px-5 min-h-full">
+    <div className="analytics-page min-h-full bg-[var(--surface)] p-3.5 px-3 pb-5 md:p-4 md:px-5">
       {error && (
-        <div className="mb-3 bg-red-50 border border-red-200 rounded-lg text-destructive text-xs px-2.5 py-2">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
           {error}
         </div>
       )}
 
       {/* Header */}
-      <div className="analytics-header flex items-start justify-between mb-4 flex-wrap gap-2.5">
+      <div className="analytics-header mb-4 flex flex-wrap items-start justify-between gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
         <div>
-          <h1 className="text-slate-800 text-xl font-bold mb-0.5">{t('official.analytics.pageTitle')}</h1>
-          <p className="text-slate-500 text-xs">{t('official.analytics.pageSubtitle')}</p>
+          <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.analytics.pageTitle')}</h1>
+          <p className="text-xs text-[var(--on-surface-variant)]">{t('official.analytics.pageSubtitle')}</p>
         </div>
         <div className="analytics-header-controls flex gap-2 items-center flex-wrap">
-          <div className="analytics-period-tabs flex bg-white rounded-lg border border-slate-200 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+          <div className="analytics-period-tabs flex overflow-hidden rounded-xl bg-[var(--surface-container-low)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)]">
             {PERIODS.map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`analytics-period-tab-btn px-[13px] py-[7px] border-none border-r border-r-slate-100 text-[11px] cursor-pointer transition-all duration-150 ${
-                  period === p ? 'bg-primary text-white font-bold' : 'bg-transparent text-slate-500'
+                className={`analytics-period-tab-btn cursor-pointer border-none px-[13px] py-[7px] text-[11px] transition-all duration-150 ${
+                  period === p ? 'bg-primary text-white font-bold' : 'bg-transparent text-[var(--on-surface-variant)]'
                 }`}
               >
                 {p}
               </button>
             ))}
           </div>
-          <button className="bg-white border border-slate-200 rounded-lg px-3.5 py-[7px] text-xs text-slate-600 font-semibold cursor-pointer flex items-center gap-[5px] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+          <button className="flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-[var(--surface-container-low)] px-3.5 py-[7px] text-xs font-semibold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)]">
             <Download size={13} /> {t('official.analytics.export')}
           </button>
         </div>
@@ -337,21 +340,21 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div className="analytics-card analytics-trend-card bg-white rounded-xl shadow-card p-3.5 px-4 mb-3.5">
+      <div className="analytics-card analytics-trend-card mb-3.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
-            <div className="font-bold text-slate-800 text-lg md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
-            <div className="text-slate-400 text-sm md:text-[11px] mt-0.5">{t('official.analytics.dailyCount', { period })}</div>
+            <div className="text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
+            <div className="mt-0.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.dailyCount', { period })}</div>
           </div>
           <div className="analytics-chart-toggle flex gap-1.5">
             {(['area', 'bar'] as const).map(chartTypeBtn => (
               <button
                 key={chartTypeBtn}
                 onClick={() => setChartType(chartTypeBtn)}
-                className={`px-3 py-[5px] md:px-3 md:py-[5px] rounded-md border text-[11px] font-semibold cursor-pointer ${
+                className={`cursor-pointer rounded-md px-3 py-[5px] text-[11px] font-semibold md:px-3 md:py-[5px] ${
                   chartType === chartTypeBtn
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-slate-200 bg-white text-slate-500'
+                    ? 'bg-primary text-white'
+                    : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
                 }`}
               >
                 {chartTypeBtn === 'area' ? t('official.analytics.areaChart') : t('official.analytics.barChart')}
@@ -392,7 +395,7 @@ export default function Analytics() {
         </ResponsiveContainer>
         <div className="analytics-trend-legend flex flex-wrap gap-1.5 gap-x-2.5 mt-2.5">
           {TREND_SERIES_FOR_CHART.map((series) => (
-            <span key={`legend-${series.key}`} className="inline-flex items-center gap-1.5 text-slate-600 text-[10px] leading-tight">
+            <span key={`legend-${series.key}`} className="inline-flex items-center gap-1.5 text-[var(--on-surface-variant)] text-[10px] leading-tight">
               <span className="size-2 rounded-full inline-block shrink-0" style={{ background: series.color }} />
               {series.chartName}
             </span>
@@ -401,13 +404,13 @@ export default function Analytics() {
       </div>
 
       {/* Middle row charts */}
-      <div className="analytics-middle-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-3.5">
+      <div className="analytics-middle-row mb-3.5 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Response time */}
-        <div className="analytics-card flex-[2_1_280px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.avgResponseByCategory')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.responseFromReport')}</div>
+        <div className="analytics-card flex-[2_1_280px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+          <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.avgResponseByCategory')}</div>
+          <div className="mb-3 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
-            <div className="text-slate-500 text-xs px-0.5 py-2.5">
+            <div className="text-[var(--outline)] text-xs px-0.5 py-2.5">
               {t('official.analytics.noRespondedPeriod')}
             </div>
           ) : (
@@ -429,16 +432,16 @@ export default function Analytics() {
               <div className="flex gap-3 text-[11px] mt-2 flex-wrap">
                 <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-600" /> {t('official.analytics.withinTarget')}</span>
                 <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-destructive" /> {t('official.analytics.exceedsTarget')}</span>
-                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-slate-100 border border-slate-200" /> {t('official.analytics.targetLabel')}</span>
+                <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-[var(--surface-container-high)]" /> {t('official.analytics.targetLabel')}</span>
               </div>
             </>
           )}
         </div>
 
         {/* Severity Distribution */}
-        <div className="analytics-card flex-[1_1_200px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.severityDistribution')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-2.5">{t('official.analytics.severityByPeriod', { period })}</div>
+        <div className="analytics-card flex-[1_1_200px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+          <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.severityDistribution')}</div>
+          <div className="mb-2.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -451,20 +454,20 @@ export default function Analytics() {
             <div key={s.name} className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full inline-block shrink-0" style={{ background: s.color }} />
-                <span className="text-xs text-slate-600">{s.name}</span>
+                <span className="text-xs text-[var(--on-surface-variant)]">{s.name}</span>
               </div>
               <div className="flex gap-2 items-center">
-                <span className="text-xs font-bold text-slate-800">{s.value}</span>
-                <span className="text-[10px] text-slate-400">{totalSeverityCount > 0 ? Math.round((s.value / totalSeverityCount) * 100) : 0}%</span>
+                <span className="text-xs font-bold text-[var(--on-surface)]">{s.value}</span>
+                <span className="text-[10px] text-[var(--outline)]">{totalSeverityCount > 0 ? Math.round((s.value / totalSeverityCount) * 100) : 0}%</span>
               </div>
             </div>
           ))}
         </div>
 
         {/* Hourly pattern */}
-        <div className="analytics-card flex-[2_1_260px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.hourlyPattern')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
+        <div className="analytics-card flex-[2_1_260px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+          <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.hourlyPattern')}</div>
+          <div className="mb-3 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -491,11 +494,11 @@ export default function Analytics() {
       </div>
 
       {/* Barangay Performance & Resource */}
-      <div className="analytics-bottom-row flex flex-col md:flex-row gap-3 md:gap-3.5 mb-2">
+      <div className="analytics-bottom-row mb-2 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Barangay comparison */}
-        <div className="analytics-card flex-[3_1_300px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.barangayComparison')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
+        <div className="analytics-card flex-[3_1_300px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+          <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.barangayComparison')}</div>
+          <div className="mb-3.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: isMobile ? 42 : 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -511,9 +514,9 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div className="analytics-card flex-[2_1_240px] bg-white rounded-xl shadow-card p-3.5 px-4">
-          <div className="font-bold text-slate-800 text-lg md:text-[13px] mb-1">{t('official.analytics.resourceUtilization')}</div>
-          <div className="text-slate-400 text-sm md:text-[11px] mb-3.5">{t('official.analytics.respondersByType')}</div>
+        <div className="analytics-card flex-[2_1_240px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+          <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.resourceUtilization')}</div>
+          <div className="mb-3.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
             const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
@@ -524,23 +527,23 @@ export default function Analytics() {
             return (
               <div key={r.type} className="mb-3">
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs md:text-xs text-slate-600 font-medium">{isMobile ? r.mobileName : r.name}</span>
-                  <div className="flex gap-2 text-[11px] text-slate-500">
+                  <span className="text-xs md:text-xs text-[var(--on-surface-variant)] font-medium">{isMobile ? r.mobileName : r.name}</span>
+                  <div className="flex gap-2 text-[11px] text-[var(--outline)]">
                     <span style={{ color }} className="font-bold">{r.deployed}</span>
                     <span>/</span>
                     <span>{r.total}</span>
                     <span style={{ color }} className="font-bold">{pct}%</span>
                   </div>
                 </div>
-                <div className="h-2 bg-slate-100 rounded overflow-hidden">
+                <div className="h-2 bg-[var(--surface-container-high)] rounded overflow-hidden">
                   <div className="h-full rounded transition-[width] duration-500" style={{ width: `${pct}%`, background: color }} />
                 </div>
               </div>
             );
           })}
-          <div className="mt-3.5 px-3 py-2.5 bg-amber-100 rounded-lg border border-amber-200">
-            <div className="text-[11px] font-bold text-amber-800 mb-0.5">{t('official.analytics.operationalNote')}</div>
-            <div className="text-[11px] text-amber-800">{t('official.analytics.operationalNoteText')}</div>
+          <div className="mt-3.5 rounded-xl bg-[var(--secondary-container)]/20 px-3 py-2.5">
+            <div className="mb-0.5 text-[11px] font-bold text-[var(--secondary)]">{t('official.analytics.operationalNote')}</div>
+            <div className="text-[11px] text-[var(--secondary)]">{t('official.analytics.operationalNoteText')}</div>
           </div>
         </div>
       </div>
@@ -559,7 +562,6 @@ export default function Analytics() {
           .analytics-period-tab-btn {
             width: 100%;
             border-right: none !important;
-            border-bottom: 1px solid #F1F5F9;
             min-height: 44px;
           }
           .analytics-header-controls > button {
@@ -578,3 +580,4 @@ export default function Analytics() {
     </div>
   );
 }
+

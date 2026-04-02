@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../i18n';
 import { CheckCircle2, XCircle, RefreshCw, ShieldAlert, Upload, Ban, Clock3 } from 'lucide-react';
 import {
@@ -89,44 +89,44 @@ export default function Verifications() {
 
   if (initialLoadPending) {
     return (
-      <div className="p-4 px-5 min-h-full">
+      <div className="min-h-full bg-[var(--surface)] px-4 py-4 md:px-5">
         <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 px-5 min-h-full">
-      <div className="flex items-start justify-between gap-3 mb-3.5 flex-wrap">
+    <div className="min-h-full bg-[var(--surface)] px-4 py-4 md:px-5">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
         <div>
-          <h1 className="text-[var(--on-surface)] text-xl font-bold mb-0.5">{t('official.verifications.pageTitle')}</h1>
-          <p className="text-[var(--outline)] text-xs">
+          <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.verifications.pageTitle')}</h1>
+          <p className="text-xs text-[var(--on-surface-variant)]">
             {t('official.verifications.pageSubtitle')}
           </p>
         </div>
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] rounded-[10px] px-3 py-2 font-bold text-xs text-[var(--on-surface-variant)] inline-flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border-none bg-[var(--surface-container-low)] px-3.5 py-2 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)] disabled:cursor-not-allowed"
         >
           <RefreshCw size={14} /> {t('common.refresh')}
         </button>
       </div>
 
       {error && (
-        <div className="mb-3 bg-red-50 border border-red-200 rounded-[10px] px-3 py-2.5 text-destructive text-xs font-bold">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--error)] shadow-[0_8px_20px_rgba(186,26,26,0.14)]">
           {error}
         </div>
       )}
 
-      <div className="mb-2.5 inline-flex items-center gap-2 rounded-full bg-[var(--surface-container-high)] border border-primary/20 px-2.5 py-[5px] text-[11px] font-bold text-primary">
+      <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[var(--surface-container-high)] px-3 py-1 text-[11px] font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.14)]">
         <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
       </div>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div className="bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/35 rounded-xl p-4 text-[var(--outline)] text-[13px]">
+        <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-4 text-[13px] text-[var(--on-surface-variant)] shadow-ambient">
           {t('official.verifications.noPending')}
         </div>
       ) : (
@@ -134,22 +134,22 @@ export default function Verifications() {
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <section key={row.citizenUserId} className="bg-[var(--surface-container-lowest)] rounded-xl border border-[var(--outline-variant)]/35 shadow-[0_2px_10px_rgba(13,28,46,0.06)] overflow-hidden">
-                <div className="px-3.5 py-3 border-b border-[var(--outline-variant)]/20 flex justify-between items-center gap-2 flex-wrap">
+              <section key={row.citizenUserId} className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-[var(--surface-container-low)] px-4 py-3">
                   <div>
                     <div className="font-extrabold text-[var(--on-surface)] text-sm">{row.fullName}</div>
-                    <div className="text-[11px] text-[var(--outline)]">
-                      {row.phoneNumber} • {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
+                    <div className="text-[11px] text-[var(--on-surface-variant)]">
+                      {row.phoneNumber} â€¢ {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
                     </div>
                   </div>
-                  <span className="bg-amber-100 text-amber-800 rounded-full px-2 py-[3px] text-[10px] font-extrabold">
+                  <span className="rounded-full bg-[var(--secondary-container)]/35 px-2.5 py-1 text-[10px] font-extrabold text-[var(--secondary)]">
                     {row.verificationStatus}
                   </span>
                 </div>
 
-                <div className="px-3.5 py-3 grid gap-2.5">
+                <div className="grid gap-3 bg-[var(--surface-container-lowest)] px-4 py-3.5">
                   {row.idImageUrl ? (
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-wrap gap-2.5">
                       <button
                         type="button"
                         onClick={() => {
@@ -160,7 +160,7 @@ export default function Verifications() {
                           setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);
                           setPreviewUrl(row.idImageUrl);
                         }}
-                        className="inline-flex items-center gap-1.5 w-fit text-primary bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5 text-xs font-bold cursor-pointer"
+                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-xl border-none bg-[var(--surface-container-high)] px-3 py-2 text-xs font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.16)]"
                       >
                         <Upload size={13} /> {t('official.verifications.previewUploadedId')}
                       </button>
@@ -168,22 +168,22 @@ export default function Verifications() {
                         href={row.idImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 w-fit no-underline text-slate-700 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                        className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-[var(--surface-container-low)] px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline shadow-[inset_0_0_0_1px_rgba(197,197,211,0.26)]"
                       >
                         {t('official.verifications.openInNewTab')}
                       </a>
                     </div>
                   ) : (
-                    <div className="text-xs text-amber-700 font-bold">{t('official.verifications.noIdImage')}</div>
+                    <div className="text-xs font-bold text-[var(--secondary)]">{t('official.verifications.noIdImage')}</div>
                   )}
 
-                  <div className="grid gap-2">
-                    <label className="text-[11px] font-bold text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
+                  <div className="grid gap-2.5 rounded-xl bg-[var(--surface-container-low)] p-3">
+                    <label className="text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      className="w-full border border-[var(--outline-variant)]/40 rounded-lg px-2.5 py-2 text-xs text-[var(--on-surface)] bg-[var(--surface-container-lowest)]"
+                      className="w-full rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     >
                       <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
@@ -196,42 +196,42 @@ export default function Verifications() {
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      className="w-full border border-[var(--outline-variant)]/40 rounded-lg px-2.5 py-2 text-xs text-[var(--on-surface)] resize-y box-border bg-[var(--surface-container-lowest)]"
+                      className="box-border w-full resize-y rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     />
                   </div>
 
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex flex-wrap gap-2.5">
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'APPROVE')}
-                      className="bg-emerald-600 text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
+                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-emerald-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(5,150,105,0.26)] disabled:cursor-not-allowed"
                     >
                       <CheckCircle2 size={13} /> {t('official.verifications.approve')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REQUEST_REUPLOAD')}
-                      className="bg-severity-medium text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
+                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-severity-medium px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(134,83,0,0.24)] disabled:cursor-not-allowed"
                     >
                       <Upload size={13} /> {t('official.verifications.requestReupload')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REJECT')}
-                      className="bg-destructive text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
+                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-destructive px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(186,26,26,0.24)] disabled:cursor-not-allowed"
                     >
                       <XCircle size={13} /> {t('official.verifications.reject')}
                     </button>
                     <button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'BAN_ACCOUNT')}
-                      className="bg-red-900 text-white border-none rounded-lg px-3 py-2 text-xs font-extrabold inline-flex items-center gap-[5px] cursor-pointer disabled:cursor-not-allowed"
+                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-[var(--tertiary)] px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(93,0,4,0.28)] disabled:cursor-not-allowed"
                     >
                       <Ban size={13} /> {t('official.verifications.banAccount')}
                     </button>
                   </div>
 
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-2 text-[11px] text-orange-800 flex items-start gap-1.5">
+                  <div className="flex items-start gap-1.5 rounded-xl bg-[var(--secondary-container)]/18 px-2.5 py-2 text-[11px] text-[var(--secondary)]">
                     <ShieldAlert size={14} className="shrink-0 mt-px" />
                     {t('official.verifications.banWarning')}
                   </div>
@@ -248,32 +248,32 @@ export default function Verifications() {
           aria-modal="true"
           aria-label={previewTitle}
           onClick={() => setPreviewUrl(null)}
-          className="fixed inset-0 z-[1000] bg-slate-900/[0.74] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(13,28,46,0.58)] p-4 backdrop-blur-[2px]"
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-[min(980px,100%)] max-h-[92vh] bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/40 rounded-xl shadow-[0_20px_50px_rgba(13,28,46,0.3)] overflow-hidden grid grid-rows-[auto_1fr]"
+            className="grid max-h-[92vh] w-[min(980px,100%)] grid-rows-[auto_1fr] overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-[0_20px_50px_rgba(13,28,46,0.3)]"
           >
-            <div className="px-3 py-2.5 flex items-center justify-between border-b border-[var(--outline-variant)]/20 bg-[var(--surface-container-low)]">
+            <div className="flex items-center justify-between bg-[var(--surface-container-low)] px-3 py-2.5 shadow-[inset_0_-1px_0_rgba(197,197,211,0.22)]">
               <div className="text-[13px] font-extrabold text-[var(--on-surface)]">{previewTitle}</div>
               <button
                 type="button"
                 onClick={() => setPreviewUrl(null)}
-                className="border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] cursor-pointer"
+                className="cursor-pointer rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.28)]"
               >
                 {t('official.verifications.closeBtn')}
               </button>
             </div>
 
-            <div className="p-3 overflow-auto bg-[#0B1220]">
+            <div className="overflow-auto bg-[var(--surface-container)] p-3">
               <div className="grid gap-3">
-                <div className="text-slate-200 text-[11px] font-bold">
+                <div className="text-[11px] font-bold text-[var(--on-surface-variant)]">
                   {t('official.verifications.separatedPreview')}
                 </div>
 
                 <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
-                  <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
-                    <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
+                  <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                       {t('official.verifications.frontId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">
@@ -285,8 +285,8 @@ export default function Verifications() {
                     </div>
                   </div>
 
-                  <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
-                    <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
+                  <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                       {t('official.verifications.backId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">
@@ -299,8 +299,8 @@ export default function Verifications() {
                   </div>
                 </div>
 
-                <div className="border border-slate-700 rounded-[10px] bg-slate-900 overflow-hidden">
-                  <div className="px-2.5 py-2 border-b border-slate-700 text-slate-300 text-[11px] font-extrabold">
+                <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                  <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                     {t('official.verifications.fullUploadedFile')}
                   </div>
                   <div className="p-2.5">
@@ -319,3 +319,4 @@ export default function Verifications() {
     </div>
   );
 }
+
