@@ -494,13 +494,13 @@ export default function SuperAdminLayout() {
                 <div
                   role="menu"
                   aria-label={t('superadmin.layout.ariaProfileActions')}
-                  className="absolute top-11 right-0 w-[200px] bg-white rounded-xl shadow-elevated border border-slate-200 overflow-hidden z-[2300] divide-y divide-slate-100"
+                  className="absolute top-11 right-0 w-[200px] bg-[var(--surface-container-lowest)] rounded-xl shadow-elevated border border-[var(--outline-variant)]/30 overflow-hidden z-[2300] divide-y divide-[var(--outline-variant)]/15"
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/superadmin/settings'); }}
-                    className="w-full text-left px-3 py-[11px] bg-white border-none text-slate-800 text-[13px] font-semibold cursor-pointer hover:bg-slate-50"
+                    className="w-full text-left px-3 py-[11px] bg-[var(--surface-container-lowest)] border-none text-[var(--on-surface)] text-[13px] font-semibold cursor-pointer hover:bg-[var(--surface-container-low)]"
                   >
                     {t('superadmin.layout.openSettings')}
                   </button>
@@ -508,7 +508,7 @@ export default function SuperAdminLayout() {
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
-                    className="w-full text-left px-3 py-[11px] bg-white border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
+                    className="w-full text-left px-3 py-[11px] bg-[var(--surface-container-lowest)] border-none text-destructive text-[13px] font-bold cursor-pointer hover:bg-red-50"
                   >
                     {t('common.signOut')}
                   </button>

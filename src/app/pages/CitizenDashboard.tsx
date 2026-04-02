@@ -800,7 +800,7 @@ function HomeTab({
       </section>
 
       {/* Stats */}
-      <section className="bg-white rounded-2xl border border-slate-200 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
@@ -851,11 +851,11 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div className="font-bold text-slate-950 text-base">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-xs text-slate-500">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="font-bold text-[var(--on-surface)] text-base">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-xs text-[var(--outline)]">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
@@ -867,15 +867,15 @@ function HomeTab({
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
-            <div className="bg-slate-50 border border-slate-200 rounded-[10px] px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-slate-600">{t('citizen.dashboard.mapSummary')}</div>
+            <div className="bg-[var(--surface-container-low)] border border-[var(--outline-variant)]/35 rounded-[10px] px-3 py-2.5">
+              <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.totalPins')}</div>
+                  <div className="text-[10px] text-[var(--outline)]">{t('citizen.dashboard.totalPins')}</div>
                   <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.needsAttention')}</div>
+                  <div className="text-[10px] text-[var(--outline)]">{t('citizen.dashboard.needsAttention')}</div>
                   <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
                 </div>
               </div>
@@ -889,8 +889,8 @@ function HomeTab({
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-slate-900 font-bold truncate">{selectedIncident.id}</div>
-                    <div className="text-[10px] text-slate-500 truncate">{selectedIncident.location}</div>
+                    <div className="text-xs text-[var(--on-surface)] font-bold truncate">{selectedIncident.id}</div>
+                    <div className="text-[10px] text-[var(--outline)] truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
                 <div className="mt-1.5">
@@ -898,14 +898,14 @@ function HomeTab({
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[10px] px-3 py-2.5 text-[11px] text-slate-500">
+              <div className="bg-[var(--surface-container-low)] border border-dashed border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5 text-[11px] text-[var(--outline)]">
                 {t('citizen.dashboard.tapPinHint')}
               </div>
             )}
           </aside>
 
           <div className="flex-[1_1_420px] min-w-0">
-            <div className="rounded-xl overflow-hidden border border-slate-200 bg-white block w-full min-h-[360px]">
+            <div className="rounded-xl overflow-hidden border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}
                 height={360}
@@ -921,8 +921,8 @@ function HomeTab({
       </section>
 
       {/* Quick Actions */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
+      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.quickActions')}</div>
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5"
         >
@@ -959,9 +959,9 @@ function HomeTab({
       </section>
 
       {/* Recent activity */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <div className="font-bold text-base text-slate-900">{t('citizen.dashboard.recentReportActivity')}</div>
+          <div className="font-bold text-base text-[var(--on-surface)]">{t('citizen.dashboard.recentReportActivity')}</div>
           <button
             className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
@@ -969,7 +969,7 @@ function HomeTab({
             {t('common.viewAll')} <ChevronRight size={13} />
           </button>
         </div>
-        <div className="border border-slate-100 rounded-xl px-3 py-1">
+        <div className="border border-[var(--outline-variant)]/20 rounded-xl px-3 py-1">
           {myReports.slice(0, 3).map((report) => (
             <RecentIncidentRow key={report.id} report={report} />
           ))}
@@ -982,8 +982,8 @@ function HomeTab({
       </section>
 
       {/* Emergency contacts */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
+      <section className="bg-[var(--surface-container-lowest)] rounded-2xl border border-[var(--outline-variant)]/35 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+        <div className="font-bold text-base text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
         <div className="flex flex-col gap-2">
           {[
             { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-severity-critical', iconTone: 'bg-red-100 text-severity-critical' },
@@ -993,13 +993,13 @@ function HomeTab({
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
-              className="bg-white rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-slate-200"
+              className="bg-[var(--surface-container-lowest)] rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-[var(--outline-variant)]/35"
             >
               <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${contact.iconTone}`}>
                 <Phone size={17} />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-[13px] text-slate-900">{contact.label}</div>
+                <div className="font-semibold text-[13px] text-[var(--on-surface)]">{contact.label}</div>
                 <div className={`text-xs font-bold mt-px ${contact.tone}`}>{contact.number}</div>
               </div>
               <ChevronRight size={16} color="#94A3B8" />
@@ -1487,8 +1487,8 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
       </div>
 
       {/* Status guide */}
-      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
-        <div className="font-bold text-[13px] text-slate-900 mb-2.5">Report Status Guide</div>
+      <div className="bg-[var(--surface-container-low)] rounded-xl p-3.5 border border-[var(--outline-variant)]/35">
+        <div className="font-bold text-[13px] text-[var(--on-surface)] mb-2.5">Report Status Guide</div>
         {[
           { status: 'active' as const, desc: 'Received, awaiting assignment' },
           { status: 'responding' as const, desc: 'Responders have been deployed' },
@@ -1497,7 +1497,7 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
         ].map(({ status, desc }) => (
           <div key={status} className="flex items-center gap-2.5 mb-2">
             <StatusBadge status={status} size="sm" />
-            <span className="text-xs text-slate-500">{desc}</span>
+            <span className="text-xs text-[var(--outline)]">{desc}</span>
           </div>
         ))}
       </div>
@@ -1531,40 +1531,14 @@ function ProfileTab({
   const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
 
-  const _handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
-    if (action === 'personal') {
-      setEditOpen(true);
-      setSettingMessage('');
-      return;
-    }
-
-    if (action === 'notifications') {
-      setSettingMessage('Use the bell icon on the top-right to view recent report updates and alerts.');
-      return;
-    }
-
-    if (action === 'verification') {
-      if (verificationPreview.isVerified) {
-        setSettingMessage('Your account is already ID-verified. No further action is required.');
-      } else {
-        navigate('/citizen/verification');
-      }
-      return;
-    }
-
-    if (action === 'barangay') {
-      navigate('/citizen?tab=map');
-      return;
-    }
-
-    if (action === 'contact') {
-      if (!phoneDigits) {
-        setSettingMessage('No valid contact number is available for this account.');
-        return;
-      }
-      window.location.href = `tel:${phoneDigits}`;
-    }
+  // Account settings navigation — inline, no external state needed
+  const handleSettingNav = (action: 'verification' | 'barangay' | 'map' | 'phone') => {
+    if (action === 'verification') navigate('/citizen/verification');
+    else if (action === 'barangay') navigate('/citizen?tab=map');
+    else if (action === 'map') navigate('/citizen?tab=map');
+    else if (action === 'phone') navigate('/auth/register');
   };
+  void handleSettingNav;
 
   return (
     <div className="citizen-content-shell pt-4 pb-4">
@@ -1595,14 +1569,14 @@ function ProfileTab({
       </div>
 
       {/* Verification preview */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
+      <div className="font-bold text-sm text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
       <div
         className={`mb-4 rounded-[14px] px-3.5 py-3 ${verificationSummary.surfaceClass}`}
       >
         <div className={`font-bold text-[13px] ${verificationSummary.titleClass}`}>
           {verificationSummary.title}
         </div>
-        <div className="text-xs text-slate-600 mt-1 leading-[1.5]">{verificationSummary.detail}</div>
+        <div className="text-xs text-[var(--on-surface-variant)] mt-1 leading-[1.5]">{verificationSummary.detail}</div>
         {verificationPreview.idImageUrl ? (
           <a
             href={verificationPreview.idImageUrl}
@@ -1616,8 +1590,8 @@ function ProfileTab({
       </div>
 
       {/* Account info */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
-      <div className="bg-white rounded-[14px] overflow-hidden border border-slate-100 mb-4">
+      <div className="font-bold text-sm text-[var(--on-surface)] mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
+      <div className="bg-[var(--surface-container-lowest)] rounded-[14px] overflow-hidden border border-[var(--outline-variant)]/20 mb-4">
         {[
           { icon: <User size={16} />, label: t('settings.personalInfo'), sub: fullName, action: 'personal' as const },
           { icon: <Bell size={16} />, label: t('common.notifications'), sub: t('citizen.dashboard.alertsSubLabel'), action: 'notifications' as const },
@@ -1627,22 +1601,22 @@ function ProfileTab({
         ].map((item, idx, arr) => (
           <div
             key={item.label}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white ${
-              idx < arr.length - 1 ? 'border-b border-slate-50' : ''
+            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-[var(--surface-container-lowest)] ${
+              idx < arr.length - 1 ? 'border-b border-[var(--outline-variant)]/10' : ''
             }`}
           >
             <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-[13px] text-slate-900">{item.label}</div>
-              <div className="text-[11px] text-slate-400 mt-px">{item.sub}</div>
+              <div className="font-semibold text-[13px] text-[var(--on-surface)]">{item.label}</div>
+              <div className="text-[11px] text-[var(--outline-variant)] mt-px">{item.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 mb-3.5 text-slate-600 text-xs leading-[1.5]">
+      <div className="bg-[var(--surface-container-low)] border border-[var(--outline-variant)]/35 rounded-xl px-3 py-2.5 mb-3.5 text-[var(--on-surface-variant)] text-xs leading-[1.5]">
         Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
       </div>
 

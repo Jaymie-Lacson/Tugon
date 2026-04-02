@@ -47,7 +47,7 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
   const isUp = (trend ?? 0) >= 0;
   const iconToneClass = getColorToneBackgroundClass(color);
   return (
-    <div className="bg-white rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex-[1_1_220px] min-w-[180px] max-md:flex-[1_1_calc(50%-10px)] max-md:min-w-0 max-[520px]:flex-[1_1_100%]">
+    <div className="bg-[var(--surface-container-lowest)] rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[var(--outline-variant)]/30 flex-[1_1_220px] min-w-[180px] max-md:flex-[1_1_calc(50%-10px)] max-md:min-w-0 max-[520px]:flex-[1_1_100%]">
       <div className="flex items-start justify-between mb-[10px]">
         <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center ${iconToneClass}`}>
           {React.cloneElement(icon as React.ReactElement, { color, size: 18 })}
@@ -59,11 +59,11 @@ function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps
           </div>
         )}
       </div>
-      <div className="text-[#0F172A] text-[26px] font-bold leading-[1.1] mb-[3px]">{value}</div>
-      <div className="text-[#6B7280] text-xs">{label}</div>
-      {sub && <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{sub}</div>}
+      <div className="text-[var(--on-surface)] text-[26px] font-bold leading-[1.1] mb-[3px]">{value}</div>
+      <div className="text-[var(--outline)] text-xs">{label}</div>
+      {sub && <div className="text-[var(--outline-variant)] text-[10px] mt-[2px]">{sub}</div>}
       {trendLabel && (
-        <div className="text-[#9CA3AF] text-[10px] mt-1">{trendLabel}</div>
+        <div className="text-[var(--outline-variant)] text-[10px] mt-1">{trendLabel}</div>
       )}
     </div>
   );
@@ -343,7 +343,7 @@ export default function SAOverview() {
   }
 
   return (
-    <div className="p-5 bg-[#F0F4FF] min-h-full">
+    <div className="p-5 bg-[var(--surface-container-lowest)] min-h-full">
       {/* Page header */}
       <div className="flex items-center justify-between mb-5 gap-[10px] max-md:flex-col max-md:items-start">
         <div>
@@ -351,10 +351,10 @@ export default function SAOverview() {
             <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-primary text-[10px] font-bold tracking-[0.08em] uppercase">
               {t('role.superAdmin')}
             </div>
-            <div className="text-[#6B7280] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
+            <div className="text-[var(--outline)] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
           </div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
-          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
+          <p className="text-[var(--outline)] text-xs m-0 mt-[2px]">
             {t('superadmin.overview.monitoringSubtitle')}
           </p>
         </div>
@@ -366,7 +366,7 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
+            className="flex items-center gap-[6px] bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/30 rounded-lg px-[14px] py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
             <RefreshCw size={13} color="#6B7280" />
             {summaryLoading ? t('common.refreshing') : t('common.refresh')}
@@ -440,18 +440,18 @@ export default function SAOverview() {
           const pinToneClass = getColorToneBackgroundClass(b.color);
           const mapButtonClass = getMapButtonClass(b.color);
           return (
-            <div key={b.id} className="flex-1 min-w-[260px] bg-white rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB]">
+            <div key={b.id} className="flex-1 min-w-[260px] bg-[var(--surface-container-lowest)] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[var(--outline-variant)]/30">
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-[3px]">
-                      <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
+                      <span className="text-[var(--on-surface)] text-base font-bold">{b.name}</span>
                       <span
                         className={`text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] tracking-[0.08em] ${alertLevelClass}`}
                       >{al.label}</span>
                     </div>
-                    <div className="text-[#6B7280] text-[11px]">{b.district}</div>
-                    <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
+                    <div className="text-[var(--outline)] text-[11px]">{b.district}</div>
+                    <div className="text-[var(--outline-variant)] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
                   <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center ${pinToneClass}`}>
                     <MapPin size={20} color={b.color} />
@@ -466,9 +466,9 @@ export default function SAOverview() {
                     { label: t('superadmin.overview.statResolved'),   value: b.resolvedThisMonth, color: '#059669' },
                     { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
-                    <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
+                    <div key={s.label} className="bg-[var(--surface-container-low)] rounded-lg px-[10px] py-2 border border-[var(--outline-variant)]/20">
                       <div className={`text-[17px] font-bold leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
-                      <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
+                      <div className="text-[var(--outline-variant)] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -476,7 +476,7 @@ export default function SAOverview() {
                 {/* Response time bar */}
                 <div className="mb-3">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[#6B7280] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
+                    <span className="text-[var(--outline)] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
                     <span className={`text-[11px] font-semibold ${b.responseRate < 90 ? 'text-severity-medium' : 'text-[#059669]'}`}>{b.responseRate}%</span>
                   </div>
                   <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
@@ -490,17 +490,17 @@ export default function SAOverview() {
                       } [&::-webkit-progress-bar]:bg-[#F3F4F6]`}
                     />
                   </div>
-                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
+                  <div className="text-[var(--outline-variant)] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-start justify-between gap-2 flex-wrap">
                   <div className="flex gap-3 flex-wrap">
-                    <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
+                    <div className="text-[var(--outline)] text-[10px]">
+                      <span className="text-[var(--on-surface-variant)] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
                     </div>
-                    <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
+                    <div className="text-[var(--outline)] text-[10px]">
+                      <span className="text-[var(--on-surface-variant)] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
                     </div>
                   </div>
                   <button
@@ -520,12 +520,12 @@ export default function SAOverview() {
       <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
         <div
-          className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]"
+          className="bg-[var(--surface-container-lowest)] rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[var(--outline-variant)]/30"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
-              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
+              <div className="text-[var(--outline-variant)] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -547,11 +547,11 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex flex-col">
+        <div className="bg-[var(--surface-container-lowest)] rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[var(--outline-variant)]/30 flex flex-col">
           <div className="flex items-center justify-between mb-[14px]">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
-              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
+              <div className="text-[var(--outline-variant)] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
             <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
           </div>
@@ -559,14 +559,14 @@ export default function SAOverview() {
             {systemLogs.map((log) => {
               const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: '#6B7280' };
               return (
-                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 rounded-lg bg-[#F9FAFB] border border-[#F3F4F6]">
+                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 rounded-lg bg-[var(--surface-container-low)] border border-[var(--outline-variant)]/20">
                   <div className={`w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0 ${getColorToneBackgroundClass(ltc.color)}`}>
                     {React.cloneElement(ltc.icon as React.ReactElement, { color: ltc.color })}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[#1E293B] text-[11px] leading-[1.4]">{log.message}</div>
+                    <div className="text-[var(--on-surface)] text-[11px] leading-[1.4]">{log.message}</div>
                     <div className="flex items-center gap-[6px] mt-[3px]">
-                      <span className="text-[#9CA3AF] text-[10px]">{formatLogTime(log.timestamp)}</span>
+                      <span className="text-[var(--outline-variant)] text-[10px]">{formatLogTime(log.timestamp)}</span>
                       {log.barangay && (
                         <span className="bg-[#EEF2FF] text-[#4338CA] text-[9px] font-semibold px-[5px] py-[1px] rounded-[3px]">
                           {log.barangay}
@@ -582,13 +582,13 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview bg-white rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]">
-        <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
+      <div className="sa-overview-map-preview bg-[var(--surface-container-lowest)] rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[var(--outline-variant)]/30">
+        <div className="px-4 py-3 border-b border-[var(--outline-variant)]/20 flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
             <MapPin size={15} color={PRIMARY} />
             <div>
-              <div className="text-[#0F172A] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
-              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
+              <div className="text-[var(--on-surface)] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
+              <div className="text-[var(--outline-variant)] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
@@ -624,14 +624,14 @@ export default function SAOverview() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+            className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)]/30 rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
             <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0 ${quickNavToneClass}`}>
               {React.cloneElement(item.icon as React.ReactElement, { color: item.color })}
             </div>
             <div className="min-w-0">
-              <div className="text-[#0F172A] text-[13px] font-semibold">{item.label}</div>
-              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
+              <div className="text-[var(--on-surface)] text-[13px] font-semibold">{item.label}</div>
+              <div className="text-[var(--outline-variant)] text-[11px] mt-[2px]">{item.desc}</div>
             </div>
             <ChevronRight size={16} color="#D1D5DB" className="ml-auto shrink-0" />
           </button>

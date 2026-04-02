@@ -824,8 +824,8 @@ function DetailView({
             </section>
           )}
 
-          <section className="mb-2 rounded-xl border border-slate-200 bg-white p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
-            <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
+          <section className="mb-2 rounded-xl border border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+            <div className="font-bold text-[13px] text-[var(--on-surface)] mb-4 flex items-center gap-[7px]">
               <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
 
@@ -845,7 +845,7 @@ function DetailView({
 
                   <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-5'}`}>
                     <div className="flex items-start justify-between gap-2 mb-[2px]">
-                      <div className="font-bold text-[13px] text-slate-900 leading-[1.2]">
+                      <div className="font-bold text-[13px] text-[var(--on-surface)] leading-[1.2]">
                         {event.label}
                       </div>
                       {isLast && (
@@ -854,7 +854,7 @@ function DetailView({
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
+                    <div className="text-[11px] text-[var(--outline)] mb-1 leading-[1.5]">
                       {event.description}
                     </div>
                     {event.note && event.note !== event.description && (
@@ -863,10 +863,10 @@ function DetailView({
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <time className="text-[10px] text-slate-400 [font-variant-numeric:tabular-nums]">
+                      <time className="text-[10px] text-[var(--outline-variant)] [font-variant-numeric:tabular-nums]">
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span className="text-slate-200 text-[10px]"> - </span>
+                      <span className="text-[var(--outline-variant)]/30 text-[10px]"> - </span>
                       <span className={`text-[10px] font-semibold rounded-[4px] px-[6px] py-[1px] ${timelineTone.actorBadge}`}>
                         {event.actor} - {event.actorRole}
                       </span>
@@ -904,7 +904,7 @@ function DetailView({
           />
 
           <article
-            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-white shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
+            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
           >
             <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -929,7 +929,7 @@ function DetailView({
             </header>
 
             <div className="px-4 pt-[14px] pb-[10px]">
-              <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
+              <p className="m-0 text-[13px] text-[var(--on-surface-variant)] leading-[1.65]">
                 {t('citizen.myReports.confirmCancelBody')}
               </p>
             </div>
@@ -939,7 +939,7 @@ function DetailView({
                 type="button"
                 onClick={() => setConfirmCancelOpen(false)}
                 disabled={cancelling}
-                className={`h-[38px] rounded-[10px] border border-slate-300 bg-slate-50 px-[14px] text-xs font-bold text-slate-600 ${
+                className={`h-[38px] rounded-[10px] border border-[var(--outline-variant)]/50 bg-[var(--surface-container-low)] px-[14px] text-xs font-bold text-[var(--on-surface-variant)] ${
                   cancelling ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
@@ -1027,13 +1027,13 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
         : t('citizen.myReports.emptyDefaultDesc');
   return (
     <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
-      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
+      <div className="w-20 h-20 rounded-full bg-[var(--surface-container-low)] flex items-center justify-center mb-[18px] text-[var(--outline-variant)]">
         <FileText size={36} />
       </div>
-      <div className="font-extrabold text-[17px] text-slate-900 mb-2">
+      <div className="font-extrabold text-[17px] text-[var(--on-surface)] mb-2">
         {headingText}
       </div>
-      <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
+      <div className="text-[13px] text-[var(--outline)] leading-[1.7] max-w-[260px]">
         {bodyText}
       </div>
     </div>
