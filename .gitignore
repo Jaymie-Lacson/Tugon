@@ -5,6 +5,9 @@ server/dist
 .env
 .env.*
 
+# MCP config (contains API keys)
+.mcp.json
+
 # Raw GIS source files (kept local, not committed)
 barangay-source/*.shp
 barangay-source/*.dbf

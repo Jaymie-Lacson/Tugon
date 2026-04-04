@@ -15,7 +15,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(node -e \":*)",
       "Bash(npm --prefix server run test:integration)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Skill(update-config)"
     ]
   }
 }
