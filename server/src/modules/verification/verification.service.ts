@@ -206,7 +206,7 @@ async function uploadCitizenIdImage(input: {
 }
 
 async function getOfficialContext(actorUserId: string) {
-  const actor = await (prisma.user as any).findUnique({
+  const actor = await prisma.user.findUnique({
     where: { id: actorUserId },
     select: {
       id: true,
@@ -305,7 +305,7 @@ async function resolveCitizenIdPreviewUrl(idImageUrl: string | null): Promise<st
 
 export const verificationService = {
   async getCitizenStatus(citizenUserId: string) {
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -354,7 +354,7 @@ export const verificationService = {
       bytes?: unknown;
     },
   ) {
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -404,7 +404,7 @@ export const verificationService = {
       bytes: hasBytes ? input.bytes as Buffer : undefined,
     });
 
-    await (prisma.user as any).update({
+    await prisma.user.update({
       where: { id: citizenUserId },
       data: {
         isVerified: false,
@@ -429,7 +429,7 @@ export const verificationService = {
   async listPending(actorUserId: string) {
     const actor = await getOfficialContext(actorUserId);
 
-    const users = await (prisma.user as any).findMany({
+    const users = await prisma.user.findMany({
       where: {
         role: Role.CITIZEN,
         isBanned: false,
@@ -477,7 +477,7 @@ export const verificationService = {
     });
 
     return {
-      verifications: users.map((user: any) => ({
+      verifications: users.map((user) => ({
         citizenUserId: user.id,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
@@ -514,7 +514,7 @@ export const verificationService = {
       || decision === "BAN_ACCOUNT";
     const reason = requiresReason ? normalizeReason(input.reason) : null;
 
-    const target = await (prisma.user as any).findUnique({
+    const target = await prisma.user.findUnique({
       where: { id: citizenUserId },
       select: {
         id: true,
@@ -574,7 +574,7 @@ export const verificationService = {
       : "OFFICIAL_VERIFICATION_REJECTED";
 
     const updated = await prisma.$transaction(async (tx) => {
-      const user = await (tx.user as any).update({
+      const user = await tx.user.update({
         where: { id: target.id },
         data: {
           isVerified: decision === "APPROVE",

@@ -1,29 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
-  Activity,
-  BarChart2,
   ChevronRight,
-  LayoutDashboard,
+  ChevronsLeft,
+  ChevronsRight,
   LogOut,
-  Map,
   Menu,
+  Search,
   Settings,
-  Users,
   X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
-
-const NAV_ITEMS = [
-  { path: '/superadmin', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { path: '/superadmin/map', label: 'Barangay Map', icon: Map },
-  { path: '/superadmin/analytics', label: 'Analytics', icon: BarChart2 },
-  { path: '/superadmin/users', label: 'Users', icon: Users },
-  { path: '/superadmin/audit-logs', label: 'Audit Logs', icon: Activity },
-  { path: '/superadmin/settings', label: 'Settings', icon: Settings },
-];
+import { useTranslation } from '../../i18n';
+import { superAdminSidebarNavDefs } from '../../data/navigationConfig';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -32,13 +23,11 @@ function LiveClock() {
     return () => clearInterval(t);
   }, []);
   return (
-    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+    <span className="tabular-nums">
       {time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
     </span>
   );
 }
-
-const SIDEBAR_BG = '#1E3A8A';
 
 type MonitoringItem = {
   code: string;
@@ -48,17 +37,14 @@ type MonitoringItem = {
 };
 
 function getMonitoringColor(incidents: number): string {
-  if (incidents >= 10) {
-    return '#B91C1C';
-  }
-  if (incidents >= 5) {
-    return '#F59E0B';
-  }
+  if (incidents >= 10) return 'var(--severity-critical)';
+  if (incidents >= 5) return '#F59E0B';
   return '#22C55E';
 }
 
 export default function SuperAdminLayout() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { t } = useTranslation();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -69,9 +55,15 @@ export default function SuperAdminLayout() {
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
     { code: '256', name: 'Brgy 256', incidents: 0, color: '#22C55E' },
   ]);
-  const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem('tugon-sa-sidebar-collapsed') === 'true'; } catch { return false; }
+  });
   const navigate = useNavigate();
   const location = useLocation();
+  const NAV_ITEMS = superAdminSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
   const session = getAuthSession();
   const userFullName = session?.user.fullName?.trim() || 'Super Admin';
   const userInitials = userFullName
@@ -82,14 +74,16 @@ export default function SuperAdminLayout() {
     .join('') || 'SA';
 
   useEffect(() => {
+    try { localStorage.setItem('tugon-sa-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
     let mounted = true;
 
     const loadMonitoring = async () => {
       try {
         const payload = await superAdminApi.getBarangays();
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
         const next = payload.barangays
           .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
@@ -101,123 +95,84 @@ export default function SuperAdminLayout() {
             color: getMonitoringColor(barangay.activeReports),
           }));
 
-        if (next.length > 0) {
-          setMonitoringItems(next);
-        }
+        if (next.length > 0) setMonitoringItems(next);
       } catch {
         // Keep zeroed fallback values if monitoring fetch fails.
       }
     };
 
     void loadMonitoring();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
     let mounted = true;
 
     const loadNotifications = async () => {
-      if (mounted) {
-        setNotificationsLoading(true);
-      }
-
+      if (mounted) setNotificationsLoading(true);
       try {
         const payload = await superAdminApi.getNotifications({ limit: 15 });
-        if (!mounted) {
-          return;
-        }
-
+        if (!mounted) return;
         setNotifications(payload.notifications);
         setUnreadCount(payload.unreadCount);
       } catch {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
       } finally {
-        if (mounted) {
-          setNotificationsLoading(false);
-        }
+        if (mounted) setNotificationsLoading(false);
       }
     };
 
     void loadNotifications();
-    const interval = window.setInterval(() => {
-      void loadNotifications();
-    }, 30000);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(interval);
-    };
+    const interval = window.setInterval(() => { void loadNotifications(); }, 30000);
+    return () => { mounted = false; window.clearInterval(interval); };
   }, []);
 
   const currentPage = NAV_ITEMS.find((n) =>
-    n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path)
+    n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path),
   ) || NAV_ITEMS[0];
+  const settingsActive = location.pathname === '/superadmin/settings' || location.pathname.startsWith('/superadmin/settings/');
 
   const handleSignOut = () => {
     clearAuthSession();
-    setDrawerOpen(false);
     setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
 
   useEffect(() => {
+    setMobileDrawerOpen(false);
+    setMobileSearchOpen(false);
     setProfileMenuOpen(false);
     setNotificationsOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
-        return;
-      }
-
-      if (profileMenuOpen) {
-        setProfileMenuOpen(false);
-      }
-
-      if (notificationsOpen) {
-        setNotificationsOpen(false);
-      }
-
-      if (drawerOpen) {
-        setDrawerOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [drawerOpen, notificationsOpen, profileMenuOpen]);
+    if (mobileSearchOpen) {
+      const timer = setTimeout(() => mobileSearchRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [mobileSearchOpen]);
 
   useEffect(() => {
-    if (!drawerOpen) {
-      return;
-    }
-
-    const closeMenuOnScroll = () => {
-      setDrawerOpen(false);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (mobileDrawerOpen) setMobileDrawerOpen(false);
+      if (mobileSearchOpen) setMobileSearchOpen(false);
+      if (profileMenuOpen) setProfileMenuOpen(false);
+      if (notificationsOpen) setNotificationsOpen(false);
     };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen]);
 
-    const closeMenuOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && mobileHeaderRef.current?.contains(target)) {
-        return;
-      }
-      setDrawerOpen(false);
-    };
-
-    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
-    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
-
-    return () => {
-      window.removeEventListener('scroll', closeMenuOnScroll);
-      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
-    };
-  }, [drawerOpen]);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/superadmin/audit-logs?search=${encodeURIComponent(q)}`);
+    setSearchQuery('');
+    setMobileSearchOpen(false);
+    setMobileDrawerOpen(false);
+  };
 
   const handleNotificationClick = async (item: ApiAdminNotification) => {
     if (!item.readAt) {
@@ -225,12 +180,7 @@ export default function SuperAdminLayout() {
         await superAdminApi.markNotificationRead(item.id);
         setNotifications((current) =>
           current.map((entry) =>
-            entry.id === item.id
-              ? {
-                  ...entry,
-                  readAt: new Date().toISOString(),
-                }
-              : entry,
+            entry.id === item.id ? { ...entry, readAt: new Date().toISOString() } : entry,
           ),
         );
         setUnreadCount((current) => Math.max(0, current - 1));
@@ -238,7 +188,6 @@ export default function SuperAdminLayout() {
         // Keep UI usable even if mark-read fails.
       }
     }
-
     setNotificationsOpen(false);
     if (item.reportId) {
       navigate('/superadmin', { state: { focusReportId: item.reportId } });
@@ -246,18 +195,12 @@ export default function SuperAdminLayout() {
   };
 
   const handleMarkAllRead = async () => {
-    if (unreadCount <= 0) {
-      return;
-    }
-
+    if (unreadCount <= 0) return;
     try {
       await superAdminApi.markAllNotificationsRead();
       const nowIso = new Date().toISOString();
       setNotifications((current) =>
-        current.map((item) => ({
-          ...item,
-          readAt: item.readAt ?? nowIso,
-        })),
+        current.map((item) => ({ ...item, readAt: item.readAt ?? nowIso })),
       );
       setUnreadCount(0);
     } catch {
@@ -273,511 +216,378 @@ export default function SuperAdminLayout() {
     readAt: item.readAt,
   }));
 
-  return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: '#F0F4FF' }}>
+  const closeOverlays = () => {
+    if (profileMenuOpen) setProfileMenuOpen(false);
+    if (notificationsOpen) setNotificationsOpen(false);
+  };
 
-      {/* Desktop Sidebar */}
-      <aside
-        className="sa-sidebar-desktop"
-        style={{
-          width: 248,
-          background: SIDEBAR_BG,
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          zIndex: 10,
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-        }}
+  const renderNavLinks = (onClick?: () => void, collapsed?: boolean) => NAV_ITEMS.map((item) => {
+    const active = item.exact
+      ? location.pathname === item.path
+      : location.pathname.startsWith(item.path) && !item.exact;
+    const exactActive = location.pathname === '/superadmin';
+    const isActive = item.exact ? exactActive : active;
+
+    return (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        onClick={onClick}
+        title={collapsed ? item.label : undefined}
+        className={`mb-1.5 flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
+          isActive
+            ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+            : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+        }`}
       >
-        {/* Logo */}
-        <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <NavLink
-            to="/superadmin"
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Go to TUGON super admin overview"
-            style={{ display: 'inline-flex' }}
+        <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
+        {!collapsed && (
+          <span className={`text-[13px] whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
+            {item.label}
+          </span>
+        )}
+      </NavLink>
+    );
+  });
+
+  const renderMonitoringStrip = () => (
+    <div className="mb-3 rounded-xl bg-[var(--surface-container)] p-2.5">
+      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+        {t('nav.monitoring')}
+      </div>
+      {monitoringItems.map((barangay) => (
+        <div key={barangay.code} className="mb-1 flex items-center gap-2 rounded-lg bg-[var(--surface-container-lowest)] px-2 py-1.5 last:mb-0">
+          <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: barangay.color }} />
+          <span className="flex-1 text-[11px] font-medium text-[var(--on-surface)]">{barangay.name}</span>
+          <span
+            className="rounded-[5px] px-1.5 py-px text-[9px] font-bold"
+            style={{ color: barangay.color, background: `${barangay.color}20` }}
           >
-            <img
-              src="/tugon-header-logo.svg"
-              alt="TUGON Tondo Emergency Response"
-              style={{ width: 166, maxWidth: '100%', height: 'auto' }}
-            />
+            {t('superadmin.barangayMap.activeReports', { count: barangay.incidents })}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
+
+      {/* Desktop sidebar */}
+      <aside className={`hidden ${sidebarCollapsed ? 'w-[68px]' : 'w-72'} shrink-0 flex-col overflow-hidden border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-300 ease-in-out lg:flex`}>
+        <div className={sidebarCollapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
+          <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="no-underline">
+            {sidebarCollapsed ? (
+              <div className="flex items-center justify-center">
+                <span className="text-[22px] font-black tracking-[-0.04em] text-primary">T</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
+                  Super Admin
+                </div>
+                <div className="mt-1 text-[31px] font-black leading-none tracking-[-0.04em] text-primary">
+                  TUGON
+                </div>
+                <div className="mt-1 text-xs font-medium text-[var(--on-surface-variant)]">
+                  Command and Compliance Suite
+                </div>
+              </>
+            )}
           </NavLink>
         </div>
 
-        {/* Barangay quick status */}
-        <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Monitoring</div>
-          {monitoringItems.map((b) => (
-            <div key={b.code} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '4px 6px', borderRadius: 5, marginBottom: 2,
-              background: 'rgba(255,255,255,0.05)',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: b.color, display: 'inline-block', flexShrink: 0, boxShadow: `0 0 5px ${b.color}` }} />
-              <span style={{ color: '#BFDBFE', fontSize: 11, flex: 1 }}>{b.name}</span>
-              <span style={{
-                background: `${b.color}22`, color: b.color,
-                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
-              }}>{b.incidents} active</span>
+        <nav className="flex-1 overflow-y-auto px-3 pb-4">
+          {!sidebarCollapsed && renderMonitoringStrip()}
+          {!sidebarCollapsed && (
+            <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+              {t('nav.navigation')}
             </div>
-          ))}
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: '10px 12px', overflowY: 'auto' }}>
-          <div style={{ color: '#93C5FD', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 8px', marginBottom: 4 }}>
-            Navigation
-          </div>
-          {NAV_ITEMS.map((item) => {
-            const active = item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path) && !item.exact;
-            const exactActive = location.pathname === '/superadmin';
-            const isActive = item.exact ? exactActive : active;
-
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setDrawerOpen(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', borderRadius: 8, textDecoration: 'none', marginBottom: 2,
-                  background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  borderLeft: '3px solid transparent',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-              >
-                <item.icon size={16} color={isActive ? '#BFDBFE' : '#93C5FD'} />
-                <span style={{ color: isActive ? '#DBEAFE' : '#BFDBFE', fontSize: 13, fontWeight: 400, flex: 1 }}>
-                  {item.label}
-                </span>
-              </NavLink>
-            );
-          })}
-
+          )}
+          {renderNavLinks(undefined, sidebarCollapsed)}
         </nav>
 
-        {/* User profile */}
-        <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.15)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, fontWeight: 700, color: 'white', fontSize: 13,
-            }}>
+        <div className="px-3 pb-2">
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed((prev) => !prev)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl border-none bg-transparent py-2 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]`}
+          >
+            {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
+            {!sidebarCollapsed && <span className="text-[13px] font-medium whitespace-nowrap">Collapse</span>}
+          </button>
+        </div>
+
+        <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
+          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+            <div
+              className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white"
+              title={sidebarCollapsed ? userFullName : undefined}
+            >
               {userInitials}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {userFullName}
-              </div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>Super Admin</div>
-            </div>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              aria-label="Sign out"
-              title="Sign out"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <LogOut size={15} color="#93C5FD" />
-            </button>
+            {!sidebarCollapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
+                  <div className="text-[10px] text-[var(--outline)]">{t('role.superAdmin')}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  aria-label={t('common.signOut')}
+                  title={t('common.signOut')}
+                  className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)]"
+                >
+                  <LogOut size={15} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </aside>
 
-      {/* Main */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        <div ref={mobileHeaderRef} style={{ position: 'relative', zIndex: 2600 }}>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+
         {/* Header */}
-        <header style={{
-          background: SIDEBAR_BG,
-          padding: '0 20px', height: 56,
-          display: 'flex', alignItems: 'center', gap: 12,
-          flexShrink: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
-          position: 'relative',
-          zIndex: 2600,
-        }}>
-          <div className="sa-mobile-logo" style={{ display: 'none', alignItems: 'center' }}>
-            <NavLink
-              to="/superadmin"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Go to TUGON super admin overview"
-              style={{ display: 'inline-flex' }}
-            >
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Tondo Emergency Response"
-                style={{ width: 124, maxWidth: '100%', height: 'auto' }}
+        <header className="relative z-[2600] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+          {/* Mobile: page name */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
+          </div>
+
+          {/* Desktop: breadcrumb + functional search */}
+          <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--outline)]">
+              <span className="font-semibold text-primary">{t('role.superAdmin')}</span>
+              <ChevronRight size={12} />
+              <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
+            </div>
+            <form onSubmit={handleSearch} className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
+              <Search size={14} className="shrink-0 text-[var(--outline)]" />
+              <input
+                type="search"
+                placeholder="Search users, barangays, or audits..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
               />
-            </NavLink>
+            </form>
           </div>
 
-          {/* Desktop breadcrumb */}
-          <div className="sa-header-breadcrumb" style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 4, padding: '1px 7px',
-                color: '#BFDBFE', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-              }}>
-                SUPER ADMIN
-              </span>
-              <ChevronRight size={12} color="#93C5FD" />
-              <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>{currentPage?.label}</span>
+          <div className="ml-auto flex items-center gap-2.5">
+            <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
+              Monitoring Online
             </div>
-            <div style={{ color: '#93C5FD', fontSize: 10 }}>
-              Tondo Tri-Barangay Super Admin Console
-            </div>
-          </div>
-
-          {/* Mobile page label */}
-          <div className="sa-mobile-page-label" style={{ display: 'none', flex: 1, minWidth: 0 }}>
-            <span style={{ color: '#FFFFFF', fontSize: 17, fontWeight: 700, lineHeight: '56px', display: 'block' }}>
-              {currentPage?.label}
-            </span>
-          </div>
-
-          {/* Right */}
-          <div className="sa-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
-            <div className="sa-header-datetime" style={{ textAlign: 'right' }}>
-              <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}><LiveClock /></div>
-              <div style={{ color: '#93C5FD', fontSize: 10 }}>
+            <div className="hidden text-right lg:block">
+              <div className="text-[13px] font-semibold text-[var(--on-surface)]"><LiveClock /></div>
+              <div className="text-[10px] text-[var(--outline)]">
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
 
-            {/* Alerts */}
+            {/* Mobile search button */}
+            <button
+              type="button"
+              onClick={() => { setMobileSearchOpen((v) => !v); setMobileDrawerOpen(false); }}
+              aria-label="Search"
+              className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileSearchOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
+            >
+              {mobileSearchOpen ? <X size={18} /> : <Search size={18} />}
+            </button>
+
             <AdminNotifications
               open={notificationsOpen}
               loading={notificationsLoading}
               unreadCount={unreadCount}
               items={notificationItems}
-              panelLabel="Super admin notifications"
-              panelTop={44}
+              panelLabel={t('superadmin.layout.ariaNotifications')}
+              panelTop={48}
               panelRight={0}
               panelZIndex={2300}
               onToggle={() => {
                 setNotificationsOpen((prev) => !prev);
                 setProfileMenuOpen(false);
               }}
-              onMarkAllRead={() => {
-                void handleMarkAllRead();
-              }}
+              onMarkAllRead={() => { void handleMarkAllRead(); }}
               onItemClick={(item) => {
                 const target = notifications.find((entry) => entry.id === item.id);
-                if (target) {
-                  void handleNotificationClick(target);
-                }
+                if (target) { void handleNotificationClick(target); }
               }}
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                setDrawerOpen((prev) => !prev);
-                setProfileMenuOpen(false);
-                setNotificationsOpen(false);
-              }}
-              aria-label={drawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={drawerOpen}
-              aria-controls="superadmin-mobile-nav"
-              className={drawerOpen ? 'sa-mobile-menu-btn icon-btn-square is-open' : 'sa-mobile-menu-btn icon-btn-square'}
-              style={{
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8,
-                cursor: 'pointer', display: 'none',
-              }}
-            >
-              <span className={drawerOpen ? 'sa-mobile-menu-icon is-open' : 'sa-mobile-menu-icon'}>
-                {drawerOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
-              </span>
-            </button>
-
-            <div className="sa-header-avatar-wrap" style={{ position: 'relative', zIndex: 2200 }}>
+            <div className="relative z-[2200] hidden lg:block">
               <button
                 type="button"
-                className="sa-header-avatar"
                 onClick={() => {
                   setProfileMenuOpen((prev) => !prev);
-                  setDrawerOpen(false);
                   setNotificationsOpen(false);
                 }}
-                aria-label="Open profile actions"
+                aria-label={t('superadmin.layout.ariaProfileActions')}
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #B4730A, #F59E0B)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  color: 'white',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  border: 'none',
-                }}
+                className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white"
               >
                 {userInitials}
               </button>
 
-              {profileMenuOpen ? (
+              {profileMenuOpen && (
                 <div
                   role="menu"
-                  aria-label="Profile actions"
-                  style={{
-                    position: 'absolute',
-                    top: 44,
-                    right: 0,
-                    width: 200,
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-                    border: '1px solid #E2E8F0',
-                    overflow: 'hidden',
-                    zIndex: 2300,
-                  }}
+                  aria-label={t('superadmin.layout.ariaProfileActions')}
+                  className="absolute right-0 top-11 z-[2300] w-[200px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated"
                 >
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      navigate('/superadmin/settings');
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '11px 12px',
-                      background: '#fff',
-                      border: 'none',
-                      borderBottom: '1px solid #F1F5F9',
-                      color: '#1E293B',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
+                    onClick={() => { setProfileMenuOpen(false); navigate('/superadmin/settings'); }}
+                    className="w-full cursor-pointer border-none border-b border-[var(--outline-variant)]/30 bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)]"
                   >
-                    Open settings
+                    {t('superadmin.layout.openSettings')}
                   </button>
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '11px 12px',
-                      background: '#fff',
-                      border: 'none',
-                      color: '#B91C1C',
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
+                    className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive"
                   >
-                    Sign out
+                    {t('common.signOut')}
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
+
+            {/* Mobile hamburger (upper right) */}
+            <button
+              type="button"
+              onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
+              aria-label={mobileDrawerOpen ? t('superadmin.layout.ariaCloseNav') : t('superadmin.layout.ariaOpenNav')}
+              aria-expanded={mobileDrawerOpen}
+              className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileDrawerOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
+            >
+              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                {mobileDrawerOpen ? <X size={18} /> : <Menu size={18} />}
+              </span>
+            </button>
           </div>
+
+          {/* Mobile search bar dropdown */}
+          <div
+            className="absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
+            style={{
+              maxHeight: mobileSearchOpen ? 80 : 0,
+              opacity: mobileSearchOpen ? 1 : 0,
+              pointerEvents: mobileSearchOpen ? 'auto' : 'none',
+              transition: 'max-height 250ms cubic-bezier(0.2,0.65,0.3,1), opacity 200ms ease',
+            }}
+          >
+            <form onSubmit={handleSearch} className="flex items-center gap-2 px-4 py-3">
+              <div className="flex flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2.5">
+                <Search size={14} className="shrink-0 text-[var(--outline)]" />
+                <input
+                  ref={mobileSearchRef}
+                  type="search"
+                  placeholder="Search users, barangays, or audits..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border-none bg-transparent px-2 text-sm text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+                />
+              </div>
+            </form>
+          </div>
+
+          {/* Mobile navigation dropdown (landing page style) */}
+          <div
+            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)] lg:hidden"
+            aria-hidden={!mobileDrawerOpen}
+            style={{
+              padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
+              maxHeight: mobileDrawerOpen ? 600 : 0,
+              opacity: mobileDrawerOpen ? 1 : 0,
+              transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-10px)',
+              pointerEvents: mobileDrawerOpen ? 'auto' : 'none',
+              transition: 'max-height 320ms cubic-bezier(0.2,0.65,0.3,1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
+            }}
+          >
+            {NAV_ITEMS.map((item) => {
+              const active = item.exact
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path) && !item.exact;
+              const exactActive = location.pathname === '/superadmin';
+              const isActive = item.exact ? exactActive : active;
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className={`flex w-full items-center gap-3 border-b border-white/[0.06] px-0 py-3 no-underline text-[15px] font-semibold ${
+                    isActive ? 'text-white' : 'text-white/[0.7]'
+                  }`}
+                  style={{
+                    opacity: mobileDrawerOpen ? 1 : 0,
+                    transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+                    transition: 'opacity 180ms ease, transform 180ms ease',
+                  }}
+                >
+                  <item.icon size={16} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+
+            <NavLink
+              to="/superadmin/settings"
+              onClick={() => setMobileDrawerOpen(false)}
+              className={`flex w-full items-center gap-3 border-b border-white/[0.06] px-0 py-3 no-underline text-[15px] font-semibold ${
+                settingsActive ? 'text-white' : 'text-white/[0.7]'
+              }`}
+              style={{
+                opacity: mobileDrawerOpen ? 1 : 0,
+                transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+                transition: 'opacity 180ms ease, transform 180ms ease',
+              }}
+            >
+              <Settings size={16} />
+              <span>{t('common.settings')}</span>
+            </NavLink>
+
+            <button
+              type="button"
+              onClick={() => { setMobileDrawerOpen(false); handleSignOut(); }}
+              className="mt-3 flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-white/[0.08] px-3 py-3 text-[15px] font-semibold text-red-400"
+              style={{
+                opacity: mobileDrawerOpen ? 1 : 0,
+                transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
+                transition: 'opacity 180ms ease, transform 180ms ease',
+              }}
+            >
+              <LogOut size={16} />
+              <span>{t('common.signOut')}</span>
+            </button>
+          </div>
+
+          <style>{`
+            .nav-mobile-panel > *:nth-child(1) { transition-delay: 40ms; }
+            .nav-mobile-panel > *:nth-child(2) { transition-delay: 80ms; }
+            .nav-mobile-panel > *:nth-child(3) { transition-delay: 120ms; }
+            .nav-mobile-panel > *:nth-child(4) { transition-delay: 160ms; }
+            .nav-mobile-panel > *:nth-child(5) { transition-delay: 200ms; }
+            .nav-mobile-panel > *:nth-child(6) { transition-delay: 240ms; }
+            .nav-mobile-panel > *:nth-child(7) { transition-delay: 280ms; }
+            .nav-mobile-panel > *:nth-child(8) { transition-delay: 320ms; }
+            @media (prefers-reduced-motion: reduce) {
+              .nav-mobile-panel, .nav-mobile-panel > * { transition: none !important; }
+            }
+          `}</style>
         </header>
 
-        <div
-          id="superadmin-mobile-nav"
-          className={drawerOpen ? 'sa-mobile-dropdown-panel is-open' : 'sa-mobile-dropdown-panel'}
-          aria-hidden={!drawerOpen}
-          style={{
-            background: 'rgba(30,58,138,0.98)',
-            borderTop: '1px solid rgba(255,255,255,0.12)',
-            padding: drawerOpen ? '12px 14px 16px' : '0 14px',
-            maxHeight: drawerOpen ? 450 : 0,
-            opacity: drawerOpen ? 1 : 0,
-            transform: drawerOpen ? 'translateY(0)' : 'translateY(-10px)',
-            pointerEvents: drawerOpen ? 'auto' : 'none',
-            overflow: 'hidden',
-            transition: 'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-          }}
-        >
-          <div
-            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-              opacity: drawerOpen ? 1 : 0,
-              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 180ms ease, transform 180ms ease',
-            }}
-          >
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #B4730A, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 11, flexShrink: 0 }}>
-              {userInitials}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userFullName}</div>
-              <div style={{ color: '#BFDBFE', fontSize: 10 }}>Super Admin</div>
-            </div>
-          </div>
-
-          {NAV_ITEMS.map((item) => {
-            const active = item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path) && !item.exact;
-            const exactActive = location.pathname === '/superadmin';
-            const isActive = item.exact ? exactActive : active;
-
-            return (
-              <NavLink
-                key={`sa-mobile-dropdown-${item.path}`}
-                to={item.path}
-                onClick={() => setDrawerOpen(false)}
-                className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  textDecoration: 'none',
-                  padding: '11px 0',
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
-                  color: isActive ? '#DBEAFE' : '#BFDBFE',
-                  fontSize: 14,
-                  fontWeight: isActive ? 700 : 500,
-                  opacity: drawerOpen ? 1 : 0,
-                  transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                  transition: 'opacity 180ms ease, transform 180ms ease',
-                }}
-              >
-                <item.icon size={16} color={isActive ? '#DBEAFE' : '#93C5FD'} />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
-
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className={drawerOpen ? 'sa-mobile-dropdown-item is-open' : 'sa-mobile-dropdown-item'}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              textAlign: 'left',
-              padding: '11px 0 4px',
-              background: 'none',
-              border: 'none',
-              color: '#FCA5A5',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 700,
-              opacity: drawerOpen ? 1 : 0,
-              transform: drawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 180ms ease, transform 180ms ease',
-            }}
-          >
-            <LogOut size={16} color="#FCA5A5" />
-            <span>Sign out</span>
-          </button>
-        </div>
-        </div>
-
-        <main
-          style={{ flex: 1, overflowY: 'auto', paddingBottom: 0 }}
-          onClick={() => {
-            if (profileMenuOpen) {
-              setProfileMenuOpen(false);
-            }
-            if (notificationsOpen) {
-              setNotificationsOpen(false);
-            }
-          }}
-          onScroll={() => {
-            if (profileMenuOpen) {
-              setProfileMenuOpen(false);
-            }
-            if (notificationsOpen) {
-              setNotificationsOpen(false);
-            }
-          }}
-        >
+        <main className="flex-1 overflow-y-auto" onClick={closeOverlays} onScroll={closeOverlays}>
           <Outlet />
         </main>
       </div>
-
-      <style>{`
-        .sa-mobile-menu-icon {
-          display: inline-flex;
-          transition: transform 180ms ease;
-        }
-
-        .sa-mobile-menu-icon.is-open {
-          transform: rotate(90deg);
-        }
-
-        @media (max-width: 768px) {
-          .sa-sidebar-desktop   { display: none !important; }
-          .sa-mobile-menu-btn   { display: flex !important; }
-          .sa-mobile-menu-btn.is-open {
-            transform: scale(0.97);
-            background: rgba(255,255,255,0.2) !important;
-          }
-          .sa-mobile-logo       { display: flex !important; }
-          .sa-header-actions    { margin-left: auto !important; }
-          .sa-header-breadcrumb { display: none !important; }
-          .sa-header-datetime   { display: none !important; }
-          .sa-header-avatar     { display: none !important; }
-          .sa-header-avatar-wrap { display: none !important; }
-          .sa-mobile-page-label { display: none !important; }
-
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(1) { transition-delay: 40ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(2) { transition-delay: 80ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(3) { transition-delay: 120ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(4) { transition-delay: 160ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(5) { transition-delay: 200ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(6) { transition-delay: 240ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(7) { transition-delay: 280ms; }
-          .sa-mobile-dropdown-panel .sa-mobile-dropdown-item:nth-child(8) { transition-delay: 320ms; }
-        }
-        @media (min-width: 769px) {
-          .sa-mobile-menu-btn { display: none !important; }
-          .sa-mobile-page-label { display: none !important; }
-          .sa-mobile-dropdown-panel { display: none !important; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .sa-mobile-menu-icon,
-          .sa-mobile-dropdown-panel,
-          .sa-mobile-dropdown-item,
-          .sa-mobile-menu-btn {
-            transition: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

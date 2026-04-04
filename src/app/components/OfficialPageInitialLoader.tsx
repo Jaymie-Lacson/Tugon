@@ -43,8 +43,8 @@ export function OfficialPageInitialLoader({
           inset: -6px;
           border-radius: 9999px;
           border: 4px solid rgba(30, 58, 138, 0.16);
-          border-top-color: #B91C1C;
-          border-right-color: #1E3A8A;
+          border-top-color: var(--severity-critical);
+          border-right-color: var(--primary);
           animation: officialPageLoaderSpin 0.9s linear infinite;
         }
 

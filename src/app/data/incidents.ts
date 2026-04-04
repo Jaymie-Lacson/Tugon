@@ -29,7 +29,7 @@ export function isIncidentVisibleOnMap(incident: Pick<Incident, 'status'>): bool
 
 export const incidentTypeConfig: Record<IncidentType, { label: string; color: string; bgColor: string }> = {
   flood: { label: 'Flood', color: '#1D4ED8', bgColor: '#DBEAFE' },
-  accident: { label: 'Accident', color: '#B4730A', bgColor: '#FEF3C7' },
+  accident: { label: 'Accident', color: 'var(--severity-medium)', bgColor: '#FEF3C7' },
   medical: { label: 'Medical', color: '#0F766E', bgColor: '#CCFBF1' },
   crime: { label: 'Crime', color: '#7C3AED', bgColor: '#EDE9FE' },
   infrastructure: { label: 'Infrastructure', color: '#374151', bgColor: '#F3F4F6' },
@@ -37,15 +37,15 @@ export const incidentTypeConfig: Record<IncidentType, { label: string; color: st
 };
 
 export const severityConfig: Record<Severity, { label: string; color: string; bgColor: string; dotColor: string }> = {
-  critical: { label: 'Critical', color: '#B91C1C', bgColor: '#FEE2E2', dotColor: '#B91C1C' },
+  critical: { label: 'Critical', color: 'var(--severity-critical)', bgColor: '#FEE2E2', dotColor: 'var(--severity-critical)' },
   high: { label: 'High', color: '#C2410C', bgColor: '#FFEDD5', dotColor: '#EA580C' },
-  medium: { label: 'Medium', color: '#92400E', bgColor: '#FEF3C7', dotColor: '#B4730A' },
+  medium: { label: 'Medium', color: '#92400E', bgColor: '#FEF3C7', dotColor: 'var(--severity-medium)' },
   low: { label: 'Low', color: '#065F46', bgColor: '#D1FAE5', dotColor: '#059669' },
 };
 
 export const statusConfig: Record<IncidentStatus, { label: string; color: string; bgColor: string }> = {
-  active: { label: 'Active', color: '#B91C1C', bgColor: '#FEE2E2' },
-  responding: { label: 'Responding', color: '#1E3A8A', bgColor: '#DBEAFE' },
+  active: { label: 'Active', color: 'var(--severity-critical)', bgColor: '#FEE2E2' },
+  responding: { label: 'Responding', color: 'var(--primary)', bgColor: '#DBEAFE' },
   contained: { label: 'Contained', color: '#92400E', bgColor: '#FEF3C7' },
   resolved: { label: 'Resolved', color: '#065F46', bgColor: '#D1FAE5' },
 };

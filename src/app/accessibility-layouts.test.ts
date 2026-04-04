@@ -6,6 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import Landing from './pages/Landing';
 import Layout from './components/Layout';
 import SuperAdminLayout from './pages/superadmin/SuperAdminLayout';
+import { TranslationProvider } from './i18n';
 
 vi.mock('./services/superAdminApi', () => ({
   superAdminApi: {
@@ -84,15 +85,19 @@ describe('Accessibility layout safeguards', () => {
   it('renders Landing with a skip link and main landmark', async () => {
     mounted = await mount(
       React.createElement(
-        MemoryRouter,
-        { initialEntries: ['/'] },
+        TranslationProvider,
+        null,
         React.createElement(
-          Routes,
-          null,
-          React.createElement(Route, {
-            path: '/',
-            element: React.createElement(Landing),
-          }),
+          MemoryRouter,
+          { initialEntries: ['/'] },
+          React.createElement(
+            Routes,
+            null,
+            React.createElement(Route, {
+              path: '/',
+              element: React.createElement(Landing),
+            }),
+          ),
         ),
       ),
     );
@@ -112,18 +117,22 @@ describe('Accessibility layout safeguards', () => {
   it('renders official Layout with accessible mobile drawer controls', async () => {
     mounted = await mount(
       React.createElement(
-        MemoryRouter,
-        { initialEntries: ['/app'] },
+        TranslationProvider,
+        null,
         React.createElement(
-          Routes,
-          null,
+          MemoryRouter,
+          { initialEntries: ['/app'] },
           React.createElement(
-            Route,
-            { path: '/app', element: React.createElement(Layout) },
-            React.createElement(Route, {
-              index: true,
-              element: React.createElement('div', null, 'Dashboard Content'),
-            }),
+            Routes,
+            null,
+            React.createElement(
+              Route,
+              { path: '/app', element: React.createElement(Layout) },
+              React.createElement(Route, {
+                index: true,
+                element: React.createElement('div', null, 'Dashboard Content'),
+              }),
+            ),
           ),
         ),
       ),
@@ -140,18 +149,22 @@ describe('Accessibility layout safeguards', () => {
   it('renders SuperAdminLayout with accessible mobile drawer controls', async () => {
     mounted = await mount(
       React.createElement(
-        MemoryRouter,
-        { initialEntries: ['/superadmin'] },
+        TranslationProvider,
+        null,
         React.createElement(
-          Routes,
-          null,
+          MemoryRouter,
+          { initialEntries: ['/superadmin'] },
           React.createElement(
-            Route,
-            { path: '/superadmin', element: React.createElement(SuperAdminLayout) },
-            React.createElement(Route, {
-              index: true,
-              element: React.createElement('div', null, 'Super Admin Content'),
-            }),
+            Routes,
+            null,
+            React.createElement(
+              Route,
+              { path: '/superadmin', element: React.createElement(SuperAdminLayout) },
+              React.createElement(Route, {
+                index: true,
+                element: React.createElement('div', null, 'Super Admin Content'),
+              }),
+            ),
           ),
         ),
       ),

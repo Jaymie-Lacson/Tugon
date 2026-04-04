@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:tugon-rho.vercel.app)",
+      "Bash(jq --version)",
+      "Read(//c/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon/$HOME/.claude/mcp-servers/**)",
+      "Bash(npm install:*)",
+      "Skill(keybindings-help)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(grep -r \"tailwind\\\\|@theme\\\\|@config\" /c/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon --include=*.config.* --include=*.json --include=*.ts --include=*.js)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/vite build:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(node -e \":*)",
+      "Bash(npm --prefix server run test:integration)",
+      "Bash(npx vitest:*)",
+      "Skill(update-config)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('mcpServers', {}\\), indent=2\\)\\)\")",
+      "Bash(npx --yes @figma/mcp --version)",
+      "Bash(npx --yes figma-developer-mcp --version)",
+      "Bash(npm search:*)",
+      "Bash(npm view:*)",
+      "Bash(npx --yes figma-mcp --version)",
+      "Bash(FIGMA_API_KEY=\"figd_QFOFd0W6P0mmYUW6UazrpaLYBvYVopu_YJ6ol2xn\" npx figma-mcp)",
+      "Bash(kill %1)",
+      "Bash(echo \"Exit: $?\")",
+      "WebSearch",
+      "Bash(npx vite:*)",
+      "Bash(ls tsconfig*)",
+      "Bash(ls \"C:\\\\Users\\\\Mikell Razon\\\\BSIT\\\\2ND YEAR\\\\2ND SEM\\\\PROF ELEC\\\\Tugon\\\\tsconfig\"*)",
+      "Bash(ls \"C:\\\\Users\\\\Mikell Razon\\\\BSIT\\\\2ND YEAR\\\\2ND SEM\\\\PROF ELEC\\\\Tugon\"/*.json)"
+    ]
+  }
+}

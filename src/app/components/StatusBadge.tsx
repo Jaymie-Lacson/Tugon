@@ -1,6 +1,14 @@
 import React from 'react';
+import { AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
 import { Severity, IncidentStatus, IncidentType, severityConfig, statusConfig, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
+
+const severityIcons: Record<Severity, React.ReactNode> = {
+  critical: <AlertTriangle size={11} />,
+  high: <AlertCircle size={11} />,
+  medium: <Info size={11} />,
+  low: <CheckCircle size={11} />,
+};
 
 interface SeverityBadgeProps {
   severity: Severity;
@@ -9,34 +17,16 @@ interface SeverityBadgeProps {
 
 export function SeverityBadge({ severity, size = 'md' }: SeverityBadgeProps) {
   const config = severityConfig[severity];
-  const padding = size === 'sm' ? '2px 6px' : '3px 10px';
-  const fontSize = size === 'sm' ? '10px' : '11px';
+  const isSmall = size === 'sm';
   return (
     <span
-      style={{
-        backgroundColor: config.bgColor,
-        color: config.color,
-        padding,
-        borderRadius: '4px',
-        fontSize,
-        fontWeight: 600,
-        letterSpacing: '0.04em',
-        textTransform: 'uppercase',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px',
-        whiteSpace: 'nowrap',
-      }}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
+      style={{ backgroundColor: config.bgColor, color: config.color }}
     >
+      {severityIcons[severity]}
       <span
-        style={{
-          width: size === 'sm' ? 5 : 6,
-          height: size === 'sm' ? 5 : 6,
-          borderRadius: '50%',
-          backgroundColor: config.dotColor,
-          display: 'inline-block',
-          flexShrink: 0,
-        }}
+        className={`inline-block shrink-0 rounded-full ${isSmall ? 'size-[5px]' : 'size-1.5'}`}
+        style={{ backgroundColor: config.dotColor }}
       />
       {config.label}
     </span>
@@ -51,58 +41,28 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, size = 'md', pulse = false }: StatusBadgeProps) {
   const config = statusConfig[status];
-  const padding = size === 'sm' ? '2px 6px' : '3px 10px';
-  const fontSize = size === 'sm' ? '10px' : '11px';
+  const isSmall = size === 'sm';
   const isActive = status === 'active' || status === 'responding';
   return (
     <span
-      style={{
-        backgroundColor: config.bgColor,
-        color: config.color,
-        padding,
-        borderRadius: '4px',
-        fontSize,
-        fontWeight: 600,
-        letterSpacing: '0.04em',
-        textTransform: 'uppercase',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px',
-        whiteSpace: 'nowrap',
-      }}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
+      style={{ backgroundColor: config.bgColor, color: config.color }}
     >
       {isActive && pulse ? (
-        <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8, flexShrink: 0 }}>
+        <span className="relative inline-flex size-2 shrink-0">
           <span
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: '50%',
-              backgroundColor: config.color,
-              opacity: 0.4,
-              animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite',
-            }}
+            className="absolute inset-0 animate-ping rounded-full opacity-40"
+            style={{ backgroundColor: config.color }}
           />
           <span
-            style={{
-              position: 'relative',
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: config.color,
-            }}
+            className="relative size-2 rounded-full"
+            style={{ backgroundColor: config.color }}
           />
         </span>
       ) : (
         <span
-          style={{
-            width: size === 'sm' ? 5 : 6,
-            height: size === 'sm' ? 5 : 6,
-            borderRadius: '50%',
-            backgroundColor: config.color,
-            display: 'inline-block',
-            flexShrink: 0,
-          }}
+          className={`inline-block shrink-0 rounded-full ${isSmall ? 'size-[5px]' : 'size-1.5'}`}
+          style={{ backgroundColor: config.color }}
         />
       )}
       {config.label}
@@ -117,21 +77,11 @@ interface TypeBadgeProps {
 
 export function TypeBadge({ type, size = 'md' }: TypeBadgeProps) {
   const config = incidentTypeConfig[type];
-  const padding = size === 'sm' ? '2px 6px' : '3px 10px';
-  const fontSize = size === 'sm' ? '10px' : '11px';
+  const isSmall = size === 'sm';
   return (
     <span
-      style={{
-        backgroundColor: config.bgColor,
-        color: config.color,
-        padding,
-        borderRadius: '4px',
-        fontSize,
-        fontWeight: 600,
-        letterSpacing: '0.04em',
-        textTransform: 'uppercase',
-        whiteSpace: 'nowrap',
-      }}
+      className={`inline-flex items-center whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
+      style={{ backgroundColor: config.bgColor, color: config.color }}
     >
       {getCategoryLabelForIncidentType(type)}
     </span>

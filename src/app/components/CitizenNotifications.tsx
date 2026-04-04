@@ -24,40 +24,12 @@ export function CitizenNotificationBellTrigger({ unreadCount, onClick }: Citizen
       type="button"
       onClick={onClick}
       aria-label="Notifications"
-      style={{
-        position: 'relative',
-        background: 'rgba(255,255,255,0.12)',
-        border: '1px solid rgba(255,255,255,0.2)',
-        borderRadius: 10,
-        width: 38,
-        height: 38,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        color: '#fff',
-      }}
+      className="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 bg-white/[0.12] text-white"
     >
       <Bell size={18} />
       {unreadCount > 0 ? (
         <span
-          style={{
-            position: 'absolute',
-            top: -4,
-            right: -4,
-            minWidth: 18,
-            height: 18,
-            borderRadius: 999,
-            background: '#B91C1C',
-            color: '#FFFFFF',
-            border: '1.5px solid #1E3A8A',
-            fontSize: 10,
-            lineHeight: '16px',
-            fontWeight: 700,
-            padding: '0 4px',
-            textAlign: 'center',
-            boxSizing: 'border-box',
-          }}
+          className="absolute -right-1 -top-1 box-border inline-block min-w-[18px] rounded-full border-[1.5px] border-primary bg-severity-critical px-1 text-center text-[10px] font-bold leading-4 text-white"
           aria-hidden="true"
         >
           {unreadLabel}
@@ -86,39 +58,11 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
 
   return (
     <div
-      style={{
-        position: 'absolute',
-        top: 66,
-        right: 16,
-        width: 300,
-        background: '#fff',
-        borderRadius: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-        zIndex: 100,
-        overflow: 'hidden',
-        border: '1px solid #E2E8F0',
-      }}
+      className="absolute right-4 top-[66px] z-[100] w-[300px] overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
     >
-      <div
-        style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid #F1F5F9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 14 }}>Notifications</span>
-        <span
-          style={{
-            background: '#B91C1C',
-            color: '#fff',
-            borderRadius: 20,
-            padding: '1px 7px',
-            fontSize: 10,
-            fontWeight: 700,
-          }}
-        >
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <span className="text-sm font-bold text-slate-800">Notifications</span>
+        <span className="rounded-[20px] bg-severity-critical px-[7px] py-[1px] text-[10px] font-bold text-white">
           {unreadCount > 0 ? `${unreadCount} New` : 'No New'}
         </span>
       </div>
@@ -126,39 +70,24 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
         const content = (
           <>
             <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                background: item.bg,
-                color: item.color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
+              className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg"
+              style={{ background: item.bg, color: item.color }}
             >
               {item.icon}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: 12, color: '#1E293B' }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.desc}</div>
-              <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{item.time}</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-slate-800">{item.title}</div>
+              <div className="mt-px text-[11px] text-slate-500">{item.desc}</div>
+              <div className="mt-0.5 text-[10px] text-slate-400">{item.time}</div>
             </div>
           </>
         );
 
-        const commonStyle: React.CSSProperties = {
-          width: '100%',
-          border: 'none',
-          borderBottom: index < items.length - 1 ? '1px solid #F8FAFC' : 'none',
-          background: item.unread ? '#FFFBEB' : '#fff',
-          padding: '12px 16px',
-          display: 'flex',
-          gap: 10,
-          alignItems: 'flex-start',
-          textAlign: 'left',
-        };
+        const rowClassName = [
+          'flex w-full items-start gap-2.5 px-4 py-3 text-left',
+          item.unread ? 'bg-amber-50' : 'bg-white',
+          index < items.length - 1 ? 'border-b border-slate-50' : '',
+        ].join(' ');
 
         if (onItemClick) {
           return (
@@ -166,10 +95,7 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
               key={`${item.title}-${index}`}
               type="button"
               onClick={() => onItemClick(item)}
-              style={{
-                ...commonStyle,
-                cursor: 'pointer',
-              }}
+              className={`${rowClassName} cursor-pointer border-0`}
             >
               {content}
             </button>
@@ -177,7 +103,7 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
         }
 
         return (
-          <div key={`${item.title}-${index}`} style={commonStyle}>
+          <div key={`${item.title}-${index}`} className={rowClassName}>
             {content}
           </div>
         );

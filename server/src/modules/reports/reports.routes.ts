@@ -176,7 +176,7 @@ citizenReportsRouter.post("/reports", async (req, res) => {
       return res.status(401).json({ message: "Unauthorized." });
     }
 
-    const citizenUser = await (prisma.user as any).findUnique({
+    const citizenUser = await prisma.user.findUnique({
       where: { id: authUser.id },
       select: {
         id: true,

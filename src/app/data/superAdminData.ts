@@ -115,7 +115,7 @@ export const barangays: BarangayProfile[] = [
     population: 9_870,
     area: '0.55 km²',
     district: 'District IV-A South',
-    color: '#B4730A',
+    color: 'var(--severity-medium)',
     activeIncidents: 0,
     totalThisMonth: 0,
     resolvedThisMonth: 0,

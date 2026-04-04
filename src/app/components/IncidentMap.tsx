@@ -9,7 +9,7 @@ import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 const TYPE_COLORS: Record<string, string> = {
   flood:          '#1D4ED8',
-  accident:       '#B4730A',
+  accident:       'var(--severity-medium)',
   medical:        '#0F766E',
   crime:          '#7C3AED',
   infrastructure: '#374151',
@@ -389,7 +389,7 @@ export function IncidentMap({
             key={barangay.code}
             positions={barangay.points}
             pathOptions={{
-              color: '#1E3A8A',
+              color: 'var(--primary)',
               weight: isHotspotMode ? 2 : 3,
               dashArray: '8 6',
               fillColor: '#93C5FD',
@@ -559,11 +559,11 @@ export function IncidentMap({
           {isHotspotMode ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#B91C1C', opacity: 0.72, display: 'inline-block' }} />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--severity-critical)', opacity: 0.72, display: 'inline-block' }} />
                 <span style={{ color: '#475569', fontSize: 9 }}>Hotspot cluster zone</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#1E3A8A', opacity: 0.55, display: 'inline-block' }} />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', opacity: 0.55, display: 'inline-block' }} />
                 <span style={{ color: '#475569', fontSize: 9 }}>Barangay boundary (reference)</span>
               </div>
               <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>

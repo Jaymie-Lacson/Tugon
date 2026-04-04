@@ -5,28 +5,31 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Clock,
-  Eye,
   FileText,
   Map as MapIcon,
   MapPin,
   Menu,
-  Navigation,
   Phone,
   Radio,
   Shield,
-  Star,
   Users,
-  Volume2,
   X,
-  Zap,
-  Car,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
+import { useTranslation } from '../i18n';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
+
+const COMMUNITY_IMAGE =
+  'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1080&q=80';
+
+const SAFETY_IMAGE =
+  'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1080&q=80';
 
 function SectionHeading({
   label,
@@ -40,43 +43,28 @@ function SectionHeading({
   light?: boolean;
 }) {
   return (
-    <div style={{ textAlign: 'center', marginBottom: 36 }}>
-      <span
-        style={{
-          display: 'inline-block',
-          background: light ? 'rgba(255,255,255,0.14)' : '#E8EEF9',
-          border: light ? '1px solid rgba(255,255,255,0.22)' : '1px solid #CBD5E1',
-          color: light ? '#DBEAFE' : '#1E3A8A',
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          padding: '6px 11px',
-          borderRadius: 9,
-          marginBottom: 10,
-        }}
+    <div className="mb-9 text-center">
+      <Badge
+        variant={light ? 'secondary' : 'outline'}
+        className={`mb-2.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
+          light
+            ? 'border-white/[0.22] bg-white/[0.14] text-[#b6c4ff]'
+            : 'border-[rgba(197,197,211,0.5)] bg-[#dce9ff] text-primary'
+        }`}
       >
         {label}
-      </span>
+      </Badge>
       <h2
-        style={{
-          color: light ? '#FFFFFF' : '#1E293B',
-          fontSize: 'clamp(24px,4vw,32px)',
-          letterSpacing: '-0.01em',
-          fontWeight: 800,
-          marginBottom: 8,
-        }}
+        className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.02em] ${
+          light ? 'text-white' : 'text-foreground'
+        }`}
       >
         {title}
       </h2>
       <p
-        style={{
-          color: light ? '#DBEAFE' : '#64748B',
-          fontSize: 14,
-          maxWidth: 620,
-          margin: '0 auto',
-          lineHeight: 1.6,
-        }}
+        className={`mx-auto max-w-[620px] text-sm leading-relaxed ${
+          light ? 'text-[#b6c4ff]' : 'text-muted-foreground'
+        }`}
       >
         {subtitle}
       </p>
@@ -101,6 +89,7 @@ function AuthRedirectOverlay({ visible }: { visible: boolean }) {
 
 function Navbar() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -177,9 +166,9 @@ function Navbar() {
   }, [mobileOpen]);
 
   const navLinks = [
-    { label: 'How It Works', href: '#how' },
-    { label: 'Safety Tips', href: '#safety' },
-    { label: 'Hotlines', href: '#hotlines' },
+    { label: t('landing.nav.howItWorks'), href: '#how' },
+    { label: t('landing.nav.safety'), href: '#safety' },
+    { label: t('landing.nav.hotlines'), href: '#hotlines' },
   ];
 
   const scrollTo = (id: string) => {
@@ -217,113 +206,60 @@ function Navbar() {
           WebkitBackfaceVisibility: 'hidden',
         }}
       >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '0 24px',
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
           <button
             onClick={() => navigate('/')}
             aria-label="Go to TUGON home"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
+            className="flex cursor-pointer items-center border-none bg-transparent p-0"
           >
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
-              style={{ height: 38, width: 'auto', display: 'block' }}
+              className="block h-[38px] w-auto"
             />
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="nav-desktop">
+          <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <button
+              <Button
                 key={link.label}
+                variant="ghost"
+                size="sm"
                 onClick={() => scrollTo(link.href)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.82)',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  padding: '8px 14px',
-                  borderRadius: 6,
-                }}
+                className="text-[13px] font-medium text-white/[0.82] hover:bg-white/10 hover:text-white"
               >
                 {link.label}
-              </button>
+              </Button>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} className="nav-cta">
-            <button
+          <div className="hidden items-center gap-2 md:flex">
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigateAuthWithOverlay('/auth/login')}
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 8,
-                padding: '8px 16px',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
+              className="border-white/25 bg-white/10 text-white hover:bg-white/20"
             >
-              Login
-            </button>
-            <button
+              {t('landing.nav.login')}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={() => navigateAuthWithOverlay('/auth/register')}
-              style={{
-                background: '#B91C1C',
-                border: 'none',
-                borderRadius: 8,
-                padding: '8px 16px',
-                color: 'white',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
             >
-              Register
-            </button>
+              {t('landing.nav.register')}
+            </Button>
           </div>
 
           <button
             type="button"
-            className={mobileOpen ? 'nav-mobile-btn is-open' : 'nav-mobile-btn'}
+            className={`flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileOpen}
+            aria-expanded={mobileOpen ? 'true' : 'false'}
             aria-controls="landing-mobile-nav"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: 'none',
-              borderRadius: 6,
-              width: 44,
-              height: 44,
-              padding: 0,
-              cursor: 'pointer',
-              display: 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 0,
-              transition: 'background 180ms ease, transform 180ms ease',
-            }}
           >
-            <span className={mobileOpen ? 'nav-mobile-icon is-open' : 'nav-mobile-icon'}>
+            <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
               {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
             </span>
           </button>
@@ -331,89 +267,55 @@ function Navbar() {
 
         <div
           id="landing-mobile-nav"
-          className={mobileOpen ? 'nav-mobile-panel is-open' : 'nav-mobile-panel'}
-          aria-hidden={!mobileOpen}
+          className="nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
+          aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
-            background: 'rgba(15,23,42,0.98)',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
             padding: mobileOpen ? '12px 20px 20px' : '0 20px',
             maxHeight: mobileOpen ? 360 : 0,
             opacity: mobileOpen ? 1 : 0,
             transform: mobileOpen ? 'translateY(0)' : 'translateY(-10px)',
             pointerEvents: mobileOpen ? 'auto' : 'none',
-            overflow: 'hidden',
             transition:
               'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
           }}
         >
-            {navLinks.map((link) => (
-              <button
-                className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
-                key={link.label}
-                onClick={() => scrollTo(link.href)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 14,
-                  padding: '12px 0',
-                  cursor: 'pointer',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  opacity: mobileOpen ? 1 : 0,
-                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
-                  transition: 'opacity 180ms ease, transform 180ms ease',
-                }}
-              >
-                {link.label}
-              </button>
-            ))}
-            <div
-              className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
+          {navLinks.map((link) => (
+            <button
+              className="block w-full cursor-pointer border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold text-white/[0.82]"
+              key={link.label}
+              onClick={() => scrollTo(link.href)}
               style={{
-                display: 'grid',
-                gap: 8,
-                marginTop: 14,
                 opacity: mobileOpen ? 1 : 0,
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
                 transition: 'opacity 180ms ease, transform 180ms ease',
               }}
             >
-              <button
-                onClick={() => navigateAuthWithOverlay('/auth/login')}
-                style={{
-                  width: '100%',
-                  background: '#B91C1C',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '10px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Login to Continue
-              </button>
-              <button
-                onClick={() => navigateAuthWithOverlay('/auth/register')}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.22)',
-                  borderRadius: 8,
-                  padding: '10px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Register
-              </button>
-            </div>
+              {link.label}
+            </button>
+          ))}
+          <div
+            className="mt-3.5 grid gap-2"
+            style={{
+              opacity: mobileOpen ? 1 : 0,
+              transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => navigateAuthWithOverlay('/auth/login')}
+            >
+              {t('landing.nav.loginToContinue')}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full border-white/[0.22] bg-white/[0.12] text-white hover:bg-white/20"
+              onClick={() => navigateAuthWithOverlay('/auth/register')}
+            >
+              {t('landing.nav.register')}
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -421,20 +323,6 @@ function Navbar() {
         .landing-navbar {
           isolation: isolate;
           max-width: 100%;
-        }
-
-        .nav-mobile-icon {
-          display: inline-flex;
-          transition: transform 180ms ease;
-        }
-
-        .hero-wordmark-red {
-          transform: translateY(0.16em);
-          max-width: min(35vw, 248px);
-        }
-
-        .nav-mobile-icon.is-open {
-          transform: rotate(90deg);
         }
 
         @media (max-width: 768px) {
@@ -449,31 +337,16 @@ function Navbar() {
             transition: none !important;
           }
 
-          .nav-desktop { display: none !important; }
-          .nav-cta { display: none !important; }
-          .nav-mobile-btn { display: flex !important; }
-
-          .nav-mobile-btn.is-open {
-            transform: scale(0.97);
-            background: rgba(255,255,255,0.2) !important;
-          }
-
-          .nav-mobile-panel .nav-mobile-item:nth-child(1) { transition-delay: 40ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(2) { transition-delay: 80ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(3) { transition-delay: 120ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(4) { transition-delay: 160ms; }
-
-          .hero-wordmark-red {
-            transform: translateY(0.12em);
-            max-width: min(45vw, 188px);
-          }
+          .nav-mobile-panel button:nth-child(1) { transition-delay: 40ms; }
+          .nav-mobile-panel button:nth-child(2) { transition-delay: 80ms; }
+          .nav-mobile-panel button:nth-child(3) { transition-delay: 120ms; }
+          .nav-mobile-panel > div { transition-delay: 160ms; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .nav-mobile-icon,
           .nav-mobile-panel,
-          .nav-mobile-item,
-          .nav-mobile-btn {
+          .nav-mobile-panel button,
+          .nav-mobile-panel > div {
             transition: none !important;
           }
         }
@@ -484,6 +357,7 @@ function Navbar() {
 
 function Hero() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
@@ -506,133 +380,91 @@ function Hero() {
       <AuthRedirectOverlay visible={authRedirecting} />
       <section
         data-reveal
-        style={{
-          position: 'relative',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-        }}
+        className="relative flex min-h-screen items-center overflow-hidden"
       >
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <img src={HERO_IMAGE} alt="City aerial" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="absolute inset-0">
+          <img src={HERO_IMAGE} alt="City aerial" className="h-full w-full object-cover" />
           <div
+            className="absolute inset-0"
             style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(30,58,138,0.86) 55%, rgba(15,23,42,0.92) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,35,111,0.94) 0%, rgba(30,58,138,0.88) 50%, rgba(11,28,48,0.93) 100%)',
             }}
           />
         </div>
 
         <div
           data-reveal
-          className={activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}
-          style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '100px 24px 56px', width: '100%', transitionDelay: '90ms' }}
+          className={`relative z-[2] mx-auto w-full max-w-[1100px] px-6 pb-14 pt-[100px] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
+          style={{ transitionDelay: '90ms' }}
         >
           <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'rgba(185,28,28,0.2)',
-                border: '1px solid rgba(185,28,28,0.4)',
-                borderRadius: 9,
-                padding: '6px 14px',
-                marginBottom: 24,
-              }}
+            <Badge
+              variant="destructive"
+              className="mb-6 gap-2 border-red-700/40 bg-red-700/20 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-red-300"
             >
-              <Radio size={12} color="#F87171" />
-              <span style={{ color: '#FCA5A5', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Live in Barangays 251, 252, 256
-              </span>
-            </div>
+              <Radio size={12} className="text-red-400" />
+              {t('landing.hero.liveIn')}
+            </Badge>
 
-            <h1
-              style={{
-                color: '#FFFFFF',
-                fontSize: 'clamp(30px,6vw,56px)',
-                fontWeight: 900,
-                lineHeight: 1.1,
-                marginBottom: 14,
-                maxWidth: 760,
-              }}
-            >
-              EMPOWERING <span style={{ color: '#60A5FA' }}>TONDO</span> WITH INSTANT{' '}
-              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <h1 className="mb-3.5 max-w-[760px] text-[clamp(30px,6vw,56px)] font-black leading-[1.1] text-white">
+              EMPOWERING <span className="text-blue-400">TONDO</span> WITH INSTANT{' '}
+              <span className="inline-flex items-center">
                 <img
                   src="/tugon-wordmark-red.svg"
                   alt="TUGON"
-                  className="hero-wordmark-red"
-                  style={{ height: '1.2em', width: 'auto', display: 'inline-block' }}
+                  className="inline-block h-[1.2em] w-auto max-w-[min(35vw,248px)] translate-y-[0.16em] md:max-w-[min(35vw,248px)]"
                 />
               </span>
             </h1>
 
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 'clamp(14px,2vw,18px)', lineHeight: 1.55, maxWidth: 540, marginBottom: 22 }}>
-              Report. Track. Stay aware.
+            <p className="mb-6 max-w-[540px] text-[clamp(14px,2vw,18px)] leading-[1.55] text-white/[0.88]">
+              {t('landing.hero.subtagline')}
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
-              <button
+            <div className="mb-6 flex flex-wrap gap-3">
+              <Button
+                size="lg"
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-                style={{
-                  background: '#B91C1C',
-                  border: 'none',
-                  borderRadius: 10,
-                  padding: '13px 24px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className={`gap-2 rounded-lg bg-gradient-to-br from-[#5d0004] to-destructive text-sm font-bold ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
-                <AlertTriangle size={16} /> Report an Incident
-              </button>
-              <button
+                <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}
-                style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1.5px solid rgba(255,255,255,0.35)',
-                  borderRadius: 10,
-                  padding: '13px 24px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className={`gap-2 rounded-lg border-white/35 bg-white/[0.12] text-sm font-bold text-white hover:bg-white/20 ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
-                <CheckCircle2 size={16} /> Track Status
-              </button>
+                <CheckCircle2 size={16} /> {t('landing.hero.trackStatus')}
+              </Button>
             </div>
 
-            <button
+            {/* Hero stats strip */}
+            <div className="mb-5 mt-1 flex flex-wrap">
+              {([
+                { val: '3', labelKey: 'landing.hero.statBarangays' as const },
+                { val: '5', labelKey: 'landing.hero.statCategories' as const },
+                { val: '24/7', labelKey: 'landing.hero.statReporting' as const },
+              ]).map((stat, i, arr) => (
+                <React.Fragment key={stat.val}>
+                  <div className="flex items-center gap-2.5 pr-5">
+                    <span className="text-[22px] font-black tracking-[-0.02em] text-white">{stat.val}</span>
+                    <span className="whitespace-pre-line text-[11px] leading-[1.35] text-white/55">{t(stat.labelKey)}</span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="mr-5 w-px self-stretch bg-white/[0.15]" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            <Button
+              variant="ghost"
               onClick={() => navigateWithTransition('community', '/community-map', true)}
-              className={activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#FCD34D',
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                padding: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
+              className={`gap-1.5 px-0 text-[13px] font-bold text-amber-300 hover:bg-transparent hover:text-amber-200 ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
             >
-              <MapIcon size={14} /> View Community Map <ArrowRight size={14} />
-            </button>
+              <MapIcon size={14} /> {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
+            </Button>
           </div>
         </div>
 
@@ -655,6 +487,7 @@ function Hero() {
 
 function QuickActions() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
@@ -667,26 +500,26 @@ function QuickActions() {
 
   const actions = [
     {
-      title: 'Report Incident',
-      desc: 'Pin location, add evidence, submit report.',
+      title: t('landing.quickActions.reportTitle'),
+      desc: t('landing.quickActions.reportDesc'),
       icon: AlertTriangle,
-      color: '#B91C1C',
+      color: 'var(--severity-critical)',
       bg: '#FEE2E2',
       action: () => navigateAuthWithOverlay('/auth/register'),
     },
     {
-      title: 'Track Status',
-      desc: 'Monitor your report from start to resolution.',
+      title: t('landing.quickActions.trackTitle'),
+      desc: t('landing.quickActions.trackDesc'),
       icon: FileText,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       action: () => navigateAuthWithOverlay('/auth/login'),
     },
     {
-      title: 'View Community Map',
-      desc: 'See incidents near you in real-time.',
+      title: t('landing.quickActions.mapTitle'),
+      desc: t('landing.quickActions.mapDesc'),
       icon: MapIcon,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
       action: () => navigateAuthWithOverlay('/community-map'),
     },
@@ -695,224 +528,262 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal style={{ padding: '56px 24px', background: '#FFFFFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <SectionHeading
-          label="Quick Access"
-          title="Start With One Simple Action"
-          subtitle="Pick what you need right now."
+      <section id="quick-actions" data-reveal className="bg-background px-6 py-24">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            label={t('landing.quickActions.label')}
+            title={t('landing.quickActions.title')}
+            subtitle={t('landing.quickActions.subtitle')}
+          />
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {actions.map((item, index) => (
+              <Card
+                key={item.title}
+                data-reveal
+                data-reveal-slide="x"
+                data-reveal-dir="left"
+                className="group cursor-pointer border-l-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                style={{ borderLeftColor: item.color, transitionDelay: `${index * 90}ms` }}
+                onClick={item.action}
+              >
+                <CardContent className="flex flex-col gap-3 p-6">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex size-10 shrink-0 items-center justify-center rounded-lg"
+                      style={{ background: item.bg }}
+                    >
+                      <item.icon size={18} style={{ color: item.color }} />
+                    </div>
+                    <CardTitle className="text-base font-extrabold">{item.title}</CardTitle>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                  <div className="mt-auto flex justify-end">
+                    <Button variant="outline" size="sm" className="gap-1 text-xs font-extrabold">
+                      {t('landing.quickActions.open')} <ArrowRight size={12} />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function MapTeaser() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const go = () => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => navigate('/community-map'), 260);
+  };
+
+  const pins = [
+    { x: '20%', y: '28%', color: '#B91C1C', label: t('incident.type.crime'), delay: '0s' },
+    { x: '58%', y: '50%', color: '#B4730A', label: t('incident.type.noise'), delay: '0.4s' },
+    { x: '35%', y: '68%', color: '#0F766E', label: t('incident.type.pollution'), delay: '0.8s' },
+    { x: '72%', y: '30%', color: '#1E3A8A', label: t('incident.type.road_hazard'), delay: '1.2s' },
+  ];
+
+  return (
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <section
+        data-reveal
+        className="relative overflow-hidden bg-[#0F172A] px-6 py-24"
+      >
+        {/* Background grid */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
         />
 
-        <div
-          className="quick-actions-desktop"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            gap: 12,
-          }}
-        >
-          {actions.map((item, index) => (
-            <button
-              className="quick-action-btn"
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
-              key={item.title}
-              onClick={item.action}
-              style={{
-                textAlign: 'left',
-                padding: '18px 18px 16px',
-                minHeight: 176,
-                border: '1px solid rgba(255,255,255,0.38)',
-                borderRadius: 12,
-                background: item.color,
-                cursor: 'pointer',
-                transitionDelay: `${index * 90}ms`,
-                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={16} color="#FFFFFF" />
+        <div className="relative z-[1] mx-auto max-w-5xl">
+          <div className="flex flex-wrap items-center gap-12">
+
+            {/* Left: text */}
+            <div className="flex-[1_1_300px]">
+              <Badge
+                variant="outline"
+                className="mb-4 border-blue-500/30 bg-blue-500/[0.15] text-[11px] font-bold uppercase tracking-[0.06em] text-blue-300"
+              >
+                {t('landing.map.label')}
+              </Badge>
+              <h2 className="mb-3 text-[clamp(22px,4vw,30px)] font-extrabold leading-[1.25] text-white">
+                {t('landing.map.title').split('\n').map((line, i) => (
+                  <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
+                ))}
+              </h2>
+              <p className="mb-6 max-w-[380px] text-sm leading-[1.65] text-white/60">
+                {t('landing.map.desc')}
+              </p>
+              <Button
+                size="lg"
+                onClick={go}
+                className="gap-2 rounded-lg text-sm font-bold"
+              >
+                <MapIcon size={16} /> {t('landing.map.exploreBtn')} <ArrowRight size={14} />
+              </Button>
+            </div>
+
+            {/* Right: map preview visual */}
+            <div className="relative flex-[1_1_280px]">
+              <div
+                className="relative min-h-[230px] overflow-hidden rounded-xl border border-blue-500/[0.18] bg-[rgba(30,58,138,0.25)] p-7"
+              >
+                {/* Inner grid */}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-xl"
+                  style={{
+                    backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                  }}
+                />
+
+                {/* Incident pins */}
+                {pins.map((pin) => (
+                  <div
+                    key={pin.label}
+                    className="absolute flex flex-col items-center gap-[3px]"
+                    style={{
+                      left: pin.x, top: pin.y,
+                      transform: 'translate(-50%, -50%)',
+                      animation: `mapPinPulse 2.8s ease-in-out ${pin.delay} infinite alternate`,
+                    }}
+                  >
+                    <div
+                      className="size-[13px] rounded-full border-2 border-white/50"
+                      style={{
+                        background: pin.color,
+                        boxShadow: `0 0 10px ${pin.color}90`,
+                      }}
+                    />
+                    <span
+                      className="whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold text-white/85"
+                      style={{ background: 'rgba(15,23,42,0.82)' }}
+                    >
+                      {pin.label}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Footer label */}
+                <div
+                  className="absolute bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-blue-500/35 bg-[rgba(15,23,42,0.88)] px-3.5 py-[5px] text-[11px] font-bold text-blue-300"
+                >
+                  {t('landing.map.footer')}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>{item.desc}</div>
-              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-                <span className="quick-action-open">
-                  Open <ArrowRight size={12} />
-                </span>
-              </div>
-            </button>
-          ))}
+            </div>
+
+          </div>
         </div>
-
-        <div className="quick-actions-mobile" style={{ display: 'none', gap: 12 }}>
-          {actions.map((item) => (
-            <button
-              className="quick-action-btn"
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
-              key={item.title}
-              onClick={item.action}
-              style={{
-                width: '100%',
-                borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.38)',
-                background: item.color,
-                padding: '14px',
-                cursor: 'pointer',
-                transitionDelay: '100ms',
-                boxShadow: '0 8px 16px rgba(15,23,42,0.14)',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 162,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={15} color="#FFFFFF" />
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{item.title}</div>
-              </div>
-              <div style={{ textAlign: 'left', fontSize: 12, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45 }}>{item.desc}</div>
-              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-                <span className="quick-action-open">
-                  Open <ArrowRight size={12} />
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <style>{`
-          .quick-action-btn {
-            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
-          }
-
-          .quick-action-open {
-            color: #0F172A;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: #FFFFFF;
-            border: 1px solid rgba(15, 23, 42, 0.12);
-            border-radius: 8px;
-            padding: 5px 12px;
-          }
-
-          .quick-action-btn:hover,
-          .quick-action-btn:focus-visible {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 18px rgba(15,23,42,0.18) !important;
-            border-color: rgba(255,255,255,0.58) !important;
-            outline: none;
-          }
-
-          .quick-action-btn:active {
-            transform: translateY(0) scale(0.99);
-            box-shadow: 0 5px 12px rgba(15,23,42,0.12) !important;
-          }
-
-          @media (max-width: 768px) {
-            .quick-actions-desktop { display: none !important; }
-            .quick-actions-mobile { display: grid !important; }
-          }
-        `}</style>
-      </div>
       </section>
     </>
   );
 }
 
 function HowToUse() {
+  const { t } = useTranslation();
+
   const steps = [
     {
-      title: 'Submit Report',
-      detail: 'Pin location and attach photo or voice.',
+      title: t('landing.howItWorks.step1.sectionTitle'),
+      detail: t('landing.howItWorks.step1.detail'),
       icon: FileText,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
-      visual: 'Citizen',
+      visual: t('landing.howItWorks.step1.visual'),
     },
     {
-      title: 'Barangay Review',
-      detail: 'Officials validate and assign response.',
+      title: t('landing.howItWorks.step2.sectionTitle'),
+      detail: t('landing.howItWorks.step2.detail'),
       icon: Users,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
-      visual: 'Official',
+      visual: t('landing.howItWorks.step2.visual'),
     },
     {
-      title: 'Resolution',
-      detail: 'Track updates until closure.',
+      title: t('landing.howItWorks.step3.sectionTitle'),
+      detail: t('landing.howItWorks.step3.detail'),
       icon: CheckCircle2,
       color: '#059669',
       bg: '#D1FAE5',
-      visual: 'Outcome',
+      visual: t('landing.howItWorks.step3.visual'),
     },
   ];
 
   return (
-    <section id="how" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="how" data-reveal className="bg-muted px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
-          label="How It Works"
-          title="Three Simple Steps"
-          subtitle="Fast, guided, and trackable."
+          label={t('landing.howItWorks.label')}
+          title={t('landing.howItWorks.threeSteps')}
+          subtitle={t('landing.howItWorks.tagline')}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
+        {/* Community image banner */}
+        <div className="mb-8 overflow-hidden rounded-xl">
+          <img
+            src={COMMUNITY_IMAGE}
+            alt="Community collaboration"
+            className="h-48 w-full object-cover"
+          />
+        </div>
+
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {steps.map((step, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={step.title}
-              style={{
-                background: 'white',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 22,
-                transitionDelay: `${index * 90}ms`,
-                display: 'grid',
-                gap: 14,
-              }}
+              className="gap-0 border shadow-sm"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 12,
-                    background: step.bg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <step.icon size={24} color={step.color} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                      Step {index + 1}
+              <CardHeader className="gap-2.5 pb-0">
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex size-[50px] items-center justify-center rounded-xl"
+                      style={{ background: step.bg }}
+                    >
+                      <step.icon size={24} color={step.color} strokeWidth={2.5} />
                     </div>
-                    <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '2px 0 0' }}>{step.title}</h3>
+                    <div>
+                      <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+                        {t('landing.howItWorks.step', { number: String(index + 1) })}
+                      </div>
+                      <CardTitle className="mt-0.5 text-[17px] font-extrabold">{step.title}</CardTitle>
+                    </div>
                   </div>
+                  <Badge
+                    variant="outline"
+                    className="rounded-lg px-2 py-1 text-[11px] font-extrabold"
+                    style={{ color: step.color, background: step.bg, borderColor: `${step.color}33` }}
+                  >
+                    {step.visual}
+                  </Badge>
                 </div>
-                <span style={{ fontSize: 11, color: step.color, background: step.bg, borderRadius: 7, padding: '5px 9px', fontWeight: 800, border: `1px solid ${step.color}33` }}>
-                  {step.visual}
-                </span>
-              </div>
-              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.55, margin: 0 }}>{step.detail}</p>
-              <div style={{ marginTop: 2, height: 8, borderRadius: 5, background: '#E2E8F0', overflow: 'hidden' }}>
-                <span style={{ display: 'block', height: '100%', width: `${(index + 1) * 33}%`, borderRadius: 5, background: step.color }} />
-              </div>
-            </div>
+              </CardHeader>
+              <CardContent className="pt-3">
+                <p className="m-0 text-sm leading-[1.55] text-muted-foreground">{step.detail}</p>
+                <div className="mt-3 h-2 overflow-hidden rounded-[5px] bg-muted">
+                  <span
+                    className="block h-full rounded-[5px]"
+                    style={{ width: `${(index + 1) * 33}%`, background: step.color }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -922,135 +793,91 @@ function HowToUse() {
 
 function SupportedBarangays() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const barangays = [
-  {
-    name: 'Barangay 251',
-    captain: 'Reynaldo Angat',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1781 Almeda Street, Tondo, Manila',
-    responders: ['MDRRMO', 'BFP', 'PNP'],
-    color: '#1E3A8A',
-    light: '#EFF6FF',
-  },
-  {
-    name: 'Barangay 252',
-    captain: 'Leana Angat',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
-    responders: ['MDRRMO', 'PNP', 'EMS'],
-    color: '#B91C1C',
-    light: '#FEE2E2',
-  },
-  {
-    name: 'Barangay 256',
-    captain: 'Ramon "Peaches" Perez',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
-    responders: ['MDRRMO', 'BFP', 'EMS'],
-    color: '#B4730A',
-    light: '#FEF3C7',
-  },
-];
+    {
+      name: 'Barangay 251',
+      captain: 'Reynaldo Angat',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1781 Almeda Street, Tondo, Manila',
+      responders: ['MDRRMO', 'BFP', 'PNP'],
+      color: 'var(--primary)',
+      light: '#EFF6FF',
+    },
+    {
+      name: 'Barangay 252',
+      captain: 'Leana Angat',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
+      responders: ['MDRRMO', 'PNP', 'EMS'],
+      color: 'var(--severity-critical)',
+      light: '#FEE2E2',
+    },
+    {
+      name: 'Barangay 256',
+      captain: 'Ramon "Peaches" Perez',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
+      responders: ['MDRRMO', 'BFP', 'EMS'],
+      color: 'var(--severity-medium)',
+      light: '#FEF3C7',
+    },
+  ];
 
   return (
-    <section id="barangays" data-reveal style={{ padding: '88px 24px', background: '#1E3A8A' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="barangays" data-reveal className="bg-primary px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
-          label="Coverage"
-          title="Three Barangays, One Platform"
-          subtitle="Geofenced incident routing for Tondo communities."
+          label={t('landing.barangays.label')}
+          title={t('landing.barangays.subtitle')}
+          subtitle={t('landing.barangays.tagline')}
           light
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
           {barangays.map((item, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                borderRadius: 18,
-                padding: 28,
-                transitionDelay: `${index * 90}ms`,
-                textAlign: 'center',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
+              className="relative overflow-hidden border-2 border-white/20 bg-white/[0.1] text-center"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{
-                marginBottom: 18,
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
-                <div style={{
-                  width: 74,
-                  height: 74,
-                  borderRadius: 16,
-                  background: 'rgba(255,255,255,0.13)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid rgba(255,255,255,0.22)'
-                }}>
-                  <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
+              <CardContent className="p-7">
+                <div className="mb-[18px] flex justify-center">
+                  <div className="flex size-[74px] items-center justify-center rounded-2xl border-2 border-white/[0.22] bg-white/[0.13]">
+                    <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
+                  </div>
                 </div>
-              </div>
 
-              <h3 style={{ margin: '0 0 6px 0', color: 'white', fontSize: 20, fontWeight: 800 }}>{item.name}</h3>
-              <p style={{ margin: '0 0 6px 0', fontSize: 13, color: '#DBEAFE', fontWeight: 700 }}>Barangay Captain: {item.captain}</p>
-              <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#DBEAFE', fontWeight: 600 }}>{item.district}</p>
-              <p style={{ margin: '0 0 18px 0', fontSize: 12, color: '#BFDBFE', fontWeight: 500 }}>{item.hallAddress}</p>
+                <h3 className="mb-1.5 text-xl font-extrabold text-white">{item.name}</h3>
+                <p className="mb-1.5 text-[13px] font-bold text-blue-100">{t('landing.barangays.captain', { name: item.captain })}</p>
+                <p className="mb-1 text-xs font-semibold text-blue-100">{item.district}</p>
+                <p className="mb-[18px] text-xs font-medium text-blue-200">{item.hallAddress}</p>
 
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }}>
-                {item.responders.map(r => (
-                  <span key={r} style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    border: '1px solid rgba(255,255,255,0.2)'
-                  }}>
-                    {r}
-                  </span>
-                ))}
-              </div>
+                <div className="mb-5 flex flex-wrap justify-center gap-1.5">
+                  {item.responders.map(r => (
+                    <Badge
+                      key={r}
+                      variant="secondary"
+                      className="border border-white/20 bg-white/[0.15] text-[11px] font-bold text-white"
+                    >
+                      {r}
+                    </Badge>
+                  ))}
+                </div>
 
-              <button
-                onClick={() => navigate('/auth/register')}
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1.5px solid rgba(255,255,255,0.3)',
-                  borderRadius: 9,
-                  padding: '12px',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)';
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)';
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-                }}
-              >
-                Start Reporting <ChevronRight size={15} />
-              </button>
-            </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-1.5 border-white/30 bg-white/[0.12] text-[13px] font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white/20"
+                  onClick={() => navigate('/auth/register')}
+                >
+                  {t('landing.barangays.startReporting')} <ChevronRight size={15} />
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -1059,93 +886,92 @@ function SupportedBarangays() {
 }
 
 function SafetyTips() {
+  const { t } = useTranslation();
+
   const tips = [
     {
-      title: 'Clean Surroundings',
+      title: t('landing.safety.tip1.title'),
       icon: Shield,
       color: '#0F766E',
       bg: '#CCFBF1',
-      actions: ['Dispose waste properly', 'Keep drainage clear'],
+      actions: [t('landing.safety.tip1.action1'), t('landing.safety.tip1.action2')],
     },
     {
-      title: 'Noise Control',
+      title: t('landing.safety.tip2.title'),
       icon: Users,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
-      actions: ['Respect quiet hours', 'Record details safely'],
+      actions: [t('landing.safety.tip2.action1'), t('landing.safety.tip2.action2')],
     },
     {
-      title: 'Road Safety',
+      title: t('landing.safety.tip3.title'),
       icon: AlertTriangle,
-      color: '#B4730A',
+      color: 'var(--severity-medium)',
       bg: '#FEF3C7',
-      actions: ['Use marked crossings', 'Report hazards quickly'],
+      actions: [t('landing.safety.tip3.action1'), t('landing.safety.tip3.action2')],
     },
   ];
 
   return (
-    <section id="safety" data-reveal style={{ padding: '88px 24px', background: '#FFFFFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="safety" data-reveal className="bg-background px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
-          label="Awareness"
-          title="Community Safety Tips"
-          subtitle="Quick reminders for daily safety."
+          label={t('landing.safety.label')}
+          title={t('landing.safety.subtitle')}
+          subtitle={t('landing.safety.tagline')}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
+        {/* Safety image banner */}
+        <div className="mb-8 overflow-hidden rounded-xl">
+          <img
+            src={SAFETY_IMAGE}
+            alt="Community safety"
+            className="h-48 w-full object-cover"
+          />
+        </div>
+
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {tips.map((tip, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={tip.title}
-              style={{
-                border: '2px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 24,
-                background: 'white',
-                transitionDelay: `${index * 90}ms`,
-                textAlign: 'center'
-              }}
+              className="border shadow-sm text-center"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}>
-                <div style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 14,
-                  background: tip.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
-                </div>
-              </div>
-              <h3 style={{ fontSize: 17, color: '#1E293B', fontWeight: 800, margin: '0 0 12px 0' }}>{tip.title}</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
-                {tip.actions.map((action) => (
-                  <span
-                    key={action}
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: tip.color,
-                      background: tip.bg,
-                      padding: '6px 10px',
-                      borderRadius: 8,
-                      border: `1px solid ${tip.color}33`,
-                    }}
+              <CardContent className="p-6">
+                <div className="mb-3.5 flex justify-center">
+                  <div
+                    className="flex size-16 shrink-0 items-center justify-center rounded-xl"
+                    style={{ background: tip.bg }}
                   >
-                    {action}
-                  </span>
-                ))}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, color: '#475569', fontSize: 12, fontWeight: 700 }}>
-                <CheckCircle2 size={14} color={tip.color} />
-                Report incidents right away through TUGON.
-              </div>
-            </div>
+                    <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
+                  </div>
+                </div>
+                <h3 className="mb-3 text-[17px] font-extrabold text-foreground">{tip.title}</h3>
+                <div className="mb-3 flex flex-wrap justify-center gap-2">
+                  {tip.actions.map((action) => (
+                    <Badge
+                      key={action}
+                      variant="outline"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      style={{
+                        color: tip.color,
+                        background: tip.bg,
+                        borderColor: `${tip.color}33`,
+                      }}
+                    >
+                      {action}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs font-bold text-muted-foreground">
+                  <CheckCircle2 size={14} color={tip.color} />
+                  {t('landing.safety.reportTugon')}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -1154,96 +980,90 @@ function SafetyTips() {
 }
 
 function EmergencyHotlines() {
+  const { t } = useTranslation();
+
   const hotlines = [
-    { name: 'National Emergency', number: '911', note: 'Police, fire, medical', color: '#B91C1C', bg: '#FEE2E2' },
-    { name: 'PNP Hotline', number: '117', note: 'Law enforcement', color: '#1E3A8A', bg: '#DBEAFE' },
-    { name: 'Fire Protection', number: '160', note: 'Fire and rescue', color: '#B4730A', bg: '#FEF3C7' },
+    { name: t('landing.emergency.hotline1.name'), number: '911', note: t('landing.emergency.hotline1.note'), color: 'var(--severity-critical)', bg: '#FEE2E2' },
+    { name: t('landing.emergency.hotline2.name'), number: '117', note: t('landing.emergency.hotline2.note'), color: 'var(--primary)', bg: '#DBEAFE' },
+    { name: t('landing.emergency.hotline3.name'), number: '160', note: t('landing.emergency.hotline3.note'), color: 'var(--severity-medium)', bg: '#FEF3C7' },
   ];
 
   return (
-    <section id="hotlines" data-reveal style={{ padding: '88px 24px', background: '#F8FAFF' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <section id="hotlines" data-reveal className="bg-muted px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
-          label="Emergency Contacts"
-          title="Emergency Hotlines"
-          subtitle="Call first for urgent situations."
+          label={t('landing.emergency.label')}
+          title={t('landing.emergency.subtitle')}
+          subtitle={t('landing.emergency.tagline')}
         />
 
-        <div
+        <Card
           data-reveal
-          style={{
-            background: '#B91C1C',
-            border: '1px solid #991B1B',
-            borderRadius: 12,
-            padding: '20px 22px',
-            marginBottom: 18,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 14,
-            flexWrap: 'wrap',
-            transitionDelay: '80ms',
-          }}
+          className="mb-4 border-destructive bg-severity-critical shadow-md"
+          style={{ transitionDelay: '80ms' }}
         >
-          <div>
-            <div style={{ color: 'white', fontSize: 20, fontWeight: 800, marginBottom: 4 }}>Emergency? Call 911</div>
-            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Then file details in TUGON.</div>
-          </div>
-          <a
-            href="tel:911"
-            style={{
-              background: 'white',
-              color: '#B91C1C',
-              textDecoration: 'none',
-              borderRadius: 8,
-              padding: '10px 16px',
-              fontSize: 14,
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <Phone size={14} /> Call Now
-          </a>
-        </div>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3.5 p-6">
+            <div>
+              <div className="mb-1 text-xl font-extrabold text-white">{t('landing.emergency.callNow')}</div>
+              <div className="text-sm text-white/90">{t('landing.emergency.callThenFile')}</div>
+            </div>
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="gap-1.5 border-white/20 bg-white font-extrabold text-severity-critical hover:bg-white/90 hover:text-severity-critical"
+            >
+              <a href="tel:911">
+                <Phone size={14} /> {t('landing.emergency.callNowBtn')}
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
           {hotlines.map((item, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 14, padding: 16, transitionDelay: `${index * 90}ms` }}
+              className="border shadow-sm"
+              style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Phone size={15} color={item.color} />
+              <CardContent className="p-5">
+                <div className="mb-2 flex items-center gap-2">
+                  <div
+                    className="flex size-[34px] items-center justify-center rounded-lg"
+                    style={{ background: item.bg }}
+                  >
+                    <Phone size={15} color={item.color} />
+                  </div>
+                  <h3 className="m-0 text-[15px] font-bold text-foreground">{item.name}</h3>
                 </div>
-                <h3 style={{ margin: 0, fontSize: 15, color: '#1E293B', fontWeight: 700 }}>{item.name}</h3>
-              </div>
-              <div style={{ fontSize: 24, lineHeight: 1.1, color: item.color, fontWeight: 800, marginBottom: 6 }}>{item.number}</div>
-              <p style={{ margin: '0 0 10px', fontSize: 13, color: '#64748B' }}>{item.note}</p>
-              <a
-                href={`tel:${item.number}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  textDecoration: 'none',
-                  color: item.color,
-                  border: `1px solid ${item.color}33`,
-                  background: item.bg,
-                  borderRadius: 8,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontWeight: 800,
-                }}
-              >
-                <Phone size={13} /> Call {item.number}
-              </a>
-            </div>
+                <div
+                  className="mb-1.5 text-2xl font-extrabold leading-[1.1]"
+                  style={{ color: item.color }}
+                >
+                  {item.number}
+                </div>
+                <p className="mb-2.5 text-[13px] text-muted-foreground">{item.note}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="gap-1.5 text-xs font-extrabold"
+                  style={{
+                    color: item.color,
+                    borderColor: `${item.color}33`,
+                    background: item.bg,
+                  }}
+                >
+                  <a href={`tel:${item.number}`}>
+                    <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -1253,6 +1073,7 @@ function EmergencyHotlines() {
 
 function Footer() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
 
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -1265,115 +1086,77 @@ function Footer() {
   };
 
   const quickLinks = [
-    { label: 'Register', action: () => navigateAuthWithOverlay('/auth/register') },
-    { label: 'Login', action: () => navigateAuthWithOverlay('/auth/login') },
-    { label: 'Community Map', action: () => navigateAuthWithOverlay('/community-map') },
+    { label: t('landing.footer.register'), action: () => navigateAuthWithOverlay('/auth/register') },
+    { label: t('landing.footer.login'), action: () => navigateAuthWithOverlay('/auth/login') },
+    { label: t('landing.footer.communityMap'), action: () => navigateAuthWithOverlay('/community-map') },
   ];
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <footer style={{ background: '#0F172A', color: 'rgba(255,255,255,0.7)' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '38px 24px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 22, marginBottom: 22 }}>
-          <div>
-            <button
-              onClick={() => navigate('/')}
-              aria-label="Go to TUGON home"
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                marginBottom: 12,
-              }}
-            >
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Tondo Emergency Response"
-                style={{ height: 36, width: 'auto', display: 'block' }}
-              />
-            </button>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.74)', lineHeight: 1.62, margin: 0, maxWidth: 500 }}>
-              A web-based incident management and decision support platform for Barangays 251, 252, and 256 in Tondo, Manila.
-            </p>
+      <footer className="bg-[#0F172A] text-white/70">
+        <div className="mx-auto max-w-5xl px-6 pb-6 pt-10">
+          <div className="mb-6 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+            <div>
+              <button
+                onClick={() => navigate('/')}
+                aria-label="Go to TUGON home"
+                className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
+              >
+                <img
+                  src="/tugon-header-logo.svg"
+                  alt="TUGON Tondo Emergency Response"
+                  className="block h-9 w-auto"
+                />
+              </button>
+              <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-white/[0.74]">
+                {t('landing.footer.desc')}
+              </p>
+            </div>
+
+            <div>
+              <div className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-white">
+                {t('landing.footer.citizenAccess')}
+              </div>
+              <div className="mb-3 flex flex-wrap gap-2.5">
+                {quickLinks.map((link) => (
+                  <Button
+                    key={link.label}
+                    variant="ghost"
+                    size="sm"
+                    onClick={link.action}
+                    className="min-h-[40px] border border-white/[0.12] bg-white/[0.06] text-[13px] font-semibold text-blue-100 hover:bg-white/[0.12]"
+                  >
+                    {link.label}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="min-h-[40px] gap-1.5 border border-red-500/35 bg-red-800/[0.18] text-xs font-bold tracking-[0.04em] text-red-300 hover:bg-red-800/30"
+              >
+                <a href="tel:911">
+                  <Phone size={13} /> {t('landing.footer.emergencyCall')}
+                </a>
+              </Button>
+            </div>
           </div>
 
-          <div>
-            <div style={{ color: 'white', fontSize: 12, fontWeight: 700, marginBottom: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Citizen Access
-            </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-              {quickLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={link.action}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    color: '#DBEAFE',
-                    cursor: 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
-            <a
-              href="tel:911"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                background: 'rgba(185,28,28,0.18)',
-                border: '1px solid rgba(239,68,68,0.35)',
-                color: '#FCA5A5',
-                padding: '7px 10px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-              }}
-            >
-              <Phone size={13} /> Emergency: 911
-            </a>
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-white/45">
+            <span>&copy; {year} TUGON. {t('landing.footer.tagline')}</span>
+            <span className="text-white/55">{t('landing.footer.location')}</span>
           </div>
         </div>
-
-        <div
-          style={{
-            borderTop: '1px solid rgba(255,255,255,0.08)',
-            paddingTop: 14,
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.45)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            gap: 8,
-          }}
-        >
-          <span>© {year} TUGON. Digital support tool for community reporting and response coordination.</span>
-          <span style={{ color: 'rgba(255,255,255,0.55)' }}>Barangays 251, 252, 256 · Tondo, Manila</span>
-        </div>
-      </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          footer button, footer a { min-height: 40px; }
-        }
-      `}</style>
       </footer>
     </>
   );
 }
 
 export default function Landing() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
     if (!revealItems.length) {
@@ -1437,22 +1220,15 @@ export default function Landing() {
   }, []);
 
   return (
-    <div
-      style={{
-        fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
-        width: '100%',
-        maxWidth: '100vw',
-        overflowX: 'clip',
-        touchAction: 'pan-y',
-      }}
-    >
+    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:'Roboto','Helvetica_Neue',Arial,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
-        Skip to main content
+        {t('landing.skipToMain')}
       </a>
       <Navbar />
       <main id="landing-main-content">
         <Hero />
         <QuickActions />
+        <MapTeaser />
         <HowToUse />
         <SupportedBarangays />
         <SafetyTips />
@@ -1497,6 +1273,11 @@ export default function Landing() {
           transition: opacity 180ms ease, transform 180ms ease;
         }
 
+        @keyframes mapPinPulse {
+          from { transform: translate(-50%, -50%) translateY(0px); }
+          to   { transform: translate(-50%, -50%) translateY(-6px); }
+        }
+
         .skip-link {
           position: fixed;
           left: 12px;
@@ -1504,7 +1285,7 @@ export default function Landing() {
           z-index: 1200;
           background: #FFFFFF;
           color: #0F172A;
-          border: 2px solid #1E3A8A;
+          border: 2px solid var(--primary);
           border-radius: 8px;
           padding: 8px 12px;
           text-decoration: none;
@@ -1569,8 +1350,8 @@ export default function Landing() {
           inset: -6px;
           border-radius: 9999px;
           border: 4px solid rgba(30, 58, 138, 0.16);
-          border-top-color: #B91C1C;
-          border-right-color: #1E3A8A;
+          border-top-color: var(--severity-critical);
+          border-right-color: var(--primary);
           animation: authRedirectSpin 0.9s linear infinite;
         }
 
