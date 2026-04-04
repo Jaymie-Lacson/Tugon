@@ -13,6 +13,10 @@ import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { BottomNav, type BottomNavItem } from './BottomNav';
+import { Button } from './ui/button';
+import { Separator } from './ui/separator';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
 import { useTranslation } from '../i18n';
 import { officialBottomNavDefs, officialSidebarNavDefs } from '../data/navigationConfig';
 
@@ -163,10 +167,10 @@ function Layout() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
+    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-72 shrink-0 flex-col border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] lg:flex">
+      <aside className="hidden w-72 shrink-0 flex-col border-r bg-sidebar lg:flex">
         <div className="px-5 pb-5 pt-6">
           <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="no-underline">
             <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
@@ -198,11 +202,11 @@ function Layout() {
                 to={item.path}
                 className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                   active
-                    ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                    : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                    ? 'bg-accent text-accent-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
-                <item.icon size={16} className={active ? 'text-primary' : 'text-[var(--outline)]'} />
+                <item.icon size={16} className={active ? 'text-primary' : 'text-muted-foreground'} />
                 <span className={`text-[13px] ${active ? 'font-bold' : 'font-medium'}`}>
                   {item.label}
                 </span>
@@ -215,8 +219,8 @@ function Layout() {
               to="/app/settings"
               className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                 settingsActive
-                  ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                  : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
               <Settings size={16} className={settingsActive ? 'text-primary' : 'text-[var(--outline)]'} />
@@ -228,33 +232,35 @@ function Layout() {
         </nav>
 
         <div className="px-4 pb-3">
-          <button
-            type="button"
+          <Button
             onClick={() => navigate('/app/incidents')}
-            className="btn-gradient-primary shadow-ambient w-full cursor-pointer rounded-xl border-none px-4 py-3 text-sm font-bold"
+            className="w-full h-11 font-bold"
+            size="lg"
           >
             New Report
-          </button>
+          </Button>
         </div>
 
-        <div className="border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
+        <Separator />
+        <div className="bg-card px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
               {userInitials}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
-              <div className="text-[10px] text-[var(--outline)]">{userRoleLabel}</div>
+              <div className="truncate text-xs font-semibold text-foreground">{userFullName}</div>
+              <div className="text-[10px] text-muted-foreground">{userRoleLabel}</div>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleSignOut}
               aria-label={t('common.signOut')}
               title={t('common.signOut')}
-              className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)]"
+              className="size-8"
             >
               <LogOut size={15} />
-            </button>
+            </Button>
           </div>
         </div>
       </aside>
@@ -304,8 +310,8 @@ function Layout() {
                     onClick={() => setMobileDrawerOpen(false)}
                     className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                       active
-                        ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                        : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                        ? 'bg-accent text-accent-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                   >
                     <item.icon size={16} className={active ? 'text-primary' : 'text-[var(--outline)]'} />
@@ -322,8 +328,8 @@ function Layout() {
                   onClick={() => setMobileDrawerOpen(false)}
                   className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                     settingsActive
-                      ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                      : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                      ? 'bg-accent text-accent-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
                   <Settings size={16} className={settingsActive ? 'text-primary' : 'text-[var(--outline)]'} />
@@ -373,10 +379,11 @@ function Layout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+        <header className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b bg-card px-4 lg:px-5">
           <div className="flex items-center gap-2 lg:hidden">
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="icon"
               aria-controls="layout-mobile-drawer"
               aria-expanded={mobileDrawerOpen}
               aria-label="Open navigation menu"
@@ -385,37 +392,37 @@ function Layout() {
                 setProfileMenuOpen(false);
                 setNotificationsOpen(false);
               }}
-              className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)]"
+              className="size-9"
             >
               <Menu size={18} />
-            </button>
+            </Button>
             <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
           </div>
 
           <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
-            <div className="flex items-center gap-1.5 text-xs text-[var(--outline)]">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="font-semibold text-primary">TUGON</span>
               <ChevronRight size={12} />
-              <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
+              <span className="font-semibold text-foreground">{currentPage?.label}</span>
             </div>
-            <div className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
-              <Search size={14} className="shrink-0 text-[var(--outline)]" />
-              <input
+            <div className="relative ml-3 min-w-0 flex-1">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
                 type="search"
                 placeholder="Search incidents, barangays, or reports..."
-                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+                className="h-9 pl-9 text-xs"
               />
             </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
+            <Badge variant="outline" className="hidden gap-2 xl:inline-flex">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
               System Online
-            </div>
+            </Badge>
             <div className="hidden text-right lg:block">
-              <div className="text-[13px] font-semibold text-[var(--on-surface)]"><LiveClock /></div>
-              <div className="text-[10px] text-[var(--outline)]">
+              <div className="text-[13px] font-semibold text-foreground"><LiveClock /></div>
+              <div className="text-[10px] text-muted-foreground">
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
@@ -458,13 +465,13 @@ function Layout() {
                 <div
                   role="menu"
                   aria-label="Profile actions"
-                  className="absolute right-0 top-11 z-[2300] w-[190px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated"
+                  className="absolute right-0 top-11 z-[2300] w-[190px] overflow-hidden rounded-lg border bg-popover shadow-lg"
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
-                    className="w-full cursor-pointer border-none border-b border-[var(--outline-variant)]/30 bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)]"
+                    className="w-full cursor-pointer border-none border-b border-border bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-foreground hover:bg-accent transition-colors"
                   >
                     {t('common.profile')}
                   </button>

@@ -29,6 +29,9 @@ import { citizenReportsApi } from '../services/citizenReportsApi';
 import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 interface CitizenMyReport {
@@ -243,13 +246,15 @@ function StatCard({
 }) {
   const tone = statToneClass[resolveAccentTone(accent)];
   return (
-    <div className={`bg-white rounded-xl p-3 min-w-0 w-full flex flex-col gap-1 shadow-sm ${tone.card}`}>
-      <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5 ${tone.icon}`}>
-        {icon}
-      </div>
-      <div className="font-extrabold text-[var(--on-surface)] text-xl leading-none">{value}</div>
-      <div className="text-[var(--on-surface-variant)] text-[11px] font-medium">{label}</div>
-    </div>
+    <Card className={`min-w-0 w-full ${tone.card}`}>
+      <CardContent className="p-3 flex flex-col gap-1">
+        <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5 ${tone.icon}`}>
+          {icon}
+        </div>
+        <div className="font-extrabold text-foreground text-xl leading-none">{value}</div>
+        <div className="text-muted-foreground text-[11px] font-medium">{label}</div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -271,29 +276,31 @@ function QuickActionCard({
   const { t } = useTranslation();
   const tone = quickActionToneClass[resolveAccentTone(accent)];
   return (
-    <button
-      onClick={onClick}
-      className={`w-full cursor-pointer rounded-xl px-4 py-[18px] text-left transition-transform duration-150 hover:-translate-y-0.5 flex flex-col items-start gap-2 ${
+    <Card
+      className={`w-full cursor-pointer transition-transform duration-150 hover:-translate-y-0.5 ${
         featured
           ? 'border-0 bg-primary text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]'
-          : `shadow-[0_1px_4px_rgba(0,0,0,0.06)] ${tone.card}`
+          : tone.card
       }`}
+      onClick={onClick}
     >
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${featured ? 'bg-white/25 text-white' : tone.icon}`}>
-        {icon}
-      </div>
-      <div>
-        <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-[var(--on-surface)]'}`}>
-          {label}
+      <CardContent className="p-4 py-[18px] flex flex-col items-start gap-2">
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${featured ? 'bg-white/25 text-white' : tone.icon}`}>
+          {icon}
         </div>
-        <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-[var(--on-surface-variant)]'}`}>
-          {sublabel}
+        <div>
+          <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-foreground'}`}>
+            {label}
+          </div>
+          <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-muted-foreground'}`}>
+            {sublabel}
+          </div>
         </div>
-      </div>
-      <div className={`mt-auto flex items-center gap-[3px] text-[11px] font-semibold ${featured ? 'text-white/80' : tone.cta}`}>
-        {t('citizen.dashboard.tapToOpen')} <ArrowRight size={11} />
-      </div>
-    </button>
+        <div className={`mt-auto flex items-center gap-[3px] text-[11px] font-semibold ${featured ? 'text-white/80' : tone.cta}`}>
+          {t('citizen.dashboard.tapToOpen')} <ArrowRight size={11} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -790,17 +797,17 @@ function HomeTab({
           {t('citizen.dashboard.trackReports')}
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
+          <Badge variant="outline" className="bg-white/[0.14] border-white/[0.24] text-white text-[11px] font-semibold">
             {barangayLabel}
-          </span>
-          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
+          </Badge>
+          <Badge variant="outline" className="bg-white/[0.14] border-white/[0.24] text-white text-[11px] font-semibold">
             {todayLabel}
-          </span>
+          </Badge>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <Card className="p-3 shadow-sm">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
@@ -823,46 +830,48 @@ function HomeTab({
             accent="var(--primary)"
           />
         </div>
-      </section>
+      </Card>
 
       {/* Verification prompt */}
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
-        <section
-          className={`rounded-2xl p-3.5 shadow-[0_4px_16px_rgba(15,23,42,0.06)] ${verificationSummary.surfaceClass}`}
-        >
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div className={`font-bold text-[15px] ${verificationSummary.titleClass}`}>
-                {verificationSummary.title}
+        <Card className={`shadow-sm ${verificationSummary.surfaceClass}`}>
+          <CardContent className="p-3.5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <div className={`font-bold text-[15px] ${verificationSummary.titleClass}`}>
+                  {verificationSummary.title}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {verificationSummary.detail}
+                </div>
               </div>
-              <div className="text-xs text-[var(--on-surface-variant)] mt-1">
-                {verificationSummary.detail}
-              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate('/citizen/verification')}
+                className="whitespace-nowrap"
+              >
+                {t('citizen.dashboard.openVerification')}
+              </Button>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/citizen/verification')}
-              className="border-0 rounded-[10px] bg-primary text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
-            >
-              {t('citizen.dashboard.openVerification')}
-            </button>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <Card className="shadow-sm p-3">
         <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div className="font-bold text-[var(--on-surface)] text-base">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-xs text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="font-bold text-foreground text-base">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-xs text-muted-foreground">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setActiveTab('map')}
-            className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
+            className="gap-[5px] text-xs font-bold"
           >
             {t('citizen.dashboard.openFullMap')} <ArrowRight size={12} />
-          </button>
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -918,11 +927,11 @@ function HomeTab({
             </div>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* Quick Actions */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
+      <Card className="shadow-sm p-3">
+        <div className="font-bold text-base text-foreground mb-2.5">{t('citizen.dashboard.quickActions')}</div>
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5"
         >
@@ -956,18 +965,20 @@ function HomeTab({
             onClick={() => setActiveTab('profile')}
           />
         </div>
-      </section>
+      </Card>
 
       {/* Recent activity */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <Card className="shadow-sm p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <div className="font-bold text-base text-slate-900">{t('citizen.dashboard.recentReportActivity')}</div>
-          <button
-            className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
+          <div className="font-bold text-base text-foreground">{t('citizen.dashboard.recentReportActivity')}</div>
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => navigate('/citizen/my-reports')}
+            className="gap-1 text-xs font-bold p-0 h-auto"
           >
             {t('common.viewAll')} <ChevronRight size={13} />
-          </button>
+          </Button>
         </div>
         <div className="border border-slate-100 rounded-xl px-3 py-1">
           {myReports.slice(0, 3).map((report) => (
@@ -979,11 +990,11 @@ function HomeTab({
             </div>
           )}
         </div>
-      </section>
+      </Card>
 
       {/* Emergency contacts */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
+      <Card className="shadow-sm p-3">
+        <div className="font-bold text-base text-foreground mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
         <div className="flex flex-col gap-2">
           {[
             { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-[var(--error)]', iconTone: 'bg-[var(--error-container)] text-[var(--error)]' },
@@ -1006,7 +1017,7 @@ function HomeTab({
             </a>
           ))}
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

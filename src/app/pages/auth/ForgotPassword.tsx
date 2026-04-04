@@ -58,20 +58,20 @@ export default function ForgotPassword() {
             <CheckCircle2 size={32} color="#059669" />
           </div>
           <div className="text-emerald-800 text-[17px] font-extrabold mb-2">{t('auth.forgotPassword.codeSentTitle')}</div>
-          <p className="text-slate-500 text-[13px] leading-relaxed mb-6">
+          <p className="text-muted-foreground text-[13px] leading-relaxed mb-6">
             {t('auth.forgotPassword.codeSentDesc', { phone })}
           </p>
 
           <button
             onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
-            className="w-full py-3.5 bg-primary border-none rounded-[var(--radius-lg)] text-white text-sm font-bold cursor-pointer flex items-center justify-center gap-2 font-[inherit] mb-3"
+            className="w-full py-3.5 bg-primary border-none rounded-lg text-white text-sm font-bold cursor-pointer flex items-center justify-center gap-2 font-[inherit] mb-3 hover:bg-primary/90 transition-colors"
           >
             <ArrowRight size={15} /> {t('auth.forgotPassword.enterCode')}
           </button>
 
           <button
             onClick={() => setSent(false)}
-            className="w-full py-3 bg-blue-50 border-[1.5px] border-blue-200 rounded-[var(--radius-lg)] text-primary text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5 font-[inherit]"
+            className="w-full py-3 bg-muted border border-border rounded-lg text-primary text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5 font-[inherit] hover:bg-accent transition-colors"
           >
             <RefreshCw size={13} /> {t('auth.forgotPassword.differentNumber')}
           </button>
@@ -105,7 +105,7 @@ export default function ForgotPassword() {
       <div className="text-center mt-5">
         <button
           onClick={() => navigate('/auth/login')}
-          className="bg-transparent border-none text-slate-500 text-sm cursor-pointer inline-flex items-center gap-1.5 font-[inherit]"
+          className="bg-transparent border-none text-muted-foreground text-sm cursor-pointer inline-flex items-center gap-1.5 font-[inherit] hover:text-foreground"
         >
           <ArrowLeft size={14} /> {t('auth.forgotPassword.backToLogin')} <span className="text-primary font-bold ml-0.5">{t('auth.login.submit')}</span>
         </button>

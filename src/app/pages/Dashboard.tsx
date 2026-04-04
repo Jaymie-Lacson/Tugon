@@ -13,6 +13,9 @@ import {
 } from 'recharts';
 import { type Incident, incidentTypeConfig, isIncidentVisibleOnMap } from '../data/incidents';
 import { IncidentMap, type HeatmapClusterOverlay } from '../components/IncidentMap';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
@@ -66,29 +69,31 @@ function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICa
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
   const trendColor = accent === 'var(--severity-critical)' ? 'var(--severity-critical)' : accent === '#059669' ? '#059669' : 'var(--severity-medium)';
   return (
-    <div className="card-lifted flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl px-5 py-[18px]">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--on-surface-variant)]">{title}</div>
-          <div className="text-[30px] font-black leading-none text-[var(--on-surface)]">{value}</div>
+    <Card className="min-w-0 flex-1">
+      <CardContent className="flex flex-col gap-2.5 px-5 py-[18px]">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</div>
+            <div className="text-[30px] font-black leading-none text-foreground">{value}</div>
+          </div>
+          <div
+            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg"
+            style={{ background: bgLight, color: accent }}
+          >
+            {icon}
+          </div>
         </div>
-        <div
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px]"
-          style={{ background: bgLight, color: accent }}
-        >
-          {icon}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground">{subtitle}</span>
+          {trend && (
+            <Badge variant="outline" className="gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
+              <TrendIcon size={12} />
+              {trend.val}
+            </Badge>
+          )}
         </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-[var(--outline)]">{subtitle}</span>
-        {trend && (
-          <span className="flex items-center gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
-            <TrendIcon size={12} />
-            {trend.val}
-          </span>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -13,6 +13,9 @@ import { officialReportsApi } from '../../services/officialReportsApi';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../../utils/mapCategoryLabels';
 import type { IncidentType } from '../../data/incidents';
+import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {

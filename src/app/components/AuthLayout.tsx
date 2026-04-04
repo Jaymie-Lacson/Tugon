@@ -2,6 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router';
 import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { cn } from './ui/utils';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -19,7 +24,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-dvh w-full bg-[var(--surface)]">
+    <div className="flex min-h-dvh w-full bg-background">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[linear-gradient(150deg,#00194f_0%,#00236f_40%,#1e3a8a_100%)] lg:flex">
         <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
@@ -89,19 +94,21 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
             <LanguageToggle />
           </div>
 
-          <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-6 shadow-ambient sm:p-8 lg:p-10">
-            <div className="mb-6">
-              <h1 className="text-[28px] font-black tracking-[-0.03em] text-[var(--on-surface)]">{title}</h1>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--on-surface-variant)]">{subtitle}</p>
-            </div>
-            {children}
-          </div>
+          <Card className="shadow-lg border-0 bg-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[28px] font-black tracking-[-0.03em]">{title}</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">{subtitle}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {children}
+            </CardContent>
+          </Card>
 
           {topAction && (
             <div className="mt-4 flex justify-center">{topAction}</div>
           )}
 
-          <div className="mt-5 text-center text-[10px] text-[var(--outline)]">
+          <div className="mt-5 text-center text-[10px] text-muted-foreground">
             <span>Privacy</span>
             <span className="mx-2">|</span>
             <span>Terms</span>
@@ -136,55 +143,53 @@ export function InputField({
   label, type = 'text', placeholder, value, onChange,
   icon, rightElement, error, hint, maxLength, inputMode, autoComplete, autoFocus,
 }: InputFieldProps) {
-  const [focused, setFocused] = React.useState(false);
   const autoCompleteProps = autoComplete ? { autoComplete } : {};
 
   return (
     <div className="mb-5">
-      <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
+      <Label className="mb-1.5 text-xs font-semibold text-muted-foreground">
         {label}
-      </label>
-      <div
-        className={`flex items-center gap-2 rounded-xl px-3.5 py-3 transition-all ${
-          error
-            ? 'bg-red-50 shadow-[inset_0_-2px_0_#dc2626]'
-            : focused
-              ? 'bg-[var(--surface-container-low)] shadow-[inset_0_-2px_0_var(--primary),0_0_0_2px_rgba(0,35,111,0.12)]'
-              : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_rgba(68,70,81,0.22)]'
-        }`}
-      >
+      </Label>
+      <div className="relative">
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--outline)]'}`}>
+          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
             {icon}
           </div>
         )}
-        <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+        <Input
+          className={cn(
+            'h-11 rounded-xl bg-muted/50',
+            icon && 'pl-10',
+            rightElement && 'pr-10',
+            error && 'border-destructive focus-visible:ring-destructive/20',
+          )}
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           maxLength={maxLength}
           inputMode={inputMode}
           name={autoComplete ?? label.toLowerCase().replace(/\s+/g, '-')}
           autoFocus={autoFocus}
           {...autoCompleteProps}
         />
-        {rightElement && <div className="shrink-0">{rightElement}</div>}
+        {rightElement && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {rightElement}
+          </div>
+        )}
       </div>
-      {error && <div className="mt-1.5 text-[11px] font-semibold text-red-700">! {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
+      {error && <div className="mt-1.5 text-[11px] font-semibold text-destructive">! {error}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px] text-muted-foreground">{hint}</div>}
     </div>
   );
 }
 
-const BUTTON_COLORS: Record<string, string> = {
+const BUTTON_VARIANT_MAP: Record<string, string> = {
   '#1e3a8a': 'btn-gradient-primary shadow-ambient',
-  '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_16px_rgba(5,150,105,0.24)]',
-  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_4px_16px_rgba(180,115,10,0.24)]',
-  '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_4px_16px_rgba(185,28,28,0.24)]',
+  '#059669': 'bg-emerald-600 hover:bg-emerald-700',
+  '#b4730a': 'bg-severity-medium hover:bg-[#A16309]',
+  '#b91c1c': 'bg-red-700 hover:bg-red-800',
 };
 
 interface PrimaryButtonProps {
@@ -197,17 +202,18 @@ interface PrimaryButtonProps {
 }
 
 export function PrimaryButton({ children, onClick, loading = false, disabled = false, type = 'button', color = '#1E3A8A' }: PrimaryButtonProps) {
-  const colorClasses = BUTTON_COLORS[color.toLowerCase()] || BUTTON_COLORS['#1e3a8a'];
+  const colorClasses = BUTTON_VARIANT_MAP[color.toLowerCase()] || BUTTON_VARIANT_MAP['#1e3a8a'];
 
   return (
-    <button
-      className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-all ${colorClasses} disabled:cursor-not-allowed disabled:opacity-55`}
+    <Button
+      className={cn('w-full h-12 text-sm font-bold gap-2', colorClasses)}
+      size="lg"
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
     >
       {loading ? <span className="size-5 animate-spin rounded-full border-2 border-white/35 border-t-white" /> : children}
-    </button>
+    </Button>
   );
 }
 
@@ -218,7 +224,7 @@ interface AuthProgressStepperProps {
 
 export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressStepperProps) {
   return (
-    <div className={`${className} flex items-center`}>
+    <div className={cn(className, 'flex items-center')}>
       {steps.flatMap((step, idx) => {
         const isDone = step.status === 'done';
         const isActive = step.status === 'active';
@@ -226,24 +232,22 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
         const items = [
           <div key={`step-${idx}`} className="flex flex-1 flex-col items-center">
             <div
-              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[12px] font-bold ${
-                isDone
-                  ? 'bg-emerald-600 text-white'
-                  : isActive
-                    ? 'bg-primary text-white'
-                    : 'bg-[var(--surface-container-high)] text-[var(--outline)]'
-              }`}
+              className={cn(
+                'mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[12px] font-bold',
+                isDone && 'bg-emerald-600 text-white',
+                isActive && 'bg-primary text-primary-foreground',
+                !isDone && !isActive && 'bg-muted text-muted-foreground',
+              )}
             >
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
             </div>
             <span
-              className={`text-[10px] ${
-                isDone
-                  ? 'text-emerald-600'
-                  : isActive
-                    ? 'font-bold text-primary'
-                    : 'text-[var(--outline)]'
-              }`}
+              className={cn(
+                'text-[10px]',
+                isDone && 'text-emerald-600',
+                isActive && 'font-bold text-primary',
+                !isDone && !isActive && 'text-muted-foreground',
+              )}
             >
               {step.label}
             </span>
@@ -254,7 +258,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
           items.push(
             <div
               key={`connector-${idx}`}
-              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-[var(--surface-container-high)]'}`}
+              className={cn('mb-[18px] h-0.5 flex-1', isDone ? 'bg-emerald-600' : 'bg-muted')}
             />,
           );
         }

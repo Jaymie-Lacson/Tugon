@@ -178,7 +178,7 @@ export default function Verify() {
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
         >
           <ArrowLeft size={14} />
           <House size={14} />
@@ -195,19 +195,19 @@ export default function Verify() {
       />
 
       {/* Phone info pill */}
-      <div className="mb-7 flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-sky-200 bg-sky-50 p-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+      <div className="mb-7 flex items-center gap-2.5 rounded-lg border bg-muted/50 p-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Phone size={16} className="text-primary" />
         </div>
         <div>
-          <div className="text-[13px] font-bold text-slate-800">{displayPhone}</div>
-          <div className="text-[11px] text-sky-700">{t('auth.verify.otpSent')}</div>
+          <div className="text-[13px] font-bold text-foreground">{displayPhone}</div>
+          <div className="text-[11px] text-muted-foreground">{t('auth.verify.otpSent')}</div>
         </div>
       </div>
 
       {/* OTP boxes */}
       <div>
-        <label className="mb-3 block text-xs font-semibold text-gray-700">
+        <label className="mb-3 block text-xs font-semibold text-muted-foreground">
           {t('auth.verify.codeLabel')}
         </label>
         <div className="mb-2 flex justify-center gap-2.5" onPaste={handlePaste}>
@@ -221,27 +221,27 @@ export default function Verify() {
               value={digit}
               onChange={e => handleDigit(idx, e.target.value)}
               onKeyDown={e => handleKeyDown(idx, e)}
-              className={`w-[52px] h-[60px] text-center text-2xl font-bold text-slate-900 border-2 rounded-xl outline-none transition-all caret-transparent ${
+              className={`w-[52px] h-[60px] text-center text-2xl font-bold text-foreground border-2 rounded-xl outline-none transition-all caret-transparent ${
                 error
-                  ? 'border-red-700 bg-red-50'
+                  ? 'border-destructive bg-destructive/5'
                   : digit
-                    ? 'border-primary bg-blue-50'
-                    : 'border-slate-200 bg-[#F8FAFF]'
-              } focus:border-primary focus:ring-[3px] focus:ring-primary/[0.12]`}
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border bg-muted/50'
+              } focus:border-ring focus:ring-[3px] focus:ring-ring/50`}
             />
           ))}
         </div>
 
         {/* Error */}
         {error && (
-          <div className="mb-2 text-center text-xs font-medium text-red-700">
-            ⚠ {error}
+          <div className="mb-2 text-center text-xs font-medium text-destructive">
+            ! {error}
           </div>
         )}
 
         {/* Hint */}
         {!error && (
-          <div className="mb-2 text-center text-[11px] text-slate-400">
+          <div className="mb-2 text-center text-[11px] text-muted-foreground">
             {t('auth.verify.hint')}
           </div>
         )}
@@ -268,7 +268,7 @@ export default function Verify() {
       {/* Resend */}
       <div className="mt-5 text-center">
         {resendCountdown > 0 ? (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted-foreground">
             {t('auth.verify.resendCountdown')} <span className="font-bold text-primary">{resendCountdown}s</span>
           </p>
         ) : (
@@ -289,7 +289,7 @@ export default function Verify() {
       <div className="mt-3 text-center">
         <button
           onClick={() => navigate(flow === 'password-reset' ? '/auth/forgot-password' : '/auth/register')}
-          className="inline-flex items-center gap-1 border-none bg-transparent text-xs text-slate-400 hover:text-slate-600"
+          className="inline-flex items-center gap-1 border-none bg-transparent text-xs text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft size={13} /> {flow === 'password-reset' ? t('auth.verify.backToForgot') : t('auth.verify.backToRegister')}
         </button>

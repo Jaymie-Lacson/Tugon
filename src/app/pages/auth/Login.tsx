@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House, ArrowLeft } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { Button } from '../../components/ui/button';
+import { Separator } from '../../components/ui/separator';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { validateLoginForm } from '../../utils/authValidation';
@@ -69,20 +71,21 @@ export default function Login() {
       title="Welcome Back"
       subtitle={t('auth.login.subtitle')}
       topAction={
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 text-sm text-[var(--outline)] hover:text-primary"
+          className="gap-1.5 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft size={14} />
           <House size={14} />
           {t('auth.backToHome')}
-        </button>
+        </Button>
       }
     >
       {errors.general && (
-        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-          <ShieldAlert size={16} className="mt-0.5 shrink-0 text-red-600" />
+        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
+          <ShieldAlert size={16} className="mt-0.5 shrink-0" />
           <span>{errors.general}</span>
         </div>
       )}
@@ -115,7 +118,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="flex items-center border-none bg-transparent p-1 text-[var(--outline)] hover:text-[var(--on-surface)]"
+              className="flex items-center border-none bg-transparent p-1 text-muted-foreground hover:text-foreground"
             >
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
@@ -123,13 +126,15 @@ export default function Login() {
         />
 
         <div className="-mt-2 mb-5 text-right">
-          <button
+          <Button
+            variant="link"
+            size="sm"
             type="button"
             onClick={() => navigate('/auth/forgot-password')}
-            className="border-none bg-transparent text-xs font-semibold text-primary hover:underline"
+            className="h-auto p-0 text-xs font-semibold"
           >
             {t('auth.login.forgotPassword')}
-          </button>
+          </Button>
         </div>
 
         <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
@@ -139,19 +144,20 @@ export default function Login() {
 
       {/* Divider */}
       <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-[var(--surface-container-high)]" />
-        <span className="text-xs text-[var(--outline)]">{t('auth.login.newToTugon')}</span>
-        <div className="h-px flex-1 bg-[var(--surface-container-high)]" />
+        <Separator className="flex-1" />
+        <span className="text-xs text-muted-foreground">{t('auth.login.newToTugon')}</span>
+        <Separator className="flex-1" />
       </div>
 
-      <button
+      <Button
+        variant="outline"
+        className="w-full h-12 font-bold"
         onClick={() => navigate('/auth/register')}
-        className="w-full rounded-xl border-none bg-[var(--surface-container-low)] py-3 text-sm font-bold text-primary shadow-[inset_0_-1px_0_rgba(0,35,111,0.3)] transition-colors hover:bg-[var(--surface-container-high)]"
       >
         {t('auth.login.registerNew')}
-      </button>
+      </Button>
 
-      <p className="mt-4 text-center text-[10px] leading-relaxed text-[var(--outline)]">
+      <p className="mt-4 text-center text-[10px] leading-relaxed text-muted-foreground">
         {t('auth.login.termsNotice')}
       </p>
     </AuthLayout>

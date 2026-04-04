@@ -10,6 +10,9 @@ import {
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -361,7 +364,7 @@ function DSSCard({
 
   return (
     <div
-      className="mb-3 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient"
+      className="mb-3 overflow-hidden rounded-xl border bg-card shadow-sm"
       style={{ border: `1px solid ${rec.bg}` }}
     >
       <div className="flex items-start gap-3 bg-[var(--surface-container-lowest)] px-4 py-3.5">
@@ -768,7 +771,7 @@ export default function Reports() {
   return (
     <div className="min-h-full bg-[var(--surface)] px-5 py-4">
       {/* Header */}
-      <div className="mb-4 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
+      <div className="mb-4 rounded-xl border bg-card px-4 py-3.5 shadow-sm">
         <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.reports.pageTitle')}</h1>
         <p className="text-xs text-[var(--on-surface-variant)]">{t('official.reports.pageSubtitle')}</p>
       </div>
@@ -786,7 +789,7 @@ export default function Reports() {
       ) : null}
 
       {/* Tabs */}
-      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-2xl bg-[var(--surface-container-lowest)] p-1.5 shadow-ambient">
+      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-xl border bg-card p-1.5 shadow-sm">
         {[
           { key: 'dss', label: t('official.reports.decisionSupport'), icon: <Brain size={14} /> },
           { key: 'templates', label: t('official.reports.reportTemplates'), icon: <FileText size={14} /> },
@@ -860,7 +863,7 @@ export default function Reports() {
               { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
               { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
             ].map(s => (
-              <div key={s.label} className="flex-[1_1_120px] rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient">
+              <div key={s.label} className="flex-[1_1_120px] rounded-xl border bg-card px-3.5 py-3 shadow-sm">
                 <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
                 <div className="text-[11px] text-[var(--outline)]">{s.label}</div>
               </div>
@@ -896,7 +899,7 @@ export default function Reports() {
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(tmpl => (
-              <div key={tmpl.id} className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+              <div key={tmpl.id} className="overflow-hidden rounded-xl border bg-card shadow-sm">
                 <div className="bg-[var(--surface-container-low)] px-4 py-3.5">
                   <div className="flex items-start gap-2.5">
                     <div
@@ -960,7 +963,7 @@ export default function Reports() {
           </div>
 
           {/* Template generation history */}
-          <div className="mt-3.5 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+          <div className="mt-3.5 overflow-hidden rounded-xl border bg-card shadow-sm">
             <div className="flex items-center justify-between gap-2 bg-[var(--surface-container-low)] px-4 py-3">
               <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.pastTemplates')}</span>
               <span className="text-[11px] text-[var(--outline)]">{templateHistory.length === 1 ? t('official.reports.recordCount', { count: templateHistory.length }) : t('official.reports.recordCountPlural', { count: templateHistory.length })}</span>
@@ -1010,7 +1013,7 @@ export default function Reports() {
                   {t('official.reports.noTemplatesYet')}
                 </div>
               ) : templateHistory.map((historyItem) => (
-                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.22)]">
+                <div key={`mobile:${historyItem.templateId}:${historyItem.generatedAt}:${historyItem.fileName}`} className="mb-2.5 rounded-xl border bg-card p-3">
                   <div className="mb-1.5 text-[13px] font-bold text-[var(--on-surface)]">{historyItem.templateName}</div>
                   <div className="mb-2.5 grid gap-1">
                     <div className="text-[11px] text-[var(--outline)]"><strong>{t('official.reports.generatedLabel')}</strong> {formatDateTime(historyItem.generatedAt)}</div>
@@ -1034,7 +1037,7 @@ export default function Reports() {
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <div className="flex items-center justify-between bg-[var(--surface-container-low)] px-4 py-3">
             <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.reports.generatedReportHistory')}</span>
             <button onClick={() => { void handleHistoryExportAll(); }} className="flex cursor-pointer items-center gap-[5px] rounded-[7px] border-none bg-[var(--surface-container-high)] px-3 py-1.5 text-xs font-semibold text-primary">
@@ -1110,7 +1113,7 @@ export default function Reports() {
                 {t('official.reports.noHistoryAvailable')}
               </div>
             ) : recentReports.map((reportItem, index) => (
-              <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.22)]">
+              <div key={`mobile-report:${reportItem.reportId}:${index}`} className="mb-2.5 rounded-xl border bg-card p-3">
                 <div className="mb-2 flex items-start gap-2">
                   <FileText size={14} color="#94A3B8" className="mt-0.5 shrink-0" />
                   <div className="text-[13px] font-bold leading-[1.4] text-[var(--on-surface)]">{reportItem.name}</div>

@@ -119,7 +119,7 @@ export default function CreatePassword() {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
           >
             <ArrowLeft size={14} />
             <House size={14} />
@@ -163,7 +163,7 @@ export default function CreatePassword() {
         ) : (
           <form onSubmit={e => { e.preventDefault(); handleCreate(); }}>
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-[10px] px-3 py-2.5 text-red-700 text-xs mb-3.5">
+              <div className="border border-destructive/20 bg-destructive/5 rounded-lg px-3 py-2.5 text-destructive text-xs mb-3.5">
                 {errors.general}
               </div>
             )}
@@ -183,7 +183,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="flex items-center bg-transparent border-none p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -204,7 +204,7 @@ export default function CreatePassword() {
                   ))}
                 </div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-[11px] text-slate-400">{t('auth.createPassword.strengthLabel')}</span>
+                  <span className="text-[11px] text-muted-foreground">{t('auth.createPassword.strengthLabel')}</span>
                   <span className="text-[11px] font-bold" style={{ color: strength.color }}>{strength.key ? t(strength.key) : ''}</span>
                 </div>
 
@@ -217,7 +217,7 @@ export default function CreatePassword() {
                         <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                           passed ? 'bg-emerald-100' : 'bg-slate-100'
                         }`}>
-                          <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-slate-300'} />
+                          <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-muted-foreground/50'} />
                         </div>
                         <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-slate-400'}`}>{t(rule.key)}</span>
                       </div>
@@ -241,7 +241,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="flex items-center bg-transparent border-none p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -281,7 +281,7 @@ export default function CreatePassword() {
           <div className="text-center mt-4">
             <button
               onClick={() => navigate('/auth/verify', { state })}
-              className="bg-transparent border-none text-slate-400 text-xs cursor-pointer inline-flex items-center gap-1 font-[inherit]"
+              className="bg-transparent border-none text-muted-foreground text-xs cursor-pointer inline-flex items-center gap-1 font-[inherit] hover:text-foreground"
             >
               <ArrowLeft size={13} /> {t('auth.createPassword.backToVerify')}
             </button>

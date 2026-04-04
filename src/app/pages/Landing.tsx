@@ -18,9 +18,18 @@ import {
 import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
+
+const COMMUNITY_IMAGE =
+  'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1080&q=80';
+
+const SAFETY_IMAGE =
+  'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1080&q=80';
 
 function SectionHeading({
   label,
@@ -35,28 +44,27 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-9 text-center">
-      <span
-        className={`mb-2.5 inline-block rounded-[9px] border px-[11px] py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
+      <Badge
+        variant={light ? 'secondary' : 'outline'}
+        className={`mb-2.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
           light
             ? 'border-white/[0.22] bg-white/[0.14] text-[#b6c4ff]'
-            : 'border-[rgba(197,197,211,0.5)] bg-[#dce9ff] text-[#00236f]'
+            : 'border-[rgba(197,197,211,0.5)] bg-[#dce9ff] text-primary'
         }`}
       >
         {label}
-      </span>
+      </Badge>
       <h2
         className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.02em] ${
-          light ? 'text-white' : ''
+          light ? 'text-white' : 'text-foreground'
         }`}
-        style={light ? undefined : { color: '#0d1c2e', fontFamily: 'var(--font-headline)' }}
       >
         {title}
       </h2>
       <p
         className={`mx-auto max-w-[620px] text-sm leading-relaxed ${
-          light ? 'text-[#b6c4ff]' : ''
+          light ? 'text-[#b6c4ff]' : 'text-muted-foreground'
         }`}
-        style={light ? undefined : { color: '#444651' }}
       >
         {subtitle}
       </p>
@@ -213,34 +221,39 @@ function Navbar() {
 
           <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <button
+              <Button
                 key={link.label}
+                variant="ghost"
+                size="sm"
                 onClick={() => scrollTo(link.href)}
-                className="cursor-pointer rounded-[6px] border-none bg-transparent px-[14px] py-2 text-[13px] font-medium text-white/[0.82]"
+                className="text-[13px] font-medium text-white/[0.82] hover:bg-white/10 hover:text-white"
               >
                 {link.label}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigateAuthWithOverlay('/auth/login')}
-              className="cursor-pointer rounded-lg border border-white/25 bg-white/[0.12] px-4 py-2 text-xs font-semibold text-white"
+              className="border-white/25 bg-white/10 text-white hover:bg-white/20"
             >
               {t('landing.nav.login')}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={() => navigateAuthWithOverlay('/auth/register')}
-              className="cursor-pointer rounded-lg border-none bg-severity-critical px-4 py-2 text-xs font-bold text-white"
             >
               {t('landing.nav.register')}
-            </button>
+            </Button>
           </div>
 
           <button
             type="button"
-            className={`flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-[8px] border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
+            className={`flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileOpen ? 'true' : 'false'}
@@ -254,7 +267,7 @@ function Navbar() {
 
         <div
           id="landing-mobile-nav"
-          className="nav-mobile-panel border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)] overflow-hidden"
+          className="nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
           aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
             padding: mobileOpen ? '12px 20px 20px' : '0 20px',
@@ -266,41 +279,43 @@ function Navbar() {
               'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
           }}
         >
-            {navLinks.map((link) => (
-              <button
-                className={mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}
-                key={link.label}
-                onClick={() => scrollTo(link.href)}
-                style={{
-                  opacity: mobileOpen ? 1 : 0,
-                  transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
-                  transition: 'opacity 180ms ease, transform 180ms ease',
-                }}
-              >
-                {link.label}
-              </button>
-            ))}
-            <div
-              className={`grid gap-2 mt-3.5 ${mobileOpen ? 'nav-mobile-item is-open' : 'nav-mobile-item'}`}
+          {navLinks.map((link) => (
+            <button
+              className="block w-full cursor-pointer border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold text-white/[0.82]"
+              key={link.label}
+              onClick={() => scrollTo(link.href)}
               style={{
                 opacity: mobileOpen ? 1 : 0,
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
                 transition: 'opacity 180ms ease, transform 180ms ease',
               }}
             >
-              <button
-                onClick={() => navigateAuthWithOverlay('/auth/login')}
-                className="w-full cursor-pointer rounded-lg border-none bg-severity-critical py-2.5 text-[13px] font-bold text-white"
-              >
-                {t('landing.nav.loginToContinue')}
-              </button>
-              <button
-                onClick={() => navigateAuthWithOverlay('/auth/register')}
-                className="w-full cursor-pointer rounded-lg border border-white/[0.22] bg-white/[0.12] py-2.5 text-[13px] font-bold text-white"
-              >
-                {t('landing.nav.register')}
-              </button>
-            </div>
+              {link.label}
+            </button>
+          ))}
+          <div
+            className="mt-3.5 grid gap-2"
+            style={{
+              opacity: mobileOpen ? 1 : 0,
+              transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+            }}
+          >
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => navigateAuthWithOverlay('/auth/login')}
+            >
+              {t('landing.nav.loginToContinue')}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full border-white/[0.22] bg-white/[0.12] text-white hover:bg-white/20"
+              onClick={() => navigateAuthWithOverlay('/auth/register')}
+            >
+              {t('landing.nav.register')}
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -308,34 +323,6 @@ function Navbar() {
         .landing-navbar {
           isolation: isolate;
           max-width: 100%;
-        }
-
-        /* Each link/item inside the mobile panel */
-        .nav-mobile-item {
-          display: block;
-          width: 100%;
-          text-align: left;
-          background: none;
-          border: none;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
-          color: rgba(255,255,255,0.82);
-          font-size: 15px;
-          font-weight: 600;
-          padding: 12px 0;
-          cursor: pointer;
-          opacity: 0;
-          transform: translateY(-6px);
-          transition: opacity 180ms ease, transform 180ms ease;
-        }
-
-        .nav-mobile-item.is-open {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .hero-wordmark-red {
-          transform: translateY(0.16em);
-          max-width: min(35vw, 248px);
         }
 
         @media (max-width: 768px) {
@@ -350,20 +337,16 @@ function Navbar() {
             transition: none !important;
           }
 
-          .nav-mobile-panel .nav-mobile-item:nth-child(1) { transition-delay: 40ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(2) { transition-delay: 80ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(3) { transition-delay: 120ms; }
-          .nav-mobile-panel .nav-mobile-item:nth-child(4) { transition-delay: 160ms; }
-
-          .hero-wordmark-red {
-            transform: translateY(0.12em);
-            max-width: min(45vw, 188px);
-          }
+          .nav-mobile-panel button:nth-child(1) { transition-delay: 40ms; }
+          .nav-mobile-panel button:nth-child(2) { transition-delay: 80ms; }
+          .nav-mobile-panel button:nth-child(3) { transition-delay: 120ms; }
+          .nav-mobile-panel > div { transition-delay: 160ms; }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .nav-mobile-panel,
-          .nav-mobile-item {
+          .nav-mobile-panel button,
+          .nav-mobile-panel > div {
             transition: none !important;
           }
         }
@@ -415,12 +398,13 @@ function Hero() {
           style={{ transitionDelay: '90ms' }}
         >
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-[9px] border border-red-700/40 bg-red-700/20 px-[14px] py-1.5">
-              <Radio size={12} color="#F87171" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-red-300">
-                {t('landing.hero.liveIn')}
-              </span>
-            </div>
+            <Badge
+              variant="destructive"
+              className="mb-6 gap-2 border-red-700/40 bg-red-700/20 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-red-300"
+            >
+              <Radio size={12} className="text-red-400" />
+              {t('landing.hero.liveIn')}
+            </Badge>
 
             <h1 className="mb-3.5 max-w-[760px] text-[clamp(30px,6vw,56px)] font-black leading-[1.1] text-white">
               EMPOWERING <span className="text-blue-400">TONDO</span> WITH INSTANT{' '}
@@ -428,29 +412,31 @@ function Hero() {
                 <img
                   src="/tugon-wordmark-red.svg"
                   alt="TUGON"
-                  className="hero-wordmark-red inline-block h-[1.2em] w-auto"
+                  className="inline-block h-[1.2em] w-auto max-w-[min(35vw,248px)] translate-y-[0.16em] md:max-w-[min(35vw,248px)]"
                 />
               </span>
             </h1>
 
-            <p className="mb-[22px] max-w-[540px] text-[clamp(14px,2vw,18px)] leading-[1.55] text-white/[0.88]">
+            <p className="mb-6 max-w-[540px] text-[clamp(14px,2vw,18px)] leading-[1.55] text-white/[0.88]">
               {t('landing.hero.subtagline')}
             </p>
 
-            <div className="mb-[22px] flex flex-wrap gap-3">
-              <button
+            <div className="mb-6 flex flex-wrap gap-3">
+              <Button
+                size="lg"
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
-                style={{ background: 'linear-gradient(135deg, #5d0004 0%, #b91c1c 100%)' }}
+                className={`gap-2 rounded-lg bg-gradient-to-br from-[#5d0004] to-destructive text-sm font-bold ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] border-white/35 bg-white/[0.12] px-6 py-[13px] text-sm font-bold text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`gap-2 rounded-lg border-white/35 bg-white/[0.12] text-sm font-bold text-white hover:bg-white/20 ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 <CheckCircle2 size={16} /> {t('landing.hero.trackStatus')}
-              </button>
+              </Button>
             </div>
 
             {/* Hero stats strip */}
@@ -472,12 +458,13 @@ function Hero() {
               ))}
             </div>
 
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigateWithTransition('community', '/community-map', true)}
-              className={`inline-flex cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-[13px] font-bold text-amber-300 ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
+              className={`gap-1.5 px-0 text-[13px] font-bold text-amber-300 hover:bg-transparent hover:text-amber-200 ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
             >
               <MapIcon size={14} /> {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -541,107 +528,46 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal className="px-6 py-14" style={{ background: '#f8f9ff' }}>
-      <div className="mx-auto max-w-[1100px]">
-        <SectionHeading
-          label={t('landing.quickActions.label')}
-          title={t('landing.quickActions.title')}
-          subtitle={t('landing.quickActions.subtitle')}
-        />
+      <section id="quick-actions" data-reveal className="bg-background px-6 py-24">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            label={t('landing.quickActions.label')}
+            title={t('landing.quickActions.title')}
+            subtitle={t('landing.quickActions.subtitle')}
+          />
 
-        <div className="hidden gap-3 md:grid md:grid-cols-3">
-          {actions.map((item, index) => (
-            <button
-              className="quick-action-btn flex cursor-pointer flex-col rounded-xl border border-white/[0.38] px-[18px] pb-4 pt-[18px] text-left shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
-              key={item.title}
-              onClick={item.action}
-              style={{
-                background: item.color,
-                minHeight: 176,
-                transitionDelay: `${index * 90}ms`,
-              }}
-            >
-              <div className="mb-2.5 flex items-center gap-2.5">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-white/20">
-                  <item.icon size={16} color="#FFFFFF" />
-                </div>
-                <div className="text-[15px] font-extrabold text-white">{item.title}</div>
-              </div>
-              <div className="text-xs leading-[1.5] text-white/90">{item.desc}</div>
-              <div className="mt-auto flex justify-end">
-                <span className="quick-action-open">
-                  {t('landing.quickActions.open')} <ArrowRight size={12} />
-                </span>
-              </div>
-            </button>
-          ))}
+          <div className="grid gap-4 md:grid-cols-3">
+            {actions.map((item, index) => (
+              <Card
+                key={item.title}
+                data-reveal
+                data-reveal-slide="x"
+                data-reveal-dir="left"
+                className="group cursor-pointer border-l-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                style={{ borderLeftColor: item.color, transitionDelay: `${index * 90}ms` }}
+                onClick={item.action}
+              >
+                <CardContent className="flex flex-col gap-3 p-6">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex size-10 shrink-0 items-center justify-center rounded-lg"
+                      style={{ background: item.bg }}
+                    >
+                      <item.icon size={18} style={{ color: item.color }} />
+                    </div>
+                    <CardTitle className="text-base font-extrabold">{item.title}</CardTitle>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                  <div className="mt-auto flex justify-end">
+                    <Button variant="outline" size="sm" className="gap-1 text-xs font-extrabold">
+                      {t('landing.quickActions.open')} <ArrowRight size={12} />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-
-        <div className="grid gap-3 md:hidden">
-          {actions.map((item) => (
-            <button
-              className="quick-action-btn flex min-h-[162px] w-full cursor-pointer flex-col rounded-xl border border-white/[0.38] p-[14px] shadow-[0_8px_16px_rgba(15,23,42,0.14)]"
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
-              key={item.title}
-              onClick={item.action}
-              style={{
-                background: item.color,
-                transitionDelay: '100ms',
-              }}
-            >
-              <div className="mb-2 flex items-center gap-2.5">
-                <div className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white/20">
-                  <item.icon size={15} color="#FFFFFF" />
-                </div>
-                <div className="text-sm font-extrabold text-white">{item.title}</div>
-              </div>
-              <div className="text-left text-xs leading-[1.45] text-white/90">{item.desc}</div>
-              <div className="mt-auto flex justify-end">
-                <span className="quick-action-open">
-                  {t('landing.quickActions.open')} <ArrowRight size={12} />
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <style>{`
-          .quick-action-btn {
-            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
-          }
-
-          .quick-action-open {
-            color: #0F172A;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: #FFFFFF;
-            border: 1px solid rgba(15, 23, 42, 0.12);
-            border-radius: 8px;
-            padding: 5px 12px;
-          }
-
-          .quick-action-btn:hover,
-          .quick-action-btn:focus-visible {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 18px rgba(15,23,42,0.18) !important;
-            border-color: rgba(255,255,255,0.58) !important;
-            outline: none;
-          }
-
-          .quick-action-btn:active {
-            transform: translateY(0) scale(0.99);
-            box-shadow: 0 5px 12px rgba(15,23,42,0.12) !important;
-          }
-        `}</style>
-      </div>
       </section>
     </>
   );
@@ -669,7 +595,7 @@ function MapTeaser() {
       <AuthRedirectOverlay visible={authRedirecting} />
       <section
         data-reveal
-        className="relative overflow-hidden bg-[#0F172A] px-6 py-[72px]"
+        className="relative overflow-hidden bg-[#0F172A] px-6 py-24"
       >
         {/* Background grid */}
         <div
@@ -680,14 +606,17 @@ function MapTeaser() {
           }}
         />
 
-        <div className="relative z-[1] mx-auto max-w-[1100px]">
+        <div className="relative z-[1] mx-auto max-w-5xl">
           <div className="flex flex-wrap items-center gap-12">
 
             {/* Left: text */}
             <div className="flex-[1_1_300px]">
-              <span className="mb-4 inline-block rounded-lg border border-blue-500/30 bg-blue-500/[0.15] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-blue-300">
+              <Badge
+                variant="outline"
+                className="mb-4 border-blue-500/30 bg-blue-500/[0.15] text-[11px] font-bold uppercase tracking-[0.06em] text-blue-300"
+              >
                 {t('landing.map.label')}
-              </span>
+              </Badge>
               <h2 className="mb-3 text-[clamp(22px,4vw,30px)] font-extrabold leading-[1.25] text-white">
                 {t('landing.map.title').split('\n').map((line, i) => (
                   <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
@@ -696,26 +625,23 @@ function MapTeaser() {
               <p className="mb-6 max-w-[380px] text-sm leading-[1.65] text-white/60">
                 {t('landing.map.desc')}
               </p>
-              <button
+              <Button
+                size="lg"
                 onClick={go}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none bg-primary px-[22px] py-3 text-sm font-bold text-white"
+                className="gap-2 rounded-lg text-sm font-bold"
               >
                 <MapIcon size={16} /> {t('landing.map.exploreBtn')} <ArrowRight size={14} />
-              </button>
+              </Button>
             </div>
 
             {/* Right: map preview visual */}
             <div className="relative flex-[1_1_280px]">
               <div
-                className="relative min-h-[230px] overflow-hidden rounded-[20px] p-7"
-                style={{
-                  background: 'rgba(30,58,138,0.25)',
-                  border: '1px solid rgba(59,130,246,0.18)',
-                }}
+                className="relative min-h-[230px] overflow-hidden rounded-xl border border-blue-500/[0.18] bg-[rgba(30,58,138,0.25)] p-7"
               >
                 {/* Inner grid */}
                 <div
-                  className="pointer-events-none absolute inset-0 rounded-[20px]"
+                  className="pointer-events-none absolute inset-0 rounded-xl"
                   style={{
                     backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
                     backgroundSize: '28px 28px',
@@ -741,7 +667,7 @@ function MapTeaser() {
                       }}
                     />
                     <span
-                      className="whitespace-nowrap rounded-[4px] px-1.5 py-0.5 text-[9px] font-bold text-white/85"
+                      className="whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold text-white/85"
                       style={{ background: 'rgba(15,23,42,0.82)' }}
                     >
                       {pin.label}
@@ -751,11 +677,7 @@ function MapTeaser() {
 
                 {/* Footer label */}
                 <div
-                  className="absolute bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-[14px] py-[5px] text-[11px] font-bold text-blue-300"
-                  style={{
-                    background: 'rgba(15,23,42,0.88)',
-                    border: '1px solid rgba(59,130,246,0.35)',
-                  }}
+                  className="absolute bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-blue-500/35 bg-[rgba(15,23,42,0.88)] px-3.5 py-[5px] text-[11px] font-bold text-blue-300"
                 >
                   {t('landing.map.footer')}
                 </div>
@@ -800,54 +722,68 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" data-reveal className="px-6 py-[88px]" style={{ background: '#eff4ff' }}>
-      <div className="mx-auto max-w-[1100px]">
+    <section id="how" data-reveal className="bg-muted px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
           label={t('landing.howItWorks.label')}
           title={t('landing.howItWorks.threeSteps')}
           subtitle={t('landing.howItWorks.tagline')}
         />
 
-        <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+        {/* Community image banner */}
+        <div className="mb-8 overflow-hidden rounded-xl">
+          <img
+            src={COMMUNITY_IMAGE}
+            alt="Community collaboration"
+            className="h-48 w-full object-cover"
+          />
+        </div>
+
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {steps.map((step, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={step.title}
-              className="grid gap-3.5 rounded-2xl border border-slate-200 bg-white p-[22px]"
+              className="gap-0 border shadow-sm"
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div className="flex items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="flex size-[50px] items-center justify-center rounded-xl"
-                    style={{ background: step.bg }}
-                  >
-                    <step.icon size={24} color={step.color} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-slate-500">
-                      {t('landing.howItWorks.step', { number: String(index + 1) })}
+              <CardHeader className="gap-2.5 pb-0">
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex size-[50px] items-center justify-center rounded-xl"
+                      style={{ background: step.bg }}
+                    >
+                      <step.icon size={24} color={step.color} strokeWidth={2.5} />
                     </div>
-                    <h3 className="mt-0.5 text-[17px] font-extrabold text-slate-800">{step.title}</h3>
+                    <div>
+                      <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+                        {t('landing.howItWorks.step', { number: String(index + 1) })}
+                      </div>
+                      <CardTitle className="mt-0.5 text-[17px] font-extrabold">{step.title}</CardTitle>
+                    </div>
                   </div>
+                  <Badge
+                    variant="outline"
+                    className="rounded-lg px-2 py-1 text-[11px] font-extrabold"
+                    style={{ color: step.color, background: step.bg, borderColor: `${step.color}33` }}
+                  >
+                    {step.visual}
+                  </Badge>
                 </div>
-                <span
-                  className="rounded-[7px] px-[9px] py-[5px] text-[11px] font-extrabold"
-                  style={{ color: step.color, background: step.bg, border: `1px solid ${step.color}33` }}
-                >
-                  {step.visual}
-                </span>
-              </div>
-              <p className="m-0 text-sm leading-[1.55] text-slate-600">{step.detail}</p>
-              <div className="mt-0.5 h-2 overflow-hidden rounded-[5px] bg-slate-200">
-                <span
-                  className="block h-full rounded-[5px]"
-                  style={{ width: `${(index + 1) * 33}%`, background: step.color }}
-                />
-              </div>
-            </div>
+              </CardHeader>
+              <CardContent className="pt-3">
+                <p className="m-0 text-sm leading-[1.55] text-muted-foreground">{step.detail}</p>
+                <div className="mt-3 h-2 overflow-hidden rounded-[5px] bg-muted">
+                  <span
+                    className="block h-full rounded-[5px]"
+                    style={{ width: `${(index + 1) * 33}%`, background: step.color }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -860,38 +796,38 @@ function SupportedBarangays() {
   const { t } = useTranslation();
 
   const barangays = [
-  {
-    name: 'Barangay 251',
-    captain: 'Reynaldo Angat',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1781 Almeda Street, Tondo, Manila',
-    responders: ['MDRRMO', 'BFP', 'PNP'],
-    color: 'var(--primary)',
-    light: '#EFF6FF',
-  },
-  {
-    name: 'Barangay 252',
-    captain: 'Leana Angat',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
-    responders: ['MDRRMO', 'PNP', 'EMS'],
-    color: 'var(--severity-critical)',
-    light: '#FEE2E2',
-  },
-  {
-    name: 'Barangay 256',
-    captain: 'Ramon "Peaches" Perez',
-    district: 'District II, Tondo, Manila',
-    hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
-    responders: ['MDRRMO', 'BFP', 'EMS'],
-    color: 'var(--severity-medium)',
-    light: '#FEF3C7',
-  },
-];
+    {
+      name: 'Barangay 251',
+      captain: 'Reynaldo Angat',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1781 Almeda Street, Tondo, Manila',
+      responders: ['MDRRMO', 'BFP', 'PNP'],
+      color: 'var(--primary)',
+      light: '#EFF6FF',
+    },
+    {
+      name: 'Barangay 252',
+      captain: 'Leana Angat',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
+      responders: ['MDRRMO', 'PNP', 'EMS'],
+      color: 'var(--severity-critical)',
+      light: '#FEE2E2',
+    },
+    {
+      name: 'Barangay 256',
+      captain: 'Ramon "Peaches" Perez',
+      district: 'District II, Tondo, Manila',
+      hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
+      responders: ['MDRRMO', 'BFP', 'EMS'],
+      color: 'var(--severity-medium)',
+      light: '#FEF3C7',
+    },
+  ];
 
   return (
-    <section id="barangays" data-reveal className="bg-primary px-6 py-[88px]">
-      <div className="mx-auto max-w-[1100px]">
+    <section id="barangays" data-reveal className="bg-primary px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
           label={t('landing.barangays.label')}
           title={t('landing.barangays.subtitle')}
@@ -901,43 +837,47 @@ function SupportedBarangays() {
 
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
           {barangays.map((item, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              className="relative overflow-hidden rounded-[18px] border-2 border-white/20 bg-white/[0.1] p-7 text-center"
+              className="relative overflow-hidden border-2 border-white/20 bg-white/[0.1] text-center"
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div className="mb-[18px] flex justify-center">
-                <div className="flex size-[74px] items-center justify-center rounded-2xl border-2 border-white/[0.22] bg-white/[0.13]">
-                  <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
+              <CardContent className="p-7">
+                <div className="mb-[18px] flex justify-center">
+                  <div className="flex size-[74px] items-center justify-center rounded-2xl border-2 border-white/[0.22] bg-white/[0.13]">
+                    <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
+                  </div>
                 </div>
-              </div>
 
-              <h3 className="mb-1.5 text-xl font-extrabold text-white">{item.name}</h3>
-              <p className="mb-1.5 text-[13px] font-bold text-blue-100">{t('landing.barangays.captain', { name: item.captain })}</p>
-              <p className="mb-1 text-xs font-semibold text-blue-100">{item.district}</p>
-              <p className="mb-[18px] text-xs font-medium text-blue-200">{item.hallAddress}</p>
+                <h3 className="mb-1.5 text-xl font-extrabold text-white">{item.name}</h3>
+                <p className="mb-1.5 text-[13px] font-bold text-blue-100">{t('landing.barangays.captain', { name: item.captain })}</p>
+                <p className="mb-1 text-xs font-semibold text-blue-100">{item.district}</p>
+                <p className="mb-[18px] text-xs font-medium text-blue-200">{item.hallAddress}</p>
 
-              <div className="mb-5 flex flex-wrap justify-center gap-1.5">
-                {item.responders.map(r => (
-                  <span
-                    key={r}
-                    className="rounded-[6px] border border-white/20 bg-white/[0.15] px-3 py-1.5 text-[11px] font-bold text-white"
-                  >
-                    {r}
-                  </span>
-                ))}
-              </div>
+                <div className="mb-5 flex flex-wrap justify-center gap-1.5">
+                  {item.responders.map(r => (
+                    <Badge
+                      key={r}
+                      variant="secondary"
+                      className="border border-white/20 bg-white/[0.15] text-[11px] font-bold text-white"
+                    >
+                      {r}
+                    </Badge>
+                  ))}
+                </div>
 
-              <button
-                onClick={() => navigate('/auth/register')}
-                className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[9px] border-[1.5px] border-white/30 bg-white/[0.12] py-3 text-[13px] font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white/20"
-              >
-                {t('landing.barangays.startReporting')} <ChevronRight size={15} />
-              </button>
-            </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-1.5 border-white/30 bg-white/[0.12] text-[13px] font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white/20"
+                  onClick={() => navigate('/auth/register')}
+                >
+                  {t('landing.barangays.startReporting')} <ChevronRight size={15} />
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -973,53 +913,65 @@ function SafetyTips() {
   ];
 
   return (
-    <section id="safety" data-reveal className="bg-white px-6 py-[88px]">
-      <div className="mx-auto max-w-[1100px]">
+    <section id="safety" data-reveal className="bg-background px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
           label={t('landing.safety.label')}
           title={t('landing.safety.subtitle')}
           subtitle={t('landing.safety.tagline')}
         />
 
-        <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+        {/* Safety image banner */}
+        <div className="mb-8 overflow-hidden rounded-xl">
+          <img
+            src={SAFETY_IMAGE}
+            alt="Community safety"
+            className="h-48 w-full object-cover"
+          />
+        </div>
+
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
           {tips.map((tip, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="right"
               key={tip.title}
-              className="rounded-2xl border-2 border-slate-200 bg-white p-6 text-center"
+              className="border shadow-sm text-center"
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div className="mb-3.5 flex justify-center">
-                <div
-                  className="flex size-16 shrink-0 items-center justify-center rounded-[14px]"
-                  style={{ background: tip.bg }}
-                >
-                  <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
-                </div>
-              </div>
-              <h3 className="mb-3 text-[17px] font-extrabold text-slate-800">{tip.title}</h3>
-              <div className="mb-3 flex flex-wrap justify-center gap-2">
-                {tip.actions.map((action) => (
-                  <span
-                    key={action}
-                    className="rounded-lg px-2.5 py-1.5 text-xs font-bold"
-                    style={{
-                      color: tip.color,
-                      background: tip.bg,
-                      border: `1px solid ${tip.color}33`,
-                    }}
+              <CardContent className="p-6">
+                <div className="mb-3.5 flex justify-center">
+                  <div
+                    className="flex size-16 shrink-0 items-center justify-center rounded-xl"
+                    style={{ background: tip.bg }}
                   >
-                    {action}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-600">
-                <CheckCircle2 size={14} color={tip.color} />
-                {t('landing.safety.reportTugon')}
-              </div>
-            </div>
+                    <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
+                  </div>
+                </div>
+                <h3 className="mb-3 text-[17px] font-extrabold text-foreground">{tip.title}</h3>
+                <div className="mb-3 flex flex-wrap justify-center gap-2">
+                  {tip.actions.map((action) => (
+                    <Badge
+                      key={action}
+                      variant="outline"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      style={{
+                        color: tip.color,
+                        background: tip.bg,
+                        borderColor: `${tip.color}33`,
+                      }}
+                    >
+                      {action}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs font-bold text-muted-foreground">
+                  <CheckCircle2 size={14} color={tip.color} />
+                  {t('landing.safety.reportTugon')}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -1037,69 +989,81 @@ function EmergencyHotlines() {
   ];
 
   return (
-    <section id="hotlines" data-reveal className="bg-[#F8FAFF] px-6 py-[88px]">
-      <div className="mx-auto max-w-[1100px]">
+    <section id="hotlines" data-reveal className="bg-muted px-6 py-24">
+      <div className="mx-auto max-w-5xl">
         <SectionHeading
           label={t('landing.emergency.label')}
           title={t('landing.emergency.subtitle')}
           subtitle={t('landing.emergency.tagline')}
         />
 
-        <div
+        <Card
           data-reveal
-          className="mb-[18px] flex flex-wrap items-center justify-between gap-3.5 rounded-xl border border-red-800 bg-severity-critical px-[22px] py-5"
+          className="mb-4 border-destructive bg-severity-critical shadow-md"
           style={{ transitionDelay: '80ms' }}
         >
-          <div>
-            <div className="mb-1 text-xl font-extrabold text-white">{t('landing.emergency.callNow')}</div>
-            <div className="text-sm text-white/90">{t('landing.emergency.callThenFile')}</div>
-          </div>
-          <a
-            href="tel:911"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2.5 text-sm font-extrabold text-severity-critical no-underline"
-          >
-            <Phone size={14} /> {t('landing.emergency.callNowBtn')}
-          </a>
-        </div>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3.5 p-6">
+            <div>
+              <div className="mb-1 text-xl font-extrabold text-white">{t('landing.emergency.callNow')}</div>
+              <div className="text-sm text-white/90">{t('landing.emergency.callThenFile')}</div>
+            </div>
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="gap-1.5 border-white/20 bg-white font-extrabold text-severity-critical hover:bg-white/90 hover:text-severity-critical"
+            >
+              <a href="tel:911">
+                <Phone size={14} /> {t('landing.emergency.callNowBtn')}
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
           {hotlines.map((item, index) => (
-            <div
+            <Card
               data-reveal
               data-reveal-slide="x"
               data-reveal-dir="left"
               key={item.name}
-              className="rounded-xl border border-slate-200 bg-white p-4"
+              className="border shadow-sm"
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <div className="mb-2 flex items-center gap-2">
-                <div
-                  className="flex size-[34px] items-center justify-center rounded-[10px]"
-                  style={{ background: item.bg }}
-                >
-                  <Phone size={15} color={item.color} />
+              <CardContent className="p-5">
+                <div className="mb-2 flex items-center gap-2">
+                  <div
+                    className="flex size-[34px] items-center justify-center rounded-lg"
+                    style={{ background: item.bg }}
+                  >
+                    <Phone size={15} color={item.color} />
+                  </div>
+                  <h3 className="m-0 text-[15px] font-bold text-foreground">{item.name}</h3>
                 </div>
-                <h3 className="m-0 text-[15px] font-bold text-slate-800">{item.name}</h3>
-              </div>
-              <div
-                className="mb-1.5 text-2xl font-extrabold leading-[1.1]"
-                style={{ color: item.color }}
-              >
-                {item.number}
-              </div>
-              <p className="mb-2.5 text-[13px] text-slate-500">{item.note}</p>
-              <a
-                href={`tel:${item.number}`}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-extrabold no-underline"
-                style={{
-                  color: item.color,
-                  border: `1px solid ${item.color}33`,
-                  background: item.bg,
-                }}
-              >
-                <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
-              </a>
-            </div>
+                <div
+                  className="mb-1.5 text-2xl font-extrabold leading-[1.1]"
+                  style={{ color: item.color }}
+                >
+                  {item.number}
+                </div>
+                <p className="mb-2.5 text-[13px] text-muted-foreground">{item.note}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="gap-1.5 text-xs font-extrabold"
+                  style={{
+                    color: item.color,
+                    borderColor: `${item.color}33`,
+                    background: item.bg,
+                  }}
+                >
+                  <a href={`tel:${item.number}`}>
+                    <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -1131,56 +1095,60 @@ function Footer() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <footer className="bg-[#0F172A] text-white/70">
-      <div className="mx-auto max-w-[1100px] px-6 pb-6 pt-[38px]">
-        <div className="mb-[22px] grid gap-[22px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-          <div>
-            <button
-              onClick={() => navigate('/')}
-              aria-label="Go to TUGON home"
-              className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
-            >
-              <img
-                src="/tugon-header-logo.svg"
-                alt="TUGON Tondo Emergency Response"
-                className="block h-9 w-auto"
-              />
-            </button>
-            <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-white/[0.74]">
-              {t('landing.footer.desc')}
-            </p>
+        <div className="mx-auto max-w-5xl px-6 pb-6 pt-10">
+          <div className="mb-6 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+            <div>
+              <button
+                onClick={() => navigate('/')}
+                aria-label="Go to TUGON home"
+                className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
+              >
+                <img
+                  src="/tugon-header-logo.svg"
+                  alt="TUGON Tondo Emergency Response"
+                  className="block h-9 w-auto"
+                />
+              </button>
+              <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-white/[0.74]">
+                {t('landing.footer.desc')}
+              </p>
+            </div>
+
+            <div>
+              <div className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-white">
+                {t('landing.footer.citizenAccess')}
+              </div>
+              <div className="mb-3 flex flex-wrap gap-2.5">
+                {quickLinks.map((link) => (
+                  <Button
+                    key={link.label}
+                    variant="ghost"
+                    size="sm"
+                    onClick={link.action}
+                    className="min-h-[40px] border border-white/[0.12] bg-white/[0.06] text-[13px] font-semibold text-blue-100 hover:bg-white/[0.12]"
+                  >
+                    {link.label}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="min-h-[40px] gap-1.5 border border-red-500/35 bg-red-800/[0.18] text-xs font-bold tracking-[0.04em] text-red-300 hover:bg-red-800/30"
+              >
+                <a href="tel:911">
+                  <Phone size={13} /> {t('landing.footer.emergencyCall')}
+                </a>
+              </Button>
+            </div>
           </div>
 
-          <div>
-            <div className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-white">
-              {t('landing.footer.citizenAccess')}
-            </div>
-            <div className="mb-3 flex flex-wrap gap-2.5">
-              {quickLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={link.action}
-                  className="min-h-[40px] cursor-pointer rounded-lg border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-[13px] font-semibold text-blue-100"
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
-            <a
-              href="tel:911"
-              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-red-500/35 bg-red-800/[0.18] px-2.5 py-[7px] text-xs font-bold tracking-[0.04em] text-red-300 no-underline"
-            >
-              <Phone size={13} /> {t('landing.footer.emergencyCall')}
-            </a>
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-white/45">
+            <span>&copy; {year} TUGON. {t('landing.footer.tagline')}</span>
+            <span className="text-white/55">{t('landing.footer.location')}</span>
           </div>
         </div>
-
-        <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-white/45">
-          <span>© {year} TUGON. {t('landing.footer.tagline')}</span>
-          <span className="text-white/55">{t('landing.footer.location')}</span>
-        </div>
-      </div>
-
-
       </footer>
     </>
   );

@@ -7,6 +7,9 @@ import {
 import { TrendingUp, TrendingDown, Download } from 'lucide-react';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -73,7 +76,7 @@ function formatDurationFromMinutes(totalMinutes: number): string {
 interface MetricCardProps { title: string; value: string; change: string; up: boolean; sub: string; color: string; }
 function MetricCard({ title, value, change, up, sub, color }: MetricCardProps) {
   return (
-    <div className="card-lifted rounded-2xl px-[18px] py-4 shadow-ambient">
+    <div className="rounded-xl border bg-card px-[18px] py-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">{title}</div>
         <span className="inline-block h-2 w-2 rounded-full" style={{ background: color }} />
@@ -300,7 +303,7 @@ export default function Analytics() {
       )}
 
       {/* Header */}
-      <div className="analytics-header mb-4 flex flex-wrap items-start justify-between gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
+      <div className="analytics-header mb-4 flex flex-wrap items-start justify-between gap-2.5 rounded-xl border bg-card px-4 py-3.5 shadow-sm">
         <div>
           <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.analytics.pageTitle')}</h1>
           <p className="text-xs text-[var(--on-surface-variant)]">{t('official.analytics.pageSubtitle')}</p>
@@ -340,7 +343,7 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div className="analytics-card analytics-trend-card mb-3.5 rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+      <div className="analytics-card analytics-trend-card mb-3.5 rounded-xl border bg-card p-3.5 px-4 shadow-sm">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
             <div className="text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
@@ -406,7 +409,7 @@ export default function Analytics() {
       {/* Middle row charts */}
       <div className="analytics-middle-row mb-3.5 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Response time */}
-        <div className="analytics-card flex-[2_1_280px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+        <div className="analytics-card flex-[2_1_280px] rounded-xl border bg-card p-3.5 px-4 shadow-sm">
           <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.avgResponseByCategory')}</div>
           <div className="mb-3 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
@@ -439,7 +442,7 @@ export default function Analytics() {
         </div>
 
         {/* Severity Distribution */}
-        <div className="analytics-card flex-[1_1_200px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+        <div className="analytics-card flex-[1_1_200px] rounded-xl border bg-card p-3.5 px-4 shadow-sm">
           <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.severityDistribution')}</div>
           <div className="mb-2.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
@@ -465,7 +468,7 @@ export default function Analytics() {
         </div>
 
         {/* Hourly pattern */}
-        <div className="analytics-card flex-[2_1_260px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+        <div className="analytics-card flex-[2_1_260px] rounded-xl border bg-card p-3.5 px-4 shadow-sm">
           <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.hourlyPattern')}</div>
           <div className="mb-3 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
@@ -496,7 +499,7 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row mb-2 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Barangay comparison */}
-        <div className="analytics-card flex-[3_1_300px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+        <div className="analytics-card flex-[3_1_300px] rounded-xl border bg-card p-3.5 px-4 shadow-sm">
           <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.barangayComparison')}</div>
           <div className="mb-3.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
@@ -514,7 +517,7 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div className="analytics-card flex-[2_1_240px] rounded-2xl bg-[var(--surface-container-lowest)] p-3.5 px-4 shadow-ambient">
+        <div className="analytics-card flex-[2_1_240px] rounded-xl border bg-card p-3.5 px-4 shadow-sm">
           <div className="mb-1 text-lg font-bold text-[var(--on-surface)] md:text-[13px]">{t('official.analytics.resourceUtilization')}</div>
           <div className="mb-3.5 text-sm text-[var(--on-surface-variant)] md:text-[11px]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {

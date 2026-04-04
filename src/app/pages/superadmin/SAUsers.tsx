@@ -11,6 +11,13 @@ import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
+import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '../../components/ui/table';
 
 const PRIMARY = 'var(--primary)';
 
@@ -579,33 +586,36 @@ export default function SAUsers() {
   };
 
   return (
-    <div className="p-5 bg-[#F0F4FF] min-h-full">
+    <div className="p-5 bg-background min-h-full">
       {/* Header */}
       <div className="sa-users-header flex items-center justify-between mb-[18px] gap-[10px]">
         <div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
-          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
+          <h1 className="text-foreground text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
+          <p className="text-muted-foreground text-xs m-0 mt-[2px]">
             {t('superadmin.users.subtitle')}
           </p>
         </div>
         <div className="sa-users-header-actions flex gap-[10px]">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => { void loadUsers(); }}
-            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-xs font-semibold text-[#374151]"
+            className="gap-[6px] text-xs font-semibold"
           >
-            <Download size={13} className="text-[var(--outline)]" /> {loading ? t('common.refreshing') : t('common.refresh')}
-          </button>
-          <button
+            <Download size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
+          </Button>
+          <Button
+            size="sm"
             onClick={() => {
               setApiError(null);
               setModalError(null);
               setModalSaving(false);
               setModal({ user: null, mode: 'create' });
             }}
-            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-xs font-semibold text-white"
+            className="gap-[6px] text-xs font-semibold"
           >
             <Plus size={14} /> {t('superadmin.users.addUser')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -622,28 +632,31 @@ export default function SAUsers() {
           { label: t('superadmin.users.active'), value: counts.active, color: 'var(--severity-low)', icon: <CheckCircle2 size={16} className="text-[var(--severity-low)]" /> },
           { label: t('superadmin.users.inactive'), value: counts.inactive, color: 'var(--outline)', icon: <Clock size={16} className="text-[var(--outline)]" /> },
         ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-3 flex-1 min-w-[130px]">
-            <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
-              {stat.icon}
-            </div>
-            <div>
-              <div className="text-[#0F172A] text-[20px] font-bold">{stat.value}</div>
-              <div className="text-[#9CA3AF] text-[11px]">{stat.label}</div>
-            </div>
-          </div>
+          <Card key={stat.label} className="flex-1 min-w-[130px]">
+            <CardContent className="px-4 py-3 flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
+                {stat.icon}
+              </div>
+              <div>
+                <div className="text-foreground text-[20px] font-bold">{stat.value}</div>
+                <div className="text-muted-foreground text-[11px]">{stat.label}</div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Filters bar */}
-      <div className="sa-users-filter-bar bg-white rounded-xl px-4 py-[14px] mb-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-[10px] flex-wrap">
+      <Card className="sa-users-filter-bar mb-[14px]">
+        <CardContent className="px-4 py-[14px] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-[var(--outline-variant)]" />
-          <input
+          <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder={t('superadmin.users.searchPlaceholder')}
-            className="w-full px-[10px] py-2 pl-8 border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border"
+            className="pl-8 h-9 text-[13px]"
           />
         </div>
 
@@ -676,10 +689,11 @@ export default function SAUsers() {
           {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
         </select>
 
-        <span className="text-[#9CA3AF] text-xs ml-auto">
+        <span className="text-muted-foreground text-xs ml-auto">
           {filtered.length !== 1 ? t('superadmin.users.userCountPlural', { count: filtered.length }) : t('superadmin.users.userCount', { count: filtered.length })}
         </span>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
@@ -709,41 +723,40 @@ export default function SAUsers() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] mb-[14px]">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#F3F4F6]">
-                <th className="px-[14px] py-3 text-left w-8">
-                  <input
-                    type="checkbox"
-                    title="Select all users"
-                    aria-label="Select all users"
-                    className="cursor-pointer accent-[var(--primary)]"
-                  />
-                </th>
-                {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
-                  <th key={h} className="px-[14px] py-3 text-left text-[#6B7280] text-[11px] font-bold tracking-[0.03em] uppercase whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+      <Card className="mb-[14px] overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8">
+                <input
+                  type="checkbox"
+                  title="Select all users"
+                  aria-label="Select all users"
+                  className="cursor-pointer accent-[var(--primary)]"
+                />
+              </TableHead>
+              {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
+                <TableHead key={h} className="text-[11px] font-bold tracking-[0.03em] uppercase">{h}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
               {paginated.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-[40px] text-center">
-                    <div className="text-[#9CA3AF] text-[13px]">{t('superadmin.users.noUsersFound')}</div>
-                  </td>
-                </tr>
-              ) : paginated.map((user, i) => {
+                <TableRow>
+                  <TableCell colSpan={7} className="p-[40px] text-center">
+                    <div className="text-muted-foreground text-[13px]">{t('superadmin.users.noUsersFound')}</div>
+                  </TableCell>
+                </TableRow>
+              ) : paginated.map((user) => {
                 const rc = ROLE_CONFIG[user.role];
                 const sc = STATUS_CONFIG[user.status];
                 const isSelected = selectedIds.has(user.id);
                 return (
-                  <tr
+                  <TableRow
                     key={user.id}
-                    className={`${i < paginated.length - 1 ? 'border-b border-[#F9FAFB]' : ''} ${isSelected ? 'bg-[#EFF6FF]' : 'bg-transparent'}`}
+                    data-state={isSelected ? 'selected' : undefined}
                   >
-                    <td className="px-[14px] py-3">
+                    <TableCell>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -752,122 +765,123 @@ export default function SAUsers() {
                         aria-label={`Select ${user.name}`}
                         className="cursor-pointer accent-[var(--primary)]"
                       />
-                    </td>
+                    </TableCell>
 
                     {/* User */}
-                    <td className="px-[14px] py-3">
+                    <TableCell>
                       <div className="flex items-center gap-[10px]">
                         <div
                           className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
                         >{user.initials}</div>
                         <div>
-                          <div className="text-[#0F172A] font-semibold text-[13px]">{user.name}</div>
-                          <div className="text-[#9CA3AF] text-[11px]">{user.email}</div>
+                          <div className="text-foreground font-semibold text-[13px]">{user.name}</div>
+                          <div className="text-muted-foreground text-[11px]">{user.email}</div>
                         </div>
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Role */}
-                    <td className="px-[14px] py-3">
-                      <div
-                        className={`inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[6px] whitespace-nowrap ${getRoleBadgeClass(user.role)}`}
-                      >
+                    <TableCell>
+                      <Badge variant="secondary" className={`gap-[5px] text-[11px] font-semibold ${getRoleBadgeClass(user.role)}`}>
                         {rc.icon} {user.role}
-                      </div>
-                    </td>
+                      </Badge>
+                    </TableCell>
 
                     {/* Barangay */}
-                    <td className="px-[14px] py-3 text-[#374151] text-xs font-medium">{user.barangay}</td>
+                    <TableCell className="text-foreground text-xs font-medium">{user.barangay}</TableCell>
 
                     {/* Status */}
-                    <td className="px-[14px] py-3">
-                      <div
-                        className={`inline-flex items-center gap-[5px] text-[11px] font-semibold px-2 py-[3px] rounded-[20px] ${getStatusBadgeClass(user.status)}`}
-                      >
+                    <TableCell>
+                      <Badge variant="outline" className={`gap-[5px] text-[11px] font-semibold rounded-full ${getStatusBadgeClass(user.status)}`}>
                         {sc.icon} {sc.label}
-                      </div>
-                    </td>
+                      </Badge>
+                    </TableCell>
 
                     {/* Last active */}
-                    <td className="px-[14px] py-3 text-[#6B7280] text-xs">
+                    <TableCell className="text-muted-foreground text-xs">
                       <div className="flex items-center gap-[5px]">
-                        <Clock size={11} className="text-[var(--outline-variant)]" />
+                        <Clock size={11} className="text-muted-foreground" />
                         {formatLastActive(user.lastActive)}
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Actions */}
-                    <td className="px-[14px] py-3">
+                    <TableCell>
                       <div className="flex items-center gap-[6px]">
-                        <button
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => {
                             setModalError(null);
                             setModalSaving(false);
                             setModal({ user, mode: 'view' });
                           }}
                           title="View"
-                          className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
+                          className="size-7"
                         >
-                          <Eye size={13} className="text-[var(--outline)]" />
-                        </button>
-                        <button
+                          <Eye size={13} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => {
                             setModalError(null);
                             setModalSaving(false);
                             setModal({ user, mode: 'edit' });
                           }}
                           title="Edit"
-                          className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
+                          className="size-7"
                         >
-                          <Edit2 size={13} className="text-[var(--outline)]" />
-                        </button>
+                          <Edit2 size={13} />
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+          </TableBody>
+        </Table>
 
         {/* Pagination */}
-        <div className="flex flex-col gap-2 px-4 py-3 border-t border-[#F3F4F6] bg-[#FAFAFA] sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-[#9CA3AF] text-xs">
+        <div className="flex flex-col gap-2 px-4 py-3 border-t border-border bg-muted/30 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-muted-foreground text-xs">
             {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-[6px] self-end sm:self-auto">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
               title="Previous page"
               aria-label="Previous page"
-              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === 1 ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
+              className="size-[30px]"
             >
-              <ChevronLeft size={14} color="#374151" />
-            </button>
+              <ChevronLeft size={14} />
+            </Button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button
+              <Button
                 key={p}
+                variant={page === p ? 'default' : 'outline'}
+                size="icon"
                 onClick={() => setPage(p)}
-                className={`w-[30px] h-[30px] rounded-[6px] cursor-pointer text-xs ${
-                  page === p
-                    ? 'border border-primary bg-primary font-bold text-white'
-                    : 'border border-[#E5E7EB] bg-white font-normal text-[#374151]'
-                }`}
-              >{p}</button>
+                className="size-[30px] text-xs"
+              >{p}</Button>
             ))}
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               title="Next page"
               aria-label="Next page"
-              className={`w-[30px] h-[30px] border border-[#E5E7EB] rounded-[6px] bg-white flex items-center justify-center ${page === totalPages ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
+              className="size-[30px]"
             >
-              <ChevronRight size={14} color="#374151" />
-            </button>
+              <ChevronRight size={14} />
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Modal */}
       {modal && (

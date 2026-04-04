@@ -8,6 +8,9 @@ import {
 } from '../services/officialReportsApi';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
+import { Card, CardContent } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 
 const REJECTION_REASONS = [
   'Blurry / unreadable image',
@@ -96,22 +99,26 @@ export default function Verifications() {
   }
 
   return (
-    <div className="min-h-full bg-[var(--surface)] px-4 py-4 md:px-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
-        <div>
-          <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.verifications.pageTitle')}</h1>
-          <p className="text-xs text-[var(--on-surface-variant)]">
-            {t('official.verifications.pageSubtitle')}
-          </p>
-        </div>
-        <button
-          onClick={() => void load()}
-          disabled={loading}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border-none bg-[var(--surface-container-low)] px-3.5 py-2 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)] disabled:cursor-not-allowed"
-        >
-          <RefreshCw size={14} /> {t('common.refresh')}
-        </button>
-      </div>
+    <div className="min-h-full bg-background px-4 py-4 md:px-5">
+      <Card className="mb-4">
+        <CardContent className="flex flex-wrap items-start justify-between gap-3 px-4 py-3.5">
+          <div>
+            <h1 className="mb-0.5 text-xl font-bold text-foreground">{t('official.verifications.pageTitle')}</h1>
+            <p className="text-xs text-muted-foreground">
+              {t('official.verifications.pageSubtitle')}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void load()}
+            disabled={loading}
+            className="gap-1.5 text-xs font-bold"
+          >
+            <RefreshCw size={14} /> {t('common.refresh')}
+          </Button>
+        </CardContent>
+      </Card>
 
       {error && (
         <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--error)] shadow-[0_8px_20px_rgba(186,26,26,0.14)]">
@@ -119,14 +126,14 @@ export default function Verifications() {
         </div>
       )}
 
-      <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[var(--surface-container-high)] px-3 py-1 text-[11px] font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.14)]">
+      <Badge variant="secondary" className="mb-3 gap-2 text-[11px] font-bold text-primary">
         <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
-      </div>
+      </Badge>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-4 text-[13px] text-[var(--on-surface-variant)] shadow-ambient">
+        <div className="rounded-2xl bg-card p-4 text-[13px] text-[var(--on-surface-variant)] shadow-sm">
           {t('official.verifications.noPending')}
         </div>
       ) : (
@@ -134,20 +141,20 @@ export default function Verifications() {
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <section key={row.citizenUserId} className="overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-[var(--surface-container-low)] px-4 py-3">
+              <Card key={row.citizenUserId} className="overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/50 px-4 py-3">
                   <div>
-                    <div className="font-extrabold text-[var(--on-surface)] text-sm">{row.fullName}</div>
-                    <div className="text-[11px] text-[var(--on-surface-variant)]">
+                    <div className="font-extrabold text-foreground text-sm">{row.fullName}</div>
+                    <div className="text-[11px] text-muted-foreground">
                       {row.phoneNumber} â€¢ {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
                     </div>
                   </div>
-                  <span className="rounded-full bg-[var(--secondary-container)]/35 px-2.5 py-1 text-[10px] font-extrabold text-[var(--secondary)]">
+                  <Badge variant="secondary" className="text-[10px] font-extrabold">
                     {row.verificationStatus}
-                  </span>
+                  </Badge>
                 </div>
 
-                <div className="grid gap-3 bg-[var(--surface-container-lowest)] px-4 py-3.5">
+                <div className="grid gap-3 bg-card px-4 py-3.5">
                   {row.idImageUrl ? (
                     <div className="flex flex-wrap gap-2.5">
                       <button
@@ -183,7 +190,7 @@ export default function Verifications() {
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      className="w-full rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
+                      className="w-full rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     >
                       <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
@@ -196,39 +203,45 @@ export default function Verifications() {
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      className="box-border w-full resize-y rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
+                      className="box-border w-full resize-y rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     />
                   </div>
 
                   <div className="flex flex-wrap gap-2.5">
-                    <button
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'APPROVE')}
-                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-emerald-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(5,150,105,0.26)] disabled:cursor-not-allowed"
+                      size="sm"
+                      className="gap-[5px] bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold"
                     >
                       <CheckCircle2 size={13} /> {t('official.verifications.approve')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REQUEST_REUPLOAD')}
-                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-severity-medium px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(134,83,0,0.24)] disabled:cursor-not-allowed"
+                      size="sm"
+                      className="gap-[5px] bg-severity-medium hover:bg-severity-medium/90 text-xs font-extrabold"
                     >
                       <Upload size={13} /> {t('official.verifications.requestReupload')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REJECT')}
-                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-destructive px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(186,26,26,0.24)] disabled:cursor-not-allowed"
+                      variant="destructive"
+                      size="sm"
+                      className="gap-[5px] text-xs font-extrabold"
                     >
                       <XCircle size={13} /> {t('official.verifications.reject')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'BAN_ACCOUNT')}
-                      className="inline-flex cursor-pointer items-center gap-[5px] rounded-xl border-none bg-[var(--tertiary)] px-3.5 py-2 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(93,0,4,0.28)] disabled:cursor-not-allowed"
+                      variant="destructive"
+                      size="sm"
+                      className="gap-[5px] bg-[var(--tertiary)] hover:bg-[var(--tertiary)]/90 text-xs font-extrabold"
                     >
                       <Ban size={13} /> {t('official.verifications.banAccount')}
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="flex items-start gap-1.5 rounded-xl bg-[var(--secondary-container)]/18 px-2.5 py-2 text-[11px] text-[var(--secondary)]">
@@ -236,7 +249,7 @@ export default function Verifications() {
                     {t('official.verifications.banWarning')}
                   </div>
                 </div>
-              </section>
+              </Card>
             );
           })}
         </div>
@@ -252,14 +265,14 @@ export default function Verifications() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="grid max-h-[92vh] w-[min(980px,100%)] grid-rows-[auto_1fr] overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-[0_20px_50px_rgba(13,28,46,0.3)]"
+            className="grid max-h-[92vh] w-[min(980px,100%)] grid-rows-[auto_1fr] overflow-hidden rounded-2xl bg-card shadow-[0_20px_50px_rgba(13,28,46,0.3)]"
           >
             <div className="flex items-center justify-between bg-[var(--surface-container-low)] px-3 py-2.5 shadow-[inset_0_-1px_0_rgba(197,197,211,0.22)]">
               <div className="text-[13px] font-extrabold text-[var(--on-surface)]">{previewTitle}</div>
               <button
                 type="button"
                 onClick={() => setPreviewUrl(null)}
-                className="cursor-pointer rounded-lg border-none bg-[var(--surface-container-lowest)] px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.28)]"
+                className="cursor-pointer rounded-lg border-none bg-card px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.28)]"
               >
                 {t('official.verifications.closeBtn')}
               </button>
@@ -272,7 +285,7 @@ export default function Verifications() {
                 </div>
 
                 <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
-                  <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
                     <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                       {t('official.verifications.frontId')}
                     </div>
@@ -285,7 +298,7 @@ export default function Verifications() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
                     <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                       {t('official.verifications.backId')}
                     </div>
@@ -299,7 +312,7 @@ export default function Verifications() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-[10px] bg-[var(--surface-container-lowest)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
                   <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
                     {t('official.verifications.fullUploadedFile')}
                   </div>
