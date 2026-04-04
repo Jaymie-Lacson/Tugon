@@ -233,7 +233,7 @@ export default function SuperAdminLayout() {
         key={item.path}
         to={item.path}
         onClick={onClick}
-        title={collapsed ? item.label : undefined}
+        title={t('nav.openPage', { page: item.label })}
         className={`mb-1.5 flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
           isActive
             ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'

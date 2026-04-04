@@ -226,7 +226,7 @@ function Layout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                title={sidebarCollapsed ? item.label : undefined}
+                title={t('nav.openPage', { page: item.label })}
                 className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
                   active
                     ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
@@ -246,7 +246,7 @@ function Layout() {
           <div className="mt-3 border-t border-[var(--outline-variant)]/35 pt-3">
             <NavLink
               to="/app/settings"
-              title={sidebarCollapsed ? t('common.settings') : undefined}
+              title={t('nav.openSettingsPage')}
               className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
                 settingsActive
                   ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'

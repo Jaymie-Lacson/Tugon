@@ -63,6 +63,8 @@ export const fil: TranslationDictionary = {
   'nav.navigation': 'Nabigasyon',
   'nav.system': 'Sistema',
   'nav.monitoring': 'Pagmamanman',
+  'nav.openPage': 'Buksan ang pahina ng {{page}}',
+  'nav.openSettingsPage': 'Buksan ang pahina ng mga setting',
 
   // ── Incident types ──
   'incident.type.pollution': 'Polusyon',

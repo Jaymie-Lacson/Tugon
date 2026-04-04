@@ -63,6 +63,8 @@ export const en: TranslationDictionary = {
   'nav.navigation': 'Navigation',
   'nav.system': 'System',
   'nav.monitoring': 'Monitoring',
+  'nav.openPage': 'Open {{page}} page',
+  'nav.openSettingsPage': 'Open settings page',
 
   // ── Incident types ──
   'incident.type.pollution': 'Pollution',
