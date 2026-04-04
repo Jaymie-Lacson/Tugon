@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search, Plus, Filter, Users, Shield,
+  Plus, Filter, Users, Shield,
   Edit2, CheckCircle2, Clock,
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
+import { SearchInput } from '../../components/ui/search-input';
 import { useTranslation } from '../../i18n';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
@@ -14,7 +15,6 @@ import type { Role } from '../../services/authApi';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '../../components/ui/table';
@@ -391,6 +391,7 @@ export default function SAUsers() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState('All Roles');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [barangayFilter, setBarangayFilter] = useState('All Barangays');
@@ -402,14 +403,12 @@ export default function SAUsers() {
 
   const filtered = useMemo(() => {
     return usersData.filter(u => {
-      const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase());
       const matchRole = roleFilter === 'All Roles' || u.role === roleFilter;
       const matchStatus = statusFilter === 'All Status' || u.status === statusFilter;
       const matchBrgy = barangayFilter === 'All Barangays' || u.barangay === barangayFilter;
-      return matchSearch && matchRole && matchStatus && matchBrgy;
+      return matchRole && matchStatus && matchBrgy;
     });
-  }, [usersData, search, roleFilter, statusFilter, barangayFilter]);
+  }, [usersData, roleFilter, statusFilter, barangayFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -428,11 +427,17 @@ export default function SAUsers() {
     inactive: usersData.filter(u => u.status === 'inactive').length,
   };
 
-  const loadUsers = async () => {
+  const searchRef = React.useRef(search);
+  searchRef.current = search;
+
+  const loadUsers = React.useCallback(async () => {
     setLoading(true);
     setApiError(null);
     try {
-      const payload = await superAdminApi.getUsers();
+      const currentSearch = searchRef.current.trim();
+      const payload = await superAdminApi.getUsers(
+        currentSearch ? { search: currentSearch } : undefined,
+      );
       setUsersData(payload.users.map((user, index) => mapApiUserToSaUser(user, index)));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to load users.';
@@ -440,11 +445,30 @@ export default function SAUsers() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadUsers();
-  }, []);
+  }, [loadUsers]);
+
+  const didMountSearchRef = React.useRef(false);
+  useEffect(() => {
+    if (!didMountSearchRef.current) {
+      didMountSearchRef.current = true;
+      return;
+    }
+    setSearchLoading(true);
+    const handle = window.setTimeout(async () => {
+      try {
+        await loadUsers();
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [search, loadUsers]);
 
   const handleBulkStatusUpdate = async (nextStatus: SupportedUiStatus) => {
     if (selectedIds.size === 0) {
@@ -650,13 +674,14 @@ export default function SAUsers() {
       <Card className="sa-users-filter-bar mb-[14px]">
         <CardContent className="px-4 py-[14px] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex-1 min-w-[200px]">
+          <SearchInput
             value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            onValueChange={(next) => { setSearch(next); setPage(1); }}
+            loading={searchLoading}
+            shortcut="/"
             placeholder={t('superadmin.users.searchPlaceholder')}
-            className="pl-8 h-9 text-[13px]"
+            aria-label={t('superadmin.users.searchPlaceholder')}
           />
         </div>
 

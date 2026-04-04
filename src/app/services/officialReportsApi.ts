@@ -458,10 +458,18 @@ export const officialReportsApi = {
     };
   },
 
-  getReports() {
-    return authedRequest<{ reports: ApiCitizenReport[] }>("/official/reports", {
-      method: "GET",
-    });
+  getReports(params?: { search?: string }) {
+    const query = new URLSearchParams();
+    if (params?.search) {
+      query.set("search", params.search);
+    }
+    const qs = query.toString();
+    return authedRequest<{ reports: ApiCitizenReport[] }>(
+      `/official/reports${qs ? `?${qs}` : ""}`,
+      {
+        method: "GET",
+      },
+    );
   },
 
   getReportById(reportId: string) {

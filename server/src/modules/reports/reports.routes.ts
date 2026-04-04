@@ -409,10 +409,14 @@ officialReportsRouter.get("/reports", async (req, res) => {
       return res.status(401).json({ message: "Authenticated user not found." });
     }
 
-    const reports = await reportsService.listForOfficial({
-      role: user.role,
-      barangayCode: user.officialProfile?.barangay?.code ?? null,
-    });
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const reports = await reportsService.listForOfficial(
+      {
+        role: user.role,
+        barangayCode: user.officialProfile?.barangay?.code ?? null,
+      },
+      { search },
+    );
 
     return res.status(200).json({ reports });
   } catch (error) {

@@ -1256,12 +1256,27 @@ export const reportsService = {
     return reportsService.getMineById(citizenUserId, reportId);
   },
 
-  async listForOfficial(user: { role: Role; barangayCode: string | null }): Promise<CitizenReportRecord[]> {
+  async listForOfficial(
+    user: { role: Role; barangayCode: string | null },
+    options?: { search?: string },
+  ): Promise<CitizenReportRecord[]> {
     if (user.role === "OFFICIAL" && !user.barangayCode) {
       throw new ReportsError("Official barangay profile is required.", 403);
     }
 
-    const where = user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {};
+    const search = typeof options?.search === "string" ? options.search.trim() : "";
+    const scopeWhere = user.role === "OFFICIAL" ? { routedBarangayCode: user.barangayCode! } : {};
+    const where = search
+      ? {
+          ...scopeWhere,
+          OR: [
+            { id: { contains: search, mode: "insensitive" as const } },
+            { location: { contains: search, mode: "insensitive" as const } },
+            { description: { contains: search, mode: "insensitive" as const } },
+            { barangay: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : scopeWhere;
     const persisted = await prisma.citizenReport.findMany({
       where,
       include: {

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../i18n';
 import {
-  Search, Edit2, Printer, RefreshCw,
+  Edit2, Printer, RefreshCw,
   ChevronDown, ChevronUp, ChevronsUpDown, X,
   ChevronRight,
   Users, Clock, MapPin, Info, Droplets, Car, Heart, Shield as ShieldIcon, Zap,
 } from 'lucide-react';
+import { SearchInput } from '../components/ui/search-input';
 import {
   Incident, IncidentType, Severity, IncidentStatus,
   incidentTypeConfig, severityConfig, statusConfig,
@@ -413,6 +414,7 @@ export default function Incidents() {
   const [listView, setListView] = useState<IncidentListView>('open');
 
   const [search, setSearch] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('');
   const [filterSeverity, setFilterSeverity] = useState<Severity | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
@@ -445,13 +447,19 @@ export default function Incidents() {
     setPendingReportId(reportId);
   }, [location.state]);
 
+  const searchRef = React.useRef(search);
+  searchRef.current = search;
+
   const loadReports = React.useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true);
     }
     setError(null);
     try {
-      const payload = await officialReportsApi.getReports();
+      const currentSearch = searchRef.current.trim();
+      const payload = await officialReportsApi.getReports(
+        currentSearch ? { search: currentSearch } : undefined,
+      );
       const mapped = payload.reports.map((report) => toIncidentView(report));
       setIncidents(mapped);
       setSelectedIncident((current) => {
@@ -474,6 +482,25 @@ export default function Incidents() {
   useEffect(() => {
     void loadReports();
   }, [loadReports]);
+
+  const didMountSearchRef = React.useRef(false);
+  useEffect(() => {
+    if (!didMountSearchRef.current) {
+      didMountSearchRef.current = true;
+      return;
+    }
+    setSearchLoading(true);
+    const handle = window.setTimeout(async () => {
+      try {
+        await loadReports(true);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [search, loadReports]);
 
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
@@ -570,16 +597,6 @@ export default function Incidents() {
           return false;
         }
 
-        const q = search.toLowerCase();
-        if (
-          search &&
-          !inc.id.toLowerCase().includes(q) &&
-          !inc.barangay.toLowerCase().includes(q) &&
-          !inc.location.toLowerCase().includes(q) &&
-          !inc.description.toLowerCase().includes(q)
-        ) {
-          return false;
-        }
         if (filterCategory && getCategoryLabelForIncidentType(inc.type) !== filterCategory) return false;
         if (filterSeverity && inc.severity !== filterSeverity) return false;
         if (filterStatus && inc.status !== filterStatus) return false;
@@ -590,7 +607,7 @@ export default function Incidents() {
         const vb = String(b[sortKey] ?? '');
         return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       });
-  }, [incidents, listView, search, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
+  }, [incidents, listView, filterCategory, filterSeverity, filterStatus, sortKey, sortDir]);
 
   const perPage = 10;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -764,16 +781,17 @@ export default function Incidents() {
 
       {/* Filter bar */}
       <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient">
-        <div className="relative flex-[2_1_200px]">
-          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--outline)]" />
-          <input
+        <div className="flex-[2_1_200px]">
+          <SearchInput
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
+            onValueChange={(next) => {
+              setSearch(next);
               setPage(1);
             }}
+            loading={searchLoading}
+            shortcut="/"
             placeholder={t('official.incidents.searchPlaceholderTable')}
-            className="w-full rounded-lg border-none bg-[var(--surface-container-low)] py-2.5 pr-3 pl-8 text-[13px] text-[var(--on-surface)] outline-none shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)]"
+            aria-label={t('official.incidents.searchPlaceholderTable')}
           />
         </div>
 
