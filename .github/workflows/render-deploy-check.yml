@@ -1,0 +1,68 @@
+name: Render Deploy Check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  wait-for-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Wait for Render deploy to finish
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          API="https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys?limit=20"
+          AUTH="Authorization: Bearer ${RENDER_API_KEY}"
+
+          echo "Waiting for Render deploy matching commit ${COMMIT_SHA}..."
+
+          # Give Render up to 2 minutes to register the deploy for this commit
+          DEPLOY_ID=""
+          for i in $(seq 1 24); do
+            RESPONSE=$(curl -fsS -H "$AUTH" -H "Accept: application/json" "$API")
+            DEPLOY_ID=$(echo "$RESPONSE" | jq -r --arg sha "$COMMIT_SHA" \
+              '[.[] | select(.deploy.commit.id == $sha)] | .[0].deploy.id // empty')
+            if [ -n "$DEPLOY_ID" ]; then
+              echo "Found deploy: $DEPLOY_ID"
+              break
+            fi
+            echo "Deploy not yet registered, retrying in 5s (attempt $i/24)..."
+            sleep 5
+          done
+
+          if [ -z "$DEPLOY_ID" ]; then
+            echo "::error::No Render deploy found for commit ${COMMIT_SHA} after 2 minutes"
+            exit 1
+          fi
+
+          # Poll deploy status until terminal
+          DEPLOY_API="https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys/${DEPLOY_ID}"
+          while true; do
+            STATUS=$(curl -fsS -H "$AUTH" -H "Accept: application/json" "$DEPLOY_API" | jq -r '.status')
+            echo "Deploy status: $STATUS"
+            case "$STATUS" in
+              live)
+                echo "::notice::Render deploy succeeded"
+                exit 0
+                ;;
+              build_failed|update_failed|pre_deploy_failed|canceled|deactivated)
+                echo "::error::Render deploy ended with status: $STATUS"
+                echo "View logs: https://dashboard.render.com/web/${RENDER_SERVICE_ID}/deploys/${DEPLOY_ID}"
+                exit 1
+                ;;
+              created|build_in_progress|update_in_progress|pre_deploy_in_progress|queued)
+                sleep 15
+                ;;
+              *)
+                echo "Unknown status: $STATUS (treating as in-progress)"
+                sleep 15
+                ;;
+            esac
+          done
