@@ -22,10 +22,6 @@ import {
 } from '../services/citizenReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
-import { Card, CardContent } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 
 export type CitizenReportStatus =
   | 'submitted'
@@ -472,11 +468,9 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
   const statusTone = statusToneClass[report.status];
 
   return (
-    <Card
-      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden p-0 text-left transition-[box-shadow,border-color] duration-200 ease-in-out hover:shadow-md"
+    <button
+      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 text-left transition-[box-shadow,border-color] duration-200 ease-in-out"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
     >
       <div className="p-[14px] pb-0">
         {/* Top row: ID + Status */}
@@ -554,7 +548,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
           <ChevronRight size={13} />
         </div>
       </div>
-    </Card>
+    </button>
   );
 }
 

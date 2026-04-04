@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   LogOut,
   Menu,
   Search,
@@ -13,10 +15,6 @@ import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { BottomNav, type BottomNavItem } from './BottomNav';
-import { Button } from './ui/button';
-import { Separator } from './ui/separator';
-import { Input } from './ui/input';
-import { Badge } from './ui/badge';
 import { useTranslation } from '../i18n';
 import { officialBottomNavDefs, officialSidebarNavDefs } from '../data/navigationConfig';
 
@@ -41,6 +39,9 @@ function Layout() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifications, setNotifications] = useState<ApiCrossBorderAlert[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem('tugon-sidebar-collapsed') === 'true'; } catch { return false; }
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -76,6 +77,10 @@ function Layout() {
     setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
+
+  useEffect(() => {
+    try { localStorage.setItem('tugon-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     setMobileDrawerOpen(false);
@@ -167,28 +172,38 @@ function Layout() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-72 shrink-0 flex-col border-r bg-sidebar lg:flex">
-        <div className="px-5 pb-5 pt-6">
+      <aside className={`hidden ${sidebarCollapsed ? 'w-[68px]' : 'w-72'} shrink-0 flex-col overflow-hidden border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-300 ease-in-out lg:flex`}>
+        <div className={sidebarCollapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
           <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="no-underline">
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
-              Tondo Command
-            </div>
-            <div className="mt-1 text-[31px] font-black leading-none tracking-[-0.04em] text-primary">
-              TUGON
-            </div>
-            <div className="mt-1 text-xs font-medium text-[var(--on-surface-variant)]">
-              District Operations Console
-            </div>
+            {sidebarCollapsed ? (
+              <div className="flex items-center justify-center">
+                <span className="text-[22px] font-black tracking-[-0.04em] text-primary">T</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
+                  Tondo Command
+                </div>
+                <div className="mt-1 text-[31px] font-black leading-none tracking-[-0.04em] text-primary">
+                  TUGON
+                </div>
+                <div className="mt-1 text-xs font-medium text-[var(--on-surface-variant)]">
+                  District Operations Console
+                </div>
+              </>
+            )}
           </NavLink>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4">
-          <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
-            {t('nav.navigation')}
-          </div>
+          {!sidebarCollapsed && (
+            <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+              {t('nav.navigation')}
+            </div>
+          )}
           {NAV_ITEMS.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.path
@@ -200,16 +215,19 @@ function Layout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
+                title={sidebarCollapsed ? item.label : undefined}
+                className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
                   active
-                    ? 'bg-accent text-accent-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                    : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                 }`}
               >
-                <item.icon size={16} className={active ? 'text-primary' : 'text-muted-foreground'} />
-                <span className={`text-[13px] ${active ? 'font-bold' : 'font-medium'}`}>
-                  {item.label}
-                </span>
+                <item.icon size={16} className={`shrink-0 ${active ? 'text-primary' : 'text-[var(--outline)]'}`} />
+                {!sidebarCollapsed && (
+                  <span className={`text-[13px] whitespace-nowrap ${active ? 'font-bold' : 'font-medium'}`}>
+                    {item.label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -217,50 +235,60 @@ function Layout() {
           <div className="mt-3 border-t border-[var(--outline-variant)]/35 pt-3">
             <NavLink
               to="/app/settings"
-              className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
+              title={sidebarCollapsed ? t('common.settings') : undefined}
+              className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
                 settingsActive
-                  ? 'bg-accent text-accent-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                  : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
               }`}
             >
-              <Settings size={16} className={settingsActive ? 'text-primary' : 'text-[var(--outline)]'} />
-              <span className={`text-[13px] ${settingsActive ? 'font-bold' : 'font-medium'}`}>
-                {t('common.settings')}
-              </span>
+              <Settings size={16} className={`shrink-0 ${settingsActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
+              {!sidebarCollapsed && (
+                <span className={`text-[13px] whitespace-nowrap ${settingsActive ? 'font-bold' : 'font-medium'}`}>
+                  {t('common.settings')}
+                </span>
+              )}
             </NavLink>
           </div>
         </nav>
 
-        <div className="px-4 pb-3">
-          <Button
-            onClick={() => navigate('/app/incidents')}
-            className="w-full h-11 font-bold"
-            size="lg"
+        <div className="px-3 pb-2">
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed((prev) => !prev)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl border-none bg-transparent py-2 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]`}
           >
-            New Report
-          </Button>
+            {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
+            {!sidebarCollapsed && <span className="text-[13px] font-medium whitespace-nowrap">Collapse</span>}
+          </button>
         </div>
 
-        <Separator />
-        <div className="bg-card px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
+        <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
+          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+            <div
+              className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white"
+              title={sidebarCollapsed ? userFullName : undefined}
+            >
               {userInitials}
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-semibold text-foreground">{userFullName}</div>
-              <div className="text-[10px] text-muted-foreground">{userRoleLabel}</div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              aria-label={t('common.signOut')}
-              title={t('common.signOut')}
-              className="size-8"
-            >
-              <LogOut size={15} />
-            </Button>
+            {!sidebarCollapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
+                  <div className="text-[10px] text-[var(--outline)]">{userRoleLabel}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  aria-label={t('common.signOut')}
+                  title={t('common.signOut')}
+                  className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)]"
+                >
+                  <LogOut size={15} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </aside>
@@ -310,8 +338,8 @@ function Layout() {
                     onClick={() => setMobileDrawerOpen(false)}
                     className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                       active
-                        ? 'bg-accent text-accent-foreground shadow-sm'
-                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                        ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                        : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                     }`}
                   >
                     <item.icon size={16} className={active ? 'text-primary' : 'text-[var(--outline)]'} />
@@ -328,8 +356,8 @@ function Layout() {
                   onClick={() => setMobileDrawerOpen(false)}
                   className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
                     settingsActive
-                      ? 'bg-accent text-accent-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                      : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                   }`}
                 >
                   <Settings size={16} className={settingsActive ? 'text-primary' : 'text-[var(--outline)]'} />
@@ -338,19 +366,6 @@ function Layout() {
                   </span>
                 </NavLink>
               </div>
-            </div>
-
-            <div className="px-4 pb-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileDrawerOpen(false);
-                  navigate('/app/incidents');
-                }}
-                className="btn-gradient-primary shadow-ambient w-full cursor-pointer rounded-xl border-none px-4 py-3 text-sm font-bold"
-              >
-                New Report
-              </button>
             </div>
 
             <div className="border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
@@ -379,11 +394,10 @@ function Layout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b bg-card px-4 lg:px-5">
+        <header className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           <div className="flex items-center gap-2 lg:hidden">
-            <Button
-              variant="outline"
-              size="icon"
+            <button
+              type="button"
               aria-controls="layout-mobile-drawer"
               aria-expanded={mobileDrawerOpen}
               aria-label="Open navigation menu"
@@ -392,37 +406,37 @@ function Layout() {
                 setProfileMenuOpen(false);
                 setNotificationsOpen(false);
               }}
-              className="size-9"
+              className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)]"
             >
               <Menu size={18} />
-            </Button>
+            </button>
             <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
           </div>
 
           <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--outline)]">
               <span className="font-semibold text-primary">TUGON</span>
               <ChevronRight size={12} />
-              <span className="font-semibold text-foreground">{currentPage?.label}</span>
+              <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
             </div>
-            <div className="relative ml-3 min-w-0 flex-1">
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
+            <div className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
+              <Search size={14} className="shrink-0 text-[var(--outline)]" />
+              <input
                 type="search"
                 placeholder="Search incidents, barangays, or reports..."
-                className="h-9 pl-9 text-xs"
+                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
               />
             </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <Badge variant="outline" className="hidden gap-2 xl:inline-flex">
+            <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
               System Online
-            </Badge>
+            </div>
             <div className="hidden text-right lg:block">
-              <div className="text-[13px] font-semibold text-foreground"><LiveClock /></div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-[13px] font-semibold text-[var(--on-surface)]"><LiveClock /></div>
+              <div className="text-[10px] text-[var(--outline)]">
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
@@ -465,13 +479,13 @@ function Layout() {
                 <div
                   role="menu"
                   aria-label="Profile actions"
-                  className="absolute right-0 top-11 z-[2300] w-[190px] overflow-hidden rounded-lg border bg-popover shadow-lg"
+                  className="absolute right-0 top-11 z-[2300] w-[190px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated"
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
-                    className="w-full cursor-pointer border-none border-b border-border bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-foreground hover:bg-accent transition-colors"
+                    className="w-full cursor-pointer border-none border-b border-[var(--outline-variant)]/30 bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)]"
                   >
                     {t('common.profile')}
                   </button>

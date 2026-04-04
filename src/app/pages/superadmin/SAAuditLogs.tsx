@@ -5,12 +5,6 @@ import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminAuditLog } from '../../services/superAdminApi';
-import { Card, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '../../components/ui/table';
 
 const ACTIONS = ['All Actions', 'ADMIN_USER_CREATED', 'ADMIN_USER_ROLE_UPDATED', 'ADMIN_BARANGAY_BOUNDARY_UPDATED'] as const;
 const TARGET_TYPES = ['All Targets', 'USER', 'BARANGAY'] as const;
@@ -201,24 +195,22 @@ export default function SAAuditLogs() {
   }
 
   return (
-    <div className="p-5 bg-background min-h-full">
+    <div className="p-5 bg-[var(--surface)] min-h-full">
       <div className="flex flex-col items-start justify-between mb-3.5 gap-2.5 md:flex-row md:items-center">
         <div>
-          <h1 className="text-foreground text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>
-          <p className="text-muted-foreground text-xs m-0 mt-0.5">
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>
+          <p className="text-[var(--on-surface-variant)] text-xs m-0 mt-0.5">
             {t('superadmin.auditLogs.subtitle')}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={() => {
             void loadLogs();
           }}
-          className="gap-1.5 text-xs font-semibold w-full md:w-auto"
+          className="flex w-full justify-center items-center gap-1.5 bg-white border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold md:w-auto"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
-        </Button>
+        </button>
       </div>
 
       {error ? (
@@ -228,18 +220,14 @@ export default function SAAuditLogs() {
       ) : null}
 
       <div className="grid grid-cols-2 gap-2.5 mb-3">
-        <Card>
-          <CardContent className="px-3 py-2.5">
-            <div className="text-muted-foreground text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
-            <div className="text-foreground text-2xl font-bold mt-0.5">{logs.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="px-3 py-2.5">
-            <div className="text-muted-foreground text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
-            <div className="text-foreground text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
-          </CardContent>
-        </Card>
+        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
+          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{logs.length}</div>
+        </div>
+        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
+          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
+        </div>
       </div>
 
       <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
@@ -322,78 +310,76 @@ export default function SAAuditLogs() {
         </button>
       </div>
 
-      <Card className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {[t('superadmin.auditLogs.timestamp'), t('superadmin.auditLogs.action'), t('superadmin.auditLogs.target'), t('superadmin.auditLogs.targetLabel'), t('superadmin.auditLogs.actorUserId'), t('superadmin.auditLogs.details')].map((header) => (
-                <TableHead
-                  key={header}
-                  className="text-[10px] font-bold tracking-[0.06em] uppercase"
+      <div className="bg-white border border-[var(--outline-variant)] rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-[var(--outline-variant)]">
+                {[t('superadmin.auditLogs.timestamp'), t('superadmin.auditLogs.action'), t('superadmin.auditLogs.target'), t('superadmin.auditLogs.targetLabel'), t('superadmin.auditLogs.actorUserId'), t('superadmin.auditLogs.details')].map((header) => (
+                  <th
+                    key={header}
+                    className="px-3 py-2.5 text-left text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase whitespace-nowrap"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-center text-[var(--outline)]">
+                    {loading ? t('superadmin.auditLogs.loadingLogs') : t('superadmin.auditLogs.noLogsFiltered')}
+                  </td>
+                </tr>
+              ) : logs.map((log, index) => (
+                <tr
+                  key={log.id}
+                  onClick={() => setSelectedLog(log)}
+                  className={`cursor-pointer hover:bg-surface-container-low ${index < logs.length - 1 ? 'border-b border-[var(--outline-variant)]' : ''}`}
                 >
-                  {header}
-                </TableHead>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-[14px] bg-[var(--primary-fixed)] text-primary font-bold text-[10px]">
+                      <Activity size={10} /> {log.action}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] font-semibold">{log.targetType}</td>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{log.targetLabel ?? 'N/A'}</td>
+                  <td className="px-3 py-2.5 text-[var(--outline)] font-mono text-[11px]">{log.actorUserId}</td>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] font-mono text-[10px] max-w-[420px]">
+                    <div className="max-h-[88px] overflow-auto whitespace-pre-wrap break-words">
+                      {log.details ? JSON.stringify(log.details, null, 2) : 'N/A'}
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {logs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="p-6 text-center text-muted-foreground">
-                  {loading ? t('superadmin.auditLogs.loadingLogs') : t('superadmin.auditLogs.noLogsFiltered')}
-                </TableCell>
-              </TableRow>
-            ) : logs.map((log) => (
-              <TableRow
-                key={log.id}
-                onClick={() => setSelectedLog(log)}
-                className="cursor-pointer"
-              >
-                <TableCell className="text-muted-foreground">{formatDateTime(log.createdAt)}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="gap-[5px] text-primary font-bold text-[10px]">
-                    <Activity size={10} /> {log.action}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground font-semibold">{log.targetType}</TableCell>
-                <TableCell className="text-muted-foreground">{log.targetLabel ?? 'N/A'}</TableCell>
-                <TableCell className="text-muted-foreground font-mono text-[11px]">{log.actorUserId}</TableCell>
-                <TableCell className="text-muted-foreground font-mono text-[10px] max-w-[420px]">
-                  <div className="max-h-[88px] overflow-auto whitespace-pre-wrap break-words">
-                    {log.details ? JSON.stringify(log.details, null, 2) : 'N/A'}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="flex flex-col items-start gap-2 px-3 py-2.5 border-t border-border bg-muted/30 text-xs md:flex-row md:items-center md:justify-between">
-          <span className="text-muted-foreground">
+            </tbody>
+          </table>
+        </div>
+        <div className="flex flex-col items-start gap-2 px-3 py-2.5 border-t border-[var(--outline-variant)] bg-surface-container-low text-xs md:flex-row md:items-center md:justify-between">
+          <span className="text-[var(--outline)]">
             {t('superadmin.auditLogs.showingRange', { start: pageStart, end: pageEnd, total })}
           </span>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              className="text-xs font-semibold"
+              className={`border border-[var(--outline-variant)] rounded-[7px] px-2.5 py-1.5 bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${page === 1 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
               {t('superadmin.auditLogs.prev')}
-            </Button>
-            <span className="text-muted-foreground self-center">{t('superadmin.auditLogs.page', { page, total: totalPages })}</span>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <span className="text-[var(--on-surface-variant)] self-center">{t('superadmin.auditLogs.page', { page, total: totalPages })}</span>
+            <button
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
-              className="text-xs font-semibold"
+              className={`border border-[var(--outline-variant)] rounded-[7px] px-2.5 py-1.5 bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${page >= totalPages ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
               {t('common.next')}
-            </Button>
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {selectedLog ? (
         <div

@@ -13,12 +13,6 @@ import { AdminNotifications, type AdminNotificationItem } from '../../components
 import { BottomNav, type BottomNavItem } from '../../components/BottomNav';
 import { useTranslation } from '../../i18n';
 import { superAdminBottomNavDefs, superAdminSidebarNavDefs } from '../../data/navigationConfig';
-import { Button } from '../../components/ui/button';
-import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { Separator } from '../../components/ui/separator';
-import { Badge } from '../../components/ui/badge';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent } from '../../components/ui/card';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -44,12 +38,6 @@ function getMonitoringColor(incidents: number): string {
   if (incidents >= 10) return 'var(--severity-critical)';
   if (incidents >= 5) return '#F59E0B';
   return '#22C55E';
-}
-
-function getMonitoringBadgeVariant(incidents: number): 'destructive' | 'secondary' | 'outline' {
-  if (incidents >= 10) return 'destructive';
-  if (incidents >= 5) return 'secondary';
-  return 'outline';
 }
 
 export default function SuperAdminLayout() {
@@ -223,56 +211,54 @@ export default function SuperAdminLayout() {
         key={item.path}
         to={item.path}
         onClick={onClick}
-        className="no-underline"
+        className={`mb-1.5 flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors ${
+          isActive
+            ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+            : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+        }`}
       >
-        <Button
-          variant={isActive ? 'secondary' : 'ghost'}
-          className={`mb-1 w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-[13px] ${
-            isActive
-              ? 'bg-accent font-bold text-primary'
-              : 'font-medium text-muted-foreground'
-          }`}
-        >
-          <item.icon size={16} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+        <item.icon size={16} className={isActive ? 'text-primary' : 'text-[var(--outline)]'} />
+        <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>
           {item.label}
-        </Button>
+        </span>
       </NavLink>
     );
   });
 
   const renderMonitoringStrip = () => (
-    <Card className="mb-3 border-border/50">
-      <CardContent className="p-2.5">
-        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-          {t('nav.monitoring')}
+    <div className="mb-3 rounded-xl bg-[var(--surface-container)] p-2.5">
+      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+        {t('nav.monitoring')}
+      </div>
+      {monitoringItems.map((barangay) => (
+        <div key={barangay.code} className="mb-1 flex items-center gap-2 rounded-lg bg-[var(--surface-container-lowest)] px-2 py-1.5 last:mb-0">
+          <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: barangay.color }} />
+          <span className="flex-1 text-[11px] font-medium text-[var(--on-surface)]">{barangay.name}</span>
+          <span
+            className="rounded-[5px] px-1.5 py-px text-[9px] font-bold"
+            style={{ color: barangay.color, background: `${barangay.color}20` }}
+          >
+            {t('superadmin.barangayMap.activeReports', { count: barangay.incidents })}
+          </span>
         </div>
-        {monitoringItems.map((barangay) => (
-          <div key={barangay.code} className="mb-1 flex items-center gap-2 rounded-lg bg-background px-2 py-1.5 last:mb-0">
-            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: barangay.color }} />
-            <span className="flex-1 text-[11px] font-medium text-foreground">{barangay.name}</span>
-            <Badge variant={getMonitoringBadgeVariant(barangay.incidents)} className="text-[9px] font-bold px-1.5 py-px">
-              {t('superadmin.barangayMap.activeReports', { count: barangay.incidents })}
-            </Badge>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+      ))}
+    </div>
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-72 shrink-0 flex-col border-r border-border/50 bg-card lg:flex">
+      <aside className="hidden w-72 shrink-0 flex-col border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] lg:flex">
         <div className="px-5 pb-5 pt-6">
           <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="no-underline">
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
               Super Admin
             </div>
             <div className="mt-1 text-[31px] font-black leading-none tracking-[-0.04em] text-primary">
               TUGON
             </div>
-            <div className="mt-1 text-xs font-medium text-muted-foreground">
+            <div className="mt-1 text-xs font-medium text-[var(--on-surface-variant)]">
               Command and Compliance Suite
             </div>
           </NavLink>
@@ -280,43 +266,40 @@ export default function SuperAdminLayout() {
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4">
           {renderMonitoringStrip()}
-          <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
             {t('nav.navigation')}
           </div>
           {renderNavLinks()}
         </nav>
 
         <div className="px-4 pb-3">
-          <Button
+          <button
+            type="button"
             onClick={() => navigate('/superadmin')}
-            className="w-full rounded-xl font-bold"
+            className="btn-gradient-primary shadow-ambient w-full cursor-pointer rounded-xl border-none px-4 py-3 text-sm font-bold"
           >
             District Overview
-          </Button>
+          </button>
         </div>
 
-        <Separator />
-        <div className="bg-card px-4 py-3">
+        <div className="border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar className="size-[34px]">
-              <AvatarFallback className="bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
-                {userInitials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-semibold text-foreground">{userFullName}</div>
-              <div className="text-[10px] text-muted-foreground">{t('role.superAdmin')}</div>
+            <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
+              {userInitials}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
+              <div className="text-[10px] text-[var(--outline)]">{t('role.superAdmin')}</div>
+            </div>
+            <button
+              type="button"
               onClick={handleSignOut}
               aria-label={t('common.signOut')}
               title={t('common.signOut')}
-              className="size-8 text-muted-foreground"
+              className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)]"
             >
               <LogOut size={15} />
-            </Button>
+            </button>
           </div>
         </div>
       </aside>
@@ -329,55 +312,50 @@ export default function SuperAdminLayout() {
             id="superadmin-mobile-drawer"
             role="navigation"
             aria-label={t('superadmin.layout.ariaNavigation')}
-            className="absolute inset-y-0 left-0 flex w-[290px] flex-col bg-card shadow-2xl"
+            className="absolute inset-y-0 left-0 flex w-[290px] flex-col bg-[var(--surface-container-low)] shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-border/50 px-4 pb-3 pt-4">
+            <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/35 px-4 pb-3 pt-4">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
                   Super Admin
                 </div>
                 <div className="text-[25px] font-black leading-none tracking-[-0.04em] text-primary">TUGON</div>
               </div>
-              <Button
-                variant="outline"
-                size="icon"
+              <button
+                type="button"
                 onClick={() => setMobileDrawerOpen(false)}
                 aria-label={t('superadmin.layout.ariaCloseNav')}
-                className="size-8"
+                className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/50 bg-[var(--surface-container-lowest)] text-[var(--on-surface)]"
               >
                 <X size={16} />
-              </Button>
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-3">
               {renderMonitoringStrip()}
-              <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
                 {t('nav.navigation')}
               </div>
               {renderNavLinks(() => setMobileDrawerOpen(false))}
             </div>
 
-            <Separator />
-            <div className="bg-card px-4 py-3">
+            <div className="border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <Avatar className="size-[34px]">
-                  <AvatarFallback className="bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-semibold text-foreground">{userFullName}</div>
-                  <div className="text-[10px] text-muted-foreground">{t('role.superAdmin')}</div>
+                <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white">
+                  {userInitials}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
+                  <div className="text-[10px] text-[var(--outline)]">{t('role.superAdmin')}</div>
+                </div>
+                <button
+                  type="button"
                   onClick={handleSignOut}
                   aria-label={t('common.signOut')}
-                  className="size-8 text-muted-foreground"
+                  className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)]"
                 >
                   <LogOut size={15} />
-                </Button>
+                </button>
               </div>
             </div>
           </nav>
@@ -387,11 +365,10 @@ export default function SuperAdminLayout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header className="relative z-[2600] flex h-16 shrink-0 items-center gap-3 border-b border-border/50 bg-card px-4 lg:px-5">
+        <header className="relative z-[2600] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           <div className="flex items-center gap-2 lg:hidden">
-            <Button
-              variant="outline"
-              size="icon"
+            <button
+              type="button"
               aria-controls="superadmin-mobile-drawer"
               aria-expanded={mobileDrawerOpen}
               aria-label={t('superadmin.layout.ariaOpenNav')}
@@ -400,37 +377,37 @@ export default function SuperAdminLayout() {
                 setProfileMenuOpen(false);
                 setNotificationsOpen(false);
               }}
-              className="size-9"
+              className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)]"
             >
               <Menu size={18} />
-            </Button>
+            </button>
             <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
           </div>
 
           <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--outline)]">
               <span className="font-semibold text-primary">{t('role.superAdmin')}</span>
               <ChevronRight size={12} />
-              <span className="font-semibold text-foreground">{currentPage?.label}</span>
+              <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
             </div>
-            <div className="ml-3 flex min-w-0 flex-1 items-center gap-2">
-              <Search size={14} className="shrink-0 text-muted-foreground" />
-              <Input
+            <div className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
+              <Search size={14} className="shrink-0 text-[var(--outline)]" />
+              <input
                 type="search"
                 placeholder="Search users, barangays, or audits..."
-                className="h-8 border-0 bg-muted/50 text-xs shadow-none focus-visible:ring-0"
+                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
               />
             </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <Badge variant="outline" className="hidden gap-2 xl:inline-flex">
+            <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
               Monitoring Online
-            </Badge>
+            </div>
             <div className="hidden text-right lg:block">
-              <div className="text-[13px] font-semibold text-foreground"><LiveClock /></div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-[13px] font-semibold text-[var(--on-surface)]"><LiveClock /></div>
+              <div className="text-[10px] text-[var(--outline)]">
                 {new Date().toLocaleDateString('en-PH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </div>
             </div>
@@ -465,26 +442,22 @@ export default function SuperAdminLayout() {
                 aria-label={t('superadmin.layout.ariaProfileActions')}
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
-                className="cursor-pointer border-0 bg-transparent p-0"
+                className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white"
               >
-                <Avatar className="size-9">
-                  <AvatarFallback className="bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                {userInitials}
               </button>
 
               {profileMenuOpen && (
                 <div
                   role="menu"
                   aria-label={t('superadmin.layout.ariaProfileActions')}
-                  className="absolute right-0 top-11 z-[2300] w-[200px] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+                  className="absolute right-0 top-11 z-[2300] w-[200px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated"
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/superadmin/settings'); }}
-                    className="w-full cursor-pointer border-0 border-b border-border bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-foreground hover:bg-accent"
+                    className="w-full cursor-pointer border-none border-b border-[var(--outline-variant)]/30 bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)]"
                   >
                     {t('superadmin.layout.openSettings')}
                   </button>
@@ -492,7 +465,7 @@ export default function SuperAdminLayout() {
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
-                    className="w-full cursor-pointer border-0 bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive hover:bg-accent"
+                    className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive"
                   >
                     {t('common.signOut')}
                   </button>

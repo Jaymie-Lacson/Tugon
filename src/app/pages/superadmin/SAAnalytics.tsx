@@ -11,9 +11,6 @@ import TextSkeleton from '../../components/ui/TextSkeleton';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import type { Incident } from '../../data/incidents';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
 
 const TYPE_COLORS: Record<string, string> = {
   flood: '#1D4ED8',
@@ -41,15 +38,13 @@ function getStatDotClass(color: string) {
 
 function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
-    <Card>
-      <CardContent className="px-4 py-3.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-foreground text-[22px] font-bold leading-none">{value}</div>
-          <span className={`w-2 h-2 rounded-full shrink-0 ${getStatDotClass(color)}`} />
-        </div>
-        <div className="text-muted-foreground text-[11px] mt-1">{label}</div>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-[10px] px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.07)] border border-gray-200">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-slate-950 text-[22px] font-bold leading-none">{value}</div>
+        <span className={`w-2 h-2 rounded-full shrink-0 ${getStatDotClass(color)}`} />
+      </div>
+      <div className="text-gray-500 text-[11px] mt-1">{label}</div>
+    </div>
   );
 }
 
@@ -165,28 +160,26 @@ export default function SAAnalytics() {
   }
 
   return (
-    <div className="p-5 bg-background min-h-full">
+    <div className="p-5 bg-[#F0F4FF] min-h-full">
       <div className="flex items-center justify-between mb-4 gap-2.5 max-md:flex-col max-md:items-start">
         <div>
-          <h1 className="text-foreground text-[22px] font-bold m-0">{t('superadmin.analytics.pageTitle')}</h1>
-          <p className="text-muted-foreground text-xs m-0 mt-0.5">
+          <h1 className="text-slate-950 text-[22px] font-bold m-0">{t('superadmin.analytics.pageTitle')}</h1>
+          <p className="text-gray-500 text-xs m-0 mt-0.5">
             {t('superadmin.analytics.subtitle')}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={() => {
             void loadIncidents();
           }}
-          className="gap-1.5 text-xs font-semibold max-md:w-full max-md:min-h-10"
+          className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3.5 py-2 cursor-pointer text-gray-700 text-xs font-semibold max-md:w-full max-md:min-h-10 max-md:justify-center"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
-        </Button>
+        </button>
       </div>
 
       {error ? (
-        <div className="mb-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-xs px-2.5 py-2">
+        <div className="mb-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs px-2.5 py-2">
           {error}
         </div>
       ) : null}
@@ -199,11 +192,8 @@ export default function SAAnalytics() {
       </div>
 
       <div className="grid gap-[14px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <Card>
-          <CardHeader className="pb-0">
-            <CardTitle className="text-[15px] font-bold">{t('superadmin.analytics.reportsByBarangay')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportsByBarangay')}</div>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barangayData} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
@@ -213,14 +203,10 @@ export default function SAAnalytics() {
               <Bar dataKey="reports" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-0">
-            <CardTitle className="text-[15px] font-bold">{t('superadmin.analytics.reportCategoryMix')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white rounded-[14px] px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+          <div className="text-slate-950 text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportCategoryMix')}</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75}>
@@ -231,21 +217,18 @@ export default function SAAnalytics() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
-      <Card className="mt-3.5">
-        <CardContent className="px-[18px] py-3.5">
-          <div className="flex items-center gap-2 text-foreground text-[13px] font-bold mb-2">
-            <AlertTriangle size={14} color="var(--severity-medium)" />
-            {t('superadmin.analytics.reportingHealth')}
-          </div>
-          <div className="text-muted-foreground text-xs leading-[1.5]">
-            {t('superadmin.analytics.reportingHealthDesc')}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mt-3.5 bg-white rounded-[14px] px-[18px] py-3.5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-gray-200">
+        <div className="flex items-center gap-2 text-slate-900 text-[13px] font-bold mb-2">
+          <AlertTriangle size={14} color="var(--severity-medium)" />
+          {t('superadmin.analytics.reportingHealth')}
+        </div>
+        <div className="text-slate-500 text-xs leading-[1.5]">
+          {t('superadmin.analytics.reportingHealthDesc')}
+        </div>
+      </div>
     </div>
   );
 }
