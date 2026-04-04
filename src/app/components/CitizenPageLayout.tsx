@@ -1,15 +1,6 @@
 import React from 'react';
-import { Home, Plus, FileText, ShieldCheck } from 'lucide-react';
 import { VerificationProgressCard } from './VerificationProgressCard';
-import { BottomNav, BottomNavItem } from './BottomNav';
 import { CitizenOnboardingModal } from './CitizenOnboardingModal';
-
-const DEFAULT_BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { key: 'home', icon: <Home size={20} />, label: 'Home', path: '/citizen', exact: true },
-  { key: 'report', icon: <Plus size={20} />, label: 'Report', path: '/citizen/report' },
-  { key: 'myreports', icon: <FileText size={20} />, label: 'My Reports', path: '/citizen/my-reports' },
-  { key: 'verify', icon: <ShieldCheck size={20} />, label: 'Verify', path: '/citizen/verification' },
-];
 
 interface CitizenPageLayoutProps {
   header: React.ReactNode;
@@ -17,7 +8,6 @@ interface CitizenPageLayoutProps {
   children: React.ReactNode;
   afterMain?: React.ReactNode;
   hideVerificationPrompt?: boolean;
-  hideBottomNav?: boolean;
   mainOnClick?: () => void;
   mainOnScroll?: React.UIEventHandler<HTMLElement>;
   mobileShellMaxWidth?: number;
@@ -35,14 +25,13 @@ export function CitizenPageLayout({
   children,
   afterMain,
   hideVerificationPrompt = false,
-  hideBottomNav = false,
   mainOnClick,
   mainOnScroll,
   mobileShellMaxWidth = 560,
   desktopMainMaxWidth = 1260,
   mobileMainPaddingX = 0,
   desktopMainPaddingX = 24,
-  mobileMainPaddingBottom = 84,
+  mobileMainPaddingBottom = 20,
   desktopMainPaddingBottom = 28,
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
@@ -76,7 +65,6 @@ export function CitizenPageLayout({
         {children}
       </main>
       {afterMain}
-      {!hideBottomNav && <BottomNav items={DEFAULT_BOTTOM_NAV_ITEMS} />}
       <CitizenOnboardingModal />
       <style>{`
         @media (max-width: 900px) {

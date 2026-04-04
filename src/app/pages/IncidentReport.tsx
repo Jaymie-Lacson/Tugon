@@ -1999,7 +1999,6 @@ export default function IncidentReport() {
       {submitting && !submitted ? <SubmissionLoadingOverlay /> : null}
 
       <CitizenPageLayout
-        hideBottomNav
         header={
           <header className="citizen-report-header">
             <div className="citizen-report-header-inner">
