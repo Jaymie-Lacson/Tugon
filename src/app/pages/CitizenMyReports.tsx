@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { useTranslation } from '../i18n';
 import {
-  Search, Filter, X, ChevronRight,
+  Search, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
   Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
-  Droplets, Car, Activity, Zap, CloudRain, CheckCircle2,
+  Droplets, Car, Activity, Zap, CheckCircle2,
   MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
@@ -17,7 +18,6 @@ import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifica
 import {
   citizenReportsApi,
   type ApiCitizenReport,
-  type ApiIncidentType,
   type ApiTicketStatus,
 } from '../services/citizenReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -132,12 +132,12 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
   description: string;
 }> = {
   submitted: {
-    label: 'Submitted', color: '#1E3A8A', bg: '#EFF6FF', border: '#BFDBFE',
+    label: 'Submitted', color: 'var(--primary)', bg: '#EFF6FF', border: '#BFDBFE',
     dotColor: '#3B82F6', icon: FileText, step: 1, filterGroup: 'active',
     description: 'Your report has been received by the system.',
   },
   under_review: {
-    label: 'Under Review', color: '#B4730A', bg: '#FFFBEB', border: '#FDE68A',
+    label: 'Under Review', color: 'var(--severity-medium)', bg: '#FFFBEB', border: '#FDE68A',
     dotColor: '#F59E0B', icon: Eye, step: 2, filterGroup: 'active',
     description: 'Barangay officials are reviewing your report.',
   },
@@ -157,7 +157,7 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
     description: 'This case has been officially closed.',
   },
   unresolvable: {
-    label: 'Unresolvable', color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA',
+    label: 'Unresolvable', color: 'var(--severity-critical)', bg: '#FEF2F2', border: '#FECACA',
     dotColor: '#EF4444', icon: Ban, step: 4, filterGroup: 'resolved',
     description: 'This report could not be resolved at this time.',
   },
@@ -168,23 +168,171 @@ const typeConfig: Record<CitizenReportType, {
 }> = {
   pollution:     { label: 'Pollution',      color: '#0F766E', bg: '#CCFBF1', icon: Wind },
   noise:         { label: 'Noise',          color: '#7C3AED', bg: '#EDE9FE', icon: Volume2 },
-  crime:         { label: 'Crime',          color: '#1E3A8A', bg: '#DBEAFE', icon: AlertCircle },
-  road_hazard:   { label: 'Road Hazard',    color: '#B4730A', bg: '#FEF3C7', icon: AlertTriangle },
+  crime:         { label: 'Crime',          color: 'var(--primary)', bg: '#DBEAFE', icon: AlertCircle },
+  road_hazard:   { label: 'Road Hazard',    color: 'var(--severity-medium)', bg: '#FEF3C7', icon: AlertTriangle },
   flood:         { label: 'Flood',          color: '#0369A1', bg: '#E0F2FE', icon: Droplets },
   accident:      { label: 'Accident',       color: '#C2410C', bg: '#FFEDD5', icon: Car },
-  medical:       { label: 'Medical',        color: '#B91C1C', bg: '#FEE2E2', icon: Activity },
+  medical:       { label: 'Medical',        color: 'var(--severity-critical)', bg: '#FEE2E2', icon: Activity },
   infrastructure:{ label: 'Infrastructure', color: '#92400E', bg: '#FEF3C7', icon: Zap },
   other:         { label: 'Other',          color: '#475569', bg: '#F1F5F9', icon: MoreHorizontal },
 };
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-  API LOADED REPORTS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+const statusToneClass: Record<CitizenReportStatus, {
+  badge: string;
+  footer: string;
+  text: string;
+}> = {
+  submitted: {
+    badge: 'bg-[var(--primary-fixed)] border-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    footer: 'bg-[var(--primary-fixed)] border-t border-[var(--primary-fixed-dim)]',
+    text: 'text-[var(--primary)]',
+  },
+  under_review: {
+    badge: 'bg-[var(--secondary-fixed)] border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    footer: 'bg-[var(--secondary-fixed)] border-t border-[var(--secondary-fixed-dim)]',
+    text: 'text-[var(--secondary)]',
+  },
+  in_progress: {
+    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    footer: 'bg-[var(--surface-container-high)] border-t border-[var(--surface-container-highest)]',
+    text: 'text-[var(--primary-container)]',
+  },
+  resolved: {
+    badge: 'bg-[var(--severity-low-bg)] border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
+    footer: 'bg-[var(--severity-low-bg)] border-t border-[rgba(5,150,105,0.28)]',
+    text: 'text-[var(--severity-low)]',
+  },
+  closed: {
+    badge: 'bg-surface-container-high border-[var(--outline-variant)] text-[var(--outline)]',
+    footer: 'bg-surface-container-high border-t border-[var(--outline-variant)]',
+    text: 'text-[var(--outline)]',
+  },
+  unresolvable: {
+    badge: 'bg-[var(--error-container)] border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    footer: 'bg-[var(--error-container)] border-t border-[rgba(186,26,26,0.22)]',
+    text: 'text-[var(--error)]',
+  },
+};
+
+const typeToneClass: Record<CitizenReportType, {
+  iconChip: string;
+  detailHeader: string;
+  detailIcon: string;
+  fieldIcon: string;
+}> = {
+  pollution: {
+    iconChip: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--severity-low)]',
+    detailIcon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)] shadow-[0_2px_10px_rgba(5,150,105,0.18)]',
+    fieldIcon: 'text-[var(--severity-low)]',
+  },
+  noise: {
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    fieldIcon: 'text-[var(--primary-container)]',
+  },
+  crime: {
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    detailHeader: 'border-b-[3px] border-b-primary',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    fieldIcon: 'text-primary',
+  },
+  road_hazard: {
+    iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    fieldIcon: 'text-[var(--secondary)]',
+  },
+  flood: {
+    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.16)]',
+    fieldIcon: 'text-[var(--primary-container)]',
+  },
+  accident: {
+    iconChip: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.22)]',
+    fieldIcon: 'text-[var(--secondary)]',
+  },
+  medical: {
+    iconChip: 'bg-[var(--error-container)] text-[var(--error)]',
+    detailHeader: 'border-b-[3px] border-b-severity-critical',
+    detailIcon: 'bg-[var(--error-container)] text-[var(--error)] shadow-[0_2px_10px_rgba(186,26,26,0.2)]',
+    fieldIcon: 'text-[var(--error)]',
+  },
+  infrastructure: {
+    iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    fieldIcon: 'text-[var(--secondary)]',
+  },
+  other: {
+    iconChip: 'bg-surface-container-high text-[var(--outline)]',
+    detailHeader: 'border-b-[3px] border-b-[var(--outline)]',
+    detailIcon: 'bg-surface-container-high text-[var(--outline)] shadow-[0_2px_10px_rgba(117,118,130,0.2)]',
+    fieldIcon: 'text-[var(--outline)]',
+  },
+};
+
+const severityToneClass: Record<CitizenReport['severity'], string> = {
+  critical: 'bg-[var(--error-container)] text-[var(--error)]',
+  high: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+  medium: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+  low: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+};
+
+const timelineToneClass: Record<string, {
+  iconShell: string;
+  latestBadge: string;
+  actorBadge: string;
+}> = {
+  created: {
+    iconShell: 'bg-surface-container-high border-2 border-[var(--outline-variant)] text-[var(--outline)]',
+    latestBadge: 'bg-surface-container-high text-[var(--outline)]',
+    actorBadge: 'bg-surface-container-high text-[var(--outline)]',
+  },
+  submitted: {
+    iconShell: 'bg-[var(--primary-fixed)] border-2 border-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    latestBadge: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    actorBadge: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+  },
+  under_review: {
+    iconShell: 'bg-[var(--secondary-fixed)] border-2 border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    latestBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    actorBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+  },
+  in_progress: {
+    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+  },
+  resolved: {
+    iconShell: 'bg-[var(--severity-low-bg)] border-2 border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
+    latestBadge: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    actorBadge: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+  },
+  closed: {
+    iconShell: 'bg-surface-container-high border-2 border-[var(--outline-variant)] text-[var(--outline)]',
+    latestBadge: 'bg-surface-container-high text-[var(--outline)]',
+    actorBadge: 'bg-surface-container-high text-[var(--outline)]',
+  },
+  unresolvable: {
+    iconShell: 'bg-[var(--error-container)] border-2 border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    latestBadge: 'bg-[var(--error-container)] text-[var(--error)]',
+    actorBadge: 'bg-[var(--error-container)] text-[var(--error)]',
+  },
+};
+
+/* ────────────────────────────────────────────────────────────────────
+   API LOADED REPORTS
+──────────────────────────────────────────────────────────────────── */
 const MY_REPORTS: CitizenReport[] = [];
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    HELPERS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-PH', {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -218,35 +366,31 @@ function extractReportSequence(reportId: string) {
   return Number.isFinite(seq) ? seq : 0;
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    CITIZEN STATUS BADGE - 6 statuses
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStatus; size?: 'sm' | 'md' | 'lg' }) {
   const cfg = citizenStatusConfig[status];
   const Icon = cfg.icon;
-  const sizes = {
-    sm:  { fontSize: 10, padding: '3px 8px', iconSize: 10, gap: 4, borderRadius: 6 },
-    md:  { fontSize: 11, padding: '4px 10px', iconSize: 11, gap: 5, borderRadius: 7 },
-    lg:  { fontSize: 13, padding: '7px 14px', iconSize: 14, gap: 6, borderRadius: 10 },
+  const sizes: Record<'sm' | 'md' | 'lg', { className: string; iconSize: number }> = {
+    sm: { className: 'gap-1 rounded-[6px] px-[8px] py-[3px] text-[10px]', iconSize: 10 },
+    md: { className: 'gap-[5px] rounded-[7px] px-[10px] py-1 text-[11px]', iconSize: 11 },
+    lg: { className: 'gap-[6px] rounded-[10px] px-[14px] py-[7px] text-[13px]', iconSize: 14 },
   };
   const s = sizes[size];
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: s.gap,
-      background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
-      borderRadius: s.borderRadius, padding: s.padding,
-      fontSize: s.fontSize, fontWeight: 700, letterSpacing: '0.02em',
-      whiteSpace: 'nowrap', lineHeight: 1,
-    }}>
+    <span
+      className={`inline-flex items-center whitespace-nowrap border-[1.5px] font-bold leading-none tracking-[0.02em] ${statusToneClass[status].badge} ${s.className}`}
+    >
       <Icon size={s.iconSize} />
       {cfg.label}
     </span>
   );
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    WORKFLOW PROGRESS DOTS
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 const WORKFLOW_STEPS: { key: CitizenReportStatus | 'created'; label: string }[] = [
   { key: 'submitted',    label: 'Submitted' },
   { key: 'under_review', label: 'Review' },
@@ -259,52 +403,52 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const currentStep = cfg.step;
   const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
   const isFailed = status === 'unresolvable';
-  const terminalColor = isFailed ? '#B91C1C' : '#059669';
-  const terminalBg   = isFailed ? '#FEF2F2'  : '#ECFDF5';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 0, width: '100%' }}>
+    <div className="flex w-full items-center gap-0">
       {WORKFLOW_STEPS.map((s, i) => {
         const stepNum = i + 1;
         const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
         const active = stepNum === currentStep && !isTerminal;
-        const stepColor = isTerminal && stepNum === 4 ? terminalColor
-          : done || active ? '#1E3A8A' : '#CBD5E1';
-        const stepBg = isTerminal && stepNum === 4 ? terminalBg
-          : done ? '#1E3A8A' : active ? '#EFF6FF' : '#F1F5F9';
-        const stepBorder = isTerminal && stepNum === 4 ? terminalColor
-          : done ? '#1E3A8A' : active ? '#3B82F6' : '#E2E8F0';
+        const terminalDoneClass = isFailed
+          ? 'bg-[var(--error-container)] border-[var(--error)]'
+          : 'bg-[var(--severity-low-bg)] border-[var(--severity-low)]';
+        const stepToneClassName = isTerminal && stepNum === 4
+          ? terminalDoneClass
+          : done
+            ? 'bg-primary border-primary'
+            : active
+              ? 'bg-[var(--primary-fixed)] border-[var(--primary)]'
+              : 'bg-surface-container-high border-[var(--outline-variant)]';
 
         return (
-          <div key={s.key} style={{ display: 'contents' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: 7, flexShrink: 0,
-                background: stepBg, border: `2px solid ${stepBorder}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.3s',
-              }}>
+          <div key={s.key} className="contents">
+            <div className="flex flex-1 flex-col items-center gap-[3px]">
+              <div
+                className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border-2 transition-all duration-300 ${stepToneClassName}`}
+              >
                 {(done || (isTerminal && stepNum === 4)) ? (
-                  <span style={{ fontSize: 9, color: isTerminal && stepNum === 4 ? terminalColor : '#fff' }}>
+                  <span className={`text-[9px] ${isTerminal && stepNum === 4 ? (isFailed ? 'text-severity-critical' : 'text-[var(--severity-low)]') : 'text-white'}`}>
                     {isTerminal && stepNum === 4 ? (isFailed ? 'X' : 'OK') : 'OK'}
                   </span>
                 ) : active ? (
-                  <div style={{ width: 7, height: 7, borderRadius: 2, background: '#1E3A8A' }} />
+                  <div className="h-[7px] w-[7px] rounded-[2px] bg-primary" />
                 ) : (
-                  <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 700 }}>{stepNum}</span>
+                  <span className="text-[8px] font-bold text-[var(--outline-variant)]">{stepNum}</span>
                 )}
               </div>
-              <span style={{ fontSize: 8, color: done || active ? '#1E3A8A' : '#CBD5E1', fontWeight: done || active ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>
+              <span
+                className={`text-center text-[8px] leading-[1.2] ${done || active ? 'font-bold text-primary' : 'font-normal text-[var(--outline)]'}`}
+              >
                 {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
               </span>
             </div>
             {i < WORKFLOW_STEPS.length - 1 && (
-              <div style={{
-                flex: 1, height: 2, marginBottom: 14,
-                background: stepNum < currentStep || (isTerminal && stepNum < 4)
-                  ? '#1E3A8A' : '#E2E8F0',
-                borderRadius: 1, transition: 'background 0.3s',
-              }} />
+              <div
+                className={`mb-[14px] h-0.5 flex-1 rounded-[1px] transition-colors duration-300 ${
+                  stepNum < currentStep || (isTerminal && stepNum < 4) ? 'bg-primary' : 'bg-surface-container-high'
+                }`}
+              />
             )}
           </div>
         );
@@ -313,42 +457,33 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   );
 }
 
-/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+/* ────────────────────────────────────────────────────────────────────
    REPORT CARD
-Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+──────────────────────────────────────────────────────────────────── */
 function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () => void }) {
+  const { t } = useTranslation();
   const tc = typeConfig[report.type];
-  const sc = citizenStatusConfig[report.status];
   const Icon = tc.icon;
+  const typeTone = typeToneClass[report.type];
+  const statusTone = statusToneClass[report.status];
 
   return (
     <button
-      className="citizen-report-card citizen-report-card-modern"
+      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 text-left transition-[box-shadow,border-color] duration-200 ease-in-out"
       onClick={onClick}
-      style={{
-        width: '100%', background: '#fff', border: '1px solid #E2E8F0',
-        borderRadius: 12, padding: 0, cursor: 'pointer', textAlign: 'left',
-        boxShadow: '0 4px 12px rgba(15,23,42,0.08)', marginBottom: 12,
-        overflow: 'hidden', transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
-        position: 'relative',
-      }}
     >
-      <div style={{ padding: '14px 14px 0 14px' }}>
+      <div className="p-[14px] pb-0">
         {/* Top row: ID + Status */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: tc.bg, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: tc.color, flexShrink: 0,
-            }}>
+        <div className="flex items-center justify-between mb-[10px]">
+          <div className="flex items-center gap-2">
+            <div className={`w-[34px] h-[34px] rounded-[10px] shrink-0 flex items-center justify-center ${typeTone.iconChip}`}>
               <Icon size={17} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: '#1E293B', lineHeight: 1.1 }}>
+              <div className="font-extrabold text-[13px] text-slate-900 leading-[1.1]">
                 {report.id}
               </div>
-              <div style={{ fontSize: 10, color: '#64748B', marginTop: 1, fontWeight: 500 }}>
+              <div className="text-[10px] text-slate-500 mt-[1px] font-medium">
                 {tc.label}
               </div>
             </div>
@@ -357,46 +492,41 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         </div>
 
         {/* Location */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 7 }}>
-          <MapPin size={11} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontSize: 12, color: '#475569', lineHeight: 1.45, flex: 1 }}>
+        <div className="flex items-start gap-[5px] mb-[7px]">
+          <MapPin size={11} className="shrink-0 mt-[1px] text-[var(--outline)]" />
+          <span className="text-xs text-slate-600 leading-[1.45] flex-1">
             {report.location}, {report.barangay}
           </span>
         </div>
 
         {/* Description excerpt */}
-        <div style={{
-          fontSize: 12, color: '#64748B', lineHeight: 1.5,
-          overflow: 'hidden', display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
-          marginBottom: 10,
-        }}>
+        <div className="mb-[10px] overflow-hidden text-xs leading-[1.5] text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
           {report.description}
         </div>
 
         {/* Date + evidence chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Calendar size={10} color="#94A3B8" />
-            <span style={{ fontSize: 10, color: '#94A3B8' }}>{formatDate(report.submittedAt)}</span>
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <div className="flex items-center gap-1">
+            <Calendar size={10} className="text-[var(--outline)]" />
+            <span className="text-[10px] text-slate-400">{formatDate(report.submittedAt)}</span>
           </div>
-          <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-          <span style={{ fontSize: 10, color: '#94A3B8' }}>{timeAgo(report.submittedAt)}</span>
+          <span className="text-slate-300 text-[10px]"> - </span>
+          <span className="text-[10px] text-slate-400">{timeAgo(report.submittedAt)}</span>
           {report.hasPhotos && (
-            <span style={{ display: 'contents' }}>
-              <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
-                <Camera size={9} color="#64748B" />
-                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>{report.photoCount}</span>
+            <span className="contents">
+              <span className="text-slate-300 text-[10px]"> - </span>
+              <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
+                <Camera size={9} className="text-[var(--outline)]" />
+                <span className="text-[9px] text-slate-500 font-semibold">{report.photoCount}</span>
               </div>
             </span>
           )}
           {report.hasAudio && (
-            <span style={{ display: 'contents' }}>
-              <span style={{ color: '#CBD5E1', fontSize: 10 }}> - </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F1F5F9', borderRadius: 6, padding: '2px 6px' }}>
-                <Mic size={9} color="#64748B" />
-                <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Audio</span>
+            <span className="contents">
+              <span className="text-slate-300 text-[10px]"> - </span>
+              <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
+                <Mic size={9} className="text-[var(--outline)]" />
+                <span className="text-[9px] text-slate-500 font-semibold">{t('citizen.myReports.audioSection')}</span>
               </div>
             </span>
           )}
@@ -404,22 +534,17 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       </div>
 
       {/* Workflow progress strip */}
-      <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '10px 16px 12px' }}>
+      <div className="border-t border-[var(--outline-variant)] bg-surface-container-low px-4 pt-[10px] pb-3">
         <WorkflowProgress status={report.status} />
       </div>
 
       {/* View details footer */}
-      <div style={{
-        background: `${citizenStatusConfig[report.status].bg}`,
-        borderTop: `1px solid ${citizenStatusConfig[report.status].border}`,
-        padding: '10px 14px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <span style={{ fontSize: 11, color: citizenStatusConfig[report.status].color, fontWeight: 600 }}>
+      <div className={`flex items-center justify-between px-[14px] py-[10px] ${statusTone.footer}`}>
+        <span className={`text-[11px] font-semibold ${statusTone.text}`}>
           {citizenStatusConfig[report.status].description}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: citizenStatusConfig[report.status].color }}>
-          <span style={{ fontSize: 11, fontWeight: 700 }}>Details</span>
+        <div className={`flex items-center gap-[3px] ${statusTone.text}`}>
+          <span className="text-[11px] font-bold">{t('citizen.myReports.detailsCardCta')}</span>
           <ChevronRight size={13} />
         </div>
       </div>
@@ -440,7 +565,9 @@ function DetailView({
   cancelling?: boolean;
   cancelError?: string | null;
 }) {
+  const { t } = useTranslation();
   const tc = typeConfig[report.type];
+  const typeTone = typeToneClass[report.type];
   const TypeIcon = tc.icon;
   const photoEvidence = report.evidence.filter((item) => item.kind === 'photo');
   const audioEvidence = report.evidence.filter((item) => item.kind === 'audio');
@@ -485,16 +612,6 @@ function DetailView({
     unresolvable: <Ban size={13} />,
   };
 
-  const timelineColorMap: Record<string, { color: string; bg: string }> = {
-    created:      { color: '#475569', bg: '#F1F5F9' },
-    submitted:    { color: '#1E3A8A', bg: '#EFF6FF' },
-    under_review: { color: '#B4730A', bg: '#FFFBEB' },
-    in_progress:  { color: '#0F766E', bg: '#F0FDFA' },
-    resolved:     { color: '#059669', bg: '#ECFDF5' },
-    closed:       { color: '#475569', bg: '#F8FAFC' },
-    unresolvable: { color: '#B91C1C', bg: '#FEF2F2' },
-  };
-
   const hasPreviewableEvidence = photoEvidence.length > 0 || audioEvidence.length > 0;
   const selectedPhoto = previewPhotoIndex !== null ? photoEvidence[previewPhotoIndex] : null;
   const canCancel = report.status === 'submitted' && Boolean(onCancelReport);
@@ -506,126 +623,83 @@ function DetailView({
   }, [canCancel]);
 
   return (
-    <div className="citizen-report-modal" style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <div className="citizen-report-modal fixed inset-0 z-[200] flex flex-col">
       <div
         onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)' }}
+        className="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[3px]"
       />
 
-      <article style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        maxHeight: '92vh', display: 'flex', flexDirection: 'column',
-        background: '#F8FAFC', borderRadius: '14px 14px 0 0',
-        overflow: 'hidden',
-        animation: 'slideUp 0.32s cubic-bezier(0.4,0,0.2,1)',
-        maxWidth: 960, margin: '0 auto',
-      }}>
-        <header style={{
-          background: '#fff', paddingTop: 10, paddingBottom: 0,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          borderBottom: '1px solid #F1F5F9', flexShrink: 0,
-        }}>
-          <div style={{ width: 38, height: 4, borderRadius: 2, background: '#E2E8F0', marginBottom: 12 }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 16px 14px' }}>
+      <article className="absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[#F8FAFC] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
+        <header className="bg-white pt-[10px] pb-0 flex flex-col items-center border-b border-slate-100 shrink-0">
+          <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
+          <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: '#1E293B' }}>Report Details</div>
-              <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>{report.id}</div>
+              <div className="font-extrabold text-base text-slate-900">{t('citizen.myReports.detailsTitle')}</div>
+              <div className="text-[11px] text-slate-400 mt-[1px]">{report.id}</div>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              style={{
-                width: 34, height: 34, borderRadius: 10,
-                background: '#F1F5F9', border: '1px solid #E2E8F0',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#475569',
-              }}
+              aria-label="Close details"
+              className="w-[34px] h-[34px] rounded-[10px] bg-slate-100 border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600"
             >
               <X size={16} />
             </button>
           </div>
         </header>
 
-        <main style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-          <section style={{
-            border: '1.5px solid #E2E8F0', marginBottom: 16,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
-          }}>
+        <main className="flex-1 overflow-y-auto p-4">
+          <section className="mb-4 border-[1.5px] border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.07)]">
             {/* Colored header */}
-            <div style={{
-              borderBottom: `3px solid ${tc.color}`,
-              padding: '18px 18px 14px',
-              display: 'flex', alignItems: 'flex-start', gap: 14,
-            }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 15, background: tc.bg, flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: tc.color,
-                boxShadow: `0 2px 10px ${tc.color}28`,
-              }}>
+            <div className={`flex items-start gap-[14px] px-[18px] pt-[18px] pb-[14px] ${typeTone.detailHeader}`}>
+              <div className={`w-[52px] h-[52px] rounded-[15px] shrink-0 flex items-center justify-center ${typeTone.detailIcon}`}>
                 <TypeIcon size={26} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 800, fontSize: 18, color: '#1E293B', lineHeight: 1.15, marginBottom: 4 }}>
-                  {tc.label} Incident
+              <div className="flex-1">
+                <div className="font-extrabold text-[18px] text-slate-900 leading-[1.15] mb-1">
+                  {t('citizen.myReports.incidentHeading', { type: tc.label })}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <div className="flex items-center gap-[6px] flex-wrap">
                   <CitizenStatusBadge status={report.status} size="md" />
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
-                    background: report.severity === 'critical' ? '#FEE2E2' : report.severity === 'high' ? '#FFEDD5' : report.severity === 'medium' ? '#FEF3C7' : '#D1FAE5',
-                    color: report.severity === 'critical' ? '#B91C1C' : report.severity === 'high' ? '#C2410C' : report.severity === 'medium' ? '#B4730A' : '#059669',
-                    borderRadius: 6, padding: '3px 8px', textTransform: 'uppercase',
-                  }}>
-                    {report.severity} severity
+                  <span className={`rounded-[6px] px-[8px] py-[3px] text-[10px] font-bold uppercase tracking-[0.06em] ${severityToneClass[report.severity]}`}>
+                    {t('citizen.myReports.severityBadge', { severity: report.severity })}
                   </span>
                 </div>
               </div>
             </div>
 
-            <dl style={{ margin: 0, padding: '4px 18px 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <dl className="m-0 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 px-[18px] pt-1 pb-[14px]">
               {[
-                { icon: <FileText size={13} />, label: 'Ticket ID', value: report.id },
-                { icon: <MapPin size={13} />, label: 'Location', value: `${report.location}, ${report.barangay}, ${report.district}` },
-                { icon: <Calendar size={13} />, label: 'Date Submitted', value: formatDateTime(report.submittedAt) },
-                { icon: <Clock size={13} />, label: 'Last Updated', value: formatDateTime(report.updatedAt) },
-                ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: 'Assigned Officer', value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
-                ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: 'Est. People Affected', value: `~${report.affectedCount} persons` }] : []),
+                { icon: <FileText size={13} />, label: t('citizen.myReports.fieldTicketId'), value: report.id },
+                { icon: <MapPin size={13} />, label: t('citizen.myReports.location'), value: `${report.location}, ${report.barangay}, ${report.district}` },
+                { icon: <Calendar size={13} />, label: t('citizen.myReports.fieldDateSubmitted'), value: formatDateTime(report.submittedAt) },
+                { icon: <Clock size={13} />, label: t('citizen.myReports.fieldLastUpdated'), value: formatDateTime(report.updatedAt) },
+                ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: t('citizen.myReports.fieldAssignedOfficer'), value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
+                ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: t('citizen.myReports.fieldAffected'), value: t('citizen.myReports.affectedValue', { count: report.affectedCount }) }] : []),
               ].map(({ icon, label, value }) => (
-                <div key={label} style={{ border: '1px solid #E2E8F0', borderRadius: 12, background: '#F8FAFC', padding: '10px 12px' }}>
-                  <dt style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 10, color: '#64748B', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                    <span style={{ color: tc.color }}>{icon}</span>
+                <div key={label} className="border border-slate-200 rounded-xl bg-slate-50 px-3 py-[10px]">
+                  <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-slate-500 font-bold tracking-[0.04em] uppercase">
+                    <span className={typeTone.fieldIcon}>{icon}</span>
                     {label}
                   </dt>
-                  <dd style={{ margin: 0, fontSize: 13, color: '#0F172A', lineHeight: 1.5, fontWeight: 500 }}>{value}</dd>
+                  <dd className="m-0 text-[13px] text-[#0F172A] leading-[1.5] font-medium">{value}</dd>
                 </div>
               ))}
             </dl>
           </section>
 
-          <section style={{
-            background: '#fff', borderRadius: 12, padding: '16px',
-            border: '1px solid #E2E8F0', marginBottom: 16,
-            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+          <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+            <div className="flex items-center gap-[6px] mb-[10px]">
               <MessageSquare size={14} color={tc.color} />
-              <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>Description</span>
+              <span className="font-bold text-[13px] text-slate-900">{t('citizen.myReports.description')}</span>
             </div>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: 0 }}>{report.description}</p>
+            <p className="text-[13px] text-slate-600 leading-[1.7] m-0">{report.description}</p>
           </section>
 
           {canCancel && (
-            <section style={{
-              background: '#FFFBEB',
-              borderRadius: 14,
-              padding: '12px 14px',
-              border: '1px solid #FDE68A',
-              marginBottom: 16,
-            }}>
-              <p style={{ margin: 0, fontSize: 12, color: '#78350F', lineHeight: 1.6 }}>
-                You may cancel this report only while its status is <strong>Submitted</strong>.
+            <section className="mb-4 rounded-[14px] border border-[#FDE68A] bg-[#FFFBEB] px-[14px] py-3">
+              <p className="m-0 text-xs text-[#78350F] leading-[1.6]">
+                {t('citizen.myReports.cancelNotice')}
               </p>
               <button
                 type="button"
@@ -636,65 +710,55 @@ function DetailView({
                   }
                   setConfirmCancelOpen(true);
                 }}
-                style={{
-                  marginTop: 10,
-                  background: cancelling ? '#94A3B8' : '#B91C1C',
-                  border: 'none',
-                  borderRadius: 10,
-                  padding: '9px 14px',
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                }}
+                className={`mt-[10px] rounded-[10px] border-none px-[14px] py-[9px] text-xs font-bold text-white ${
+                  cancelling
+                    ? 'cursor-not-allowed bg-slate-400'
+                    : 'cursor-pointer bg-severity-critical'
+                }`}
               >
-                {cancelling ? 'Cancelling...' : 'Cancel Report'}
+                {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.cancelBtn')}
               </button>
               {cancelError && (
-                <p style={{ margin: '8px 0 0', fontSize: 11, color: '#B91C1C', lineHeight: 1.5 }}>{cancelError}</p>
+                <p className="mt-2 mb-0 text-[11px] text-red-700 leading-[1.5]">{cancelError}</p>
               )}
             </section>
           )}
 
           {(report.hasPhotos || report.hasAudio) && (
-            <section style={{
-              background: '#fff', borderRadius: 12, padding: '16px',
-              border: '1px solid #E2E8F0', marginBottom: 16,
-              boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-            }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 12 }}>
-                Evidence Attached
+            <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+              <div className="font-bold text-[13px] text-slate-900 mb-3">
+                {t('citizen.myReports.evidenceAttached')}
               </div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: hasPreviewableEvidence ? 12 : 0, flexWrap: 'wrap' }}>
+              <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EFF6FF', borderRadius: 10, padding: '8px 12px', border: '1px solid #BFDBFE' }}>
-                    <Camera size={14} color="#1E3A8A" />
-                    <span style={{ fontSize: 12, color: '#1E3A8A', fontWeight: 700 }}>{report.photoCount} Photo{report.photoCount > 1 ? 's' : ''}</span>
+                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-2">
+                    <Camera size={14} className="text-primary" />
+                    <span className="text-xs text-primary font-bold">{report.photoCount > 1 ? t('citizen.myReports.photoCountPlural', { count: report.photoCount }) : t('citizen.myReports.photoCount', { count: report.photoCount })}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EDE9FE', borderRadius: 10, padding: '8px 12px', border: '1px solid #DDD6FE' }}>
-                    <Mic size={14} color="#7C3AED" />
-                    <span style={{ fontSize: 12, color: '#7C3AED', fontWeight: 700 }}>Voice Recording</span>
+                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
+                    <Mic size={14} className="text-[var(--primary-container)]" />
+                    <span className="text-xs font-bold text-[var(--primary-container)]">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
                 ) : null}
               </div>
 
               {photoEvidence.length > 0 && (
-                <section style={{ marginBottom: audioEvidence.length > 0 ? 12 : 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Photos</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(112px, 1fr))', gap: 8 }}>
+                <section className={audioEvidence.length > 0 ? 'mb-3' : ''}>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.photosSection')}</div>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-2">
                     {photoEvidence.map((item, index) => (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => setPreviewPhotoIndex(index)}
-                        style={{ border: '1px solid #DBEAFE', borderRadius: 10, padding: 0, overflow: 'hidden', background: '#EFF6FF', cursor: 'pointer' }}
+                        className="border border-[#DBEAFE] rounded-[10px] p-0 overflow-hidden bg-blue-50 cursor-pointer"
                       >
                         <img
                           src={item.publicUrl}
                           alt={item.fileName}
-                          style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                          className="block h-[90px] w-full object-cover"
                         />
                       </button>
                     ))}
@@ -704,12 +768,12 @@ function DetailView({
 
               {audioEvidence.length > 0 && (
                 <section>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 8 }}>Audio</div>
-                  <div style={{ display: 'grid', gap: 8 }}>
+                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.audioSection')}</div>
+                  <div className="grid gap-2">
                     {audioEvidence.map((item) => (
-                      <article key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 12px', background: '#F8FAFC' }}>
-                        <div style={{ fontSize: 11, color: '#475569', marginBottom: 6, fontWeight: 600 }}>{item.fileName}</div>
-                        <audio controls preload="metadata" src={item.publicUrl} style={{ width: '100%' }} />
+                      <article key={item.id} className="border border-slate-200 rounded-[10px] px-3 py-[10px] bg-slate-50">
+                        <div className="text-[11px] text-slate-600 mb-[6px] font-semibold">{item.fileName}</div>
+                        <audio controls preload="metadata" src={item.publicUrl} className="w-full" />
                       </article>
                     ))}
                   </div>
@@ -717,110 +781,93 @@ function DetailView({
               )}
 
               {!hasPreviewableEvidence && (
-                <p style={{ margin: 0, fontSize: 12, color: '#94A3B8', lineHeight: 1.6 }}>
-                  Evidence metadata is available, but preview links are not currently accessible for this report.
+                <p className="m-0 text-xs text-slate-400 leading-[1.6]">
+                  {t('citizen.myReports.evidenceUnavailable')}
                 </p>
               )}
             </section>
           )}
 
           {report.resolutionNote && (
-            <section style={{
-              background: report.status === 'unresolvable' ? '#FEF2F2' : '#ECFDF5',
-              borderRadius: 12, padding: '16px',
-              border: `1.5px solid ${report.status === 'unresolvable' ? '#FECACA' : '#6EE7B7'}`,
-              marginBottom: 16,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+            <section
+              className={`mb-4 rounded-xl border-[1.5px] p-4 ${
+                report.status === 'unresolvable'
+                  ? 'border-[#FECACA] bg-[#FEF2F2]'
+                  : 'border-[#6EE7B7] bg-[#ECFDF5]'
+              }`}
+            >
+              <div className="flex items-center gap-[7px] mb-2">
                 {report.status === 'unresolvable'
-                  ? <Ban size={14} color="#B91C1C" />
+                  ? <Ban size={14} color="var(--severity-critical)" />
                   : <CheckCircle2 size={14} color="#059669" />
                 }
-                <span style={{ fontWeight: 700, fontSize: 13, color: report.status === 'unresolvable' ? '#B91C1C' : '#059669' }}>
-                  {report.status === 'unresolvable' ? 'Why This Was Unresolvable' : 'Resolution Summary'}
+                <span
+                  className={`text-[13px] font-bold ${
+                    report.status === 'unresolvable' ? 'text-severity-critical' : 'text-emerald-600'
+                  }`}
+                >
+                  {report.status === 'unresolvable' ? t('citizen.myReports.unresolvableReason') : t('citizen.myReports.resolutionSummary')}
                 </span>
               </div>
-              <p style={{ fontSize: 13, color: report.status === 'unresolvable' ? '#7F1D1D' : '#065F46', lineHeight: 1.65, margin: 0 }}>
+              <p
+                className={`m-0 text-[13px] leading-[1.65] ${
+                  report.status === 'unresolvable' ? 'text-[#7F1D1D]' : 'text-[#065F46]'
+                }`}
+              >
                 {report.resolutionNote}
               </p>
               {report.status === 'unresolvable' && (
-                <button style={{
-                  marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
-                  background: '#B91C1C', border: 'none', borderRadius: 8,
-                  padding: '8px 14px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                }}>
-                  <Phone size={12} /> Call City Veterinary Office
+                <button className="mt-3 flex cursor-pointer items-center gap-[6px] rounded-lg border-none bg-severity-critical px-[14px] py-2 text-xs font-bold text-white">
+                  <Phone size={12} /> {t('citizen.myReports.callCityVet')}
                 </button>
               )}
             </section>
           )}
 
-          <section style={{
-            background: '#fff', borderRadius: 12, padding: '18px',
-            border: '1px solid #E2E8F0', marginBottom: 8,
-            boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
-          }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
-              <Clock size={14} color="#1E3A8A" /> Status Timeline
+          <section className="mb-2 rounded-xl border border-slate-200 bg-white p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+            <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
+              <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
 
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            <ul className="m-0 p-0 list-none">
             {report.timeline.map((event, idx) => {
               const isLast = idx === report.timeline.length - 1;
-              const colors = timelineColorMap[event.status] ?? timelineColorMap['submitted'];
+              const timelineTone = timelineToneClass[event.status] ?? timelineToneClass['submitted'];
               return (
-                <li key={`${event.timestamp}-${idx}`} style={{ display: 'flex', gap: 12, position: 'relative' }}>
+                <li key={`${event.timestamp}-${idx}`} className="flex gap-3 relative">
                   {!isLast && (
-                    <div style={{
-                      position: 'absolute', left: 15, top: 30, bottom: -4,
-                      width: 2, background: '#E2E8F0', zIndex: 0,
-                    }} />
+                    <div className="absolute bottom-[-4px] left-[15px] top-[30px] z-0 w-[2px] bg-slate-200" />
                   )}
 
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                    background: colors.bg, border: `2px solid ${colors.color}30`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: colors.color, zIndex: 1, position: 'relative',
-                  }}>
+                  <div className={`w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center z-[1] relative ${timelineTone.iconShell}`}>
                     {timelineIconMap[event.status] ?? <FileText size={13} />}
                   </div>
 
-                  <div style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', lineHeight: 1.2 }}>
+                  <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-5'}`}>
+                    <div className="flex items-start justify-between gap-2 mb-[2px]">
+                      <div className="font-bold text-[13px] text-slate-900 leading-[1.2]">
                         {event.label}
                       </div>
                       {isLast && (
-                        <span style={{
-                          background: colors.bg, color: colors.color,
-                          borderRadius: 7, padding: '2px 8px', fontSize: 9,
-                          fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
-                          flexShrink: 0,
-                        }}>Latest</span>
+                        <span className={`shrink-0 rounded-[7px] px-2 py-[2px] text-[9px] font-extrabold tracking-[0.06em] uppercase ${timelineTone.latestBadge}`}>
+                          {t('citizen.myReports.timelineLatest')}
+                        </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4, lineHeight: 1.5 }}>
+                    <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
                       {event.description}
                     </div>
                     {event.note && event.note !== event.description && (
-                      <div style={{
-                        background: '#FFFBEB', border: '1px solid #FDE68A',
-                        borderRadius: 8, padding: '7px 10px', fontSize: 11,
-                        color: '#78350F', lineHeight: 1.5, marginBottom: 4,
-                      }}>
-                        Note: {event.note}
+                      <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-lg px-[10px] py-[7px] text-[11px] text-[#78350F] leading-[1.5] mb-1">
+                        {t('citizen.myReports.timelineNote', { note: event.note })}
                       </div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <time style={{ fontSize: 10, color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>
+                    <div className="flex items-center gap-2">
+                      <time className="text-[10px] text-slate-400 [font-variant-numeric:tabular-nums]">
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span style={{ color: '#E2E8F0', fontSize: 10 }}> - </span>
-                      <span style={{
-                        fontSize: 10, color: colors.color, fontWeight: 600,
-                        background: colors.bg, borderRadius: 4, padding: '1px 6px',
-                      }}>
+                      <span className="text-slate-200 text-[10px]"> - </span>
+                      <span className={`text-[10px] font-semibold rounded-[4px] px-[6px] py-[1px] ${timelineTone.actorBadge}`}>
                         {event.actor} - {event.actorRole}
                       </span>
                     </div>
@@ -831,13 +878,10 @@ function DetailView({
             </ul>
           </section>
 
-          <section style={{
-            background: '#FEF2F2', borderRadius: 14, padding: '12px 14px',
-            border: '1px solid #FECACA', display: 'flex', gap: 8, alignItems: 'flex-start',
-          }}>
-            <Info size={14} color="#B91C1C" style={{ flexShrink: 0, marginTop: 1 }} />
-            <p style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.6, margin: 0 }}>
-              <strong>Immediate danger?</strong> Don't wait for a response - call <strong>911</strong> right away.
+          <section className="bg-[#FEF2F2] rounded-[14px] px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
+            <Info size={14} color="var(--severity-critical)" className="shrink-0 mt-[1px]" />
+            <p className="text-xs text-[#7F1D1D] leading-[1.6] m-0">
+              {t('citizen.myReports.emergencyNotice')}
             </p>
           </section>
         </main>
@@ -848,15 +892,7 @@ function DetailView({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm report cancellation"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 230,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
+          className="fixed inset-0 z-[230] flex items-center justify-center p-4"
         >
           <div
             onClick={() => {
@@ -864,33 +900,16 @@ function DetailView({
                 setConfirmCancelOpen(false);
               }
             }}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.65)' }}
+            className="absolute inset-0 bg-[rgba(15,23,42,0.65)]"
           />
 
           <article
-            style={{
-              position: 'relative',
-              width: 'min(460px, 100%)',
-              background: '#FFFFFF',
-              borderRadius: 16,
-              boxShadow: '0 18px 44px rgba(15,23,42,0.28)',
-              overflow: 'hidden',
-            }}
+            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-white shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
           >
-            <header
-              style={{
-                background: '#1E3A8A',
-                color: '#FFFFFF',
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <AlertTriangle size={16} color="#FDE68A" />
-                <span style={{ fontSize: 14, fontWeight: 700 }}>Confirm Cancellation</span>
+                <span className="text-sm font-bold">{t('citizen.myReports.confirmCancelTitle')}</span>
               </div>
               <button
                 type="button"
@@ -900,55 +919,31 @@ function DetailView({
                   }
                 }}
                 disabled={cancelling}
-                style={{
-                  width: 30,
-                  height: 30,
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: 8,
-                  background: 'rgba(255,255,255,0.12)',
-                  color: '#FFFFFF',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                }}
+                className={`inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.12)] text-white ${
+                  cancelling ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
                 aria-label="Close confirmation dialog"
               >
                 <X size={14} />
               </button>
             </header>
 
-            <div style={{ padding: '14px 16px 10px' }}>
-              <p style={{ margin: 0, fontSize: 13, color: '#334155', lineHeight: 1.65 }}>
-                Cancel this submitted report? This action is only available while the ticket is still in <strong>Submitted</strong> status.
+            <div className="px-4 pt-[14px] pb-[10px]">
+              <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
+                {t('citizen.myReports.confirmCancelBody')}
               </p>
             </div>
 
-            <footer
-              style={{
-                padding: '0 16px 14px',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 8,
-              }}
-            >
+            <footer className="px-4 pb-[14px] flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setConfirmCancelOpen(false)}
                 disabled={cancelling}
-                style={{
-                  height: 38,
-                  border: '1px solid #CBD5E1',
-                  borderRadius: 10,
-                  background: '#F8FAFC',
-                  color: '#475569',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '0 14px',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                }}
+                className={`h-[38px] rounded-[10px] border border-slate-300 bg-slate-50 px-[14px] text-xs font-bold text-slate-600 ${
+                  cancelling ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
               >
-                Keep Ticket
+                {t('citizen.myReports.keepTicket')}
               </button>
               <button
                 type="button"
@@ -960,19 +955,13 @@ function DetailView({
                   setConfirmCancelOpen(false);
                 }}
                 disabled={cancelling}
-                style={{
-                  height: 38,
-                  border: 'none',
-                  borderRadius: 10,
-                  background: cancelling ? '#94A3B8' : '#B91C1C',
-                  color: '#FFFFFF',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '0 14px',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                }}
+                className={`h-[38px] rounded-[10px] border-none px-[14px] text-xs font-bold text-white ${
+                  cancelling
+                    ? 'cursor-not-allowed bg-slate-400'
+                    : 'cursor-pointer bg-severity-critical'
+                }`}
               >
-                {cancelling ? 'Cancelling...' : 'Yes, Cancel Ticket'}
+                {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.yesCancelTicket')}
               </button>
             </footer>
           </article>
@@ -981,45 +970,31 @@ function DetailView({
 
       {selectedPhoto && (
         <div
-          className="citizen-photo-preview-overlay"
+          className="citizen-photo-preview-overlay fixed inset-0 z-[220] flex items-center justify-center bg-[rgba(2,6,23,0.82)] p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Photo preview"
           onClick={() => setPreviewPhotoIndex(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 220,
-            background: 'rgba(2,6,23,0.82)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
         >
           <div
-            className="citizen-photo-preview-stage"
+            className="citizen-photo-preview-stage flex max-h-full w-full max-w-[980px] flex-col gap-2"
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(980px, 100%)',
-              maxHeight: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#E2E8F0', fontSize: 12 }}>
+            <div className="flex justify-between items-center text-slate-200 text-xs">
               <strong>{selectedPhoto.fileName}</strong>
               <button
                 type="button"
-                className="citizen-photo-preview-close"
+                className="citizen-photo-preview-close bg-[#0F172A] border border-[#334155] text-slate-200 rounded-lg px-[10px] py-1 cursor-pointer"
                 onClick={() => setPreviewPhotoIndex(null)}
-                style={{ background: '#0F172A', border: '1px solid #334155', color: '#E2E8F0', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}
               >
-                Close
+                {t('citizen.myReports.photoPreviewClose')}
               </button>
             </div>
-            <img className="citizen-photo-preview-image" src={selectedPhoto.publicUrl} alt={selectedPhoto.fileName} style={{ maxHeight: '80vh', width: '100%', objectFit: 'contain', borderRadius: 12, background: '#020617' }} />
+            <img
+              className="citizen-photo-preview-image max-h-[80vh] w-full rounded-xl bg-[#020617] object-contain"
+              src={selectedPhoto.publicUrl}
+              alt={selectedPhoto.fileName}
+            />
           </div>
         </div>
       )}
@@ -1035,96 +1010,64 @@ function DetailView({
 }
 
 function EmptyState({ filter, query }: { filter: string; query: string }) {
+  const { t } = useTranslation();
+  const headingText = query
+    ? t('citizen.myReports.emptyNoResults')
+    : filter === 'active'
+      ? t('citizen.myReports.emptyActiveLabel')
+      : filter === 'resolved'
+        ? t('citizen.myReports.emptyResolvedLabel')
+        : t('citizen.myReports.empty');
+  const bodyText = query
+    ? t('citizen.myReports.emptyNoResultsDesc', { query })
+    : filter === 'active'
+      ? t('citizen.myReports.emptyActiveDesc')
+      : filter === 'resolved'
+        ? t('citizen.myReports.emptyResolvedDesc')
+        : t('citizen.myReports.emptyDefaultDesc');
   return (
-    <div style={{
-      gridColumn: '1 / -1',
-      width: '100%',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', minHeight: 320, padding: '60px 32px', textAlign: 'center',
-    }}>
-      <div style={{
-        width: 80, height: 80, borderRadius: '50%', background: '#F1F5F9',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 18, color: '#CBD5E1',
-      }}>
+    <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
+      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
         <FileText size={36} />
       </div>
-      <div style={{ fontWeight: 800, fontSize: 17, color: '#1E293B', marginBottom: 8 }}>
-        {query ? 'No results found' : `No ${filter !== 'all' ? filter : ''} reports`}
+      <div className="font-extrabold text-[17px] text-slate-900 mb-2">
+        {headingText}
       </div>
-      <div style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, maxWidth: 260 }}>
-        {query
-          ? `No reports match "${query}". Try a different search term.`
-          : filter === 'active'
-            ? 'You have no active reports at the moment.'
-            : filter === 'resolved'
-              ? 'None of your reports have been resolved yet.'
-              : 'You haven\'t submitted any incident reports yet.'}
+      <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
+        {bodyText}
       </div>
     </div>
   );
 }
 
 function TicketPageLoadingState() {
+  const { t } = useTranslation();
   return (
-    <div className="citizen-content-shell" style={{ paddingTop: 28, paddingBottom: 28 }}>
+    <div className="citizen-content-shell pt-7 pb-7">
       <section
-        style={{
-          minHeight: 320,
-          borderRadius: 18,
-          border: '1px solid #DBEAFE',
-          background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 56%, #F8FAFC 100%)',
-          boxShadow: '0 12px 28px rgba(30,58,138,0.08)',
-          display: 'grid',
-          placeItems: 'center',
-          padding: '24px 20px',
-          textAlign: 'center',
-        }}
+        className="grid min-h-[320px] place-items-center rounded-[18px] border border-[#DBEAFE] bg-[linear-gradient(135deg,#EFF6FF_0%,#FFFFFF_56%,#F8FAFC_100%)] px-5 py-6 text-center shadow-[0_12px_28px_rgba(30,58,138,0.08)]"
       >
-        <div style={{ display: 'grid', justifyItems: 'center', gap: 12 }}>
+        <div className="grid justify-items-center gap-3">
           <div
             role="status"
             aria-label="Loading my reports"
-            style={{
-              width: 104,
-              height: 104,
-              borderRadius: 9999,
-              background: 'rgba(255, 255, 255, 0.96)',
-              boxShadow: '0 18px 40px rgba(15, 23, 42, 0.18)',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full bg-[rgba(255,255,255,0.96)] shadow-[0_18px_40px_rgba(15,23,42,0.18)]"
           >
             <span
               aria-hidden="true"
-              style={{
-                position: 'absolute',
-                inset: -6,
-                borderRadius: 9999,
-                border: '4px solid rgba(30, 58, 138, 0.16)',
-                borderTopColor: '#B91C1C',
-                borderRightColor: '#1E3A8A',
-                animation: 'ticketPageSpin 0.9s linear infinite',
-              }}
+              className="absolute inset-[-6px] rounded-full border-4 border-[rgba(30,58,138,0.16)] border-r-primary border-t-severity-critical [animation:ticketPageSpin_0.9s_linear_infinite]"
             />
             <img
               src="/favicon.svg"
               alt="TUGON"
-              style={{
-                width: 40,
-                height: 40,
-                display: 'block',
-                filter: 'drop-shadow(0 2px 3px rgba(15, 23, 42, 0.15))',
-              }}
+              className="block h-10 w-10 [filter:drop-shadow(0_2px_3px_rgba(15,23,42,0.15))]"
             />
           </div>
-          <p style={{ margin: 0, color: '#1E3A8A', fontSize: 14, fontWeight: 800 }}>
-            Loading your ticket records...
+          <p className="m-0 text-primary text-sm font-extrabold">
+            {t('citizen.myReports.loadingTitle')}
           </p>
-          <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
-            Pulling incident status updates from your barangay queue.
+          <p className="m-0 text-slate-500 text-xs leading-[1.55]">
+            {t('citizen.myReports.loadingSubtitle')}
           </p>
         </div>
       </section>
@@ -1136,6 +1079,7 @@ type FilterKey = 'all' | 'active' | 'resolved';
 type DateSortKey = 'newest' | 'oldest';
 
 export default function CitizenMyReports() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -1154,7 +1098,6 @@ export default function CitizenMyReports() {
   const [sortOpen, setSortOpen]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -1255,7 +1198,6 @@ export default function CitizenMyReports() {
     setNotifOpen(false);
     setProfileMenuOpen(false);
     setSortOpen(false);
-    setMobileMenuOpen(false);
   }, [reports]);
 
   // Filter + search + sort pipeline.
@@ -1315,14 +1257,12 @@ export default function CitizenMyReports() {
       setNotifOpen(false);
       setProfileMenuOpen(false);
       setSortOpen(false);
-      setMobileMenuOpen(false);
     };
 
     const handleAnyScroll = () => {
       setNotifOpen(false);
       setProfileMenuOpen(false);
       setSortOpen(false);
-      setMobileMenuOpen(false);
     };
 
     document.addEventListener('pointerdown', handleOutsideHeaderTap);
@@ -1334,13 +1274,13 @@ export default function CitizenMyReports() {
   }, []);
 
   const FILTER_TABS: { key: FilterKey; label: string; count: number }[] = [
-    { key: 'all',      label: 'All',      count: allCount },
-    { key: 'active',   label: 'Active',   count: activeCount },
-    { key: 'resolved', label: 'Resolved', count: resolvedCount },
+    { key: 'all',      label: t('citizen.myReports.filterAll'),      count: allCount },
+    { key: 'active',   label: t('citizen.myReports.filterActive'),   count: activeCount },
+    { key: 'resolved', label: t('citizen.myReports.filterResolved'), count: resolvedCount },
   ];
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       {selected && (
         <DetailView
           report={selected}
@@ -1354,44 +1294,17 @@ export default function CitizenMyReports() {
       <CitizenPageLayout
         header={
           <header
-            className="citizen-web-header"
-            style={{
-            background: '#1E3A8A',
-            display: 'flex',
-            alignItems: 'center',
-            height: 60,
-            flexShrink: 0,
-            position: 'sticky', top: 0, zIndex: 50,
-            boxShadow: '0 2px 8px rgba(15,23,42,0.14)',
-          }}
+            className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
           >
             <div
-              className="citizen-web-header-inner"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '0 var(--citizen-content-gutter)',
-                height: '100%',
-                boxSizing: 'border-box',
-                position: 'relative',
-              }}
+              className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative"
             >
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="flex items-center gap-[10px]">
                 <CitizenMobileMenu
                   activeKey="myreports"
-                  open={mobileMenuOpen}
-                  onToggle={() => {
-                    setMobileMenuOpen((prev) => !prev);
-                    setNotifOpen(false);
-                    setProfileMenuOpen(false);
-                    setSortOpen(false);
-                  }}
                   onNavigate={(key) => {
-                    setMobileMenuOpen(false);
                     if (key === 'report') navigate('/citizen/report');
                     else if (key === 'myreports') navigate('/citizen/my-reports');
                     else if (key === 'map') navigate('/citizen?tab=map');
@@ -1405,35 +1318,19 @@ export default function CitizenMyReports() {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
                     setSortOpen(false);
-                    setMobileMenuOpen(false);
                   }}
                 />
-                <div style={{ position: 'relative' }}>
+                <div className="relative">
                   <button
                     type="button"
                     onClick={() => {
                       setProfileMenuOpen((prev) => !prev);
                       setNotifOpen(false);
                       setSortOpen(false);
-                      setMobileMenuOpen(false);
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    aria-expanded={profileMenuOpen}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: '#B4730A',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      fontWeight: 800,
-                      fontSize: 14,
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
+                    className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm border-none cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -1442,18 +1339,7 @@ export default function CitizenMyReports() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      style={{
-                        position: 'absolute',
-                        top: 44,
-                        right: 0,
-                        width: 190,
-                        background: '#fff',
-                        borderRadius: 12,
-                        boxShadow: '0 8px 18px rgba(15,23,42,0.12)',
-                        border: '1px solid #E2E8F0',
-                        overflow: 'hidden',
-                        zIndex: 110,
-                      }}
+                      className="absolute top-11 right-0 w-[190px] bg-white rounded-xl border border-slate-200 overflow-hidden z-[110] shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
                     >
                       <button
                         type="button"
@@ -1462,20 +1348,9 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           navigate('/citizen?tab=profile');
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          borderBottom: '1px solid #F1F5F9',
-                          color: '#1E293B',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
                       >
-                        Open profile page
+                        {t('citizen.myReports.openProfilePage')}
                       </button>
                       <button
                         type="button"
@@ -1484,19 +1359,9 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '11px 12px',
-                          background: '#fff',
-                          border: 'none',
-                          color: '#B91C1C',
-                          fontSize: 13,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
+                        className="w-full text-left px-3 py-[11px] bg-white border-none text-red-700 text-[13px] font-bold cursor-pointer"
                       >
-                        Sign out
+                        {t('common.signOut')}
                       </button>
                     </div>
                   )}
@@ -1523,9 +1388,6 @@ export default function CitizenMyReports() {
           if (notifOpen) {
             setNotifOpen(false);
           }
-          if (mobileMenuOpen) {
-            setMobileMenuOpen(false);
-          }
         }}
         mainOnScroll={() => {
           if (sortOpen) {
@@ -1534,120 +1396,90 @@ export default function CitizenMyReports() {
           if (notifOpen) {
             setNotifOpen(false);
           }
-          if (mobileMenuOpen) {
-            setMobileMenuOpen(false);
-          }
         }}
       >
         {loadingInitial ? (
           <TicketPageLoadingState />
         ) : (
           <>
-            <div className="citizen-content-shell" style={{ paddingTop: 16, paddingBottom: 0 }}>
+            <div className="citizen-content-shell pt-4 pb-0">
               <section
-                style={{
-                  borderRadius: 16,
-                  padding: '16px 16px 14px',
-                  marginBottom: 10,
-                  border: '1px solid #DBEAFE',
-                  background: 'linear-gradient(140deg, #EFF6FF 0%, #F8FAFC 46%, #FFFFFF 100%)',
-                  boxShadow: '0 8px 24px rgba(30,58,138,0.08)',
-                }}
+                className="mb-[10px] rounded-2xl border border-[#DBEAFE] bg-[linear-gradient(140deg,#EFF6FF_0%,#F8FAFC_46%,#FFFFFF_100%)] px-4 pb-[14px] pt-4 shadow-[0_8px_24px_rgba(30,58,138,0.08)]"
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                  <div style={{ minWidth: 220 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: '#1E3A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                      Ticket Monitoring
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <p className="m-0 text-[11px] font-extrabold text-primary tracking-[0.08em] uppercase">
+                      {t('citizen.myReports.headerLabel')}
                     </p>
-                    <h2 style={{ margin: '6px 0 4px', color: '#1E293B', fontSize: 'clamp(18px,2.4vw,22px)', fontWeight: 800, lineHeight: 1.2 }}>
-                      My Incident Reports
+                    <h2 className="mb-1 mt-[6px] text-[clamp(18px,2.4vw,22px)] font-extrabold leading-[1.2] text-slate-900">
+                      {t('citizen.myReports.headerTitle')}
                     </h2>
-                    <p style={{ margin: 0, color: '#64748B', fontSize: 12, lineHeight: 1.55 }}>
-                      Track your submitted reports, review timeline updates, and open ticket details anytime.
+                    <p className="m-0 text-slate-500 text-xs leading-[1.55]">
+                      {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ background: '#FFFFFF', border: '1px solid #BFDBFE', color: '#1E3A8A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
-                      Total: {allCount}
+                  <div className="flex gap-2 flex-wrap">
+                    <span className="bg-white border border-[#BFDBFE] text-primary rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                      {t('citizen.myReports.countTotal', { count: allCount })}
                     </span>
-                    <span style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#B4730A', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
-                      Active: {activeCount}
+                    <span className="bg-[#FFFBEB] border border-[#FDE68A] text-severity-medium rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                      {t('citizen.myReports.countActive', { count: activeCount })}
                     </span>
-                    <span style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700 }}>
-                      Resolved: {resolvedCount}
+                    <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                      {t('citizen.myReports.countResolved', { count: resolvedCount })}
                     </span>
                   </div>
                 </div>
               </section>
 
               <section
-                style={{
-                  background: '#fff',
-                  border: '1px solid #DBEAFE',
-                  borderRadius: 16,
-                  boxShadow: '0 10px 24px rgba(15,23,42,0.07)',
-                  padding: 12,
-                }}
+                className="rounded-2xl border border-[#DBEAFE] bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
               >
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <div style={{
-                  flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#F8FAFC', borderRadius: 12, padding: '10px 12px',
-                  border: '1.5px solid #E2E8F0', transition: 'border-color 0.2s',
-                  minWidth: 240,
-                }}>
-                  <Search size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
+              <div className="flex gap-2 flex-wrap">
+                <div className="flex-1 flex min-w-0 items-center gap-2 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 px-3 py-[10px] transition-colors duration-200">
+                  <Search size={14} color="#94A3B8" className="shrink-0" />
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Search by ID, type, location..."
-                    style={{
-                      flex: 1, border: 'none', background: 'transparent',
-                      fontSize: 13, color: '#1E293B', outline: 'none',
-                      fontFamily: "'Roboto', sans-serif",
-                    }}
+                    placeholder={t('citizen.myReports.searchPlaceholder')}
+                    className="flex-1 border-none bg-transparent text-[13px] text-slate-900 outline-none"
                   />
                   {query && (
-                    <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', padding: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => setQuery('')}
+                      aria-label="Clear search"
+                      title="Clear search"
+                      className="flex cursor-pointer border-none bg-transparent p-0 text-slate-400"
+                    >
                       <X size={13} />
                     </button>
                   )}
                 </div>
 
-                <div className="citizen-sort-panel" style={{ position: 'relative' }}>
+                <div className="citizen-sort-panel relative">
                   <button
                     onClick={() => setSortOpen(v => !v)}
-                    style={{
-                      height: 42, background: '#F8FAFC', border: '1.5px solid #E2E8F0',
-                      borderRadius: 12, padding: '0 12px', display: 'flex', alignItems: 'center',
-                      gap: 5, cursor: 'pointer', color: '#475569', fontWeight: 600, fontSize: 12,
-                      whiteSpace: 'nowrap',
-                    }}
+                    className="h-[42px] bg-slate-50 border-[1.5px] border-slate-200 rounded-xl px-3 flex items-center gap-[5px] cursor-pointer text-slate-600 font-semibold text-xs whitespace-nowrap"
                   >
                     <SlidersHorizontal size={13} />
-                    {sortBy === 'newest' ? 'Newest' : 'Oldest'}
+                    {sortBy === 'newest' ? t('citizen.myReports.sortNewestShort') : t('citizen.myReports.sortOldestShort')}
                     <ChevronDown size={12} />
                   </button>
                   {sortOpen && (
-                    <div className="citizen-sort-panel" style={{
-                      position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-                      background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                      border: '1px solid #E2E8F0', overflow: 'hidden', zIndex: 60, minWidth: 130,
-                    }}>
+                    <div className="citizen-sort-panel absolute right-0 top-[calc(100%+4px)] z-[60] min-w-[130px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.15)]">
                       {(['newest', 'oldest'] as const).map(opt => (
                         <button
                           key={opt}
+                          type="button"
                           onClick={() => { setSortBy(opt); setSortOpen(false); }}
-                          style={{
-                            display: 'block', width: '100%', textAlign: 'left',
-                            padding: '10px 14px', border: 'none', cursor: 'pointer',
-                            background: sortBy === opt ? '#EFF6FF' : '#fff',
-                            color: sortBy === opt ? '#1E3A8A' : '#475569',
-                            fontSize: 13, fontWeight: sortBy === opt ? 700 : 400,
-                            fontFamily: "'Roboto', sans-serif",
-                          }}
+                          className={`block w-full cursor-pointer border-none px-[14px] py-[10px] text-left text-[13px] ${
+                            sortBy === opt
+                              ? 'bg-[#EFF6FF] font-bold text-primary'
+                              : 'bg-white font-normal text-slate-600'
+                          }`}
                         >
-                          {opt === 'newest' ? 'Newest First' : 'Oldest First'}
+                          {opt === 'newest' ? t('citizen.myReports.sortNewestFull') : t('citizen.myReports.sortOldestFull')}
                         </button>
                       ))}
                     </div>
@@ -1655,40 +1487,32 @@ export default function CitizenMyReports() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', padding: '10px 2px 0', gap: 0, borderBottom: 'none' }}>
+              <div className="flex pt-[10px] px-[2px] pb-0 gap-0">
                 {FILTER_TABS.map(tab => {
                   const isActive = filter === tab.key;
                   return (
                     <button
                       key={tab.key}
+                      type="button"
                       onClick={() => setFilter(tab.key)}
-                      style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '8px 4px 10px', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', gap: 2, position: 'relative',
-                        transition: 'all 0.2s',
-                      }}
+                      className="relative flex flex-1 flex-col items-center gap-[2px] border-none bg-transparent px-1 pb-[10px] pt-2 transition-all duration-200"
                     >
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        fontWeight: isActive ? 800 : 500,
-                        fontSize: 13,
-                        color: isActive ? '#1E3A8A' : '#94A3B8',
-                      }}>
+                      <span
+                        className={`flex items-center gap-[5px] text-[13px] ${
+                          isActive ? 'font-extrabold text-primary' : 'font-medium text-slate-400'
+                        }`}
+                      >
                         {tab.label}
-                        <span style={{
-                          background: isActive ? '#1E3A8A' : '#F1F5F9',
-                          color: isActive ? '#fff' : '#94A3B8',
-                          borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
-                        }}>
+                        <span
+                          className={`rounded-[20px] px-[7px] py-[1px] text-[10px] font-bold ${
+                            isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'
+                          }`}
+                        >
                           {tab.count}
                         </span>
                       </span>
                       {isActive && (
-                        <div style={{
-                          position: 'absolute', bottom: 0, left: '15%', right: '15%',
-                          height: 3, background: '#1E3A8A', borderRadius: '3px 3px 0 0',
-                        }} />
+                        <div className="absolute bottom-0 left-[15%] right-[15%] h-[3px] rounded-t-[3px] bg-primary" />
                       )}
                     </button>
                   );
@@ -1698,19 +1522,19 @@ export default function CitizenMyReports() {
             </div>
 
             <div onClick={() => sortOpen && setSortOpen(false)}>
-              <div className="citizen-content-shell citizen-reports-summary-row" style={{ paddingTop: 10, paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="citizen-reports-summary-text" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
-                  Showing <strong style={{ color: '#1E293B' }}>{filtered.length}</strong> report{filtered.length !== 1 ? 's' : ''}
-                  {query && ` for "${query}"`}
+              <div className="citizen-content-shell citizen-reports-summary-row pt-[10px] pb-2 flex items-center justify-between">
+                <span className="citizen-reports-summary-text text-xs text-slate-400 font-medium">
+                  {t('citizen.myReports.showing')} <strong className="text-slate-900">{filtered.length}</strong> {filtered.length !== 1 ? t('citizen.myReports.reports') : t('citizen.myReports.report')}
+                  {query && ` ${t('citizen.myReports.showingFor', { query })}`}
                 </span>
                 {filtered.length > 0 && (
-                  <span className="citizen-reports-summary-hint" style={{ fontSize: 11, color: '#94A3B8' }}>
-                    Open a card to view details
+                  <span className="citizen-reports-summary-hint text-[11px] text-slate-400">
+                    {t('citizen.myReports.openCardHint')}
                   </span>
                 )}
               </div>
 
-              <div className="citizen-content-shell citizen-reports-grid" style={{ paddingTop: 0, paddingBottom: 24, display: 'grid', gap: 12 }}>
+              <div className="citizen-content-shell citizen-reports-grid pt-0 pb-6 grid gap-3">
                 {filtered.length === 0 ? (
                   <EmptyState filter={filter} query={query} />
                 ) : (
@@ -1725,10 +1549,10 @@ export default function CitizenMyReports() {
               </div>
 
               {filtered.length > 0 && (
-                <div className="citizen-content-shell citizen-reports-footnote-wrap" style={{ paddingTop: 0, paddingBottom: 32, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <Info size={13} color="#94A3B8" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <p className="citizen-reports-footnote" style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
-                    Reports are kept on record for up to <strong>2 years</strong>. For urgent concerns, always call <strong>911</strong> directly.
+                <div className="citizen-content-shell citizen-reports-footnote-wrap pt-0 pb-8 flex items-start gap-2">
+                  <Info size={13} color="#94A3B8" className="shrink-0 mt-[1px]" />
+                  <p className="citizen-reports-footnote text-[11px] text-slate-400 leading-[1.6] m-0">
+                    {t('citizen.myReports.footnote')}
                   </p>
                 </div>
               )}
@@ -1764,4 +1588,3 @@ export default function CitizenMyReports() {
     </div>
   );
 }
-

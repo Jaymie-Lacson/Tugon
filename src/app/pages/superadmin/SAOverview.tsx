@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
-  Clock, Shield, Zap, ArrowRight, MapPin, Droplets, Car, Heart,
+  Clock, ArrowRight, MapPin,
   RefreshCw, ChevronRight, Info, Bell, Server,
 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import { useNavigate } from 'react-router';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { IncidentMap } from '../../components/IncidentMap';
 import CardSkeleton from '../../components/ui/CardSkeleton';
@@ -17,7 +18,7 @@ import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 
-const PRIMARY = '#1E3A8A';
+const PRIMARY = 'var(--primary)';
 
 type BarangayOverviewCard = {
   id: string;
@@ -36,10 +37,6 @@ type BarangayOverviewCard = {
   alertLevel: 'normal' | 'elevated' | 'critical';
 };
 
-const incidentTypeIcons: Record<string, React.ReactNode> = {
-  flood: <Droplets size={12} />, accident: <Car size={12} />,
-  medical: <Heart size={12} />, crime: <Shield size={12} />, infrastructure: <Zap size={12} />,
-};
 
 interface KPIProps {
   label: string; value: string | number; sub?: string;
@@ -48,55 +45,99 @@ interface KPIProps {
 
 function KPICard({ label, value, sub, icon, color, trend, trendLabel }: KPIProps) {
   const isUp = (trend ?? 0) >= 0;
+  const iconToneClass = getColorToneBackgroundClass(color);
   return (
-    <div style={{
-      background: '#FFFFFF', borderRadius: 12, padding: '18px 20px',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      flex: '1 1 220px', minWidth: 180,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: 10,
-          background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+    <div className="bg-white rounded-xl px-5 py-[18px] shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex-[1_1_220px] min-w-[180px] max-md:flex-[1_1_calc(50%-10px)] max-md:min-w-0 max-[520px]:flex-[1_1_100%]">
+      <div className="flex items-start justify-between mb-[10px]">
+        <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center ${iconToneClass}`}>
           {React.cloneElement(icon as React.ReactElement, { color, size: 18 })}
         </div>
         {trend !== undefined && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 3,
-            color: isUp ? '#B91C1C' : '#059669', fontSize: 11, fontWeight: 600,
-          }}>
+          <div className={`flex items-center gap-[3px] text-[11px] font-semibold ${isUp ? 'text-severity-critical' : 'text-[var(--severity-low)]'}`}>
             {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(trend)}%
           </div>
         )}
       </div>
-      <div style={{ color: '#0F172A', fontSize: 26, fontWeight: 700, lineHeight: 1.1, marginBottom: 3 }}>{value}</div>
-      <div style={{ color: '#6B7280', fontSize: 12 }}>{label}</div>
-      {sub && <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{sub}</div>}
+      <div className="text-[#0F172A] text-[26px] font-bold leading-[1.1] mb-[3px]">{value}</div>
+      <div className="text-[#6B7280] text-xs">{label}</div>
+      {sub && <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{sub}</div>}
       {trendLabel && (
-        <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 4 }}>{trendLabel}</div>
+        <div className="text-[#9CA3AF] text-[10px] mt-1">{trendLabel}</div>
       )}
     </div>
   );
 }
 
 const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
-  normal:   { label: 'NORMAL',   color: '#059669', bg: '#D1FAE5' },
-  elevated: { label: 'ELEVATED', color: '#B4730A', bg: '#FEF3C7' },
-  critical: { label: 'CRITICAL', color: '#B91C1C', bg: '#FEE2E2' },
+  normal:   { label: 'NORMAL',   color: 'var(--severity-low)', bg: 'var(--severity-low-bg)' },
+  elevated: { label: 'ELEVATED', color: 'var(--secondary)', bg: 'var(--secondary-fixed)' },
+  critical: { label: 'CRITICAL', color: 'var(--error)', bg: 'var(--error-container)' },
 };
 
 const logTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = {
-  incident: { icon: <AlertTriangle size={13} />, color: '#B91C1C' },
-  user:     { icon: <Users size={13} />,         color: '#1D4ED8' },
-  alert:    { icon: <Bell size={13} />,           color: '#B4730A' },
-  system:   { icon: <Server size={13} />,         color: '#0F766E' },
+  incident: { icon: <AlertTriangle size={13} />, color: 'var(--severity-critical)' },
+  user:     { icon: <Users size={13} />,         color: 'var(--primary)' },
+  alert:    { icon: <Bell size={13} />,           color: 'var(--severity-medium)' },
+  system:   { icon: <Server size={13} />,         color: 'var(--severity-low)' },
 };
 
-const logSeverityColors: Record<string, string> = {
-  error: '#B91C1C', warning: '#B4730A', info: '#1D4ED8', success: '#059669',
-};
+function getColorToneBackgroundClass(color: string) {
+  switch (color) {
+    case 'var(--severity-critical)':
+      return 'bg-[var(--error-container)]';
+    case 'var(--severity-medium)':
+      return 'bg-[var(--secondary-fixed)]';
+    case 'var(--severity-low)':
+      return 'bg-[var(--severity-low-bg)]';
+    case 'var(--primary)':
+      return 'bg-[var(--primary-fixed)]';
+    default:
+      return 'bg-surface-container-high';
+  }
+}
+
+function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
+  switch (level) {
+    case 'normal':
+      return 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]';
+    case 'elevated':
+      return 'bg-[var(--secondary-fixed)] text-[var(--secondary)]';
+    case 'critical':
+      return 'bg-[var(--error-container)] text-[var(--error)]';
+    default:
+      return 'bg-surface-container-high text-[var(--outline)]';
+  }
+}
+
+function getStatValueClass(color: string) {
+  switch (color) {
+    case 'var(--severity-critical)':
+      return 'text-severity-critical';
+    case 'var(--severity-medium)':
+      return 'text-severity-medium';
+    case 'var(--primary)':
+      return 'text-primary';
+    case 'var(--severity-low)':
+      return 'text-[var(--severity-low)]';
+    default:
+      return 'text-[var(--on-surface)]';
+  }
+}
+
+function getMapButtonClass(color: string) {
+  switch (color) {
+    case 'var(--primary)':
+      return 'bg-[var(--primary-fixed)] text-primary border border-[var(--primary-fixed-dim)]';
+    case 'var(--severity-low)':
+      return 'bg-[var(--severity-low-bg)] text-[var(--severity-low)] border border-[rgba(5,150,105,0.2)]';
+    case 'var(--severity-medium)':
+      return 'bg-[var(--secondary-fixed)] text-[var(--secondary)] border border-[var(--secondary-fixed-dim)]';
+    default:
+      return 'bg-[var(--primary-fixed)] text-primary border border-[var(--primary-fixed-dim)]';
+  }
+}
+
 
 function formatLogTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -124,8 +165,8 @@ function formatDurationFromMinutes(totalMinutes: number) {
 }
 
 export default function SAOverview() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
   const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
   const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
   const [barangayCards, setBarangayCards] = useState<BarangayOverviewCard[]>([]);
@@ -133,7 +174,6 @@ export default function SAOverview() {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
-  const [incidentTypesCardHeight, setIncidentTypesCardHeight] = useState<number | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
@@ -210,9 +250,9 @@ export default function SAOverview() {
     try {
       const payload = await superAdminApi.getBarangays();
       const colorByCode: Record<string, string> = {
-        '251': '#1D4ED8',
-        '252': '#0F766E',
-        '256': '#B4730A',
+        '251': 'var(--primary)',
+        '252': 'var(--severity-low)',
+        '256': 'var(--severity-medium)',
       };
 
       const nextCards = payload.barangays
@@ -239,7 +279,7 @@ export default function SAOverview() {
             avgResponseMin: 0,
             responders: barangay.officialCount,
             registeredUsers: barangay.citizenCount,
-            color: colorByCode[barangay.code] ?? '#1E3A8A',
+            color: colorByCode[barangay.code] ?? 'var(--primary)',
             alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
           } as BarangayOverviewCard;
         });
@@ -277,39 +317,13 @@ export default function SAOverview() {
     void loadAuditLogs();
   }, []);
 
-  useEffect(() => {
-    const cardElement = incidentTypesCardRef.current;
-    if (!cardElement) {
-      return;
-    }
-
-    const syncHeight = () => {
-      setIncidentTypesCardHeight(Math.round(cardElement.getBoundingClientRect().height));
-    };
-
-    syncHeight();
-
-    if (typeof ResizeObserver === 'undefined') {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      syncHeight();
-    });
-    observer.observe(cardElement);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [reportIncidents.length]);
-
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '20px', minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={4}
             lines={2}
@@ -317,7 +331,7 @@ export default function SAOverview() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={7} columns={4} showHeader />
         </div>
       </div>
@@ -325,24 +339,22 @@ export default function SAOverview() {
   }
 
   return (
-    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
+    <div className="p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
-      <div className="sa-overview-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 10 }}>
+      <div className="flex items-center justify-between mb-5 gap-[10px] max-md:flex-col max-md:items-start">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <div style={{
-              background: 'rgba(30,58,138,0.1)', border: '1px solid rgba(30,58,138,0.25)',
-              borderRadius: 6, padding: '2px 8px',
-              color: PRIMARY, fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}>Super Admin</div>
-            <div style={{ color: '#6B7280', fontSize: 12 }}>Multi-Barangay Overview</div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="bg-[rgba(30,58,138,0.1)] border border-[rgba(30,58,138,0.25)] rounded-[6px] px-2 py-[2px] text-primary text-[10px] font-bold tracking-[0.08em] uppercase">
+              {t('role.superAdmin')}
+            </div>
+            <div className="text-[#6B7280] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
           </div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>System Overview Dashboard</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
-            Monitoring Barangays 251, 252 & 256 — Real-time Status
+          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
+          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
+            {t('superadmin.overview.monitoringSubtitle')}
           </p>
         </div>
-        <div className="sa-overview-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="flex items-center gap-[10px] max-md:w-full max-md:flex-wrap">
           <button
             onClick={() => {
               void loadAnalyticsSummary();
@@ -350,170 +362,148 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', color: '#374151', fontSize: 12, fontWeight: 600,
-            }}
+            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
-            <RefreshCw size={13} color="#6B7280" />
-            {summaryLoading ? 'Refreshing...' : 'Refresh'}
+            <RefreshCw size={13} className="text-[var(--outline)]" />
+            {summaryLoading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: PRIMARY, border: 'none', borderRadius: 8,
-              padding: '8px 16px', cursor: 'pointer', color: 'white', fontSize: 12, fontWeight: 600,
-            }}
+            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
-            View Analytics
+            {t('superadmin.overview.viewAnalytics')}
             <ArrowRight size={13} />
           </button>
         </div>
       </div>
 
       {summaryError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#B91C1C', fontSize: 12, padding: '10px 12px' }}>
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-[10px]">
           {summaryError}
         </div>
       ) : null}
 
       {/* KPI row */}
-      <div className="sa-overview-kpi-row" style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="flex gap-[14px] mb-5 flex-wrap max-md:gap-[10px]">
         <KPICard
-          label="Active Incidents (All Barangays)"
+          label={t('superadmin.overview.kpiActiveIncidents')}
           value={total}
-          sub="Across Brgy 251, 252, 256"
+          sub={t('superadmin.overview.kpiAcrossBarangays')}
           icon={<AlertTriangle />}
-          color="#B91C1C"
+          color="var(--severity-critical)"
           trend={activeTrendPercent}
-          trendLabel={`${openedToday} new reports today`}
+          trendLabel={t('superadmin.overview.kpiNewReportsToday', { count: openedToday })}
         />
         <KPICard
-          label="Resolved Today"
+          label={t('superadmin.overview.kpiResolvedToday')}
           value={resolvedToday}
-          sub="Incidents closed today"
+          sub={t('superadmin.overview.kpiIncidentsClosedToday')}
           icon={<CheckCircle2 />}
-          color="#059669"
-          trendLabel="Based on ticket status updates"
+          color="var(--severity-low)"
+          trendLabel={t('superadmin.overview.kpiBasedOnTickets')}
         />
         <KPICard
-          label="Avg. Response Time"
+          label={t('superadmin.overview.kpiAvgResponseTime')}
           value={avgResponseLabel}
-          sub="Target: ≤ 10 min"
+          sub={t('superadmin.overview.kpiResponseTarget')}
           icon={<Clock />}
-          color="#B4730A"
-          trendLabel="Computed from responded incidents"
+          color="var(--severity-medium)"
+          trendLabel={t('superadmin.overview.kpiComputedFromIncidents')}
         />
         <KPICard
-          label="Registered Users"
+          label={t('superadmin.overview.kpiRegisteredUsers')}
           value={analyticsSummary?.summary.totalUsers ?? 0}
-          sub={`${analyticsSummary?.summary.verifiedUsers ?? 0} verified accounts`}
+          sub={t('superadmin.overview.kpiVerifiedAccounts', { count: analyticsSummary?.summary.verifiedUsers ?? 0 })}
           icon={<Users />}
-          color="#1D4ED8"
-          trendLabel="across 3 barangays"
+          color="var(--primary)"
+          trendLabel={t('superadmin.overview.kpiAcrossThreeBarangays')}
         />
         <KPICard
-          label="System Uptime"
+          label={t('superadmin.overview.kpiSystemUptime')}
           value="99.87%"
-          sub="All services running"
+          sub={t('superadmin.overview.kpiAllServicesRunning')}
           icon={<Activity />}
-          color="#0F766E"
-          trendLabel="Monitored by deployment platform"
+          color="var(--severity-low)"
+          trendLabel={t('superadmin.overview.kpiMonitoredByPlatform')}
         />
       </div>
 
       {/* Barangay cards row */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="flex gap-[14px] mb-5 flex-wrap">
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
+          const alertLevelClass = getAlertLevelClass(b.alertLevel);
+          const pinToneClass = getColorToneBackgroundClass(b.color);
+          const mapButtonClass = getMapButtonClass(b.color);
           return (
-            <div key={b.id} style={{
-              flex: 1, minWidth: 260,
-              background: '#FFFFFF', borderRadius: 14, overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
-            }}>
-              <div style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div key={b.id} className="flex-1 min-w-[260px] bg-white rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB]">
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                      <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{b.name}</span>
-                      <span style={{
-                        background: al.bg, color: al.color,
-                        fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, letterSpacing: '0.08em',
-                      }}>{al.label}</span>
+                    <div className="flex items-center gap-2 mb-[3px]">
+                      <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
+                      <span
+                        className={`text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] tracking-[0.08em] ${alertLevelClass}`}
+                      >{al.label}</span>
                     </div>
-                    <div style={{ color: '#6B7280', fontSize: 11 }}>{b.district}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{b.captain}</div>
+                    <div className="text-[#6B7280] text-[11px]">{b.district}</div>
+                    <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 10,
-                    background: `${b.color}18`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
+                  <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center ${pinToneClass}`}>
                     <MapPin size={20} color={b.color} />
                   </div>
                 </div>
 
                 {/* Stats grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                <div className="grid grid-cols-2 gap-2 mb-3">
                   {[
-                    { label: 'Active',     value: b.activeIncidents, color: '#B91C1C' },
-                    { label: 'This Month', value: b.totalThisMonth,   color: '#1D4ED8' },
-                    { label: 'Resolved',   value: b.resolvedThisMonth, color: '#059669' },
-                    { label: 'Resp. Rate', value: `${b.responseRate}%`, color: '#B4730A' },
+                    { label: t('superadmin.overview.statActive'),     value: b.activeIncidents,   color: 'var(--severity-critical)' },
+                    { label: t('superadmin.overview.statThisMonth'), value: b.totalThisMonth,    color: 'var(--primary)' },
+                    { label: t('superadmin.overview.statResolved'),   value: b.resolvedThisMonth, color: 'var(--severity-low)' },
+                    { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
-                    <div key={s.label} style={{
-                      background: '#F9FAFB', borderRadius: 8, padding: '8px 10px',
-                      border: '1px solid #F3F4F6',
-                    }}>
-                      <div style={{ color: s.color, fontSize: 17, fontWeight: 700, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ color: '#9CA3AF', fontSize: 10, marginTop: 2 }}>{s.label}</div>
+                    <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-[10px] py-2 border border-[#F3F4F6]">
+                      <div className={`text-[17px] font-bold leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
+                      <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Response time bar */}
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ color: '#6B7280', fontSize: 11 }}>Avg Response Time</span>
-                    <span style={{
-                      color: b.responseRate < 90 ? '#B4730A' : '#059669',
-                      fontSize: 11, fontWeight: 600,
-                    }}>{b.responseRate}%</span>
+                <div className="mb-3">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[#6B7280] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
+                    <span className={`text-[11px] font-semibold ${b.responseRate < 90 ? 'text-severity-medium' : 'text-[var(--severity-low)]'}`}>{b.responseRate}%</span>
                   </div>
-                  <div style={{ height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${b.responseRate}%`,
-                      background: b.responseRate < 90 ? '#B4730A' : '#059669',
-                      borderRadius: 3,
-                    }} />
+                  <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
+                    <progress
+                      value={b.responseRate}
+                      max={100}
+                      className={`h-[5px] w-full overflow-hidden rounded-[3px] align-top ${
+                        b.responseRate < 90
+                          ? '[&::-webkit-progress-value]:bg-[var(--severity-medium)] [&::-moz-progress-bar]:bg-[var(--severity-medium)]'
+                          : '[&::-webkit-progress-value]:bg-[var(--severity-low)] [&::-moz-progress-bar]:bg-[var(--severity-low)]'
+                      } [&::-webkit-progress-bar]:bg-[#F3F4F6]`}
+                    />
                   </div>
-                  <div style={{ color: '#9CA3AF', fontSize: 9, marginTop: 2 }}>Resolution rate</div>
+                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
                 </div>
 
                 {/* Footer */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ color: '#6B7280', fontSize: 10 }}>
-                      <span style={{ color: '#374151', fontWeight: 600 }}>{b.responders}</span> responders
+                <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <div className="flex gap-3 flex-wrap">
+                    <div className="text-[#6B7280] text-[10px]">
+                      <span className="text-[#374151] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
                     </div>
-                    <div style={{ color: '#6B7280', fontSize: 10 }}>
-                      <span style={{ color: '#374151', fontWeight: 600 }}>{b.registeredUsers}</span> users
+                    <div className="text-[#6B7280] text-[10px]">
+                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
                     </div>
                   </div>
                   <button
                     onClick={() => navigate('/superadmin/map')}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      background: `${b.color}14`, color: b.color,
-                      border: `1px solid ${b.color}30`, borderRadius: 6,
-                      padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                    }}
+                    className={`flex items-center gap-1 rounded-[6px] px-[10px] py-1 cursor-pointer text-[11px] font-semibold shrink-0 ${mapButtonClass}`}
                   >
-                    View Map <ArrowRight size={11} />
+                    {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
                   </button>
                 </div>
               </div>
@@ -523,19 +513,15 @@ export default function SAOverview() {
       </div>
 
       {/* Charts + Logs row */}
-      <div className="sa-overview-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 14, marginBottom: 20, alignItems: 'start' }}>
+      <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
         <div
-          ref={incidentTypesCardRef}
-          style={{
-          background: '#FFFFFF', borderRadius: 14, padding: '20px',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-          }}
+          className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]"
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>Incident Types — All Barangays</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Current reporting window</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
+              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -549,58 +535,38 @@ export default function SAOverview() {
                 itemStyle={{ color: '#CBD5E1' }}
               />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#6B7280' }} />
-              <Bar dataKey="brgy251" name="Brgy 251" fill="#1D4ED8" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="brgy252" name="Brgy 252" fill="#0F766E" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="brgy256" name="Brgy 256" fill="#B4730A" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="brgy251" name="Brgy 251" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="brgy252" name="Brgy 252" fill="var(--severity-low)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="brgy256" name="Brgy 256" fill="var(--severity-medium)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* System activity log */}
-        <div
-          className="sa-overview-activity-card"
-          style={{
-          background: '#FFFFFF', borderRadius: 14, padding: '20px',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-          display: 'flex', flexDirection: 'column',
-          height: incidentTypesCardHeight ?? undefined,
-          maxHeight: incidentTypesCardHeight ?? undefined,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div className="bg-white rounded-2xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB] flex flex-col">
+          <div className="flex items-center justify-between mb-[14px]">
             <div>
-              <div style={{ color: '#0F172A', fontSize: 15, fontWeight: 700 }}>System Activity Log</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>Live feed — all barangays</div>
+              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
+              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%', background: '#22C55E',
-            }} />
+            <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
             {systemLogs.map((log) => {
-              const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: '#6B7280' };
-              const sev = logSeverityColors[log.severity] ?? '#6B7280';
+              const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: 'var(--outline)' };
               return (
-                <div key={log.id} style={{
-                  display: 'flex', gap: 10, padding: '8px 10px',
-                  borderRadius: 8, background: '#F9FAFB', border: '1px solid #F3F4F6',
-                }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 6,
-                    background: `${ltc.color}18`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
+                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 rounded-lg bg-[#F9FAFB] border border-[#F3F4F6]">
+                  <div className={`w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0 ${getColorToneBackgroundClass(ltc.color)}`}>
                     {React.cloneElement(ltc.icon as React.ReactElement, { color: ltc.color })}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#1E293B', fontSize: 11, lineHeight: 1.4 }}>{log.message}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                      <span style={{ color: '#9CA3AF', fontSize: 10 }}>{formatLogTime(log.timestamp)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[#1E293B] text-[11px] leading-[1.4]">{log.message}</div>
+                    <div className="flex items-center gap-[6px] mt-[3px]">
+                      <span className="text-[#9CA3AF] text-[10px]">{formatLogTime(log.timestamp)}</span>
                       {log.barangay && (
-                        <span style={{
-                          background: '#EEF2FF', color: '#4338CA',
-                          fontSize: 9, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
-                        }}>{log.barangay}</span>
+                        <span className="bg-[#EEF2FF] text-[#4338CA] text-[9px] font-semibold px-[5px] py-[1px] rounded-[3px]">
+                          {log.barangay}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -612,35 +578,25 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview" style={{
-        background: '#FFFFFF', borderRadius: 14, overflow: 'hidden', marginBottom: 20,
-        boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-      }}>
-        <div className="sa-overview-map-preview-head" style={{
-          padding: '12px 16px', borderBottom: '1px solid #F3F4F6',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <MapPin size={15} color={PRIMARY} />
+      <div className="sa-overview-map-preview bg-white rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]">
+        <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
+          <div className="flex items-center gap-[10px]">
+            <MapPin size={15} className="text-primary" />
             <div>
-              <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>Live System Map</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>Open incidents · OpenStreetMap · Municipality of Tugon</div>
+              <div className="text-[#0F172A] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
+              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 5, padding: '3px 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
-              <span style={{ color: '#059669', fontSize: 9, fontWeight: 700 }}>LIVE · OSM</span>
+          <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
+            <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[5px] px-2 py-[3px] flex items-center gap-1">
+              <span className="w-[6px] h-[6px] rounded-full bg-[#22C55E] inline-block" />
+              <span className="text-[var(--severity-low)] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                background: PRIMARY, color: 'white', border: 'none',
-                borderRadius: 7, padding: '6px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-              }}
+              className="flex items-center gap-[5px] bg-primary text-white border-0 rounded-[7px] px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
-              Full Map <ArrowRight size={11} />
+              {t('superadmin.overview.fullMap')} <ArrowRight size={11} />
             </button>
           </div>
         </div>
@@ -653,94 +609,32 @@ export default function SAOverview() {
       </div>
 
       {/* Bottom quick nav */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div className="flex gap-3 flex-wrap">
         {[
-          { label: 'Barangay Map & Boundaries', desc: 'View Brgy 251, 252, 256 boundary map with live incidents', path: '/superadmin/map', color: '#1D4ED8', icon: <MapPin size={18} /> },
-          { label: 'System Analytics',          desc: 'Heatmaps, trend charts & response time analytics',         path: '/superadmin/analytics', color: PRIMARY, icon: <Activity size={18} /> },
-          { label: 'User Management',           desc: 'Manage accounts, roles & permissions across all barangays', path: '/superadmin/users', color: '#0F766E', icon: <Users size={18} /> },
-        ].map(item => (
+          { label: t('superadmin.overview.quickNavMap'),          desc: t('superadmin.overview.quickNavMapDesc'),          path: '/superadmin/map',       color: 'var(--primary)',      icon: <MapPin size={18} /> },
+          { label: t('superadmin.analytics.title'),              desc: t('superadmin.overview.quickNavAnalyticsDesc'),    path: '/superadmin/analytics', color: PRIMARY,               icon: <Activity size={18} /> },
+          { label: t('superadmin.users.title'),                  desc: t('superadmin.overview.quickNavUsersDesc'),        path: '/superadmin/users',     color: 'var(--severity-low)', icon: <Users size={18} /> },
+        ].map((item) => {
+          const quickNavToneClass = getColorToneBackgroundClass(item.color);
+          return (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            style={{
-              flex: 1, minWidth: 220,
-              background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 12,
-              padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
-              display: 'flex', alignItems: 'center', gap: 12,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
+            className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-[14px] cursor-pointer text-left flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
           >
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
+            <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0 ${quickNavToneClass}`}>
               {React.cloneElement(item.icon as React.ReactElement, { color: item.color })}
             </div>
-            <div>
-              <div style={{ color: '#0F172A', fontSize: 13, fontWeight: 600 }}>{item.label}</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>{item.desc}</div>
+            <div className="min-w-0">
+              <div className="text-[#0F172A] text-[13px] font-semibold">{item.label}</div>
+              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
             </div>
-            <ChevronRight size={16} color="#D1D5DB" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+            <ChevronRight size={16} className="ml-auto shrink-0 text-[var(--outline-variant)]" />
           </button>
-        ))}
+          );
+        })}
       </div>
 
-      <style>{`
-        @media (max-width: 1024px) {
-          .sa-overview-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .sa-overview-activity-card {
-            height: auto !important;
-            max-height: none !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .sa-overview-kpi-row {
-            gap: 10px;
-          }
-
-          .sa-overview-kpi-row > div {
-            flex: 1 1 calc(50% - 10px) !important;
-            min-width: 0 !important;
-          }
-
-          .sa-overview-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-overview-header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .sa-overview-header-actions button {
-            flex: 1;
-            min-height: 40px;
-            justify-content: center;
-          }
-
-          .sa-overview-map-preview-head {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 8px;
-          }
-
-          .sa-overview-map-preview-head > div:last-child {
-            width: 100%;
-            justify-content: space-between;
-          }
-        }
-
-        @media (max-width: 520px) {
-          .sa-overview-kpi-row > div {
-            flex: 1 1 100% !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

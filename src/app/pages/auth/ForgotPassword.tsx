@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
+import { useTranslation } from '../../i18n';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -38,81 +40,76 @@ export default function ForgotPassword() {
   };
 
   return (
-    <>
-      <style>{AUTH_SPIN_STYLE}</style>
-      <AuthLayout
-        title="Forgot Password"
-        subtitle="Enter your registered phone number and we'll send you a reset code via SMS."
-      >
-        {sent ? (
-          <div style={{ textAlign: 'center', padding: '8px 0' }}>
-            <div style={{ width: 64, height: 64, background: '#D1FAE5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <CheckCircle2 size={32} color="#059669" />
-            </div>
-            <div style={{ color: '#065F46', fontSize: 17, fontWeight: 800, marginBottom: 8 }}>Code Sent!</div>
-            <p style={{ color: '#64748B', fontSize: 13, lineHeight: 1.6, marginBottom: 24 }}>
-              A password reset code has been sent to <strong style={{ color: '#1E293B' }}>{phone}</strong>. Check your SMS inbox.
-            </p>
+    <AuthLayout
+      title={t('auth.forgotPassword.title')}
+      subtitle={t('auth.forgotPassword.subtitle')}
+    >
+      <AuthProgressStepper
+        steps={[
+          { label: t('auth.forgotPassword.step.requestCode'), status: sent ? 'done' : 'active' },
+          { label: t('auth.forgotPassword.step.verifyCode'), status: sent ? 'active' : 'upcoming' },
+          { label: t('auth.forgotPassword.step.newPassword'), status: 'upcoming' },
+        ]}
+      />
 
-            <button
-              onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
-              style={{
-                width: '100%', padding: '14px', background: '#1E3A8A', border: 'none',
-                borderRadius: 10, color: 'white', fontSize: 14, fontWeight: 700,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                fontFamily: 'inherit', marginBottom: 12,
-              }}
-            >
-              <ArrowRight size={15} /> Enter Reset Code
-            </button>
-
-            <button
-              onClick={() => setSent(false)}
-              style={{
-                width: '100%', padding: '13px', background: '#F0F4FF', border: '1.5px solid #BFDBFE',
-                borderRadius: 10, color: '#1E3A8A', fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                fontFamily: 'inherit',
-              }}
-            >
-              <RefreshCw size={13} /> Use a Different Number
-            </button>
+      {sent ? (
+        <div className="text-center py-2">
+          <div className="size-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 size={32} color="#059669" />
           </div>
-        ) : (
-          <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
-            <InputField
-              label="Registered Phone Number"
-              type="tel"
-              placeholder="0917-xxx-xxxx"
-              value={phone}
-              onChange={v => { setPhone(formatPhone(v)); setError(''); }}
-              icon={<Phone size={17} />}
-              error={error}
-              hint="Must match the phone number used during registration."
-              inputMode="tel"
-              autoComplete="tel"
-              autoFocus
-            />
+          <div className="text-emerald-800 text-[17px] font-extrabold mb-2">{t('auth.forgotPassword.codeSentTitle')}</div>
+          <p className="text-muted-foreground text-[13px] leading-relaxed mb-6">
+            {t('auth.forgotPassword.codeSentDesc', { phone })}
+          </p>
 
-            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10, padding: '12px 14px', marginBottom: 24, fontSize: 12, color: '#92400E', lineHeight: 1.6 }}>
-              If the number is not registered in TUGON, you will not receive a reset code. Contact your barangay office for assistance.
-            </div>
-
-            <PrimaryButton loading={loading} type="submit" color="#B4730A">
-              {!loading && <><ArrowRight size={16} /> Send Reset Code</>}
-            </PrimaryButton>
-          </form>
-        )}
-
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
           <button
-            onClick={() => navigate('/auth/login')}
-            style={{ background: 'none', border: 'none', color: '#64748B', fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: 'inherit' }}
+            onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
+            className="w-full py-3.5 bg-primary border-none rounded-lg text-white text-sm font-bold cursor-pointer flex items-center justify-center gap-2 font-[inherit] mb-3 hover:bg-primary/90 transition-colors"
           >
-            <ArrowLeft size={14} /> Back to <span style={{ color: '#1E3A8A', fontWeight: 700, marginLeft: 3 }}>Sign In</span>
+            <ArrowRight size={15} /> {t('auth.forgotPassword.enterCode')}
+          </button>
+
+          <button
+            onClick={() => setSent(false)}
+            className="w-full py-3 bg-muted border border-border rounded-lg text-primary text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5 font-[inherit] hover:bg-accent transition-colors"
+          >
+            <RefreshCw size={13} /> {t('auth.forgotPassword.differentNumber')}
           </button>
         </div>
-      </AuthLayout>
-    </>
+      ) : (
+        <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
+          <InputField
+            label={t('auth.forgotPassword.phoneLabel')}
+            type="tel"
+            placeholder={t('auth.forgotPassword.phonePlaceholder')}
+            value={phone}
+            onChange={v => { setPhone(formatPhone(v)); setError(''); }}
+            icon={<Phone size={17} />}
+            error={error}
+            hint={t('auth.forgotPassword.phoneHint')}
+            inputMode="tel"
+            autoComplete="tel"
+            autoFocus
+          />
+
+          <div className="rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 mb-6 text-xs text-amber-800 leading-relaxed">
+            {t('auth.forgotPassword.notRegistered')}
+          </div>
+
+          <PrimaryButton loading={loading} type="submit" color="#B4730A">
+            {!loading && <><ArrowRight size={16} /> {t('auth.forgotPassword.sendResetCode')}</>}
+          </PrimaryButton>
+        </form>
+      )}
+
+      <div className="text-center mt-5">
+        <button
+          onClick={() => navigate('/auth/login')}
+          className="bg-transparent border-none text-muted-foreground text-sm cursor-pointer inline-flex items-center gap-1.5 font-[inherit] hover:text-foreground"
+        >
+          <ArrowLeft size={14} /> {t('auth.forgotPassword.backToLogin')} <span className="text-primary font-bold ml-0.5">{t('auth.login.submit')}</span>
+        </button>
+      </div>
+    </AuthLayout>
   );
 }

@@ -1,36 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck, House } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
+import { useTranslation } from '../../i18n';
 
 interface StrengthRule {
-  label: string;
+  key: string;
   test: (pw: string) => boolean;
 }
 
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 const RULES: StrengthRule[] = [
-  { label: 'At least 8 characters', test: pw => pw.length >= 8 },
-  { label: 'One uppercase letter (A–Z)', test: pw => /[A-Z]/.test(pw) },
-  { label: 'One lowercase letter (a–z)', test: pw => /[a-z]/.test(pw) },
-  { label: 'One number (0–9)', test: pw => /\d/.test(pw) },
+  { key: 'auth.createPassword.rule.length', test: pw => pw.length >= 8 },
+  { key: 'auth.createPassword.rule.upper', test: pw => /[A-Z]/.test(pw) },
+  { key: 'auth.createPassword.rule.lower', test: pw => /[a-z]/.test(pw) },
+  { key: 'auth.createPassword.rule.number', test: pw => /\d/.test(pw) },
 ];
 
-function getStrength(pw: string): { level: number; label: string; color: string } {
+function getStrength(pw: string): { level: number; key: string; color: string } {
   const passed = RULES.filter(r => r.test(pw)).length;
-  if (pw.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-  if (passed <= 1) return { level: 1, label: 'Weak', color: '#B91C1C' };
-  if (passed === 2) return { level: 2, label: 'Fair', color: '#B4730A' };
-  if (passed === 3) return { level: 3, label: 'Good', color: '#0891B2' };
-  return { level: 4, label: 'Strong', color: '#059669' };
+  if (pw.length === 0) return { level: 0, key: '', color: '#E2E8F0' };
+  if (passed <= 1) return { level: 1, key: 'auth.createPassword.strength.weak', color: 'var(--severity-critical)' };
+  if (passed === 2) return { level: 2, key: 'auth.createPassword.strength.fair', color: 'var(--severity-medium)' };
+  if (passed === 3) return { level: 3, key: 'auth.createPassword.strength.good', color: '#0891B2' };
+  return { level: 4, key: 'auth.createPassword.strength.strong', color: '#059669' };
 }
 
 export default function CreatePassword() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const state = (location.state as { phone?: string; fullName?: string; barangay?: string; flow?: 'registration' | 'password-reset' }) || {};
   const flow = state.flow === 'password-reset' ? 'password-reset' : 'registration';
 
@@ -49,7 +51,7 @@ export default function CreatePassword() {
     if (!password) e.password = 'Please create a password.';
     else if (strength.level < 2) e.password = 'Password is too weak. Please follow the strength requirements.';
     if (!confirm) e.confirm = 'Please confirm your password.';
-    else if (password !== confirm) e.confirm = 'Passwords do not match.';
+    else if (password !== confirm) e.confirm = t('auth.createPassword.noMatch');
     return e;
   };
 
@@ -106,103 +108,71 @@ export default function CreatePassword() {
 
   return (
     <>
-      <style>{AUTH_SPIN_STYLE}{`
+      <style>{`
         @keyframes checkPop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
         @keyframes fadeSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
       <AuthLayout
-        title={flow === 'password-reset' ? 'Set A New Password' : 'Create Your Password'}
-        subtitle={flow === 'password-reset'
-          ? 'Set a new password to regain access to your TUGON account.'
-          : 'Almost done! Set a strong password to secure your TUGON account.'}
+        title={flow === 'password-reset' ? t('auth.createPassword.titleReset') : t('auth.createPassword.title')}
+        subtitle={flow === 'password-reset' ? t('auth.createPassword.subtitleReset') : t('auth.createPassword.subtitleRegister')}
         topAction={(
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="auth-home-link-btn"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
           >
             <ArrowLeft size={14} />
             <House size={14} />
-            Back to Homepage
+            {t('auth.backToHome')}
           </button>
         )}
       >
-        {/* Step indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28 }}>
-          {[
-            { n: 1, label: 'Details', done: true },
-            { n: 2, label: 'Verify', done: true },
-            { n: 3, label: 'Password', active: true },
-          ].flatMap((step, idx) => {
-            const items = [
-              <div key={`step-${step.n}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: '50%',
-                  background: step.done ? '#059669' : step.active ? '#1E3A8A' : '#E2E8F0',
-                  color: step.done || step.active ? 'white' : '#94A3B8',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, marginBottom: 4,
-                }}>
-                  {step.done ? <CheckCircle2 size={15} /> : step.n}
-                </div>
-                <span style={{ fontSize: 10, color: step.done ? '#059669' : step.active ? '#1E3A8A' : '#94A3B8', fontWeight: step.active ? 700 : 400 }}>
-                  {step.label}
-                </span>
-              </div>
-            ];
-            if (idx < 2) {
-              items.push(
-                <div key={`connector-${idx}`} style={{ flex: 1, height: 2, background: step.done ? '#059669' : '#E2E8F0', marginBottom: 18 }} />
-              );
-            }
-            return items;
-          })}
-        </div>
+        <AuthProgressStepper
+          steps={[
+            { label: t('auth.steps.details'), status: 'done' },
+            { label: t('auth.steps.verify'), status: 'done' },
+            { label: t('auth.steps.password'), status: 'active' },
+          ]}
+        />
 
         {/* Account summary pill */}
         {flow !== 'password-reset' && state.fullName && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '10px 14px', marginBottom: 24 }}>
-            <div style={{ width: 34, height: 34, background: '#DCFCE7', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <UserCheck size={16} color="#059669" />
+          <div className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-green-200 bg-green-50 p-3 mb-6">
+            <div className="w-[34px] h-[34px] bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+              <UserCheck size={16} className="text-emerald-600" />
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#065F46' }}>{state.fullName}</div>
-              <div style={{ fontSize: 11, color: '#059669' }}>{barangayLabel} · {state.phone || ''}</div>
+              <div className="text-xs font-bold text-emerald-900">{state.fullName}</div>
+              <div className="text-[11px] text-emerald-600">{barangayLabel} · {state.phone || ''}</div>
             </div>
-            <CheckCircle2 size={16} color="#059669" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+            <CheckCircle2 size={16} className="text-emerald-600 ml-auto shrink-0" />
           </div>
         )}
 
         {done ? (
           /* Success state */
-          <div style={{ textAlign: 'center', padding: '16px 0', animation: 'fadeSlideUp 0.4s ease' }}>
-            <div style={{ width: 72, height: 72, background: '#D1FAE5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', animation: 'checkPop 0.4s ease' }}>
-              <CheckCircle2 size={36} color="#059669" />
+          <div className="text-center py-4" style={{ animation: 'fadeSlideUp 0.4s ease' }}>
+            <div className="w-[72px] h-[72px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4" style={{ animation: 'checkPop 0.4s ease' }}>
+              <CheckCircle2 size={36} className="text-emerald-600" />
             </div>
-            <div style={{ color: '#065F46', fontSize: 18, fontWeight: 800, marginBottom: 6 }}>Account Created!</div>
-            <div style={{ color: '#059669', fontSize: 13, marginBottom: 4 }}>Redirecting to your dashboard…</div>
+            <div className="text-emerald-900 text-lg font-extrabold mb-1.5">
+              {flow === 'password-reset' ? t('auth.createPassword.successReset') : t('auth.createPassword.success')}
+            </div>
+            <div className="text-emerald-600 text-[13px] mb-1">{t('auth.createPassword.redirecting')}</div>
           </div>
         ) : (
           <form onSubmit={e => { e.preventDefault(); handleCreate(); }}>
             {errors.general && (
-              <div style={{
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                borderRadius: 10,
-                padding: '10px 12px',
-                color: '#B91C1C',
-                fontSize: 12,
-                marginBottom: 14,
-              }}>
+              <div className="border border-destructive/20 bg-destructive/5 rounded-lg px-3 py-2.5 text-destructive text-xs mb-3.5">
                 {errors.general}
               </div>
             )}
 
             {/* New password */}
             <InputField
-              label="New Password"
+              label={t('auth.createPassword.newPassword')}
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a strong password"
+              placeholder={t('auth.createPassword.newPasswordPlaceholder')}
               value={password}
               onChange={v => { setPassword(v); if (errors.password) setErrors(p => ({ ...p, password: undefined })); }}
               icon={<Lock size={17} />}
@@ -213,7 +183,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#94A3B8', display: 'flex', alignItems: 'center' }}
+                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -222,40 +192,34 @@ export default function CreatePassword() {
 
             {/* Strength meter */}
             {password.length > 0 && (
-              <div style={{ marginTop: -10, marginBottom: 18, animation: 'fadeSlideUp 0.25s ease' }}>
+              <div className="-mt-2.5 mb-[18px]" style={{ animation: 'fadeSlideUp 0.25s ease' }}>
                 {/* Bar */}
-                <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                <div className="flex gap-1 mb-2">
                   {[1, 2, 3, 4].map(level => (
                     <div
                       key={level}
-                      style={{
-                        flex: 1, height: 4, borderRadius: 2,
-                        background: strength.level >= level ? strength.color : '#E2E8F0',
-                        transition: 'background 0.25s',
-                      }}
+                      className="flex-1 h-1 rounded-sm transition-colors"
+                      style={{ backgroundColor: strength.level >= level ? strength.color : '#E2E8F0' }}
                     />
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>Password strength:</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: strength.color }}>{strength.label}</span>
+                <div className="flex justify-between items-center mb-2.5">
+                  <span className="text-[11px] text-muted-foreground">{t('auth.createPassword.strengthLabel')}</span>
+                  <span className="text-[11px] font-bold" style={{ color: strength.color }}>{strength.key ? t(strength.key) : ''}</span>
                 </div>
 
                 {/* Rules checklist */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 12px' }}>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                   {RULES.map(rule => {
                     const passed = rule.test(password);
                     return (
-                      <div key={rule.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <div style={{
-                          width: 14, height: 14, borderRadius: '50%',
-                          background: passed ? '#D1FAE5' : '#F1F5F9',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0, transition: 'background 0.2s',
-                        }}>
-                          <CheckCircle2 size={10} color={passed ? '#059669' : '#CBD5E1'} />
+                      <div key={rule.key} className="flex items-center gap-[5px]">
+                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          passed ? 'bg-emerald-100' : 'bg-slate-100'
+                        }`}>
+                          <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-muted-foreground/50'} />
                         </div>
-                        <span style={{ fontSize: 10, color: passed ? '#065F46' : '#94A3B8', transition: 'color 0.2s' }}>{rule.label}</span>
+                        <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-slate-400'}`}>{t(rule.key)}</span>
                       </div>
                     );
                   })}
@@ -265,9 +229,9 @@ export default function CreatePassword() {
 
             {/* Confirm password */}
             <InputField
-              label="Confirm Password"
+              label={t('auth.createPassword.confirmPassword')}
               type={showConfirm ? 'text' : 'password'}
-              placeholder="Re-enter your password"
+              placeholder={t('auth.createPassword.confirmPlaceholder')}
               value={confirm}
               onChange={v => { setConfirm(v); if (errors.confirm) setErrors(p => ({ ...p, confirm: undefined })); }}
               icon={<Lock size={17} />}
@@ -277,7 +241,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#94A3B8', display: 'flex', alignItems: 'center' }}
+                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -286,42 +250,40 @@ export default function CreatePassword() {
 
             {/* Match indicator */}
             {confirm.length > 0 && password.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: -10, marginBottom: 18 }}>
-                <div style={{
-                  width: 14, height: 14, borderRadius: '50%',
-                  background: password === confirm ? '#D1FAE5' : '#FEE2E2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <CheckCircle2 size={10} color={password === confirm ? '#059669' : '#B91C1C'} />
+              <div className="flex items-center gap-1.5 -mt-2.5 mb-[18px]">
+                <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
+                  password === confirm ? 'bg-emerald-100' : 'bg-red-100'
+                }`}>
+                  <CheckCircle2 size={10} className={password === confirm ? 'text-emerald-600' : 'text-red-700'} />
                 </div>
-                <span style={{ fontSize: 11, color: password === confirm ? '#059669' : '#B91C1C', fontWeight: 500 }}>
-                  {password === confirm ? 'Passwords match' : 'Passwords do not match'}
+                <span className={`text-[11px] font-medium ${password === confirm ? 'text-emerald-600' : 'text-red-700'}`}>
+                  {password === confirm ? t('auth.createPassword.match') : t('auth.createPassword.noMatch')}
                 </span>
               </div>
             )}
 
             {/* Security notice */}
-            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10, padding: '12px 14px', marginBottom: 24, display: 'flex', gap: 10 }}>
-              <Shield size={15} color="#B4730A" style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: '#92400E', lineHeight: 1.55 }}>
-                Your password is encrypted and never stored in plain text. Never share your password with anyone, including barangay officials.
+            <div className="rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 mb-6 flex gap-2.5">
+              <Shield size={15} className="text-amber-700 shrink-0 mt-px" />
+              <div className="text-[11px] text-amber-900 leading-[1.55]">
+                {t('auth.createPassword.securityNotice')}
               </div>
             </div>
 
             <PrimaryButton loading={loading} type="submit" color="#059669">
-              {!loading && <><CheckCircle2 size={16} /> {flow === 'password-reset' ? 'Reset Password' : 'Create Account'}</>}
+              {!loading && <><CheckCircle2 size={16} /> {flow === 'password-reset' ? t('auth.createPassword.resetButton') : t('auth.createPassword.createButton')}</>}
             </PrimaryButton>
           </form>
         )}
 
         {/* Back */}
         {!done && (
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <div className="text-center mt-4">
             <button
               onClick={() => navigate('/auth/verify', { state })}
-              style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: 12, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}
+              className="bg-transparent border-none text-muted-foreground text-xs cursor-pointer inline-flex items-center gap-1 font-[inherit] hover:text-foreground"
             >
-              <ArrowLeft size={13} /> Back to OTP Verification
+              <ArrowLeft size={13} /> {t('auth.createPassword.backToVerify')}
             </button>
           </div>
         )}

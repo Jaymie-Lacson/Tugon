@@ -15,7 +15,7 @@ before(async () => {
 });
 
 describe("Reports service error sanitization", () => {
-  it("does not leak Prisma P2010 meta details to API clients", () => {
+  it("returns service unavailable for schema-mismatch P2010 errors without leaking internals", () => {
     const error = new Prisma.PrismaClientKnownRequestError(
       "Raw query failed.",
       {
@@ -29,7 +29,7 @@ describe("Reports service error sanitization", () => {
 
     const parsed = reportsService.parseError(error);
 
-    assert.equal(parsed.status, 500);
+    assert.equal(parsed.status, 503);
     assert.equal(parsed.message, "Unable to process report request right now.");
     assert.equal(parsed.message.includes("IncidentEvidence"), false);
   });

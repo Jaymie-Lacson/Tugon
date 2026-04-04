@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Filter, RefreshCw, X } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
@@ -61,6 +62,7 @@ function formatDateInput(date: Date) {
 }
 
 export default function SAAuditLogs() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<ApiAdminAuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -115,6 +117,7 @@ export default function SAAuditLogs() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const canExport = logs.length > 0;
+  const exportButtonsDisabled = !canExport || exportingJson || exportingCsv;
   const pageStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const pageEnd = total === 0 ? 0 : Math.min(page * PAGE_SIZE, total);
 
@@ -174,9 +177,9 @@ export default function SAAuditLogs() {
 
   if (loading && logs.length === 0) {
     return (
-      <div style={{ padding: 20, minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={2}
             lines={2}
@@ -184,7 +187,7 @@ export default function SAAuditLogs() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={8} columns={5} showHeader />
         </div>
       </div>
@@ -192,70 +195,48 @@ export default function SAAuditLogs() {
   }
 
   return (
-    <div style={{ padding: 20, background: '#F0F4FF', minHeight: '100%' }}>
-      <div className="sa-audit-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
+    <div className="p-5 bg-[var(--surface)] min-h-full">
+      <div className="flex flex-col items-start justify-between mb-3.5 gap-2.5 md:flex-row md:items-center">
         <div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>Admin Audit Logs</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
-            Immutable action history for Super Admin operations
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>
+          <p className="text-[var(--on-surface-variant)] text-xs m-0 mt-0.5">
+            {t('superadmin.auditLogs.subtitle')}
           </p>
         </div>
         <button
           onClick={() => {
             void loadLogs();
           }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '8px 14px',
-            cursor: 'pointer',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
-          }}
+          className="flex w-full justify-center items-center gap-1.5 bg-white border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold md:w-auto"
         >
-          <RefreshCw size={13} /> {loading ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
       </div>
 
       {error ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', borderRadius: 10, padding: '10px 12px', fontSize: 12 }}>
+        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] text-severity-critical rounded-[10px] px-3 py-2.5 text-xs">
           {error}
         </div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-        <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ color: '#9CA3AF', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Total Entries</div>
-          <div style={{ color: '#0F172A', fontSize: 24, fontWeight: 700, marginTop: 2 }}>{logs.length}</div>
+      <div className="grid grid-cols-2 gap-2.5 mb-3">
+        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
+          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{logs.length}</div>
         </div>
-        <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ color: '#9CA3AF', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Actions Seen</div>
-          <div style={{ color: '#0F172A', fontSize: 24, fontWeight: 700, marginTop: 2 }}>{Object.keys(actionCounts).length}</div>
+        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
+          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
         </div>
       </div>
 
-      <div className="sa-audit-filter-bar" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-        flexWrap: 'wrap',
-        background: 'white',
-        border: '1px solid #E5E7EB',
-        borderRadius: 10,
-        padding: '10px 12px',
-      }}>
-        <Filter size={13} color="#6B7280" />
+      <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
+        <Filter size={13} className="text-[var(--outline)]" />
         <select
           title="Filter by action"
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
         >
           {ACTIONS.map((action) => (
             <option key={action} value={action}>{action}</option>
@@ -265,7 +246,7 @@ export default function SAAuditLogs() {
           title="Filter by target type"
           value={targetFilter}
           onChange={(event) => setTargetFilter(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
         >
           {TARGET_TYPES.map((target) => (
             <option key={target} value={target}>{target}</option>
@@ -276,89 +257,68 @@ export default function SAAuditLogs() {
           type="date"
           value={fromDate}
           onChange={(event) => setFromDate(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
         />
         <input
           title="Filter to date"
           type="date"
           value={toDate}
           onChange={(event) => setToDate(event.target.value)}
-          style={{ padding: '7px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, color: '#374151' }}
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
         />
         <button
           onClick={() => applyDatePreset(1)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
-          Today
+          {t('superadmin.auditLogs.today')}
         </button>
         <button
           onClick={() => applyDatePreset(7)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
-          Last 7 Days
+          {t('superadmin.auditLogs.last7Days')}
         </button>
         <button
           onClick={() => applyDatePreset(30)}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
-          Last 30 Days
+          {t('superadmin.auditLogs.last30Days')}
         </button>
         <button
           onClick={clearDatePreset}
-          style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', background: 'white', color: '#334155', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
-          Clear Dates
+          {t('superadmin.auditLogs.clearDates')}
         </button>
         <button
           onClick={() => {
             void handleExportJson();
           }}
-          disabled={!canExport || exportingJson || exportingCsv}
-          style={{
-            marginLeft: 'auto',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '7px 10px',
-            background: 'white',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
-            opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
-          }}
+          disabled={exportButtonsDisabled}
+          className={`w-full md:w-auto md:ml-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
-          {exportingJson ? 'Exporting JSON...' : 'Export JSON'}
+          {exportingJson ? t('superadmin.auditLogs.exportingJson') : t('superadmin.auditLogs.exportJson')}
         </button>
         <button
           onClick={() => {
             void handleExportCsv();
           }}
-          disabled={!canExport || exportingJson || exportingCsv}
-          style={{
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            padding: '7px 10px',
-            background: 'white',
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: canExport && !exportingJson && !exportingCsv ? 'pointer' : 'not-allowed',
-            opacity: canExport && !exportingJson && !exportingCsv ? 1 : 0.6,
-          }}
+          disabled={exportButtonsDisabled}
+          className={`w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
-          {exportingCsv ? 'Exporting CSV...' : 'Export CSV'}
+          {exportingCsv ? t('superadmin.auditLogs.exportingCsv') : t('superadmin.auditLogs.exportCsv')}
         </button>
       </div>
 
-      <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <div className="bg-white border border-[var(--outline-variant)] rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
             <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB' }}>
-                {['Timestamp', 'Action', 'Target', 'Target Label', 'Actor User ID', 'Details'].map((header) => (
+              <tr className="bg-surface-container-low border-b border-[var(--outline-variant)]">
+                {[t('superadmin.auditLogs.timestamp'), t('superadmin.auditLogs.action'), t('superadmin.auditLogs.target'), t('superadmin.auditLogs.targetLabel'), t('superadmin.auditLogs.actorUserId'), t('superadmin.auditLogs.details')].map((header) => (
                   <th
                     key={header}
-                    style={{ padding: '10px 12px', textAlign: 'left', color: '#6B7280', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}
+                    className="px-3 py-2.5 text-left text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase whitespace-nowrap"
                   >
                     {header}
                   </th>
@@ -368,27 +328,27 @@ export default function SAAuditLogs() {
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#9CA3AF' }}>
-                    {loading ? 'Loading audit logs...' : 'No audit logs found for current filters.'}
+                  <td colSpan={6} className="p-6 text-center text-[var(--outline)]">
+                    {loading ? t('superadmin.auditLogs.loadingLogs') : t('superadmin.auditLogs.noLogsFiltered')}
                   </td>
                 </tr>
               ) : logs.map((log, index) => (
                 <tr
                   key={log.id}
                   onClick={() => setSelectedLog(log)}
-                  style={{ borderBottom: index < logs.length - 1 ? '1px solid #F3F4F6' : 'none', cursor: 'pointer' }}
+                  className={`cursor-pointer hover:bg-surface-container-low ${index < logs.length - 1 ? 'border-b border-[var(--outline-variant)]' : ''}`}
                 >
-                  <td style={{ padding: '10px 12px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDateTime(log.createdAt)}</td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 14, background: '#DBEAFE', color: '#1E3A8A', fontWeight: 700, fontSize: 10 }}>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-[14px] bg-[var(--primary-fixed)] text-primary font-bold text-[10px]">
                       <Activity size={10} /> {log.action}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 12px', color: '#334155', fontWeight: 600 }}>{log.targetType}</td>
-                  <td style={{ padding: '10px 12px', color: '#334155' }}>{log.targetLabel ?? 'N/A'}</td>
-                  <td style={{ padding: '10px 12px', color: '#64748B', fontFamily: 'monospace', fontSize: 11 }}>{log.actorUserId}</td>
-                  <td style={{ padding: '10px 12px', color: '#475569', fontFamily: 'monospace', fontSize: 10, maxWidth: 420 }}>
-                    <div style={{ maxHeight: 88, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] font-semibold">{log.targetType}</td>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{log.targetLabel ?? 'N/A'}</td>
+                  <td className="px-3 py-2.5 text-[var(--outline)] font-mono text-[11px]">{log.actorUserId}</td>
+                  <td className="px-3 py-2.5 text-[var(--on-surface-variant)] font-mono text-[10px] max-w-[420px]">
+                    <div className="max-h-[88px] overflow-auto whitespace-pre-wrap break-words">
                       {log.details ? JSON.stringify(log.details, null, 2) : 'N/A'}
                     </div>
                   </td>
@@ -397,53 +357,25 @@ export default function SAAuditLogs() {
             </tbody>
           </table>
         </div>
-        <div className="sa-audit-pagination" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 12px',
-          borderTop: '1px solid #F3F4F6',
-          background: '#FAFAFA',
-          fontSize: 12,
-        }}>
-          <span style={{ color: '#64748B' }}>
-            Showing {pageStart} to {pageEnd} of {total} logs
+        <div className="flex flex-col items-start gap-2 px-3 py-2.5 border-t border-[var(--outline-variant)] bg-surface-container-low text-xs md:flex-row md:items-center md:justify-between">
+          <span className="text-[var(--outline)]">
+            {t('superadmin.auditLogs.showingRange', { start: pageStart, end: pageEnd, total })}
           </span>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <button
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={page === 1}
-              style={{
-                border: '1px solid #E5E7EB',
-                borderRadius: 7,
-                padding: '6px 10px',
-                background: 'white',
-                color: '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                opacity: page === 1 ? 0.6 : 1,
-              }}
+              className={`border border-[var(--outline-variant)] rounded-[7px] px-2.5 py-1.5 bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${page === 1 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
-              Prev
+              {t('superadmin.auditLogs.prev')}
             </button>
-            <span style={{ color: '#475569', alignSelf: 'center' }}>Page {page} / {totalPages}</span>
+            <span className="text-[var(--on-surface-variant)] self-center">{t('superadmin.auditLogs.page', { page, total: totalPages })}</span>
             <button
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
               disabled={page >= totalPages}
-              style={{
-                border: '1px solid #E5E7EB',
-                borderRadius: 7,
-                padding: '6px 10px',
-                background: 'white',
-                color: '#334155',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-                opacity: page >= totalPages ? 0.6 : 1,
-              }}
+              className={`border border-[var(--outline-variant)] rounded-[7px] px-2.5 py-1.5 bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${page >= totalPages ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         </div>
@@ -452,56 +384,44 @@ export default function SAAuditLogs() {
       {selectedLog ? (
         <div
           onClick={() => setSelectedLog(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.45)',
-            zIndex: 120,
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
+          className="fixed inset-0 bg-[rgba(13,28,46,0.45)] z-[120] flex justify-end"
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(560px, 100vw)',
-              height: '100%',
-              background: 'white',
-              boxShadow: '-8px 0 24px rgba(15, 23, 42, 0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="w-[min(560px,100vw)] h-full bg-white shadow-[-8px_0_24px_rgba(15,23,42,0.2)] flex flex-col"
           >
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="px-4 py-3.5 border-b border-[var(--outline-variant)] flex items-center justify-between">
               <div>
-                <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>Audit Event Details</div>
-                <div style={{ color: '#64748B', fontSize: 11 }}>{formatDateTime(selectedLog.createdAt)}</div>
+                <div className="text-[var(--on-surface)] text-base font-bold">{t('superadmin.auditLogs.eventDetails')}</div>
+                <div className="text-[var(--outline)] text-[11px]">{formatDateTime(selectedLog.createdAt)}</div>
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748B' }}
+                aria-label={t('common.close')}
+                title={t('common.close')}
+                className="border-0 bg-transparent cursor-pointer text-[var(--outline)]"
               >
                 <X size={18} />
               </button>
             </div>
-            <div style={{ padding: 16, overflowY: 'auto', display: 'grid', gap: 12 }}>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Action</div>
-                <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>{selectedLog.action}</div>
+            <div className="p-4 overflow-y-auto grid gap-3">
+              <div className="bg-surface-container-low border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+                <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.action')}</div>
+                <div className="text-[var(--on-surface)] text-sm font-bold">{selectedLog.action}</div>
               </div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Target</div>
-                <div style={{ color: '#0F172A', fontSize: 14, fontWeight: 700 }}>{selectedLog.targetType}</div>
-                <div style={{ color: '#475569', fontSize: 12, marginTop: 2 }}>Label: {selectedLog.targetLabel ?? 'N/A'}</div>
-                <div style={{ color: '#475569', fontSize: 12 }}>ID: {selectedLog.targetId ?? 'N/A'}</div>
+              <div className="bg-surface-container-low border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+                <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.target')}</div>
+                <div className="text-[var(--on-surface)] text-sm font-bold">{selectedLog.targetType}</div>
+                <div className="text-[var(--on-surface-variant)] text-xs mt-0.5">{t('superadmin.auditLogs.labelField', { value: selectedLog.targetLabel ?? 'N/A' })}</div>
+                <div className="text-[var(--on-surface-variant)] text-xs">{t('superadmin.auditLogs.idField', { value: selectedLog.targetId ?? 'N/A' })}</div>
               </div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Actor</div>
-                <div style={{ color: '#334155', fontFamily: 'monospace', fontSize: 12 }}>{selectedLog.actorUserId}</div>
+              <div className="bg-surface-container-low border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+                <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actor')}</div>
+                <div className="text-[var(--on-surface-variant)] font-mono text-xs">{selectedLog.actorUserId}</div>
               </div>
-              <div style={{ background: '#0F172A', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ color: '#94A3B8', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>Details JSON</div>
-                <pre style={{ margin: 0, color: '#E2E8F0', fontFamily: 'monospace', fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <div className="bg-slate-950 rounded-[10px] px-3 py-2.5">
+                <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase mb-2">{t('superadmin.auditLogs.detailsJson')}</div>
+                <pre className="m-0 text-slate-200 font-mono text-[11px] whitespace-pre-wrap break-words">
                   {selectedLog.details ? JSON.stringify(selectedLog.details, null, 2) : 'null'}
                 </pre>
               </div>
@@ -509,39 +429,6 @@ export default function SAAuditLogs() {
           </div>
         </div>
       ) : null}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .sa-audit-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-          }
-
-          .sa-audit-header button {
-            width: 100%;
-            justify-content: center;
-            min-height: 40px;
-          }
-
-          .sa-audit-filter-bar {
-            flex-direction: column;
-            align-items: stretch !important;
-          }
-
-          .sa-audit-filter-bar button,
-          .sa-audit-filter-bar select,
-          .sa-audit-filter-bar input {
-            width: 100%;
-            margin-left: 0 !important;
-          }
-
-          .sa-audit-pagination {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 8px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

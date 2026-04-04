@@ -65,8 +65,9 @@ before(async () => {
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
   originalExecuteRaw = prismaModule.prisma.$executeRaw;
 
-  prismaModule.prisma.user.findUnique = (async (args: any) => {
-    if (args?.where?.phoneNumber === "09179990000") {
+  prismaModule.prisma.user.findUnique = (async (args: unknown) => {
+    const where = (args as { where?: { phoneNumber?: string; id?: string } } | undefined)?.where;
+    if (where?.phoneNumber === "09179990000") {
       return {
         id: "session-user-1",
         fullName: "Session Test User",
@@ -87,7 +88,7 @@ before(async () => {
       };
     }
 
-    if (args?.where?.id === "session-user-1") {
+    if (where?.id === "session-user-1") {
       return {
         id: "session-user-1",
         fullName: "Session Test User",
@@ -111,7 +112,7 @@ before(async () => {
     return null;
   }) as typeof prismaModule.prisma.user.findUnique;
 
-  prismaModule.prisma.$executeRaw = (async (...args: any[]) => {
+  prismaModule.prisma.$executeRaw = (async (...args: unknown[]) => {
     void args;
     executeRawCallCount += 1;
     return 1;

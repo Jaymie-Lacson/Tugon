@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: tugon-server
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    rootDir: .
+    buildCommand: npm --prefix server ci && npm --prefix server run prisma:generate && npm --prefix server run build
+    preDeployCommand: |
+      if [ "$RUN_DB_MIGRATIONS" = "1" ]; then
+        if [ -z "$DIRECT_URL" ]; then
+          echo 'Missing DIRECT_URL for prisma:migrate:deploy'; exit 1;
+        fi
+        DATABASE_URL="$DIRECT_URL" npm --prefix server run prisma:migrate:deploy
+      else
+        echo 'Skipping prisma migrations (set RUN_DB_MIGRATIONS=1 to enable)'
+      fi
+    startCommand: npm --prefix server run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: PORT
+        value: "4000"
+      - key: RUN_DB_MIGRATIONS
+        value: "0"
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: incident-evidence
+      - key: SUPABASE_ID_STORAGE_BUCKET
+        value: resident-ids

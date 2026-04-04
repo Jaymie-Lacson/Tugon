@@ -28,7 +28,7 @@ export const ANALYTICS_TYPE_LABELS: Record<IncidentType, string> = {
 
 export const ANALYTICS_TYPE_COLORS: Record<IncidentType, string> = {
   flood: '#1D4ED8',
-  accident: '#B4730A',
+  accident: 'var(--severity-medium)',
   medical: '#0F766E',
   crime: '#7C3AED',
   infrastructure: '#374151',
@@ -46,37 +46,37 @@ export const ANALYTICS_RESPONSE_TARGETS: Record<IncidentType, number> = {
 
 export const ANALYTICS_TREND_SERIES = [
   { key: 'flood', label: 'Pollution', color: '#1D4ED8' },
-  { key: 'accident', label: 'Road Hazard', color: '#B4730A' },
+  { key: 'accident', label: 'Road Hazard', color: 'var(--severity-medium)' },
   { key: 'medical', label: 'Noise', color: '#0F766E' },
   { key: 'crime', label: 'Crime', color: '#7C3AED' },
   { key: 'infrastructure', label: 'Other', color: '#374151' },
 ] as const;
 
 export const ANALYTICS_SEVERITY_SERIES = [
-  { name: 'Critical', color: '#B91C1C' },
+  { name: 'Critical', color: 'var(--severity-critical)' },
   { name: 'High', color: '#EA580C' },
-  { name: 'Medium', color: '#B4730A' },
+  { name: 'Medium', color: 'var(--severity-medium)' },
   { name: 'Low', color: '#059669' },
 ] as const;
 
 export const ANALYTICS_HOURLY_BANDS = {
   high: 10,
   medium: 7,
-  highColor: '#B91C1C',
-  mediumColor: '#B4730A',
-  baseColor: '#1E3A8A',
+  highColor: 'var(--severity-critical)',
+  mediumColor: 'var(--severity-medium)',
+  baseColor: 'var(--primary)',
 } as const;
 
 export const ANALYTICS_UTILIZATION_BANDS = {
   high: 80,
   medium: 60,
-  highColor: '#B91C1C',
-  mediumColor: '#B4730A',
+  highColor: 'var(--severity-critical)',
+  mediumColor: 'var(--severity-medium)',
   baseColor: '#059669',
 } as const;
 
 export const ANALYTICS_BARANGAY_BAR_COLORS = {
-  incidents: '#1E3A8A',
+  incidents: 'var(--primary)',
   resolved: '#059669',
-  active: '#B91C1C',
+  active: 'var(--severity-critical)',
 } as const;

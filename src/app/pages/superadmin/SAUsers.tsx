@@ -5,25 +5,33 @@ import {
   ChevronLeft, ChevronRight, UserCheck, UserX, Eye, Download,
   X,
 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
+import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '../../components/ui/table';
 
-const PRIMARY = '#1E3A8A';
+const PRIMARY = 'var(--primary)';
 
 const ROLE_CONFIG = {
-  'Super Admin': { color: '#1E3A8A', bg: '#DBEAFE', icon: <Shield size={11} /> },
-  'Barangay Admin': { color: '#1D4ED8', bg: '#DBEAFE', icon: <Users size={11} /> },
-  'Viewer': { color: '#374151', bg: '#F3F4F6', icon: <Eye size={11} /> },
+  'Super Admin': { color: 'var(--primary)', bg: 'var(--primary-fixed)', icon: <Shield size={11} /> },
+  'Barangay Admin': { color: 'var(--primary-container)', bg: 'var(--primary-fixed)', icon: <Users size={11} /> },
+  'Viewer': { color: 'var(--on-surface-variant)', bg: 'var(--surface-container-low)', icon: <Eye size={11} /> },
 } as const;
 
 type SupportedUiRole = keyof typeof ROLE_CONFIG;
 
 const STATUS_CONFIG = {
-  active: { color: '#059669', bg: '#D1FAE5', label: 'Active', icon: <CheckCircle2 size={11} /> },
-  inactive: { color: '#6B7280', bg: '#F3F4F6', label: 'Inactive', icon: <Clock size={11} /> },
+  active: { color: 'var(--severity-low)', bg: 'var(--severity-low-bg)', label: 'Active', icon: <CheckCircle2 size={11} /> },
+  inactive: { color: 'var(--outline)', bg: 'var(--surface-container-low)', label: 'Inactive', icon: <Clock size={11} /> },
 } as const;
 
 type SupportedUiStatus = keyof typeof STATUS_CONFIG;
@@ -33,6 +41,48 @@ const STATUSES = ['All Status', 'active', 'inactive'] as const;
 const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as const;
 
 const PAGE_SIZE = 8;
+
+function getToneBackgroundClass(color: string) {
+  switch (color) {
+    case 'var(--primary)':
+      return 'bg-[var(--primary-fixed)]';
+    case 'var(--severity-low)':
+      return 'bg-[var(--severity-low-bg)]';
+    case 'var(--outline)':
+      return 'bg-surface-container-high';
+    case 'var(--primary-container)':
+      return 'bg-surface-container-high';
+    case '#7C3AED':
+      return 'bg-[rgba(124,58,237,0.12)]';
+    default:
+      return 'bg-surface-container-high';
+  }
+}
+
+function getAvatarBackgroundClass(color: string) {
+  switch (color) {
+    case '#7C3AED':
+      return 'bg-[#7C3AED]';
+    case '#1D4ED8':
+      return 'bg-[#1D4ED8]';
+    case '#6B7280':
+      return 'bg-[#6B7280]';
+    default:
+      return 'bg-slate-500';
+  }
+}
+
+function getRoleBadgeClass(role: SupportedUiRole) {
+  if (role === 'Super Admin') return 'bg-[var(--primary-fixed)] text-primary';
+  if (role === 'Barangay Admin') return 'bg-[var(--primary-fixed)] text-[var(--primary-container)]';
+  return 'bg-surface-container-low text-[var(--on-surface-variant)]';
+}
+
+function getStatusBadgeClass(status: SupportedUiStatus) {
+  return status === 'active'
+    ? 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]'
+    : 'bg-surface-container-low text-[var(--outline)]';
+}
 
 type SAUserRow = {
   id: number;
@@ -128,6 +178,7 @@ interface UserModalProps {
 }
 
 function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit }: UserModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fullName: user?.name ?? '',
     phoneNumber: user?.email ?? '',
@@ -137,108 +188,102 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
     status: user?.status ?? 'active',
   });
 
-  const title = mode === 'create' ? 'Create User' : mode === 'edit' ? 'Edit User' : 'User Details';
+  const title = mode === 'create' ? t('superadmin.users.createUser') : mode === 'edit' ? t('superadmin.users.editUser') : t('superadmin.users.userDetails');
   const isReadOnlyMode = mode === 'view';
   const isCreateMode = mode === 'create';
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20,
-    }}>
-      <div style={{
-        background: 'white', borderRadius: 16, width: '100%', maxWidth: 500,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        animation: 'modal-in 0.2s ease',
-      }}>
+    <div className="fixed inset-0 z-[100] bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-5">
+      <div
+        className="bg-white rounded-2xl w-full max-w-[500px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease]"
+      >
         {/* Modal header */}
-        <div style={{
-          padding: '18px 20px', borderBottom: '1px solid #F3F4F6',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: '#1E3A8A', borderRadius: '16px 16px 0 0',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={16} color="#BFDBFE" />
+        <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
+          <div className="flex items-center gap-[10px]">
+            <div className="w-8 h-8 rounded-lg bg-[rgba(255,255,255,0.15)] flex items-center justify-center">
+              <Users size={16} className="text-[var(--primary-fixed-dim)]" />
             </div>
             <div>
-              <div style={{ color: '#E2E8F0', fontSize: 15, fontWeight: 700 }}>{title}</div>
+              <div className="text-[#E2E8F0] text-[15px] font-bold">{title}</div>
               {user && (
-                <div style={{ color: '#64748B', fontSize: 11 }}>ID: USR-{String(user.id).padStart(4, '0')}</div>
+                <div className="text-[#64748B] text-[11px]">ID: USR-{String(user.id).padStart(4, '0')}</div>
               )}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={16} color="#94A3B8" />
+          <button
+            onClick={onClose}
+            title={t('common.close')}
+            aria-label={t('common.close')}
+            className="bg-[rgba(255,255,255,0.07)] border-0 rounded-lg w-[30px] h-[30px] cursor-pointer flex items-center justify-center"
+          >
+              <X size={16} className="text-[var(--outline-variant)]" />
           </button>
         </div>
 
-        <div style={{ padding: 20 }}>
+        <div className="p-5">
           {/* Avatar */}
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, padding: '12px 14px', background: '#F9FAFB', borderRadius: 10 }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: '50%', background: user.avatarColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 700, color: 'white', fontSize: 16, flexShrink: 0,
-              }}>{user.initials}</div>
+            <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[#F9FAFB] rounded-[10px]">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
+              >{user.initials}</div>
               <div>
-                <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 700 }}>{user.name}</div>
-                <div style={{ color: '#6B7280', fontSize: 12 }}>{user.email}</div>
-                <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>Last active: {formatLastActive(user.lastActive)}</div>
+                <div className="text-[#0F172A] text-base font-bold">{user.name}</div>
+                <div className="text-[#6B7280] text-xs">{user.email}</div>
+                <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
               </div>
             </div>
           )}
 
           {error ? (
-            <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, color: '#B91C1C', fontSize: 12, padding: '8px 10px' }}>
+            <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-severity-critical text-xs px-[10px] py-2">
               {error}
             </div>
           ) : null}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="flex flex-col gap-[14px]">
             {!isReadOnlyMode ? (
               <>
                 <div>
-                  <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Full Name</label>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.fullName')}</label>
                   <input
                     value={formData.fullName}
                     onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                     disabled={mode === 'edit'}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: mode === 'edit' ? '#F9FAFB' : 'white' }}
-                    placeholder="Enter full name"
+                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
+                    placeholder={t('superadmin.users.fullNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Phone Number</label>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.phoneNumber')}</label>
                   <input
                     value={formData.phoneNumber}
                     onChange={e => setFormData(f => ({ ...f, phoneNumber: e.target.value }))}
                     disabled={mode === 'edit'}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: mode === 'edit' ? '#F9FAFB' : 'white' }}
+                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
                     placeholder="09xxxxxxxxx"
                   />
                 </div>
                 {isCreateMode ? (
                   <div>
-                    <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Initial Password</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.initialPassword')}</label>
                     <input
                       type="password"
                       value={formData.password}
                       onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
-                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                      placeholder="At least 8 characters"
+                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border bg-white"
+                      placeholder={t('superadmin.users.passwordPlaceholder')}
                     />
                   </div>
                 ) : null}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Role</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.roleLabel')}</label>
                     <select
                       value={formData.role}
                       onChange={e => setFormData(f => ({ ...f, role: e.target.value as SupportedUiRole }))}
-                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', background: 'white', cursor: 'pointer' }}
+                      title={t('superadmin.users.roleLabel')}
+                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
                     >
                       {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
                         <option key={r} value={r}>{r}</option>
@@ -246,12 +291,13 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     </select>
                   </div>
                   <div>
-                    <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Barangay</label>
+                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.barangay')}</label>
                     <select
                       value={formData.barangay}
                       onChange={e => setFormData(f => ({ ...f, barangay: e.target.value }))}
                       disabled={formData.role === 'Super Admin'}
-                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', background: 'white', cursor: 'pointer' }}
+                      title={t('superadmin.users.barangay')}
+                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
                     >
                       {['Brgy. 251', 'Brgy. 252', 'Brgy. 256'].map(b => (
                         <option key={b} value={b}>{b}</option>
@@ -260,22 +306,19 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                   </div>
                 </div>
                 <div>
-                  <label style={{ color: '#374151', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Status</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.status')}</label>
+                  <div className="flex gap-2">
                     {(['active', 'inactive'] as const).map(s => {
                       const sc = STATUS_CONFIG[s];
                       return (
                         <button
                           key={s}
                           onClick={() => setFormData(f => ({ ...f, status: s }))}
-                          style={{
-                            flex: 1, padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
-                            border: `2px solid ${formData.status === s ? sc.color : '#E5E7EB'}`,
-                            background: formData.status === s ? sc.bg : 'transparent',
-                            color: formData.status === s ? sc.color : '#6B7280',
-                            fontSize: 12, fontWeight: 600, textTransform: 'capitalize',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                          }}
+                          className={`flex-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-semibold capitalize flex items-center justify-center gap-[5px] border-2 ${
+                            formData.status === s
+                              ? `${getStatusBadgeClass(s)} ${s === 'active' ? 'border-[var(--severity-low)]' : 'border-[var(--outline)]'}`
+                              : 'border-[#E5E7EB] bg-transparent text-[var(--outline)]'
+                          }`}
                         >
                           {sc.icon} {sc.label}
                         </button>
@@ -284,23 +327,23 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                   </div>
                 </div>
                 {mode === 'edit' ? (
-                  <div style={{ color: '#6B7280', fontSize: 11 }}>
-                    Name and phone edits are disabled in this phase. Use role, barangay, and status reassignment only.
+                  <div className="text-[#6B7280] text-[11px]">
+                    {t('superadmin.users.editDisabledHint')}
                   </div>
                 ) : null}
               </>
             ) : (
               user && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="grid grid-cols-2 gap-[10px]">
                   {[
-                    { label: 'Role', value: user.role },
-                    { label: 'Barangay', value: user.barangay },
-                    { label: 'Status', value: user.status },
-                    { label: 'Last Active', value: formatLastActive(user.lastActive) },
+                    { label: t('superadmin.users.role'), value: user.role },
+                    { label: t('superadmin.users.barangay'), value: user.barangay },
+                    { label: t('superadmin.users.status'), value: user.status },
+                    { label: t('superadmin.users.lastActiveLabel'), value: formatLastActive(user.lastActive) },
                   ].map(f => (
-                    <div key={f.label} style={{ background: '#F9FAFB', borderRadius: 8, padding: '10px 12px' }}>
-                      <div style={{ color: '#9CA3AF', fontSize: 10, marginBottom: 3 }}>{f.label}</div>
-                      <div style={{ color: '#0F172A', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{f.value}</div>
+                    <div key={f.label} className="bg-[#F9FAFB] rounded-lg px-3 py-[10px]">
+                      <div className="text-[#9CA3AF] text-[10px] mb-[3px]">{f.label}</div>
+                      <div className="text-[#0F172A] text-[13px] font-semibold capitalize">{f.value}</div>
                     </div>
                   ))}
                 </div>
@@ -310,12 +353,12 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '14px 20px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        <div className="px-5 py-[14px] border-t border-[#F3F4F6] flex justify-end gap-[10px]">
           <button
             onClick={onClose}
-            style={{ padding: '9px 18px', border: '1px solid #E5E7EB', borderRadius: 8, background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' }}
+            className="px-[18px] py-[9px] border border-[#E5E7EB] rounded-lg bg-white cursor-pointer text-[13px] font-semibold text-[#374151]"
           >
-            {mode === 'view' ? 'Close' : 'Cancel'}
+            {mode === 'view' ? t('common.close') : t('common.cancel')}
           </button>
           {!isReadOnlyMode && (
             <button
@@ -330,9 +373,9 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 });
               }}
               disabled={saving}
-              style={{ padding: '9px 18px', border: 'none', borderRadius: 8, background: PRIMARY, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: 'white', opacity: saving ? 0.7 : 1 }}
+              className={`px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold ${saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
             >
-              {saving ? 'Saving...' : isCreateMode ? 'Create User' : 'Save Changes'}
+              {saving ? t('common.saving') : isCreateMode ? t('superadmin.users.createUser') : t('superadmin.users.saveChanges')}
             </button>
           )}
         </div>
@@ -343,6 +386,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
 }
 
 export default function SAUsers() {
+  const { t } = useTranslation();
   const [usersData, setUsersData] = useState<SAUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -438,9 +482,9 @@ export default function SAUsers() {
 
   if (loading && usersData.length === 0) {
     return (
-      <div style={{ padding: '20px', minHeight: '100%' }}>
+      <div className="p-5 min-h-full">
         <TextSkeleton rows={2} title={false} />
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <CardSkeleton
             count={3}
             lines={2}
@@ -448,7 +492,7 @@ export default function SAUsers() {
             gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
           />
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <TableSkeleton rows={8} columns={5} showHeader />
         </div>
       </div>
@@ -542,334 +586,302 @@ export default function SAUsers() {
   };
 
   return (
-    <div style={{ padding: '20px', background: '#F0F4FF', minHeight: '100%' }}>
+    <div className="p-5 bg-background min-h-full">
       {/* Header */}
-      <div className="sa-users-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 10 }}>
+      <div className="sa-users-header flex items-center justify-between mb-[18px] gap-[10px]">
         <div>
-          <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0 }}>User Management</h1>
-          <p style={{ color: '#6B7280', fontSize: 12, margin: 0, marginTop: 2 }}>
-            Manage accounts, roles & permissions across all barangays
+          <h1 className="text-foreground text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
+          <p className="text-muted-foreground text-xs m-0 mt-[2px]">
+            {t('superadmin.users.subtitle')}
           </p>
         </div>
-        <div className="sa-users-header-actions" style={{ display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => {
-              void loadUsers();
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'white', border: '1px solid #E5E7EB', borderRadius: 8,
-              padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#374151',
-            }}
+        <div className="sa-users-header-actions flex gap-[10px]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { void loadUsers(); }}
+            className="gap-[6px] text-xs font-semibold"
           >
-            <Download size={13} color="#6B7280" /> {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
-          <button
+            <Download size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
+          </Button>
+          <Button
+            size="sm"
             onClick={() => {
               setApiError(null);
               setModalError(null);
               setModalSaving(false);
               setModal({ user: null, mode: 'create' });
             }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: PRIMARY, border: 'none', borderRadius: 8,
-              padding: '8px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'white',
-            }}
+            className="gap-[6px] text-xs font-semibold"
           >
-            <Plus size={14} /> Add User
-          </button>
+            <Plus size={14} /> {t('superadmin.users.addUser')}
+          </Button>
         </div>
       </div>
 
       {apiError ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 12px', color: '#B91C1C', fontSize: 12 }}>
+        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-[10px] text-severity-critical text-xs">
           {apiError}
         </div>
       ) : null}
 
       {/* Stats chips */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { label: 'Total Users', value: counts.total, color: PRIMARY, icon: <Users size={16} color={PRIMARY} /> },
-          { label: 'Active', value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
-          { label: 'Inactive', value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
+          { label: t('superadmin.users.totalUsers'), value: counts.total, color: PRIMARY, icon: <Users size={16} className="text-primary" /> },
+          { label: t('superadmin.users.active'), value: counts.active, color: 'var(--severity-low)', icon: <CheckCircle2 size={16} className="text-[var(--severity-low)]" /> },
+          { label: t('superadmin.users.inactive'), value: counts.inactive, color: 'var(--outline)', icon: <Clock size={16} className="text-[var(--outline)]" /> },
         ].map(stat => (
-          <div key={stat.label} style={{
-            background: 'white', borderRadius: 10, padding: '12px 16px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
-            display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 130,
-          }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: `${stat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {stat.icon}
-            </div>
-            <div>
-              <div style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{stat.value}</div>
-              <div style={{ color: '#9CA3AF', fontSize: 11 }}>{stat.label}</div>
-            </div>
-          </div>
+          <Card key={stat.label} className="flex-1 min-w-[130px]">
+            <CardContent className="px-4 py-3 flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
+                {stat.icon}
+              </div>
+              <div>
+                <div className="text-foreground text-[20px] font-bold">{stat.value}</div>
+                <div className="text-muted-foreground text-[11px]">{stat.label}</div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Filters bar */}
-      <div className="sa-users-filter-bar" style={{
-        background: 'white', borderRadius: 12, padding: '14px 16px', marginBottom: 14,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB',
-        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-      }}>
+      <Card className="sa-users-filter-bar mb-[14px]">
+        <CardContent className="px-4 py-[14px] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={14} color="#9CA3AF" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
-          <input
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search users..."
-            style={{
-              width: '100%', padding: '8px 10px 8px 32px',
-              border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box',
-            }}
+            placeholder={t('superadmin.users.searchPlaceholder')}
+            className="pl-8 h-9 text-[13px]"
           />
         </div>
 
-        <Filter size={14} color="#9CA3AF" />
+        <Filter size={14} className="text-[var(--outline-variant)]" />
 
-        {/* Role filter */}
         <select
           value={roleFilter}
           onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer', color: '#374151' }}
+          title={t('superadmin.users.role')}
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
 
-        {/* Status filter */}
         <select
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer', color: '#374151' }}
+          title={t('superadmin.users.status')}
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SupportedUiStatus].label}</option>)}
         </select>
 
-        {/* Barangay filter */}
         <select
           value={barangayFilter}
           onChange={e => { setBarangayFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, outline: 'none', background: 'white', cursor: 'pointer', color: '#374151' }}
+          title={t('superadmin.users.barangay')}
+          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
         >
           {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
         </select>
 
-        {/* Results count */}
-        <span style={{ color: '#9CA3AF', fontSize: 12, marginLeft: 'auto' }}>
-          {filtered.length} user{filtered.length !== 1 ? 's' : ''}
+        <span className="text-muted-foreground text-xs ml-auto">
+          {filtered.length !== 1 ? t('superadmin.users.userCountPlural', { count: filtered.length }) : t('superadmin.users.userCount', { count: filtered.length })}
         </span>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
-        <div style={{
-          background: '#0F172A', borderRadius: 10, padding: '10px 16px', marginBottom: 12,
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <span style={{ color: '#E2E8F0', fontSize: 13, fontWeight: 600 }}>{selectedIds.size} selected</span>
+        <div className="bg-[#0F172A] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3 flex-wrap">
+          <span className="text-[#E2E8F0] text-[13px] font-semibold">{t('superadmin.users.selectedCount', { count: selectedIds.size })}</span>
           <button
-            onClick={() => {
-              void handleBulkStatusUpdate('active');
-            }}
-            style={{ padding: '5px 12px', background: '#0F766E', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            onClick={() => { void handleBulkStatusUpdate('active'); }}
+            className="px-3 py-[5px] bg-[#0F766E] border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
-            <UserCheck size={12} /> Activate
+            <UserCheck size={12} /> {t('superadmin.users.activate')}
           </button>
           <button
-            onClick={() => {
-              void handleBulkStatusUpdate('inactive');
-            }}
-            style={{ padding: '5px 12px', background: '#B4730A', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            onClick={() => { void handleBulkStatusUpdate('inactive'); }}
+            className="px-3 py-[5px] bg-severity-medium border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
-            <UserX size={12} /> Deactivate
+            <UserX size={12} /> {t('superadmin.users.deactivate')}
           </button>
-          <button onClick={() => setSelectedIds(new Set())} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={16} color="#64748B" />
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            title={t('common.close')}
+            aria-label={t('common.close')}
+            className="ml-auto max-sm:ml-0 bg-transparent border-0 cursor-pointer"
+          >
+            <X size={16} className="text-[var(--outline)]" />
           </button>
         </div>
       )}
 
       {/* Table */}
-      <div style={{
-        background: 'white', borderRadius: 14, overflow: 'hidden',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #E5E7EB',
-        marginBottom: 14,
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #F3F4F6' }}>
-                <th style={{ padding: '12px 14px', textAlign: 'left', width: 32 }}>
-                  <input type="checkbox" style={{ cursor: 'pointer', accentColor: PRIMARY }} />
-                </th>
-                {['User', 'Role', 'Barangay', 'Status', 'Last Active', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '12px 14px', textAlign: 'left', color: '#6B7280', fontSize: 11, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+      <Card className="mb-[14px] overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8">
+                <input
+                  type="checkbox"
+                  title="Select all users"
+                  aria-label="Select all users"
+                  className="cursor-pointer accent-[var(--primary)]"
+                />
+              </TableHead>
+              {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
+                <TableHead key={h} className="text-[11px] font-bold tracking-[0.03em] uppercase">{h}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
               {paginated.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ padding: '40px', textAlign: 'center' }}>
-                    <div style={{ color: '#9CA3AF', fontSize: 13 }}>No users found matching your filters.</div>
-                  </td>
-                </tr>
-              ) : paginated.map((user, i) => {
+                <TableRow>
+                  <TableCell colSpan={7} className="p-[40px] text-center">
+                    <div className="text-muted-foreground text-[13px]">{t('superadmin.users.noUsersFound')}</div>
+                  </TableCell>
+                </TableRow>
+              ) : paginated.map((user) => {
                 const rc = ROLE_CONFIG[user.role];
                 const sc = STATUS_CONFIG[user.status];
                 const isSelected = selectedIds.has(user.id);
                 return (
-                  <tr
+                  <TableRow
                     key={user.id}
-                    style={{
-                      borderBottom: i < paginated.length - 1 ? '1px solid #F9FAFB' : 'none',
-                      background: isSelected ? '#EFF6FF' : 'transparent',
-                    }}
+                    data-state={isSelected ? 'selected' : undefined}
                   >
-                    <td style={{ padding: '12px 14px' }}>
+                    <TableCell>
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        style={{ cursor: 'pointer', accentColor: PRIMARY }}
+                        title={`Select ${user.name}`}
+                        aria-label={`Select ${user.name}`}
+                        className="cursor-pointer accent-[var(--primary)]"
                       />
-                    </td>
+                    </TableCell>
 
                     {/* User */}
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                          width: 36, height: 36, borderRadius: '50%', background: user.avatarColor,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontWeight: 700, color: 'white', fontSize: 12, flexShrink: 0,
-                        }}>{user.initials}</div>
+                    <TableCell>
+                      <div className="flex items-center gap-[10px]">
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
+                        >{user.initials}</div>
                         <div>
-                          <div style={{ color: '#0F172A', fontWeight: 600, fontSize: 13 }}>{user.name}</div>
-                          <div style={{ color: '#9CA3AF', fontSize: 11 }}>{user.email}</div>
+                          <div className="text-foreground font-semibold text-[13px]">{user.name}</div>
+                          <div className="text-muted-foreground text-[11px]">{user.email}</div>
                         </div>
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Role */}
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        background: rc.bg, color: rc.color,
-                        fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
-                        whiteSpace: 'nowrap',
-                      }}>
+                    <TableCell>
+                      <Badge variant="secondary" className={`gap-[5px] text-[11px] font-semibold ${getRoleBadgeClass(user.role)}`}>
                         {rc.icon} {user.role}
-                      </div>
-                    </td>
+                      </Badge>
+                    </TableCell>
 
                     {/* Barangay */}
-                    <td style={{ padding: '12px 14px', color: '#374151', fontSize: 12, fontWeight: 500 }}>{user.barangay}</td>
+                    <TableCell className="text-foreground text-xs font-medium">{user.barangay}</TableCell>
 
                     {/* Status */}
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        background: sc.bg, color: sc.color,
-                        fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 20,
-                      }}>
+                    <TableCell>
+                      <Badge variant="outline" className={`gap-[5px] text-[11px] font-semibold rounded-full ${getStatusBadgeClass(user.status)}`}>
                         {sc.icon} {sc.label}
-                      </div>
-                    </td>
+                      </Badge>
+                    </TableCell>
 
                     {/* Last active */}
-                    <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <Clock size={11} color="#9CA3AF" />
+                    <TableCell className="text-muted-foreground text-xs">
+                      <div className="flex items-center gap-[5px]">
+                        <Clock size={11} className="text-muted-foreground" />
                         {formatLastActive(user.lastActive)}
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Actions */}
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <button
+                    <TableCell>
+                      <div className="flex items-center gap-[6px]">
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => {
                             setModalError(null);
                             setModalSaving(false);
                             setModal({ user, mode: 'view' });
                           }}
                           title="View"
-                          style={{ width: 28, height: 28, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          className="size-7"
                         >
-                          <Eye size={13} color="#6B7280" />
-                        </button>
-                        <button
+                          <Eye size={13} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => {
                             setModalError(null);
                             setModalSaving(false);
                             setModal({ user, mode: 'edit' });
                           }}
                           title="Edit"
-                          style={{ width: 28, height: 28, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          className="size-7"
                         >
-                          <Edit2 size={13} color="#6B7280" />
-                        </button>
+                          <Edit2 size={13} />
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+          </TableBody>
+        </Table>
 
         {/* Pagination */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 16px', borderTop: '1px solid #F3F4F6', background: '#FAFAFA',
-        }}>
-          <div style={{ color: '#9CA3AF', fontSize: 12 }}>
-            Showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} users
+        <div className="flex flex-col gap-2 px-4 py-3 border-t border-border bg-muted/30 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-muted-foreground text-xs">
+            {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
+          <div className="flex items-center gap-[6px] self-end sm:self-auto">
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              style={{
-                width: 30, height: 30, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white',
-                cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
+              title="Previous page"
+              aria-label="Previous page"
+              className="size-[30px]"
             >
-              <ChevronLeft size={14} color="#374151" />
-            </button>
+              <ChevronLeft size={14} />
+            </Button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button
+              <Button
                 key={p}
+                variant={page === p ? 'default' : 'outline'}
+                size="icon"
                 onClick={() => setPage(p)}
-                style={{
-                  width: 30, height: 30, border: `1px solid ${page === p ? PRIMARY : '#E5E7EB'}`,
-                  borderRadius: 6, background: page === p ? PRIMARY : 'white',
-                  cursor: 'pointer', fontSize: 12, fontWeight: page === p ? 700 : 400,
-                  color: page === p ? 'white' : '#374151',
-                }}
-              >{p}</button>
+                className="size-[30px] text-xs"
+              >{p}</Button>
             ))}
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              style={{
-                width: 30, height: 30, border: '1px solid #E5E7EB', borderRadius: 6, background: 'white',
-                cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.4 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
+              title="Next page"
+              aria-label="Next page"
+              className="size-[30px]"
             >
-              <ChevronRight size={14} color="#374151" />
-            </button>
+              <ChevronRight size={14} />
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Modal */}
       {modal && (

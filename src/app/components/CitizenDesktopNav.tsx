@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { Home, Plus, Map, FileText, User } from 'lucide-react';
-
-type CitizenNavKey = 'home' | 'report' | 'map' | 'myreports' | 'profile';
+import { useTranslation } from '../i18n';
+import { citizenNavDefs, type CitizenNavKey } from '../data/navigationConfig';
 
 interface CitizenDesktopNavProps {
   activeKey: CitizenNavKey;
@@ -11,14 +10,7 @@ interface CitizenDesktopNavProps {
 
 export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavProps) {
   const navigate = useNavigate();
-
-  const navItems: { key: CitizenNavKey; icon: React.ReactNode; label: string }[] = [
-    { key: 'home', icon: <Home size={22} />, label: 'Home' },
-    { key: 'report', icon: <Plus size={22} />, label: 'Report' },
-    { key: 'map', icon: <Map size={22} />, label: 'Map' },
-    { key: 'myreports', icon: <FileText size={22} />, label: 'My Reports' },
-    { key: 'profile', icon: <User size={22} />, label: 'Profile' },
-  ];
+  const { t } = useTranslation();
 
   const handleClick = (key: CitizenNavKey) => {
     const handled = onNavigate?.(key);
@@ -32,32 +24,10 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
   };
 
   return (
-    <div
-      className="citizen-only-desktop citizen-web-strip"
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: 14,
-        paddingBottom: 10,
-        borderBottom: '1px solid #E2E8F0',
-        background: '#F8FAFC',
-      }}
-    >
-      <div
-        className="citizen-web-strip-inner"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          overflowX: 'auto',
-          flexWrap: 'nowrap',
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: 12,
-          padding: 8,
-        }}
-      >
-        {navItems.map((item) => {
+    <div className="citizen-only-desktop citizen-web-strip flex justify-center pt-3.5 pb-2.5 border-b border-slate-200 bg-slate-50">
+      <div className="citizen-web-strip-inner flex items-center gap-2.5 overflow-x-auto flex-nowrap bg-white border border-slate-200 rounded-xl p-2">
+        {citizenNavDefs.map((item) => {
+          const Icon = item.icon;
           const isActionRoute = item.key === 'report' || item.key === 'myreports';
           const isActive = activeKey === item.key;
 
@@ -65,23 +35,16 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
             <button
               key={`desktop-${item.key}`}
               onClick={() => handleClick(item.key)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '9px 14px',
-                borderRadius: 9,
-                border: `1px solid ${isActive ? '#93C5FD' : '#E2E8F0'}`,
-                background: isActive ? '#F8FBFF' : 'white',
-                color: isActive ? '#1E3A8A' : isActionRoute ? '#B91C1C' : '#334155',
-                fontWeight: isActive ? 700 : 600,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'border-color 170ms ease, background 170ms ease, transform 170ms ease',
-              }}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border text-xs cursor-pointer transition-[border-color,background,transform] duration-[170ms] ${
+                isActive
+                  ? 'border-blue-300 bg-[#F8FBFF] text-primary font-bold'
+                  : isActionRoute
+                    ? 'border-slate-200 bg-white text-destructive font-semibold hover:border-blue-200'
+                    : 'border-slate-200 bg-white text-slate-700 font-semibold hover:border-blue-200'
+              }`}
             >
-              {item.icon}
-              {item.label}
+              <Icon size={22} />
+              {t(item.labelKey)}
             </button>
           );
         })}

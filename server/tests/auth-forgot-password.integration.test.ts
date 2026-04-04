@@ -47,8 +47,9 @@ before(async () => {
   originalUserFindUnique = prismaModule.prisma.user.findUnique;
   originalUserUpdate = prismaModule.prisma.user.update;
 
-  prismaModule.prisma.user.findUnique = (async (args: any) => {
-    if (args?.where?.phoneNumber === "09178880001") {
+  prismaModule.prisma.user.findUnique = (async (args: unknown) => {
+    const where = (args as { where?: { phoneNumber?: string } } | undefined)?.where;
+    if (where?.phoneNumber === "09178880001") {
       return {
         id: "forgot-user-1",
       };
@@ -56,7 +57,7 @@ before(async () => {
     return null;
   }) as typeof prismaModule.prisma.user.findUnique;
 
-  prismaModule.prisma.user.update = (async (_args: any) => {
+  prismaModule.prisma.user.update = (async (_args: unknown) => {
     passwordResetUpdates += 1;
     return {
       id: "forgot-user-1",

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Phone, MapPin, ChevronDown, ArrowRight, CheckCircle2, ArrowLeft, House } from 'lucide-react';
-import { AuthLayout, InputField, PrimaryButton, AUTH_SPIN_STYLE } from '../../components/AuthLayout';
+import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
+import { useTranslation } from '../../i18n';
 
 const BARANGAYS = [
   { value: '251', label: 'Barangay 251', sub: 'Zone 24 — Tondo I/II' },
@@ -14,6 +16,7 @@ const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [barangay, setBarangay] = useState('');
@@ -68,202 +71,150 @@ export default function Register() {
   const selectedBarangay = BARANGAYS.find(b => b.value === barangay);
 
   return (
-    <>
-      <style>{AUTH_SPIN_STYLE}{`
-        .brgy-option:hover { background: #EFF6FF !important; }
-      `}</style>
-      <AuthLayout
-        title="Create Your Account"
-        subtitle="Register to start reporting incidents and protecting your community in Tondo."
-        topAction={(
+    <AuthLayout
+      title={t('auth.register.title')}
+      subtitle={t('auth.register.subtitle')}
+      topAction={
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="gap-1.5 text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft size={14} />
+          <House size={14} />
+          {t('auth.backToHome')}
+        </Button>
+      }
+    >
+      <AuthProgressStepper
+        steps={[
+          { label: t('auth.steps.details'), status: 'active' },
+          { label: t('auth.steps.verify'), status: 'upcoming' },
+          { label: t('auth.steps.password'), status: 'upcoming' },
+        ]}
+      />
+
+      <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
+        {errors.general && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
+            {errors.general}
+          </div>
+        )}
+
+        <InputField
+          label={t('auth.register.fullName')}
+          placeholder={t('auth.register.fullNamePlaceholder')}
+          value={fullName}
+          onChange={setFullName}
+          icon={<User size={17} />}
+          error={errors.fullName}
+          hint={t('auth.register.fullNameHint')}
+          autoComplete="name"
+          autoFocus
+        />
+
+        <InputField
+          label={t('auth.register.phone')}
+          type="tel"
+          placeholder={t('auth.register.phonePlaceholder')}
+          value={phone}
+          onChange={v => setPhone(formatPhone(v))}
+          icon={<Phone size={17} />}
+          error={errors.phone}
+          hint={t('auth.register.phoneHint')}
+          inputMode="tel"
+          autoComplete="tel"
+        />
+
+        {/* Barangay selector */}
+        <div className="mb-5 relative">
+          <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            {t('auth.register.barangay')}
+          </label>
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="auth-home-link-btn"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl border bg-muted/50 px-3.5 py-3 text-left font-[inherit] transition-all ${
+              errors.barangay
+                ? 'border-destructive'
+                : dropdownOpen
+                  ? 'border-ring ring-[3px] ring-ring/50'
+                  : 'border-input hover:border-ring/50'
+            }`}
           >
-            <ArrowLeft size={14} />
-            <House size={14} />
-            Back to Homepage
-          </button>
-        )}
-      >
-        {/* Step indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28 }}>
-          {[
-            { n: 1, label: 'Details' },
-            { n: 2, label: 'Verify' },
-            { n: 3, label: 'Password' },
-          ].flatMap((step, idx) => {
-            const items = [
-              <div key={`step-${step.n}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: '50%',
-                  background: step.n === 1 ? '#1E3A8A' : '#E2E8F0',
-                  color: step.n === 1 ? 'white' : '#94A3B8',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, marginBottom: 4,
-                }}>
-                  {step.n}
+            <MapPin size={17} className={`shrink-0 ${dropdownOpen ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div className="flex-1">
+              {selectedBarangay ? (
+                <div>
+                  <div className="text-sm font-medium text-foreground">{selectedBarangay.label}</div>
+                  <div className="mt-px text-[10px] text-muted-foreground">{selectedBarangay.sub}</div>
                 </div>
-                <span style={{ fontSize: 10, color: step.n === 1 ? '#1E3A8A' : '#94A3B8', fontWeight: step.n === 1 ? 700 : 400 }}>
-                  {step.label}
-                </span>
-              </div>
-            ];
-            if (idx < 2) {
-              items.push(
-                <div key={`connector-${idx}`} style={{ flex: 1, height: 2, background: '#E2E8F0', marginBottom: 18 }} />
-              );
-            }
-            return items;
-          })}
-        </div>
+              ) : (
+                <span className="text-sm text-muted-foreground">{t('auth.register.selectBarangayPlaceholder')}</span>
+              )}
+            </div>
+            <ChevronDown
+              size={17}
+              className={`shrink-0 text-muted-foreground transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+            />
+          </button>
 
-        <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
-          {errors.general && (
-            <div style={{
-              background: '#FEF2F2',
-              border: '1px solid #FECACA',
-              borderRadius: 10,
-              padding: '10px 12px',
-              color: '#B91C1C',
-              fontSize: 12,
-              marginBottom: 14,
-            }}>
-              {errors.general}
+          {dropdownOpen && (
+            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-xl border bg-popover shadow-lg">
+              {BARANGAYS.map(b => (
+                <button
+                  key={b.value}
+                  type="button"
+                  onClick={() => { setBarangay(b.value); setDropdownOpen(false); if (errors.barangay) setErrors(p => ({ ...p, barangay: undefined })); }}
+                  className={`flex w-full cursor-pointer items-center gap-3 border-none px-4 py-3.5 text-left font-[inherit] transition-colors hover:bg-accent ${
+                    b.value === barangay ? 'bg-accent' : 'bg-transparent'
+                  } ${b.value !== '256' ? 'border-b border-solid border-border' : ''}`}
+                >
+                  <div className={`flex size-[34px] shrink-0 items-center justify-center rounded-lg ${
+                    b.value === barangay ? 'bg-primary' : 'bg-muted'
+                  }`}>
+                    <MapPin size={15} className={b.value === barangay ? 'text-primary-foreground' : 'text-primary'} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-foreground">{b.label}</div>
+                    <div className="mt-px text-[11px] text-muted-foreground">{b.sub}</div>
+                  </div>
+                  {b.value === barangay && <CheckCircle2 size={16} className="text-primary" />}
+                </button>
+              ))}
             </div>
           )}
 
-          {/* Full Name */}
-          <InputField
-            label="Full Name"
-            placeholder="e.g. Juan dela Cruz"
-            value={fullName}
-            onChange={setFullName}
-            icon={<User size={17} />}
-            error={errors.fullName}
-            hint="Enter your complete legal name."
-            autoComplete="name"
-            autoFocus
-          />
+          {errors.barangay && <div className="mt-1.5 text-[11px] font-semibold text-destructive">! {errors.barangay}</div>}
+        </div>
 
-          {/* Phone */}
-          <InputField
-            label="Phone Number"
-            type="tel"
-            placeholder="0917-xxx-xxxx"
-            value={phone}
-            onChange={v => setPhone(formatPhone(v))}
-            icon={<Phone size={17} />}
-            error={errors.phone}
-            hint="A 6-digit verification code will be sent to this number."
-            inputMode="tel"
-            autoComplete="tel"
-          />
-
-          {/* Barangay selector */}
-          <div style={{ marginBottom: 18, position: 'relative' }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-              Barangay
-            </label>
-            <button
-              type="button"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                border: `1.5px solid ${errors.barangay ? '#B91C1C' : dropdownOpen ? '#1E3A8A' : '#E2E8F0'}`,
-                borderRadius: 10, background: errors.barangay ? '#FEF2F2' : '#F8FAFF',
-                padding: '14px', cursor: 'pointer', textAlign: 'left',
-                boxShadow: dropdownOpen ? '0 0 0 3px rgba(30,58,138,0.12)' : 'none',
-                transition: 'border-color 0.15s, box-shadow 0.15s',
-                fontFamily: 'inherit',
-              }}
-            >
-              <MapPin size={17} color={dropdownOpen ? '#1E3A8A' : '#94A3B8'} style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                {selectedBarangay ? (
-                  <div>
-                    <div style={{ fontSize: 15, color: '#1E293B', fontWeight: 500 }}>{selectedBarangay.label}</div>
-                    <div style={{ fontSize: 10, color: '#64748B', marginTop: 1 }}>{selectedBarangay.sub}</div>
-                  </div>
-                ) : (
-                  <span style={{ fontSize: 15, color: '#94A3B8' }}>Select your barangay…</span>
-                )}
-              </div>
-              <ChevronDown
-                size={17}
-                color="#94A3B8"
-                style={{ flexShrink: 0, transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-              />
-            </button>
-
-            {/* Dropdown */}
-            {dropdownOpen && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                background: 'white', border: '1.5px solid #1E3A8A', borderRadius: 12,
-                boxShadow: '0 8px 24px rgba(30,58,138,0.15)', zIndex: 50, overflow: 'hidden',
-              }}>
-                {BARANGAYS.map(b => (
-                  <button
-                    key={b.value}
-                    type="button"
-                    className="brgy-option"
-                    onClick={() => { setBarangay(b.value); setDropdownOpen(false); if (errors.barangay) setErrors(p => ({ ...p, barangay: undefined })); }}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '14px 16px', background: b.value === barangay ? '#EFF6FF' : 'transparent',
-                      border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                      borderBottom: b.value !== '256' ? '1px solid #F1F5F9' : 'none',
-                      transition: 'background 0.1s',
-                    }}
-                  >
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 8,
-                      background: b.value === barangay ? '#1E3A8A' : '#EFF6FF',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
-                      <MapPin size={15} color={b.value === barangay ? 'white' : '#1E3A8A'} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, color: '#1E293B', fontWeight: 600 }}>{b.label}</div>
-                      <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{b.sub}</div>
-                    </div>
-                    {b.value === barangay && <CheckCircle2 size={16} color="#1E3A8A" />}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {errors.barangay && <div style={{ color: '#B91C1C', fontSize: 11, marginTop: 5 }}>⚠ {errors.barangay}</div>}
-          </div>
-
-          {/* Info box */}
-          <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 10, padding: '12px 14px', marginBottom: 24, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <Phone size={15} color="#0284C7" style={{ flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#0C4A6E', marginBottom: 2 }}>Verification via SMS</div>
-              <div style={{ fontSize: 11, color: '#0369A1', lineHeight: 1.55 }}>
-                A 6-digit One-Time Password (OTP) will be sent to your phone number. Standard SMS rates may apply.
-              </div>
+        {/* Info box */}
+        <div className="mb-6 flex items-start gap-2.5 rounded-xl border bg-muted/50 p-3">
+          <Phone size={15} className="mt-px shrink-0 text-primary" />
+          <div>
+            <div className="mb-0.5 text-xs font-semibold text-foreground">{t('auth.register.smsTitle')}</div>
+            <div className="text-[11px] leading-relaxed text-muted-foreground">
+              {t('auth.register.smsDesc')}
             </div>
           </div>
-
-          <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
-            {!loading && <><ArrowRight size={16} /> Send Verification Code</>}
-          </PrimaryButton>
-        </form>
-
-        {/* Back to login */}
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <button
-            onClick={() => navigate('/auth/login')}
-            style={{ background: 'none', border: 'none', color: '#64748B', fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: 'inherit' }}
-          >
-            <ArrowLeft size={14} /> Already have an account? <span style={{ color: '#1E3A8A', fontWeight: 700 }}>Sign In</span>
-          </button>
         </div>
-      </AuthLayout>
-    </>
+
+        <PrimaryButton loading={loading} type="submit" color="#1E3A8A">
+          {!loading && <><ArrowRight size={16} /> {t('auth.register.sendCode')}</>}
+        </PrimaryButton>
+      </form>
+
+      <div className="mt-5 text-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/auth/login')}
+          className="gap-1.5 text-muted-foreground"
+        >
+          <ArrowLeft size={14} /> {t('auth.register.backToLogin')} <span className="font-bold text-primary">{t('auth.register.login')}</span>
+        </Button>
+      </div>
+    </AuthLayout>
   );
 }

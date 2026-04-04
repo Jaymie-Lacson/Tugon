@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../i18n';
 import { CheckCircle2, XCircle, RefreshCw, ShieldAlert, Upload, Ban, Clock3 } from 'lucide-react';
 import {
   officialReportsApi,
@@ -7,6 +8,9 @@ import {
 } from '../services/officialReportsApi';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
+import { Card, CardContent } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 
 const REJECTION_REASONS = [
   'Blurry / unreadable image',
@@ -17,14 +21,12 @@ const REJECTION_REASONS = [
 ] as const;
 
 function isPreviewableImageUrl(value: string | null | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-
+  if (!value) return false;
   return value.startsWith('data:image/') || /^https?:\/\//i.test(value);
 }
 
 export default function Verifications() {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<ApiPendingVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,19 +35,13 @@ export default function Verifications() {
   const [reasonByUser, setReasonByUser] = useState<Record<string, string>>({});
   const [notesByUser, setNotesByUser] = useState<Record<string, string>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string>('Resident ID Preview');
+  const [previewTitle, setPreviewTitle] = useState<string>('');
 
   useEffect(() => {
-    if (!previewUrl) {
-      return;
-    }
-
+    if (!previewUrl) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setPreviewUrl(null);
-      }
+      if (event.key === 'Escape') setPreviewUrl(null);
     };
-
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [previewUrl]);
@@ -63,18 +59,11 @@ export default function Verifications() {
     }
   };
 
-  useEffect(() => {
-    void load();
-  }, []);
+  useEffect(() => { void load(); }, []);
 
   useEffect(() => {
-    if (!initialLoadPending) {
-      return;
-    }
-
-    if (!loading) {
-      setInitialLoadPending(false);
-    }
+    if (!initialLoadPending) return;
+    if (!loading) setInitialLoadPending(false);
   }, [initialLoadPending, loading]);
 
   const submitDecision = async (citizenUserId: string, decision: ApiVerificationDecision) => {
@@ -82,10 +71,9 @@ export default function Verifications() {
     const notes = notesByUser[citizenUserId] ?? '';
     const needsReason = decision === 'REJECT' || decision === 'REQUEST_REUPLOAD' || decision === 'BAN_ACCOUNT';
     if (needsReason && !reason) {
-      setError('Please select a rejection reason before submitting this action.');
+      setError(t('official.verifications.selectReasonFirst'));
       return;
     }
-
     setSubmittingId(citizenUserId);
     setError(null);
     try {
@@ -104,155 +92,107 @@ export default function Verifications() {
 
   if (initialLoadPending) {
     return (
-      <div style={{ padding: '16px 20px', minHeight: '100%' }}>
-        <CardSkeleton
-          count={3}
-          lines={3}
-          showImage={false}
-          gridClassName="grid grid-cols-1 gap-3"
-        />
+      <div className="min-h-full bg-[var(--surface)] px-4 py-4 md:px-5">
+        <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '16px 20px', minHeight: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ color: '#1E293B', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>Resident ID Verification Queue</h1>
-          <p style={{ color: '#64748B', fontSize: 12 }}>
-            Review pending resident IDs for your barangay only. Actions are logged for audit.
-          </p>
-        </div>
-        <button
-          onClick={() => void load()}
-          disabled={loading}
-          style={{
-            border: '1px solid #CBD5E1',
-            background: '#fff',
-            borderRadius: 10,
-            padding: '8px 12px',
-            fontWeight: 700,
-            fontSize: 12,
-            color: '#334155',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          <RefreshCw size={14} /> Refresh
-        </button>
-      </div>
+    <div className="min-h-full bg-background px-4 py-4 md:px-5">
+      <Card className="mb-4">
+        <CardContent className="flex flex-wrap items-start justify-between gap-3 px-4 py-3.5">
+          <div>
+            <h1 className="mb-0.5 text-xl font-bold text-foreground">{t('official.verifications.pageTitle')}</h1>
+            <p className="text-xs text-muted-foreground">
+              {t('official.verifications.pageSubtitle')}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void load()}
+            disabled={loading}
+            className="gap-1.5 text-xs font-bold"
+          >
+            <RefreshCw size={14} /> {t('common.refresh')}
+          </Button>
+        </CardContent>
+      </Card>
 
-      {error ? (
-        <div style={{ marginBottom: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 12px', color: '#B91C1C', fontSize: 12, fontWeight: 700 }}>
+      {error && (
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--error)] shadow-[0_8px_20px_rgba(186,26,26,0.14)]">
           {error}
         </div>
-      ) : null}
+      )}
 
-      <div style={{ marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '5px 10px', fontSize: 11, fontWeight: 700, color: '#1E3A8A' }}>
-        <Clock3 size={12} /> Pending: {rows.length}
-      </div>
+      <Badge variant="secondary" className="mb-3 gap-2 text-[11px] font-bold text-primary">
+        <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
+      </Badge>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12, padding: '16px', color: '#64748B', fontSize: 13 }}>
-          No pending resident ID submissions in your barangay.
+        <div className="rounded-2xl bg-card p-4 text-[13px] text-[var(--on-surface-variant)] shadow-sm">
+          {t('official.verifications.noPending')}
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="grid gap-3">
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <section key={row.citizenUserId} style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 14px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <Card key={row.citizenUserId} className="overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/50 px-4 py-3">
                   <div>
-                    <div style={{ fontWeight: 800, color: '#1E293B', fontSize: 14 }}>{row.fullName}</div>
-                    <div style={{ fontSize: 11, color: '#64748B' }}>
-                      {row.phoneNumber} • {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
+                    <div className="font-extrabold text-foreground text-sm">{row.fullName}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {row.phoneNumber} â€¢ {row.barangayName ?? row.barangayCode ?? 'Unknown barangay'}
                     </div>
                   </div>
-                  <span style={{ background: '#FEF3C7', color: '#92400E', borderRadius: 999, padding: '3px 9px', fontSize: 10, fontWeight: 800 }}>
+                  <Badge variant="secondary" className="text-[10px] font-extrabold">
                     {row.verificationStatus}
-                  </span>
+                  </Badge>
                 </div>
 
-                <div style={{ padding: '12px 14px', display: 'grid', gap: 10 }}>
+                <div className="grid gap-3 bg-card px-4 py-3.5">
                   {row.idImageUrl ? (
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <div className="flex flex-wrap gap-2.5">
                       <button
                         type="button"
                         onClick={() => {
                           if (!isPreviewableImageUrl(row.idImageUrl)) {
-                            setError('Uploaded ID preview is not directly viewable yet. Please refresh after storage URL normalization.');
+                            setError(t('official.verifications.previewNotViewable'));
                             return;
                           }
-
-                          setPreviewTitle(`Resident ID - ${row.fullName}`);
+                          setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);
                           setPreviewUrl(row.idImageUrl);
                         }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          width: 'fit-content',
-                          color: '#1E3A8A',
-                          background: '#EFF6FF',
-                          border: '1px solid #BFDBFE',
-                          borderRadius: 8,
-                          padding: '6px 10px',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
+                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-xl border-none bg-[var(--surface-container-high)] px-3 py-2 text-xs font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.16)]"
                       >
-                        <Upload size={13} /> Preview uploaded ID
+                        <Upload size={13} /> {t('official.verifications.previewUploadedId')}
                       </button>
                       <a
                         href={row.idImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          width: 'fit-content',
-                          textDecoration: 'none',
-                          color: '#334155',
-                          background: '#FFFFFF',
-                          border: '1px solid #CBD5E1',
-                          borderRadius: 8,
-                          padding: '6px 10px',
-                          fontSize: 12,
-                          fontWeight: 700,
-                        }}
+                        className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-[var(--surface-container-low)] px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline shadow-[inset_0_0_0_1px_rgba(197,197,211,0.26)]"
                       >
-                        Open in new tab
+                        {t('official.verifications.openInNewTab')}
                       </a>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 12, color: '#B45309', fontWeight: 700 }}>No ID image currently attached.</div>
+                    <div className="text-xs font-bold text-[var(--secondary)]">{t('official.verifications.noIdImage')}</div>
                   )}
 
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Reason (required for reject/re-upload/ban)</label>
+                  <div className="grid gap-2.5 rounded-xl bg-[var(--surface-container-low)] p-3">
+                    <label className="text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      style={{
-                        width: '100%',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: 8,
-                        padding: '9px 10px',
-                        fontSize: 12,
-                        color: '#1E293B',
-                        background: '#fff',
-                      }}
+                      className="w-full rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     >
-                      <option value="">Select reason</option>
+                      <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
                         <option key={reason} value={reason}>{reason}</option>
                       ))}
@@ -261,238 +201,126 @@ export default function Verifications() {
                     <textarea
                       value={notesByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      placeholder="Optional internal notes"
+                      placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      style={{
-                        width: '100%',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: 8,
-                        padding: '9px 10px',
-                        fontSize: 12,
-                        color: '#1E293B',
-                        resize: 'vertical',
-                        boxSizing: 'border-box',
-                      }}
+                      className="box-border w-full resize-y rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
                     />
                   </div>
 
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button
+                  <div className="flex flex-wrap gap-2.5">
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'APPROVE')}
-                      style={{
-                        background: '#059669',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 12,
-                        fontWeight: 800,
-                        cursor: isBusy ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
+                      size="sm"
+                      className="gap-[5px] bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold"
                     >
-                      <CheckCircle2 size={13} /> Approve
-                    </button>
-
-                    <button
+                      <CheckCircle2 size={13} /> {t('official.verifications.approve')}
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REQUEST_REUPLOAD')}
-                      style={{
-                        background: '#B4730A',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 12,
-                        fontWeight: 800,
-                        cursor: isBusy ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
+                      size="sm"
+                      className="gap-[5px] bg-severity-medium hover:bg-severity-medium/90 text-xs font-extrabold"
                     >
-                      <Upload size={13} /> Request Re-upload
-                    </button>
-
-                    <button
+                      <Upload size={13} /> {t('official.verifications.requestReupload')}
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'REJECT')}
-                      style={{
-                        background: '#B91C1C',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 12,
-                        fontWeight: 800,
-                        cursor: isBusy ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
+                      variant="destructive"
+                      size="sm"
+                      className="gap-[5px] text-xs font-extrabold"
                     >
-                      <XCircle size={13} /> Reject
-                    </button>
-
-                    <button
+                      <XCircle size={13} /> {t('official.verifications.reject')}
+                    </Button>
+                    <Button
                       disabled={isBusy}
                       onClick={() => void submitDecision(row.citizenUserId, 'BAN_ACCOUNT')}
-                      style={{
-                        background: '#7F1D1D',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 12,
-                        fontWeight: 800,
-                        cursor: isBusy ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
+                      variant="destructive"
+                      size="sm"
+                      className="gap-[5px] bg-[var(--tertiary)] hover:bg-[var(--tertiary)]/90 text-xs font-extrabold"
                     >
-                      <Ban size={13} /> Ban Account
-                    </button>
+                      <Ban size={13} /> {t('official.verifications.banAccount')}
+                    </Button>
                   </div>
 
-                  <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, padding: '8px 10px', fontSize: 11, color: '#9A3412', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <ShieldAlert size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                    Use Ban Account only for grave offenses or repeated false claims.
+                  <div className="flex items-start gap-1.5 rounded-xl bg-[var(--secondary-container)]/18 px-2.5 py-2 text-[11px] text-[var(--secondary)]">
+                    <ShieldAlert size={14} className="shrink-0 mt-px" />
+                    {t('official.verifications.banWarning')}
                   </div>
                 </div>
-              </section>
+              </Card>
             );
           })}
         </div>
       )}
 
-      {previewUrl ? (
+      {previewUrl && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label={previewTitle}
           onClick={() => setPreviewUrl(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            background: 'rgba(15, 23, 42, 0.74)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(13,28,46,0.58)] p-4 backdrop-blur-[2px]"
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(980px, 100%)',
-              maxHeight: '92vh',
-              background: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              borderRadius: 12,
-              boxShadow: '0 20px 50px rgba(15,23,42,0.35)',
-              overflow: 'hidden',
-              display: 'grid',
-              gridTemplateRows: 'auto 1fr',
-            }}
+            className="grid max-h-[92vh] w-[min(980px,100%)] grid-rows-[auto_1fr] overflow-hidden rounded-2xl bg-card shadow-[0_20px_50px_rgba(13,28,46,0.3)]"
           >
-            <div
-              style={{
-                padding: '10px 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid #E2E8F0',
-                background: '#F8FAFC',
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{previewTitle}</div>
+            <div className="flex items-center justify-between bg-[var(--surface-container-low)] px-3 py-2.5 shadow-[inset_0_-1px_0_rgba(197,197,211,0.22)]">
+              <div className="text-[13px] font-extrabold text-[var(--on-surface)]">{previewTitle}</div>
               <button
                 type="button"
                 onClick={() => setPreviewUrl(null)}
-                style={{
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  borderRadius: 8,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: '#334155',
-                  cursor: 'pointer',
-                }}
+                className="cursor-pointer rounded-lg border-none bg-card px-2.5 py-1.5 text-xs font-bold text-[var(--on-surface-variant)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.28)]"
               >
-                Close
+                {t('official.verifications.closeBtn')}
               </button>
             </div>
 
-            <div style={{ padding: 12, overflow: 'auto', background: '#0B1220' }}>
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div style={{ color: '#E2E8F0', fontSize: 11, fontWeight: 700 }}>
-                  Separated preview for review: top section is treated as Front ID, bottom section as Back ID.
+            <div className="overflow-auto bg-[var(--surface-container)] p-3">
+              <div className="grid gap-3">
+                <div className="text-[11px] font-bold text-[var(--on-surface-variant)]">
+                  {t('official.verifications.separatedPreview')}
                 </div>
 
-                <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-                  <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
-                      Front ID
+                <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
+                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
+                      {t('official.verifications.frontId')}
                     </div>
-                    <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#FFFFFF' }}>
+                    <div className="relative h-[300px] overflow-hidden bg-white">
                       <img
                         src={previewUrl}
                         alt={`${previewTitle} - Front`}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          width: '100%',
-                          height: '200%',
-                          objectFit: 'cover',
-                          objectPosition: 'top center',
-                        }}
+                        className="absolute inset-0 w-full h-[200%] object-cover object-[center_top]"
                       />
                     </div>
                   </div>
 
-                  <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
-                      Back ID
+                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
+                      {t('official.verifications.backId')}
                     </div>
-                    <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#FFFFFF' }}>
+                    <div className="relative h-[300px] overflow-hidden bg-white">
                       <img
                         src={previewUrl}
                         alt={`${previewTitle} - Back`}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          width: '100%',
-                          height: '200%',
-                          objectFit: 'cover',
-                          objectPosition: 'bottom center',
-                        }}
+                        className="absolute inset-0 w-full h-[200%] object-cover object-[center_bottom]"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div style={{ border: '1px solid #334155', borderRadius: 10, background: '#0F172A', overflow: 'hidden' }}>
-                  <div style={{ padding: '8px 10px', borderBottom: '1px solid #334155', color: '#CBD5E1', fontSize: 11, fontWeight: 800 }}>
-                    Full uploaded file
+                <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
+                  <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
+                    {t('official.verifications.fullUploadedFile')}
                   </div>
-                  <div style={{ padding: 10 }}>
+                  <div className="p-2.5">
                     <img
                       src={previewUrl}
                       alt={previewTitle}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        maxHeight: '40vh',
-                        objectFit: 'contain',
-                        borderRadius: 8,
-                        background: '#FFFFFF',
-                      }}
+                      className="block w-full max-h-[40vh] object-contain rounded-lg bg-white"
                     />
                   </div>
                 </div>
@@ -500,7 +328,8 @@ export default function Verifications() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
+

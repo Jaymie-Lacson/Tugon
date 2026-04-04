@@ -23,8 +23,9 @@ export default defineConfig({
   },
   server: {
     host: 'localhost',
-    port: 5173,
-    strictPort: true,
+    // Prefer user-specified port; default to 4173 since some Windows setups block 5173/5174.
+    port: Number(process.env.VITE_PORT ?? 4173),
+    strictPort: false,
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

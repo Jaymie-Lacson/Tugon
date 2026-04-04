@@ -237,14 +237,6 @@ function boundedCoordinate(base: number, jitter: number): number {
   return Number((base + (rand() * 2 - 1) * jitter).toFixed(6));
 }
 
-function getBarangayByCode(code: string): BarangaySeed {
-  const found = BARANGAYS.find((b) => b.code === code);
-  if (!found) {
-    throw new Error(`Missing barangay code ${code}`);
-  }
-  return found;
-}
-
 function buildStatusHistory(
   reportId: string,
   submittedAt: Date,

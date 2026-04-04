@@ -47,7 +47,7 @@ export function useCitizenReportNotifications() {
           .slice(0, 2)
           .map((report) => ({
             icon: <Clock3 size={14} />,
-            color: '#1E3A8A',
+            color: 'var(--primary)',
             bg: '#DBEAFE',
             title: 'Report In Progress',
             desc: `${report.id} is currently ${report.status.toLowerCase()}.`,
@@ -62,7 +62,7 @@ export function useCitizenReportNotifications() {
           .slice(0, 1)
           .map((report) => ({
             icon: <CheckCircle2 size={14} />,
-            color: report.status === 'Unresolvable' ? '#B91C1C' : '#059669',
+            color: report.status === 'Unresolvable' ? 'var(--severity-critical)' : '#059669',
             bg: report.status === 'Unresolvable' ? '#FEE2E2' : '#D1FAE5',
             title: report.status === 'Unresolvable' ? 'Report Unresolvable' : 'Report Resolved',
             desc: `${report.id} has reached ${report.status}.`,
@@ -97,7 +97,7 @@ export function useCitizenReportNotifications() {
 
     return [{
       icon: <Info size={14} />,
-      color: '#1E3A8A',
+      color: 'var(--primary)',
       bg: '#DBEAFE',
       title: 'No new alerts',
       desc: 'You are all caught up for now.',

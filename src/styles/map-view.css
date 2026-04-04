@@ -16,8 +16,8 @@
 .map-panel {
   width: 0;
   min-width: 0;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
+  background: #f8f9ff;
+  border-right: 1px solid rgba(197,197,211,0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -32,7 +32,7 @@
 
 .map-panel-header {
   padding: 12px 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(197,197,211,0.25);
   flex-shrink: 0;
 }
 
@@ -51,7 +51,7 @@
 
 .map-panel-title {
   font-weight: 700;
-  color: #1e293b;
+  color: #0d1c2e;
   font-size: 13px;
 }
 
@@ -78,7 +78,7 @@
 }
 
 .map-filter-button.is-active .map-filter-button-text {
-  color: #1e3a8a;
+  color: var(--primary);
 }
 
 .map-panel-close-btn {
@@ -118,13 +118,13 @@
 .map-search-input {
   width: 100%;
   padding: 7px 10px 7px 28px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(197,197,211,0.4);
   border-radius: 7px;
   font-size: 12px;
   outline: none;
-  background: #f8fafc;
+  background: #ffffff;
   box-sizing: border-box;
-  color: #1e293b;
+  color: #0d1c2e;
 }
 
 .map-filter-row {
@@ -138,11 +138,11 @@
   min-width: 0;
   width: 100%;
   padding: 6px 28px 6px 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(197,197,211,0.4);
   border-radius: 6px;
   font-size: 11px;
-  background: #f8fafc;
-  color: #64748b;
+  background: #ffffff;
+  color: #757682;
   outline: none;
   box-sizing: border-box;
   appearance: none;
@@ -154,7 +154,7 @@
 
 .map-stats-bar {
   padding: 10px 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(197,197,211,0.25);
   display: flex;
   gap: 10px;
   flex-shrink: 0;
@@ -163,7 +163,7 @@
 .map-stat-item {
   flex: 1;
   text-align: center;
-  background: #f8fafc;
+  background: #f0f4ff;
   border-radius: 8px;
   padding: 6px 4px;
 }
@@ -178,11 +178,11 @@
 }
 
 .map-stat-alert {
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-stat-primary {
-  color: #1e3a8a;
+  color: var(--primary);
 }
 
 .map-stat-label {
@@ -194,7 +194,7 @@
 
 .map-osm-wrap {
   padding: 6px 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(197,197,211,0.25);
   flex-shrink: 0;
 }
 
@@ -208,7 +208,7 @@
 }
 
 .map-osm-badge-text {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 9px;
   font-weight: 600;
 }
@@ -227,22 +227,22 @@
 }
 
 .map-list-state-error {
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-incident-card {
   padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
-  border: 1.5px solid #f1f5f9;
+  border: 1px solid rgba(197,197,211,0.35);
   background: #ffffff;
   margin-bottom: 6px;
   transition: all 0.15s;
 }
 
 .map-incident-card.is-selected {
-  border-color: #1e3a8a;
-  background: #eff6ff;
+  border-color: var(--primary);
+  background: #dce9ff;
 }
 
 .map-incident-card-row {
@@ -264,7 +264,7 @@
 
 .map-incident-type-fire {
   background: #fee2e2;
-  color: #b91c1c;
+  color: var(--severity-critical);
 }
 
 .map-incident-type-flood {
@@ -274,7 +274,7 @@
 
 .map-incident-type-accident {
   background: #fef3c7;
-  color: #b4730a;
+  color: var(--severity-medium);
 }
 
 .map-incident-type-medical {
@@ -313,7 +313,7 @@
 .map-incident-id {
   font-size: 11px;
   font-weight: 700;
-  color: #1e293b;
+  color: #0d1c2e;
 }
 
 .map-incident-barangay {
@@ -399,15 +399,15 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.97);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(248, 249, 255, 0.95);
+  -webkit-backdrop-filter: saturate(115%) blur(12px);
+  backdrop-filter: saturate(115%) blur(12px);
   padding: 10px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(197,197,211,0.35);
+  box-shadow: 0 2px 8px rgba(13,28,46,0.07);
 }
 
 .map-back-button {
@@ -429,7 +429,7 @@
 }
 
 .map-panel-toggle {
-  background: #eff6ff;
+  background: #eff4ff;
   border: none;
   border-radius: 8px;
   padding: 8px 12px;
@@ -442,7 +442,7 @@
 
 .map-panel-toggle-text {
   font-size: 12px;
-  color: #1e3a8a;
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -454,16 +454,16 @@
 .map-mode-toggle {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(197,197,211,0.4);
   border-radius: 8px;
   overflow: hidden;
-  background: #f8fafc;
+  background: #f8f9ff;
 }
 
 .map-mode-button {
   border: none;
-  background: #f8fafc;
-  color: #334155;
+  background: #f8f9ff;
+  color: #3b4252;
   font-size: 10px;
   font-weight: 700;
   padding: 6px 10px;
@@ -474,11 +474,11 @@
 }
 
 .map-mode-button + .map-mode-button {
-  border-left: 1px solid #cbd5e1;
+  border-left: 1px solid rgba(197,197,211,0.4);
 }
 
 .map-mode-button.is-active {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
 }
 
@@ -490,7 +490,7 @@
 .map-header-title-main {
   font-size: 13px;
   font-weight: 700;
-  color: #1e293b;
+  color: #0d1c2e;
 }
 
 .map-header-title-sub {
@@ -522,7 +522,7 @@
 }
 
 .map-live-coords-text {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 10px;
   font-family: monospace;
   font-weight: 600;
@@ -543,7 +543,7 @@
   max-width: min(96%, 560px);
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #b91c1c;
+  color: var(--severity-critical);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 12px;
@@ -573,7 +573,7 @@
 }
 
 .map-public-login-modal-title {
-  color: #1e3a8a;
+  color: var(--primary);
   font-size: 14px;
   font-weight: 800;
   margin-bottom: 6px;
@@ -604,9 +604,9 @@
 }
 
 .map-public-login-modal-primary {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
-  border: 1px solid #1e3a8a;
+  border: 1px solid var(--primary);
 }
 
 .map-public-login-modal-secondary {
@@ -629,7 +629,7 @@
 .map-selected-card {
   background: #ffffff;
   border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 32px rgba(13,28,46,0.2);
   overflow: hidden;
 }
 
@@ -716,7 +716,7 @@
 }
 
 .map-selected-coords-main {
-  color: #059669;
+  color: var(--severity-low);
   font-size: 10px;
   font-family: monospace;
   font-weight: 600;
@@ -760,7 +760,7 @@
 }
 
 .map-selected-action-primary {
-  background: #1e3a8a;
+  background: var(--primary);
   color: #ffffff;
   border: none;
 }

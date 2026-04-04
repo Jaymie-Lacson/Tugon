@@ -27,11 +27,31 @@ export interface OtpDispatchResponse {
   expiresInSeconds: number;
 }
 
-const API_BASE =
-  ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(
-    /\/+$/,
-    "",
-  );
+const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+
+function resolveApiBase() {
+  const configured = (viteEnv?.VITE_API_BASE_URL ?? "/api").trim();
+  if (!configured) {
+    return "/api";
+  }
+
+  const withoutTrailingSlash = configured.replace(/\/+$/, "");
+
+  // Accept common shorthand values like ":4000/api" or "localhost:4000/api".
+  const leadingPortMatch = withoutTrailingSlash.match(/^:(\d+)(\/.*)?$/);
+  if (leadingPortMatch) {
+    const path = leadingPortMatch[2] ?? "";
+    return `http://localhost:${leadingPortMatch[1]}${path}`;
+  }
+
+  if (/^localhost:\d+/i.test(withoutTrailingSlash)) {
+    return `http://${withoutTrailingSlash}`;
+  }
+
+  return withoutTrailingSlash;
+}
+
+const API_BASE = resolveApiBase();
 
 type CsrfBootstrap = {
   csrfToken: string;
@@ -39,6 +59,12 @@ type CsrfBootstrap = {
 };
 
 let cachedCsrf: CsrfBootstrap | null = null;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 function isCsrfValidationFailure(payload: unknown) {
   if (!payload || typeof payload !== "object") {
@@ -59,14 +85,41 @@ async function fetchCsrfBootstrap(forceRefresh = false): Promise<CsrfBootstrap> 
     return cachedCsrf;
   }
 
-  const response = await fetch(`${API_BASE}/auth/csrf`, {
-    method: "GET",
-    credentials: "include",
-    headers: withSecurityHeaders({}, { method: "GET" }),
-  });
+  const requestCsrf = () =>
+    fetch(`${API_BASE}/auth/csrf`, {
+      method: "GET",
+      credentials: "include",
+      headers: withSecurityHeaders({}, { method: "GET" }),
+    });
+
+  let response: Response;
+
+  try {
+    response = await requestCsrf();
+  } catch {
+    throw new Error(
+      `Unable to reach the API server (${API_BASE}). Check VITE_API_BASE_URL and make sure the backend is running.`,
+    );
+  }
+
+  // Startup race guard: Vite proxy can return transient 5xx while backend boots.
+  if (!response.ok && response.status >= 500) {
+    await sleep(500);
+    try {
+      response = await requestCsrf();
+    } catch {
+      throw new Error(
+        `Unable to reach the API server (${API_BASE}). Check VITE_API_BASE_URL and make sure the backend is running.`,
+      );
+    }
+  }
 
   if (!response.ok) {
-    throw new Error("Unable to initialize secure session. Please try again.");
+    throw new Error(
+      response.status >= 500
+        ? "Unable to initialize secure session. API returned a server error. Check backend logs and try again."
+        : "Unable to initialize secure session. Please try again.",
+    );
   }
 
   const payload = (await response.json().catch(() => ({}))) as Partial<CsrfBootstrap>;
