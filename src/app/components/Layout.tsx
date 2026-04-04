@@ -191,20 +191,20 @@ function Layout() {
           <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="no-underline">
             {sidebarCollapsed ? (
               <div className="flex items-center justify-center">
-                <span className="text-[22px] font-black tracking-[-0.04em] text-primary">T</span>
+                <img
+                  src="/favicon.svg"
+                  alt="TUGON"
+                  className="h-9 w-9 object-contain"
+                />
               </div>
             ) : (
-              <>
-                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--outline)]">
-                  Tondo Command
-                </div>
-                <div className="mt-1 text-[31px] font-black leading-none tracking-[-0.04em] text-primary">
-                  TUGON
-                </div>
-                <div className="mt-1 text-xs font-medium text-[var(--on-surface-variant)]">
-                  District Operations Console
-                </div>
-              </>
+              <div className="flex items-center">
+                <img
+                  src="/tugon-wordmark-blue.svg"
+                  alt="TUGON"
+                  className="h-9 w-auto object-contain"
+                />
+              </div>
             )}
           </NavLink>
         </div>
