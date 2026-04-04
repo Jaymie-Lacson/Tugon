@@ -724,12 +724,12 @@ export default function SABarangayMap() {
   }
 
   return (
-    <div className="p-5 bg-[#F0F4FF] min-h-full">
+    <div className="p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
       <div className="flex flex-col items-start justify-between mb-4 gap-2.5 md:flex-row md:items-center">
         <div>
-          <h1 className="text-[22px] font-bold text-[#0F172A] m-0">{t('superadmin.barangayMap.pageTitle')}</h1>
-          <p className="text-xs text-[#6B7280] m-0 mt-0.5">
+          <h1 className="text-[22px] font-bold text-[var(--on-surface)] m-0">{t('superadmin.barangayMap.pageTitle')}</h1>
+          <p className="text-xs text-[var(--on-surface-variant)] m-0 mt-0.5">
             {t('superadmin.barangayMap.subtitle')}
           </p>
         </div>
@@ -738,13 +738,13 @@ export default function SABarangayMap() {
             onClick={() => {
               void loadBarangays();
             }}
-            className="flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 bg-white text-[#374151] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
+            className="flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 bg-white text-[var(--on-surface-variant)] border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >
             <RefreshCw size={13} /> {loadingBarangays ? t('superadmin.barangayMap.syncing') : t('superadmin.barangayMap.syncBoundaries')}
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
-            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
+            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[var(--on-surface-variant)]'}`}
           >
             <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
           </button>
@@ -753,7 +753,7 @@ export default function SABarangayMap() {
               setShowHeatmapSettings((open) => !open);
               setShowHeatmap(true);
             }}
-            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[#374151]'}`}
+            className={`flex-1 md:flex-none min-h-10 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[var(--on-surface-variant)]'}`}
           >
             <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
           </button>
@@ -761,13 +761,13 @@ export default function SABarangayMap() {
       </div>
 
       {barangaysError ? (
-        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
+        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
           {barangaysError}
         </div>
       ) : null}
 
       {incidentsError ? (
-        <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
+        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
           {incidentsError}
         </div>
       ) : null}
@@ -776,16 +776,16 @@ export default function SABarangayMap() {
         {/* ── OSM Map ── */}
         <div className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,.08)] border border-[#E5E7EB] flex flex-col">
           {/* Toolbar */}
-          <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[#F3F4F6] bg-[#FAFAFA] flex-wrap">
-            <Filter size={13} color="#6B7280" />
-            <span className="text-xs font-semibold text-[#6B7280]">{t('superadmin.barangayMap.filtersLabel')}</span>
+          <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[var(--outline-variant)] bg-surface-container-low flex-wrap">
+            <Filter size={13} className="text-[var(--outline)]" />
+            <span className="text-xs font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.filtersLabel')}</span>
             {isCompactFilters ? (
               <>
                 <select
                   value={filterType}
                   onChange={(event) => setFilterType(event.target.value)}
                   title="Filter by category"
-                  className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
+                  className="border border-[var(--outline-variant)] rounded-lg bg-white text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
                 >
                   <option value="all">{t('superadmin.barangayMap.allCategories')}</option>
                   <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
@@ -798,7 +798,7 @@ export default function SABarangayMap() {
                   value={selectedBarangayCodes}
                   onChange={handleCompactBarangaySelect}
                   title={t('superadmin.barangayMap.selectBarangays')}
-                  className="border border-[#CBD5E1] rounded-lg bg-white text-[#334155] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[72px]"
+                  className="border border-[var(--outline-variant)] rounded-lg bg-white text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[72px]"
                 >
                   {BARANGAY_FILTER_CODES.map((code) => (
                     <option key={code} value={code}>Barangay {code}</option>
@@ -817,17 +817,17 @@ export default function SABarangayMap() {
                     {typeKey === 'all' ? t('superadmin.barangayMap.allCategories') : getCategoryLabelForIncidentType(typeKey as IncidentType)}
                   </button>
                 ))}
-                <span className="text-[11px] text-[#94A3B8] ml-1">{t('superadmin.barangayMap.barangayLabel')}</span>
+                <span className="text-[11px] text-[var(--outline)] ml-1">{t('superadmin.barangayMap.barangayLabel')}</span>
                 <button
                   onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
-                  className="px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[#CBD5E1] bg-white text-[#475569]"
+                  className="px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)]"
                 >
                   {t('common.all')}
                 </button>
                 {BARANGAY_FILTER_CODES.map((code) => (
                   <label
                     key={code}
-                    className={`inline-flex items-center gap-1 px-2 py-1 border border-[#CBD5E1] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[#DBEAFE] text-[#1D4ED8]' : 'bg-white text-[#475569]'}`}
+                    className={`inline-flex items-center gap-1 px-2 py-1 border border-[#CBD5E1] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[var(--primary-fixed)] text-[var(--primary-container)]' : 'bg-white text-[var(--on-surface-variant)]'}`}
                   >
                     <input
                       type="checkbox"
@@ -839,11 +839,11 @@ export default function SABarangayMap() {
                 ))}
               </>
             )}
-            <span className="ml-auto text-[11px] text-[#9CA3AF]">
+            <span className="ml-auto text-[11px] text-[var(--outline)]">
               {t('superadmin.barangayMap.incidentsShown', { count: filteredIncidents.length })}
             </span>
             {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy ? (
-              <span className="text-[11px] font-semibold text-[#1D4ED8]">
+              <span className="text-[11px] font-semibold text-primary">
                 {t('superadmin.barangayMap.editModeHint', { name: selectedBrgy.name })}
               </span>
             ) : null}
@@ -853,7 +853,7 @@ export default function SABarangayMap() {
           <div className="relative flex-1 min-h-[500px]">
             {showHeatmapSettings ? (
               <div
-                className="absolute top-3 right-3 z-[1200] w-[232px] bg-[rgba(255,255,255,0.98)] border border-[#DBEAFE] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
+                className="absolute top-3 right-3 z-[1200] w-[232px] bg-[rgba(255,255,255,0.98)] border border-[var(--primary-fixed-dim)] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
                 onMouseDown={(event) => event.stopPropagation()}
                 onMouseMove={(event) => event.stopPropagation()}
                 onTouchStart={(event) => event.stopPropagation()}
@@ -863,10 +863,10 @@ export default function SABarangayMap() {
                 onWheel={(event) => event.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#1E293B]">{t('superadmin.barangayMap.heatmapSettings')}</span>
+                  <span className="text-xs font-bold text-[var(--on-surface)]">{t('superadmin.barangayMap.heatmapSettings')}</span>
                   <button
                     onClick={handleResetHeatmapSettings}
-                    className="border border-[#CBD5E1] bg-white text-[#475569] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
+                    className="border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
                   >
                     {t('superadmin.barangayMap.reset')}
                   </button>
@@ -874,8 +874,8 @@ export default function SABarangayMap() {
 
                 <div className="mb-2.5">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] font-semibold text-[#64748B]">{t('superadmin.barangayMap.radiusScale')}</span>
-                    <span className="text-[10px] font-bold text-[#1E293B]">{heatRadiusPercent}%</span>
+                    <span className="text-[10px] font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.radiusScale')}</span>
+                    <span className="text-[10px] font-bold text-[var(--on-surface)]">{heatRadiusPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -897,8 +897,8 @@ export default function SABarangayMap() {
 
                 <div className="mb-0.5">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] font-semibold text-[#64748B]">{t('superadmin.barangayMap.opacityScale')}</span>
-                    <span className="text-[10px] font-bold text-[#1E293B]">{heatOpacityScale.toFixed(2)}x</span>
+                    <span className="text-[10px] font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.opacityScale')}</span>
+                    <span className="text-[10px] font-bold text-[var(--on-surface)]">{heatOpacityScale.toFixed(2)}x</span>
                   </div>
                   <input
                     type="range"
@@ -963,9 +963,9 @@ export default function SABarangayMap() {
                 >
                   <Tooltip sticky direction="center" opacity={1}>
                     <div className="text-xs">
-                      <div className={`font-bold ${BARANGAY_TEXT_CLASS_BY_CODE[b.code] ?? 'text-slate-700'}`}>{b.name}</div>
-                      <div className="text-[#475569]">Pop: {b.population.toLocaleString()}</div>
-                      <div className="text-[#6B7280]">Active: {b.activeIncidents} incidents</div>
+                      <div className={`font-bold ${BARANGAY_TEXT_CLASS_BY_CODE[b.code] ?? 'text-[var(--on-surface-variant)]'}`}>{b.name}</div>
+                      <div className="text-[var(--on-surface-variant)]">Pop: {b.population.toLocaleString()}</div>
+                      <div className="text-[var(--outline)]">Active: {b.activeIncidents} incidents</div>
                     </div>
                   </Tooltip>
                 </Polygon>
@@ -1032,7 +1032,7 @@ export default function SABarangayMap() {
                       <div className="font-bold text-[#1E293B] mb-0.5">{inc.label}</div>
                       <div className="text-[#475569]">{inc.barangay}</div>
                       <div
-                        className={`font-semibold capitalize mt-0.5 ${SEVERITY_TEXT_CLASS[inc.severity] ?? 'text-slate-600'}`}
+                        className={`font-semibold capitalize mt-0.5 ${SEVERITY_TEXT_CLASS[inc.severity] ?? 'text-[var(--on-surface-variant)]'}`}
                       >
                         {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
                       </div>
@@ -1048,41 +1048,41 @@ export default function SABarangayMap() {
 
             {/* Map legend overlay */}
             <div
-              className="absolute bottom-7 left-2.5 z-[1000] bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[#E5E7EB] min-w-[140px]"
+              className="absolute bottom-7 left-2.5 z-[1000] bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[var(--outline-variant)] min-w-[140px]"
             >
-              <div className="font-bold text-[#0F172A] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
+              <div className="font-bold text-[var(--on-surface)] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
                 {t('superadmin.barangayMap.mapLegend')}
               </div>
               {barangaysData.map(b => (
                 <div key={b.id} className="flex items-center gap-1.5 mb-1">
-                  <div className={`w-3 h-3 rounded-[3px] opacity-80 border-2 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-slate-500 border-slate-500'}`} />
-                  <span className="text-[10px] text-[#374151]">{b.name}</span>
+                  <div className={`w-3 h-3 rounded-[3px] opacity-80 border-2 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'}`} />
+                  <span className="text-[10px] text-[var(--on-surface-variant)]">{b.name}</span>
                 </div>
               ))}
               {showHeatmap ? (
-                <div className="border-t border-[#F3F4F6] pt-[5px] mt-[3px]">
-                  <div className="text-[9px] text-[#6B7280] mb-1 font-bold">
+                <div className="border-t border-[var(--outline-variant)] pt-[5px] mt-[3px]">
+                  <div className="text-[9px] text-[var(--on-surface-variant)] mb-1 font-bold">
                     {t('superadmin.barangayMap.heatIntensity')}
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#64748B] opacity-25" />
-                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatLow', { radius: Math.round(60 * heatRadiusScale) })}</span>
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatLow', { radius: Math.round(60 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5 mb-[3px]">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#475569] opacity-35" />
-                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatHigh', { radius: Math.round(85 * heatRadiusScale) })}</span>
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatHigh', { radius: Math.round(85 * heatRadiusScale) })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-[11px] h-[11px] rounded-full bg-[#334155] opacity-45" />
-                    <span className="text-[9px] text-[#6B7280]">{t('superadmin.barangayMap.heatCritical', { radius: Math.round(110 * heatRadiusScale) })}</span>
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatCritical', { radius: Math.round(110 * heatRadiusScale) })}</span>
                   </div>
                 </div>
               ) : (
-                <div className="border-t border-[#F3F4F6] pt-[5px] mt-[3px]">
+                <div className="border-t border-[var(--outline-variant)] pt-[5px] mt-[3px]">
                   {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
                     <div key={type} className="flex items-center gap-[5px] mb-0.5">
                       <span className="inline-flex items-center">{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
-                      <span className="text-[9px] text-[#6B7280]">{getCategoryLabelForIncidentType(type)}</span>
+                      <span className="text-[9px] text-[var(--on-surface-variant)]">{getCategoryLabelForIncidentType(type)}</span>
                     </div>
                   ))}
                 </div>
@@ -1091,7 +1091,7 @@ export default function SABarangayMap() {
 
             {/* OSM attribution note */}
             <div
-              className="absolute bottom-[5px] right-2.5 z-[1000] text-[9px] text-[#9CA3AF]"
+              className="absolute bottom-[5px] right-2.5 z-[1000] text-[9px] text-[var(--outline)]"
             >
               {t('superadmin.barangayMap.osmAttribution')}
             </div>

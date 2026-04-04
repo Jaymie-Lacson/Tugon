@@ -411,15 +411,15 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
         const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
         const active = stepNum === currentStep && !isTerminal;
         const terminalDoneClass = isFailed
-          ? 'bg-red-50 border-severity-critical'
-          : 'bg-emerald-50 border-emerald-600';
+          ? 'bg-[var(--error-container)] border-[var(--error)]'
+          : 'bg-[var(--severity-low-bg)] border-[var(--severity-low)]';
         const stepToneClassName = isTerminal && stepNum === 4
           ? terminalDoneClass
           : done
             ? 'bg-primary border-primary'
             : active
-              ? 'bg-blue-50 border-blue-500'
-              : 'bg-slate-100 border-slate-200';
+              ? 'bg-[var(--primary-fixed)] border-[var(--primary)]'
+              : 'bg-surface-container-high border-[var(--outline-variant)]';
 
         return (
           <div key={s.key} className="contents">
@@ -428,17 +428,17 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                 className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border-2 transition-all duration-300 ${stepToneClassName}`}
               >
                 {(done || (isTerminal && stepNum === 4)) ? (
-                  <span className={`text-[9px] ${isTerminal && stepNum === 4 ? (isFailed ? 'text-severity-critical' : 'text-emerald-600') : 'text-white'}`}>
+                  <span className={`text-[9px] ${isTerminal && stepNum === 4 ? (isFailed ? 'text-severity-critical' : 'text-[var(--severity-low)]') : 'text-white'}`}>
                     {isTerminal && stepNum === 4 ? (isFailed ? 'X' : 'OK') : 'OK'}
                   </span>
                 ) : active ? (
                   <div className="h-[7px] w-[7px] rounded-[2px] bg-primary" />
                 ) : (
-                  <span className="text-[8px] font-bold text-slate-300">{stepNum}</span>
+                  <span className="text-[8px] font-bold text-[var(--outline-variant)]">{stepNum}</span>
                 )}
               </div>
               <span
-                className={`text-center text-[8px] leading-[1.2] ${done || active ? 'font-bold text-primary' : 'font-normal text-slate-300'}`}
+                className={`text-center text-[8px] leading-[1.2] ${done || active ? 'font-bold text-primary' : 'font-normal text-[var(--outline)]'}`}
               >
                 {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
               </span>
@@ -446,7 +446,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
             {i < WORKFLOW_STEPS.length - 1 && (
               <div
                 className={`mb-[14px] h-0.5 flex-1 rounded-[1px] transition-colors duration-300 ${
-                  stepNum < currentStep || (isTerminal && stepNum < 4) ? 'bg-primary' : 'bg-slate-200'
+                  stepNum < currentStep || (isTerminal && stepNum < 4) ? 'bg-primary' : 'bg-surface-container-high'
                 }`}
               />
             )}
@@ -493,7 +493,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
         {/* Location */}
         <div className="flex items-start gap-[5px] mb-[7px]">
-          <MapPin size={11} color="#94A3B8" className="shrink-0 mt-[1px]" />
+          <MapPin size={11} className="shrink-0 mt-[1px] text-[var(--outline)]" />
           <span className="text-xs text-slate-600 leading-[1.45] flex-1">
             {report.location}, {report.barangay}
           </span>
@@ -507,7 +507,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         {/* Date + evidence chips */}
         <div className="flex items-center gap-2 flex-wrap mb-3">
           <div className="flex items-center gap-1">
-            <Calendar size={10} color="#94A3B8" />
+            <Calendar size={10} className="text-[var(--outline)]" />
             <span className="text-[10px] text-slate-400">{formatDate(report.submittedAt)}</span>
           </div>
           <span className="text-slate-300 text-[10px]"> - </span>
@@ -515,8 +515,8 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
           {report.hasPhotos && (
             <span className="contents">
               <span className="text-slate-300 text-[10px]"> - </span>
-              <div className="flex items-center gap-[3px] bg-slate-100 rounded-[6px] px-[6px] py-[2px]">
-                <Camera size={9} color="#64748B" />
+              <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
+                <Camera size={9} className="text-[var(--outline)]" />
                 <span className="text-[9px] text-slate-500 font-semibold">{report.photoCount}</span>
               </div>
             </span>
@@ -524,8 +524,8 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
           {report.hasAudio && (
             <span className="contents">
               <span className="text-slate-300 text-[10px]"> - </span>
-              <div className="flex items-center gap-[3px] bg-slate-100 rounded-[6px] px-[6px] py-[2px]">
-                <Mic size={9} color="#64748B" />
+              <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
+                <Mic size={9} className="text-[var(--outline)]" />
                 <span className="text-[9px] text-slate-500 font-semibold">{t('citizen.myReports.audioSection')}</span>
               </div>
             </span>
@@ -534,7 +534,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
       </div>
 
       {/* Workflow progress strip */}
-      <div className="bg-slate-50 border-t border-slate-100 px-4 pt-[10px] pb-3">
+      <div className="border-t border-[var(--outline-variant)] bg-surface-container-low px-4 pt-[10px] pb-3">
         <WorkflowProgress status={report.status} />
       </div>
 
@@ -731,15 +731,15 @@ function DetailView({
               </div>
               <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
-                  <div className="flex items-center gap-[6px] bg-blue-50 rounded-[10px] px-3 py-2 border border-[#BFDBFE]">
-                    <Camera size={14} color="var(--primary)" />
+                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-2">
+                    <Camera size={14} className="text-primary" />
                     <span className="text-xs text-primary font-bold">{report.photoCount > 1 ? t('citizen.myReports.photoCountPlural', { count: report.photoCount }) : t('citizen.myReports.photoCount', { count: report.photoCount })}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
-                  <div className="flex items-center gap-[6px] bg-[#EDE9FE] rounded-[10px] px-3 py-2 border border-[#DDD6FE]">
-                    <Mic size={14} color="#7C3AED" />
-                    <span className="text-xs text-[#7C3AED] font-bold">{t('citizen.myReports.voiceRecording')}</span>
+                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
+                    <Mic size={14} className="text-[var(--primary-container)]" />
+                    <span className="text-xs font-bold text-[var(--primary-container)]">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
                 ) : null}
               </div>

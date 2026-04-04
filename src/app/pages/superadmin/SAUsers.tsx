@@ -15,16 +15,16 @@ import type { Role } from '../../services/authApi';
 const PRIMARY = 'var(--primary)';
 
 const ROLE_CONFIG = {
-  'Super Admin': { color: 'var(--primary)', bg: '#DBEAFE', icon: <Shield size={11} /> },
-  'Barangay Admin': { color: '#1D4ED8', bg: '#DBEAFE', icon: <Users size={11} /> },
-  'Viewer': { color: '#374151', bg: '#F3F4F6', icon: <Eye size={11} /> },
+  'Super Admin': { color: 'var(--primary)', bg: 'var(--primary-fixed)', icon: <Shield size={11} /> },
+  'Barangay Admin': { color: 'var(--primary-container)', bg: 'var(--primary-fixed)', icon: <Users size={11} /> },
+  'Viewer': { color: 'var(--on-surface-variant)', bg: 'var(--surface-container-low)', icon: <Eye size={11} /> },
 } as const;
 
 type SupportedUiRole = keyof typeof ROLE_CONFIG;
 
 const STATUS_CONFIG = {
-  active: { color: '#059669', bg: '#D1FAE5', label: 'Active', icon: <CheckCircle2 size={11} /> },
-  inactive: { color: '#6B7280', bg: '#F3F4F6', label: 'Inactive', icon: <Clock size={11} /> },
+  active: { color: 'var(--severity-low)', bg: 'var(--severity-low-bg)', label: 'Active', icon: <CheckCircle2 size={11} /> },
+  inactive: { color: 'var(--outline)', bg: 'var(--surface-container-low)', label: 'Inactive', icon: <Clock size={11} /> },
 } as const;
 
 type SupportedUiStatus = keyof typeof STATUS_CONFIG;
@@ -38,17 +38,17 @@ const PAGE_SIZE = 8;
 function getToneBackgroundClass(color: string) {
   switch (color) {
     case 'var(--primary)':
-      return 'bg-[rgba(30,58,138,0.1)]';
-    case '#059669':
-      return 'bg-[rgba(5,150,105,0.1)]';
-    case '#6B7280':
-      return 'bg-[rgba(107,114,128,0.1)]';
-    case '#1D4ED8':
-      return 'bg-[rgba(29,78,216,0.1)]';
+      return 'bg-[var(--primary-fixed)]';
+    case 'var(--severity-low)':
+      return 'bg-[var(--severity-low-bg)]';
+    case 'var(--outline)':
+      return 'bg-surface-container-high';
+    case 'var(--primary-container)':
+      return 'bg-surface-container-high';
     case '#7C3AED':
       return 'bg-[rgba(124,58,237,0.12)]';
     default:
-      return 'bg-[rgba(107,114,128,0.1)]';
+      return 'bg-surface-container-high';
   }
 }
 
@@ -66,13 +66,15 @@ function getAvatarBackgroundClass(color: string) {
 }
 
 function getRoleBadgeClass(role: SupportedUiRole) {
-  if (role === 'Super Admin') return 'bg-[#DBEAFE] text-primary';
-  if (role === 'Barangay Admin') return 'bg-[#DBEAFE] text-[#1D4ED8]';
-  return 'bg-[#F3F4F6] text-[#374151]';
+  if (role === 'Super Admin') return 'bg-[var(--primary-fixed)] text-primary';
+  if (role === 'Barangay Admin') return 'bg-[var(--primary-fixed)] text-[var(--primary-container)]';
+  return 'bg-surface-container-low text-[var(--on-surface-variant)]';
 }
 
 function getStatusBadgeClass(status: SupportedUiStatus) {
-  return status === 'active' ? 'bg-[#D1FAE5] text-[#059669]' : 'bg-[#F3F4F6] text-[#6B7280]';
+  return status === 'active'
+    ? 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]'
+    : 'bg-surface-container-low text-[var(--outline)]';
 }
 
 type SAUserRow = {
@@ -192,7 +194,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
           <div className="flex items-center gap-[10px]">
             <div className="w-8 h-8 rounded-lg bg-[rgba(255,255,255,0.15)] flex items-center justify-center">
-              <Users size={16} color="#BFDBFE" />
+              <Users size={16} className="text-[var(--primary-fixed-dim)]" />
             </div>
             <div>
               <div className="text-[#E2E8F0] text-[15px] font-bold">{title}</div>
@@ -207,7 +209,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
             aria-label={t('common.close')}
             className="bg-[rgba(255,255,255,0.07)] border-0 rounded-lg w-[30px] h-[30px] cursor-pointer flex items-center justify-center"
           >
-            <X size={16} color="#94A3B8" />
+              <X size={16} className="text-[var(--outline-variant)]" />
           </button>
         </div>
 
@@ -307,8 +309,8 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                           onClick={() => setFormData(f => ({ ...f, status: s }))}
                           className={`flex-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-semibold capitalize flex items-center justify-center gap-[5px] border-2 ${
                             formData.status === s
-                              ? `${getStatusBadgeClass(s)} ${s === 'active' ? 'border-[#059669]' : 'border-[#6B7280]'}`
-                              : 'border-[#E5E7EB] bg-transparent text-[#6B7280]'
+                              ? `${getStatusBadgeClass(s)} ${s === 'active' ? 'border-[var(--severity-low)]' : 'border-[var(--outline)]'}`
+                              : 'border-[#E5E7EB] bg-transparent text-[var(--outline)]'
                           }`}
                         >
                           {sc.icon} {sc.label}
@@ -591,7 +593,7 @@ export default function SAUsers() {
             onClick={() => { void loadUsers(); }}
             className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-xs font-semibold text-[#374151]"
           >
-            <Download size={13} color="#6B7280" /> {loading ? t('common.refreshing') : t('common.refresh')}
+            <Download size={13} className="text-[var(--outline)]" /> {loading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => {
@@ -616,9 +618,9 @@ export default function SAUsers() {
       {/* Stats chips */}
       <div className="flex gap-3 mb-4 flex-wrap">
         {[
-          { label: t('superadmin.users.totalUsers'), value: counts.total, color: PRIMARY, icon: <Users size={16} color={PRIMARY} /> },
-          { label: t('superadmin.users.active'), value: counts.active, color: '#059669', icon: <CheckCircle2 size={16} color="#059669" /> },
-          { label: t('superadmin.users.inactive'), value: counts.inactive, color: '#6B7280', icon: <Clock size={16} color="#6B7280" /> },
+          { label: t('superadmin.users.totalUsers'), value: counts.total, color: PRIMARY, icon: <Users size={16} className="text-primary" /> },
+          { label: t('superadmin.users.active'), value: counts.active, color: 'var(--severity-low)', icon: <CheckCircle2 size={16} className="text-[var(--severity-low)]" /> },
+          { label: t('superadmin.users.inactive'), value: counts.inactive, color: 'var(--outline)', icon: <Clock size={16} className="text-[var(--outline)]" /> },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-[10px] px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-3 flex-1 min-w-[130px]">
             <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center ${getToneBackgroundClass(stat.color)}`}>
@@ -636,7 +638,7 @@ export default function SAUsers() {
       <div className="sa-users-filter-bar bg-white rounded-xl px-4 py-[14px] mb-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-[#E5E7EB] flex items-center gap-[10px] flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} color="#9CA3AF" className="absolute left-[11px] top-1/2 -translate-y-1/2" />
+          <Search size={14} className="absolute left-[11px] top-1/2 -translate-y-1/2 text-[var(--outline-variant)]" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -645,7 +647,7 @@ export default function SAUsers() {
           />
         </div>
 
-        <Filter size={14} color="#9CA3AF" />
+        <Filter size={14} className="text-[var(--outline-variant)]" />
 
         <select
           value={roleFilter}
@@ -701,7 +703,7 @@ export default function SAUsers() {
             aria-label={t('common.close')}
             className="ml-auto max-sm:ml-0 bg-transparent border-0 cursor-pointer"
           >
-            <X size={16} color="#64748B" />
+            <X size={16} className="text-[var(--outline)]" />
           </button>
         </div>
       )}
@@ -789,7 +791,7 @@ export default function SAUsers() {
                     {/* Last active */}
                     <td className="px-[14px] py-3 text-[#6B7280] text-xs">
                       <div className="flex items-center gap-[5px]">
-                        <Clock size={11} color="#9CA3AF" />
+                        <Clock size={11} className="text-[var(--outline-variant)]" />
                         {formatLastActive(user.lastActive)}
                       </div>
                     </td>
@@ -806,7 +808,7 @@ export default function SAUsers() {
                           title="View"
                           className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
                         >
-                          <Eye size={13} color="#6B7280" />
+                          <Eye size={13} className="text-[var(--outline)]" />
                         </button>
                         <button
                           onClick={() => {
@@ -817,7 +819,7 @@ export default function SAUsers() {
                           title="Edit"
                           className="w-7 h-7 border border-[#E5E7EB] rounded-[6px] bg-white cursor-pointer flex items-center justify-center"
                         >
-                          <Edit2 size={13} color="#6B7280" />
+                          <Edit2 size={13} className="text-[var(--outline)]" />
                         </button>
                       </div>
                     </td>

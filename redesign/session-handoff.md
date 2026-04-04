@@ -1,3 +1,112 @@
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Pending Sweep Closed + Citizen Dashboard Cleanup)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Closed the previously pending responsive QA sweep after bringing the local frontend server back online.
+- Completed another class-only parity cleanup slice in:
+  - `src/app/pages/CitizenDashboard.tsx`
+- Replaced residual hardcoded neutral `slate` treatments in stat/quick-action rows, profile dropdown, verification/map cards, selected pin details, and map container shells with token-driven classes (`on-surface`, `on-surface-variant`, `outline`, `outline-variant`, `surface-container-low`).
+- Preserved all citizen workflow behavior (tabs, routing, incident map interactions, and status badges).
+
+## Validation run (latest)
+- Responsive QA sweep at widths `375/390/428`:
+  - `/superadmin/map` -> `doc/body/main overflow = 0`
+  - `/superadmin/audit-logs` -> `doc/body/main overflow = 0`
+- `get_errors` on `CitizenDashboard.tsx` -> no errors.
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+
+## Current working tree files touched this continuation
+- `src/app/pages/CitizenDashboard.tsx`
+- `redesign/session-handoff.md`
+
+## Next steps
+1. Continue residual parity cleanup in remaining citizen/superadmin less-used dialogs/cards with literal color utilities.
+2. Run another focused `375/390/428` sweep for any newly edited route surfaces.
+3. Stage/commit the continuation and update PR notes with the closed responsive QA blocker.
+
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Superadmin Residual Tonal Cleanup)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Continued from the latest handoff section and re-read `implementation_plan.md` before editing.
+- Completed another class-only parity pass for residual hardcoded neutral/error tones in superadmin detail/tooling surfaces:
+  - `src/app/pages/superadmin/SAAuditLogs.tsx`
+  - `src/app/pages/superadmin/SABarangayMap.tsx`
+- Replaced remaining literal `gray/slate/red` utility classes and hex-based surface text/border treatments with token-driven classes (`on-surface`, `on-surface-variant`, `outline`, `outline-variant`, `error-container`, `surface-container-low`).
+- Preserved route boundaries and all behavior (`/superadmin/*`, filtering, exports, map/heatmap interactions, and geospatial semantics).
+
+## Validation run (latest)
+- `get_errors` on updated files -> no errors.
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+- `npm run build` -> passed (existing chunk-size warnings remain non-blocking).
+- Attempted responsive QA sweep at `375/390/428` for `/superadmin/map` and `/superadmin/audit-logs`, but local dev server was unavailable (`ERR_CONNECTION_REFUSED` on `127.0.0.1:5173`), so this sweep is pending rerun.
+
+## Current working tree files touched this continuation
+- `src/app/pages/superadmin/SAAuditLogs.tsx`
+- `src/app/pages/superadmin/SABarangayMap.tsx`
+- `redesign/session-handoff.md`
+
+## Next steps
+1. Re-run the pending responsive sweep (`375/390/428`) for `/superadmin/map` and `/superadmin/audit-logs` once the frontend dev server is up.
+2. Continue parity cleanup for any remaining literal tone hotspots in less-used citizen/superadmin dialogs/cards.
+3. Stage/commit this continuation and update PR notes with the pending responsive QA results.
+
+## Traps to avoid next session
+- Keep changes class-only for this redesign pass; do not alter map behavior, routing, or geofencing logic.
+- Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) while finishing parity cleanup.
+- Preserve EN/FIL parity if any new text is introduced in follow-up work.
+
+# Session Handoff - 2026-04-02 (UI/UX Redesign, Citizen/Superadmin Parity + Responsive QA Sweep)
+
+**Branch:** `redesign`
+
+## What was accomplished in this continuation
+- Read `redesign/session-handoff.md` (latest top section) and `implementation_plan.md` before making changes.
+- Continued visual parity cleanup (class-only, behavior-preserving) for remaining citizen/superadmin icon color and micro-state hotspots in:
+  - `src/app/pages/CitizenMyReports.tsx`
+  - `src/app/pages/CitizenDashboard.tsx`
+  - `src/app/pages/superadmin/SAAuditLogs.tsx`
+  - `src/app/pages/superadmin/SAUsers.tsx`
+  - `src/app/pages/superadmin/SAOverview.tsx`
+  - `src/app/pages/superadmin/SABarangayMap.tsx`
+- Replaced remaining literal blue/red/emerald icon-tone states and selected-state chips/buttons with token-driven classes (`primary-fixed`, `error-container`, `severity-low-bg`, `surface-container-*`, outline tokens).
+- Preserved role route boundaries (`/citizen`, `/app`, `/superadmin`) and did not change backend/reporting/geofencing behavior.
+- No new translation strings were introduced (EN/FIL parity unchanged).
+
+## Validation run (latest)
+- Focused responsive QA (scripted, role-session seeded in local storage) at widths `375/390/428` for:
+  - `/citizen`
+  - `/citizen/my-reports`
+  - `/superadmin`
+  - `/superadmin/map`
+  - `/superadmin/users`
+  - `/superadmin/audit-logs`
+- QA outcome for all `18` route/width combinations: page-level horizontal overflow remained `0` (no responsive regression requiring code fix in this pass).
+- `npx vitest run src/app/accessibility-layouts.test.ts` -> passed (`3/3`).
+- `npm run build` -> passed (existing chunk-size warnings remain non-blocking).
+
+## Current working tree files touched this continuation
+- `src/app/pages/CitizenMyReports.tsx`
+- `src/app/pages/CitizenDashboard.tsx`
+- `src/app/pages/superadmin/SAAuditLogs.tsx`
+- `src/app/pages/superadmin/SAUsers.tsx`
+- `src/app/pages/superadmin/SAOverview.tsx`
+- `src/app/pages/superadmin/SABarangayMap.tsx`
+- `redesign/session-handoff.md`
+
+## Next steps
+1. Continue parity cleanup for residual literal tones in less-used citizen/superadmin dialogs/cards still using hardcoded classes.
+2. Run another focused `375/390/428` sweep after the next parity batch, with authenticated API fixtures/mocks if you need to validate populated data states (not just shell/layout).
+3. Stage/commit this continuation and update PR notes with the route list + validation outputs.
+
+## Traps to avoid next session
+- Do not alter role route boundaries (`/citizen`, `/app`, `/superadmin`) during visual-only cleanup.
+- Do not change backend/reporting/geofencing semantics while adjusting UI states.
+- Keep parity changes class-only; avoid introducing inline style behavior branches.
+- Preserve EN/FIL translation parity if any new copy is introduced in later passes.
+
 # Session Handoff - 2026-04-02 (UI/UX Redesign, Responsive QA + Citizen/Superadmin Parity Cleanup)
 
 **Branch:** `redesign`

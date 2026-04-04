@@ -211,7 +211,7 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
   ).length;
   if (dismissed || criticalCount === 0) return null;
   return (
-    <div className="bg-red-700 border-b border-red-800 text-white px-4 py-2.5 flex items-center gap-2.5 text-[13px]">
+    <div className="bg-severity-critical border-b border-[rgba(186,26,26,0.35)] px-4 py-2.5 text-[13px] text-white flex items-center gap-2.5">
       <span className="bg-white/20 rounded-lg w-7 h-7 flex items-center justify-center shrink-0">
         <AlertTriangle size={15} />
       </span>
@@ -247,8 +247,8 @@ function StatCard({
       <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5 ${tone.icon}`}>
         {icon}
       </div>
-      <div className="font-extrabold text-slate-900 text-xl leading-none">{value}</div>
-      <div className="text-slate-500 text-[11px] font-medium">{label}</div>
+      <div className="font-extrabold text-[var(--on-surface)] text-xl leading-none">{value}</div>
+      <div className="text-[var(--on-surface-variant)] text-[11px] font-medium">{label}</div>
     </div>
   );
 }
@@ -283,10 +283,10 @@ function QuickActionCard({
         {icon}
       </div>
       <div>
-        <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-slate-800'}`}>
+        <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-[var(--on-surface)]'}`}>
           {label}
         </div>
-        <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-slate-500'}`}>
+        <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-[var(--on-surface-variant)]'}`}>
           {sublabel}
         </div>
       </div>
@@ -300,15 +300,15 @@ function QuickActionCard({
 function RecentIncidentRow({ report }: { report: CitizenMyReport }) {
   const cfg = incidentTypeConfig[report.type];
   return (
-    <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
+    <div className="flex items-center gap-3 py-[11px] border-b border-[var(--outline-variant)]">
       <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${incidentIconToneClass[report.type]}`}>
         {typeIcon[report.type]}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-[13px] text-slate-900 truncate">
+        <div className="font-semibold text-[13px] text-[var(--on-surface)] truncate">
           {cfg.label} - {report.id}
         </div>
-        <div className="text-[11px] text-slate-400 mt-0.5">
+        <div className="text-[11px] text-[var(--outline)] mt-0.5">
           {timeAgo(report.reportedAt)} - {report.location}
         </div>
       </div>
@@ -324,15 +324,15 @@ function MyReportRow({
 }) {
   const cfg = incidentTypeConfig[report.type];
   return (
-    <div className="flex items-center gap-3 py-[11px] border-b border-slate-100">
+    <div className="flex items-center gap-3 py-[11px] border-b border-[var(--outline-variant)]">
       <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${incidentIconToneClass[report.type]}`}>
         {typeIcon[report.type]}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-[13px] text-slate-900 truncate">
+        <div className="font-semibold text-[13px] text-[var(--on-surface)] truncate">
           {report.description}
         </div>
-        <div className="text-[11px] text-slate-400 mt-0.5">
+        <div className="text-[11px] text-[var(--outline)] mt-0.5">
           {report.id} - {timeAgo(report.reportedAt)}
         </div>
       </div>
@@ -651,7 +651,7 @@ export default function CitizenDashboard() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-slate-200 overflow-hidden z-[110]"
+                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-[var(--outline-variant)] overflow-hidden z-[110]"
                   >
                     <button
                       type="button"
@@ -660,7 +660,7 @@ export default function CitizenDashboard() {
                         setActiveTab('profile');
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-[var(--outline-variant)] text-[var(--on-surface)] text-[13px] font-semibold cursor-pointer"
                     >
                       {t('citizen.dashboard.openProfilePage')}
                     </button>
@@ -671,7 +671,7 @@ export default function CitizenDashboard() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-red-700 text-[13px] font-bold cursor-pointer"
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-bold cursor-pointer"
                     >
                       {t('common.signOut')}
                     </button>
@@ -784,9 +784,9 @@ function HomeTab({
     <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-4">
       {/* Welcome banner */}
       <section className="bg-primary rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
-        <div className="text-[13px] text-blue-200">{greetingLabel}, {firstName}.</div>
+        <div className="text-[13px] text-[var(--primary-fixed-dim)]">{greetingLabel}, {firstName}.</div>
         <div className="font-extrabold text-[28px] leading-[1.15] mt-1">{t('citizen.dashboard.citizenDashboard')}</div>
-        <div className="text-[13px] text-indigo-200 mt-0.5">
+        <div className="text-[13px] text-[var(--primary-fixed)] mt-0.5">
           {t('citizen.dashboard.trackReports')}
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
@@ -800,7 +800,7 @@ function HomeTab({
       </section>
 
       {/* Stats */}
-      <section className="bg-white rounded-2xl border border-slate-200 p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
@@ -835,7 +835,7 @@ function HomeTab({
               <div className={`font-bold text-[15px] ${verificationSummary.titleClass}`}>
                 {verificationSummary.title}
               </div>
-              <div className="text-xs text-slate-600 mt-1">
+              <div className="text-xs text-[var(--on-surface-variant)] mt-1">
                 {verificationSummary.detail}
               </div>
             </div>
@@ -851,15 +851,15 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
+      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
         <div className="flex justify-between items-center mb-2.5">
           <div>
-            <div className="font-bold text-slate-950 text-base">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-xs text-slate-500">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="font-bold text-[var(--on-surface)] text-base">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-xs text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
-            className="bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
+            className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
           >
             {t('citizen.dashboard.openFullMap')} <ArrowRight size={12} />
           </button>
@@ -867,30 +867,30 @@ function HomeTab({
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
-            <div className="bg-slate-50 border border-slate-200 rounded-[10px] px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-slate-600">{t('citizen.dashboard.mapSummary')}</div>
+            <div className="bg-surface-container-low border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
+              <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.totalPins')}</div>
+                  <div className="text-[10px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.totalPins')}</div>
                   <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500">{t('citizen.dashboard.needsAttention')}</div>
+                  <div className="text-[10px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.needsAttention')}</div>
                   <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
                 </div>
               </div>
             </div>
 
             {selectedIncident ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-[10px] px-3 py-2.5">
+              <div className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] rounded-[10px] px-3 py-2.5">
                 <div className="text-[11px] text-primary font-bold mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
                 <div className="flex items-center gap-2">
                   <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 ${incidentIconToneClass[selectedIncident.type]}`}>
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-slate-900 font-bold truncate">{selectedIncident.id}</div>
-                    <div className="text-[10px] text-slate-500 truncate">{selectedIncident.location}</div>
+                    <div className="text-xs text-[var(--on-surface)] font-bold truncate">{selectedIncident.id}</div>
+                    <div className="text-[10px] text-[var(--on-surface-variant)] truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
                 <div className="mt-1.5">
@@ -898,14 +898,14 @@ function HomeTab({
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[10px] px-3 py-2.5 text-[11px] text-slate-500">
+              <div className="bg-surface-container-low border border-dashed border-[var(--outline)] rounded-[10px] px-3 py-2.5 text-[11px] text-[var(--on-surface-variant)]">
                 {t('citizen.dashboard.tapPinHint')}
               </div>
             )}
           </aside>
 
           <div className="flex-[1_1_420px] min-w-0">
-            <div className="rounded-xl overflow-hidden border border-slate-200 bg-white block w-full min-h-[360px]">
+            <div className="rounded-xl overflow-hidden border border-[var(--outline-variant)] bg-white block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}
                 height={360}
@@ -1110,14 +1110,14 @@ function _ReportTab() {
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center gap-4">
-        <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+        <div className="w-20 h-20 rounded-full bg-[var(--severity-low-bg)] flex items-center justify-center text-[var(--severity-low)]">
           <CheckCircle2 size={40} />
         </div>
         <div className="font-extrabold text-xl text-slate-900">Report Submitted!</div>
         <div className="text-[13px] text-slate-500 leading-relaxed">
           Your incident report has been received. Our responders have been notified and will act accordingly. Track your report under "My Reports".
         </div>
-        <div className="bg-blue-50 rounded-xl px-5 py-2.5 text-primary font-bold text-sm text-center">
+        <div className="bg-[var(--primary-fixed)] rounded-xl px-5 py-2.5 text-primary font-bold text-sm text-center">
           Reference number will appear in My Reports after processing.
         </div>
         <div className="text-[11px] text-slate-400">Redirecting you back shortly...</div>
@@ -1387,7 +1387,7 @@ function MapTab({
         <button
           type="button"
           onClick={onBack}
-          className={`inline-flex items-center gap-1.5 rounded-[10px] border border-blue-200 bg-blue-50 text-[11px] font-bold text-primary cursor-pointer ${
+          className={`inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-[11px] font-bold text-primary cursor-pointer ${
             isMobileViewport ? 'px-3 py-2' : 'px-[10px] py-1.5'
           }`}
         >
@@ -1438,7 +1438,7 @@ function MapTab({
               <button
                 type="button"
                 onClick={() => setFilter('all')}
-                className="border border-blue-200 bg-blue-50 text-primary rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
+                className="border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
               >
                 {t('citizen.dashboard.showAllPins')}
               </button>
@@ -1575,8 +1575,8 @@ function ProfileTab({
         </div>
         <div>
           <div className="font-extrabold text-xl">{fullName}</div>
-          <div className="text-xs text-blue-200 mt-0.5">{phoneNumber}</div>
-          <div className="text-[11px] text-blue-300 mt-1">{barangayLabel} - Tondo, Manila</div>
+          <div className="text-xs text-[var(--primary-fixed-dim)] mt-0.5">{phoneNumber}</div>
+          <div className="text-[11px] text-[var(--primary-fixed)] mt-1">{barangayLabel} - Tondo, Manila</div>
         </div>
         <div className="bg-white/15 rounded-full py-[5px] px-3.5 text-[11px] font-bold flex items-center gap-[5px] border border-white/20">
           <Shield size={12} /> {verificationSummary.statusLabel}
@@ -1631,7 +1631,7 @@ function ProfileTab({
               idx < arr.length - 1 ? 'border-b border-slate-50' : ''
             }`}
           >
-            <div className="w-9 h-9 rounded-[10px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-[10px] bg-[var(--primary-fixed)] text-primary flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="flex-1">
@@ -1649,7 +1649,7 @@ function ProfileTab({
       {!session?.user.isPhoneVerified ? (
         <button
           onClick={() => navigate('/auth/register')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-3 rounded-xl border-[1.5px] border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
           {t('citizen.dashboard.verifyPhoneNumber')}
         </button>
@@ -1658,7 +1658,7 @@ function ProfileTab({
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <button
           onClick={() => navigate('/citizen/verification')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-blue-200 bg-blue-50 text-primary font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-3 rounded-xl border-[1.5px] border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary font-bold text-[13px] cursor-pointer mb-3"
         >
           {t('citizen.dashboard.openVerificationStatus')}
         </button>
@@ -1670,7 +1670,7 @@ function ProfileTab({
           clearAuthSession();
           navigate('/auth/login', { replace: true });
         }}
-        className="w-full py-3.5 rounded-xl border-[1.5px] border-red-100 bg-red-50 text-red-700 font-bold text-sm cursor-pointer"
+        className="w-full py-3.5 rounded-xl border-[1.5px] border-[rgba(186,26,26,0.2)] bg-[var(--error-container)] text-severity-critical font-bold text-sm cursor-pointer"
       >
         {t('common.signOut')}
       </button>

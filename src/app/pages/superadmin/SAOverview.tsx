@@ -339,7 +339,7 @@ export default function SAOverview() {
   }
 
   return (
-    <div className="p-5 bg-[#F0F4FF] min-h-full">
+    <div className="p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
       <div className="flex items-center justify-between mb-5 gap-[10px] max-md:flex-col max-md:items-start">
         <div>
@@ -364,7 +364,7 @@ export default function SAOverview() {
             }}
             className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
           >
-            <RefreshCw size={13} color="#6B7280" />
+            <RefreshCw size={13} className="text-[var(--outline)]" />
             {summaryLoading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
@@ -581,7 +581,7 @@ export default function SAOverview() {
       <div className="sa-overview-map-preview bg-white rounded-2xl overflow-hidden mb-5 shadow-[0_1px_6px_rgba(0,0,0,0.07)] border border-[#E5E7EB]">
         <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
-            <MapPin size={15} color={PRIMARY} />
+            <MapPin size={15} className="text-primary" />
             <div>
               <div className="text-[#0F172A] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
               <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
