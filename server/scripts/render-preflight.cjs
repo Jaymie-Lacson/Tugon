@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
-  Railway preflight check:
+  Render preflight check:
   - validates required environment variables
   - validates Prisma schema
   - generates Prisma client
@@ -67,4 +67,4 @@ if (process.env.RUN_DB_MIGRATIONS === "1") {
   console.log("[preflight] RUN_DB_MIGRATIONS!=1, skipping migration status check.");
 }
 
-console.log("[preflight] Railway deployment preflight passed.");
+console.log("[preflight] Render deployment preflight passed.");

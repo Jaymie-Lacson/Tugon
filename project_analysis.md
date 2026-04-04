@@ -65,7 +65,7 @@ TUGON **augments** (never replaces) the traditional barangay/police blotter.
 | Database | PostgreSQL via Supabase |
 | Auth | JWT (cookie-based) + Phone OTP verification |
 | File Uploads | Base64 in JSON (evidence stored in Supabase Storage) |
-| Deployment | Vercel (frontend) + Railway (backend) |
+| Deployment | Vercel (frontend) + Render (backend) |
 
 ### Folder Structure
 

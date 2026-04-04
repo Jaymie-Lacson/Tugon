@@ -11,7 +11,7 @@
     "test": "npm run test:integration",
     "start": "node dist/server.js",
     "start:prod": "if [ \"$RUN_DB_MIGRATIONS\" = \"1\" ]; then npm run prisma:migrate:deploy; else echo 'Skipping prisma migrations (set RUN_DB_MIGRATIONS=1 to enable)'; fi && npm run start",
-    "deploy:railway:check": "node scripts/railway-preflight.cjs",
+    "deploy:render:check": "node scripts/render-preflight.cjs",
     "db:dump:online": "node scripts/db-dump-online.cjs",
     "db:restore:local": "node scripts/db-restore-local.cjs",
     "seed": "tsx prisma/seed.ts",

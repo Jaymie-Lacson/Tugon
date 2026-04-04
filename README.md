@@ -71,25 +71,17 @@ This runs:
 
 This fails on high-severity production dependency vulnerabilities in both root and `server/`.
 
-## Security CI
-
-- Workflow: `.github/workflows/security-checks.yml`
-- Runs on push/PR to `main` and manual dispatch.
-- Includes:
-   - dependency security audit gate (`npm run audit:security`)
-   - security-focused backend integration regression tests
-
 ## Deployment Manifests
 
 - Frontend: `vercel.json`
-- Backend: `railway.json`
+- Backend: `render.yaml`
 
-## Deploy Backend on Railway
+## Deploy Backend on Render
 
-1. Create a new Railway project from this GitHub repository.
-2. Add these service variables in Railway:
+1. Create a new Render Web Service from this GitHub repository.
+2. Add these service variables in Render:
    - `NODE_ENV=production`
-   - `PORT=4000` (Railway also injects `PORT`; keep app reading `process.env.PORT`)
+   - (Do **not** set `PORT`; Render injects its own and the app reads `process.env.PORT`)
    - `CORS_ALLOWED_ORIGINS=https://<your-frontend-domain>,http://localhost:5173` (comma-separated exact origins; do not use `*` when credentials/cookies are enabled)
    - `JWT_SECRET=<long-random-secret>`
    - `JWT_EXPIRES_IN=8h`
@@ -102,7 +94,7 @@ This fails on high-severity production dependency vulnerabilities in both root a
    - `DATABASE_URL=<your-supabase-session-pooler-url>`
    - `DIRECT_URL=<your-supabase-direct-postgres-url>`
    - `RUN_DB_MIGRATIONS=0` (default; avoids failing deploys when direct DB access is unavailable)
-   - Set `RUN_DB_MIGRATIONS=1` only when you intentionally want Railway to run `prisma migrate deploy` using `DIRECT_URL`.
+   - Set `RUN_DB_MIGRATIONS=1` only when you intentionally want Render to run `prisma migrate deploy` using `DIRECT_URL`.
    - `SUPABASE_URL=<your-supabase-project-url>`
    - `SUPABASE_SERVICE_ROLE_KEY=<service-role-key-for-storage-upload>`
    - `SUPABASE_STORAGE_BUCKET=incident-evidence`
@@ -113,28 +105,28 @@ This fails on high-severity production dependency vulnerabilities in both root a
    - `DSS_AI_MODEL=meta-llama/llama-3.1-8b-instruct:free` (recommended free model)
    - `DSS_AI_HTTP_REFERER=https://<your-frontend-domain>` (recommended for OpenRouter)
    - `DSS_AI_APP_NAME=TUGON DSS` (optional app label for OpenRouter logs)
-3. Railway uses [`railway.json`](./railway.json) to:
-   - install/build server (`npm --prefix server ...`)
-   - optionally run Prisma migrations before deploy (enabled only when `RUN_DB_MIGRATIONS=1`)
+3. Render uses [`render.yaml`](./render.yaml) to:
+   - install/build server (`npm --prefix server ci --include=dev && ...`)
+   - optionally run Prisma migrations before deploy (enabled only when `RUN_DB_MIGRATIONS=1`, requires Starter plan or higher for `preDeployCommand`)
    - start API server
    - health check on `/api/health`
 4. Recommended migration workflow:
-   - keep Railway at `RUN_DB_MIGRATIONS=0` for stable deploys
+   - keep Render at `RUN_DB_MIGRATIONS=0` for stable deploys
    - run migrations manually from a machine that can reach Supabase direct host:
      - `DATABASE_URL=<DIRECT_URL> npm --prefix server run prisma:migrate:deploy`
 5. Configure frontend API routing to keep browser auth cookies first-party:
-   - `vercel.json` rewrites `/api/*` to `https://tugon-server-production.up.railway.app/api/*`
+   - `vercel.json` rewrites `/api/*` to `https://tugon-aapz.onrender.com/api/*`
    - set `VITE_API_BASE_URL=/api`
    - `VITE_ENABLE_BEARER_AUTH=0`
    - `VITE_CSRF_COOKIE_NAME=tugon.csrf`
    - `VITE_CSRF_HEADER_NAME=x-csrf-token`
    - for local development, Vite proxies `/api` to `http://localhost:4000`
 
-## Railway Deployment Health Checklist
+## Render Deployment Health Checklist
 
 Run this in `server/` before deploying backend changes:
 
-- `npm run deploy:railway:check`
+- `npm run deploy:render:check`
 
 What it checks:
 

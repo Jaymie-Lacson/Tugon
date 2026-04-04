@@ -32,7 +32,7 @@ TUGON **augments** — never replaces — the traditional barangay/police blotte
 | Database   | PostgreSQL via Supabase                                                    |
 | Auth       | JWT (cookie-based) + Phone OTP verification                                |
 | Uploads    | Base64 JSON → Supabase Storage buckets                                     |
-| Deploy     | Vercel (frontend) + Railway (backend)                                      |
+| Deploy     | Vercel (frontend) + Render (backend)                                       |
 | Tests      | Vitest (frontend) + node:test (backend integration)                        |
 
 ---
