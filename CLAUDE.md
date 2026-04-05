@@ -164,6 +164,28 @@ Run `/turnover` when context reaches 60%. Always read `session-handoff.md` at th
 
 ---
 
+## Design Context
+
+> Full detail in `.impeccable.md`. Summary below for quick reference.
+
+**Brand personality**: Trustworthy · Clear · Civic
+
+**Users**:
+- **Citizens**: Filing reports on mobile, often stressed. Need reassurance — "the barangay has this."
+- **Officials**: Power users scanning queues all day. Need control and clarity, not handholding.
+- **Super Admins**: Oversight and audit. Need authority and data integrity signals.
+
+**Aesthetic**: Clean government portal (Notion/Linear standard applied to civic infrastructure). Spacious, structured, calm. Anti-reference: government website circa 2010.
+
+**Design principles**:
+1. Reassuring authority over alarming urgency — red is for critical status only, never decoration.
+2. Purposeful density — officials need efficient scanning; citizens need one-thing-at-a-time flows.
+3. Civic clarity — every word should sound like a competent public servant, not a SaaS tooltip.
+4. Role-appropriate simplicity — same data, designed twice for two different contexts.
+5. Modern without novelty — calm confidence; no gradients for impact, no animations that aren't functional.
+
+---
+
 ## Full detail
 
 See [AGENTS.md](AGENTS.md) for rule summary, [ARCHITECTURE.md](ARCHITECTURE.md) for schema, API endpoints, folder structure, flows, and implementation phases, and [ANTIGRAVITY.md](ANTIGRAVITY.md) for the Antigravity AI agent execution protocol, architecture map, and feature implementation guide.
