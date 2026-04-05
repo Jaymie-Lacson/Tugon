@@ -30,6 +30,8 @@ const CATEGORY_DIST_CONFIG = [
   { name: 'Other', color: '#475569' },
 ];
 
+const LIVE_FEED_LIMIT = 5;
+
 const typeIcons: Record<string, React.ReactNode> = {
   flood: <Droplets size={14} />, accident: <Car size={14} />,
   medical: <Heart size={14} />, crime: <ShieldIcon size={14} />, infrastructure: <Zap size={14} />, typhoon: <Wind size={14} />,
@@ -840,13 +842,13 @@ export default function Dashboard() {
             </div>
             <RefreshCw size={13} className="text-slate-400 cursor-pointer" />
           </div>
-          <div className="flex-1 overflow-y-auto max-h-80">
+          <div className="flex-1">
             {incidentsLoading ? (
               <div className="px-3.5 py-2.5">
-                <TableSkeleton rows={6} columns={3} showHeader={false} className="border-0 shadow-none" />
+                <TableSkeleton rows={LIVE_FEED_LIMIT} columns={3} showHeader={false} className="border-0 shadow-none" />
               </div>
             ) : (
-              incidents.slice(0, 10).map((inc) => (
+              incidents.slice(0, LIVE_FEED_LIMIT).map((inc) => (
                 <div
                   key={inc.id}
                   onClick={() => navigate('/app/incidents')}
