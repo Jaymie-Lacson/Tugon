@@ -19,51 +19,49 @@ import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+// Card/Badge primitives intentionally not used — landing sections use bespoke layouts
+
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
-
-const COMMUNITY_IMAGE =
-  'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1080&q=80';
-
-const SAFETY_IMAGE =
-  'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1080&q=80';
 
 function SectionHeading({
   label,
   title,
   subtitle,
   light = false,
+  align = 'left',
 }: {
   label: string;
   title: string;
   subtitle: string;
   light?: boolean;
+  align?: 'left' | 'center';
 }) {
+  const isCenter = align === 'center';
   return (
-    <div className="mb-9 text-center">
-      <Badge
-        variant={light ? 'secondary' : 'outline'}
-        className={`mb-2.5 text-[11px] font-bold uppercase tracking-[0.06em] ${
-          light
-            ? 'border-white/[0.22] bg-white/[0.14] text-[#b6c4ff]'
-            : 'border-[rgba(197,197,211,0.5)] bg-[#dce9ff] text-primary'
+    <div className={`mb-10 ${isCenter ? 'text-center' : 'text-left'}`}>
+      <div
+        className={`mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] ${
+          light ? 'text-[#b6c4ff]' : 'text-primary/75'
         }`}
       >
+        <span
+          className={`inline-block h-px w-6 ${light ? 'bg-white/30' : 'bg-primary/30'}`}
+          aria-hidden="true"
+        />
         {label}
-      </Badge>
+      </div>
       <h2
-        className={`mb-2 text-[clamp(24px,4vw,32px)] font-extrabold tracking-[-0.02em] ${
-          light ? 'text-white' : 'text-foreground'
-        }`}
+        className={`mb-3 max-w-[640px] text-[clamp(26px,3.6vw,36px)] font-bold leading-[1.18] tracking-[-0.015em] ${
+          isCenter ? 'mx-auto' : ''
+        } ${light ? 'text-white' : 'text-foreground'}`}
       >
         {title}
       </h2>
       <p
-        className={`mx-auto max-w-[620px] text-sm leading-relaxed ${
-          light ? 'text-[#b6c4ff]' : 'text-muted-foreground'
+        className={`max-w-[600px] text-[15px] leading-[1.6] ${isCenter ? 'mx-auto' : ''} ${
+          light ? 'text-white/70' : 'text-muted-foreground'
         }`}
       >
         {subtitle}
@@ -384,10 +382,15 @@ function Hero() {
       >
         <div className="absolute inset-0">
           <img src={HERO_IMAGE} alt="City aerial" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-[#00236f]/[0.92]" />
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 opacity-[0.35]"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,35,111,0.94) 0%, rgba(30,58,138,0.88) 50%, rgba(11,28,48,0.93) 100%)',
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+              backgroundSize: '56px 56px',
+              maskImage: 'radial-gradient(ellipse at 30% 40%, black 40%, transparent 80%)',
+              WebkitMaskImage: 'radial-gradient(ellipse at 30% 40%, black 40%, transparent 80%)',
             }}
           />
         </div>
@@ -398,73 +401,68 @@ function Hero() {
           style={{ transitionDelay: '90ms' }}
         >
           <div>
-            <Badge
-              variant="destructive"
-              className="mb-6 gap-2 border-red-700/40 bg-red-700/20 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-red-300"
-            >
-              <Radio size={12} className="text-red-400" />
+            <div className="mb-7 inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
+              <span className="relative flex size-2 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/60" aria-hidden="true" />
+                <span className="relative inline-flex size-2 rounded-full bg-red-400" aria-hidden="true" />
+              </span>
+              <Radio size={12} className="text-white/55" aria-hidden="true" />
               {t('landing.hero.liveIn')}
-            </Badge>
+            </div>
 
-            <h1 className="mb-3.5 max-w-[760px] text-[clamp(30px,6vw,56px)] font-black leading-[1.1] text-white">
-              EMPOWERING <span className="text-blue-400">TONDO</span> WITH INSTANT{' '}
-              <span className="inline-flex items-center">
+            <h1 className="mb-5 max-w-[780px] text-[clamp(34px,6vw,60px)] font-bold leading-[1.04] tracking-[-0.025em] text-white">
+              Empowering <span className="text-blue-300">Tondo</span> with instant{' '}
+              <span className="inline-flex items-baseline">
                 <img
                   src="/tugon-wordmark-red.svg"
                   alt="TUGON"
-                  className="inline-block h-[1.2em] w-auto max-w-[min(35vw,248px)] translate-y-[0.16em] md:max-w-[min(35vw,248px)]"
+                  className="inline-block h-[0.92em] w-auto max-w-[min(35vw,248px)] translate-y-[0.1em] md:max-w-[min(35vw,248px)]"
                 />
               </span>
             </h1>
 
-            <p className="mb-6 max-w-[540px] text-[clamp(14px,2vw,18px)] leading-[1.55] text-white/[0.88]">
+            <p className="mb-9 max-w-[560px] text-[clamp(15px,1.6vw,18px)] leading-[1.6] text-white/75">
               {t('landing.hero.subtagline')}
             </p>
 
-            <div className="mb-6 flex flex-wrap gap-3">
+            <div className="mb-10 flex flex-wrap items-center gap-3">
               <Button
                 size="lg"
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={`gap-2 rounded-lg bg-gradient-to-br from-[#5d0004] to-destructive text-sm font-bold ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#00236f] shadow-none hover:bg-white/95 ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
-                <AlertTriangle size={16} /> {t('landing.hero.reportIncident')}
+                {t('landing.hero.reportIncident')} <ArrowRight size={16} />
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="lg"
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={`gap-2 rounded-lg border-white/35 bg-white/[0.12] text-sm font-bold text-white hover:bg-white/20 ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`gap-2 rounded-md px-4 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
-                <CheckCircle2 size={16} /> {t('landing.hero.trackStatus')}
+                {t('landing.hero.trackStatus')}
               </Button>
             </div>
 
             {/* Hero stats strip */}
-            <div className="mb-5 mt-1 flex flex-wrap">
+            <div className="flex flex-wrap items-end gap-x-10 gap-y-4 border-t border-white/10 pt-6">
               {([
                 { val: '3', labelKey: 'landing.hero.statBarangays' as const },
                 { val: '5', labelKey: 'landing.hero.statCategories' as const },
                 { val: '24/7', labelKey: 'landing.hero.statReporting' as const },
-              ]).map((stat, i, arr) => (
-                <React.Fragment key={stat.val}>
-                  <div className="flex items-center gap-2.5 pr-5">
-                    <span className="text-[22px] font-black tracking-[-0.02em] text-white">{stat.val}</span>
-                    <span className="whitespace-pre-line text-[11px] leading-[1.35] text-white/55">{t(stat.labelKey)}</span>
-                  </div>
-                  {i < arr.length - 1 && (
-                    <div className="mr-5 w-px self-stretch bg-white/[0.15]" />
-                  )}
-                </React.Fragment>
+              ]).map((stat) => (
+                <div key={stat.val} className="flex flex-col gap-1">
+                  <span className="text-[28px] font-bold leading-none tracking-[-0.02em] text-white">{stat.val}</span>
+                  <span className="whitespace-pre-line text-[11px] font-medium uppercase tracking-[0.1em] text-white/50">{t(stat.labelKey)}</span>
+                </div>
               ))}
+              <button
+                type="button"
+                onClick={() => navigateWithTransition('community', '/community-map', true)}
+                className={`ml-auto hidden items-center gap-1.5 text-[13px] font-medium text-white/70 transition-colors hover:text-white md:inline-flex ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
+              >
+                {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
+              </button>
             </div>
-
-            <Button
-              variant="ghost"
-              onClick={() => navigateWithTransition('community', '/community-map', true)}
-              className={`gap-1.5 px-0 text-[13px] font-bold text-amber-300 hover:bg-transparent hover:text-amber-200 ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
-            >
-              <MapIcon size={14} /> {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
-            </Button>
           </div>
         </div>
 
@@ -475,9 +473,7 @@ function Hero() {
           className="landing-scroll-cue"
           style={{ transitionDelay: '220ms' }}
         >
-          <span className="landing-scroll-cue-icon" aria-hidden="true">
-            <ChevronDown size={16} />
-          </span>
+          <ChevronDown size={14} aria-hidden="true" />
         </button>
 
       </section>
@@ -528,43 +524,41 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal className="bg-background px-6 py-24">
-        <div className="mx-auto max-w-5xl">
-          <SectionHeading
-            label={t('landing.quickActions.label')}
-            title={t('landing.quickActions.title')}
-            subtitle={t('landing.quickActions.subtitle')}
-          />
+      <section id="quick-actions" data-reveal className="bg-background px-6 py-20 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <SectionHeading
+              label={t('landing.quickActions.label')}
+              title={t('landing.quickActions.title')}
+              subtitle={t('landing.quickActions.subtitle')}
+            />
+          </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-px overflow-hidden rounded-lg bg-border md:grid-cols-3">
             {actions.map((item, index) => (
-              <Card
+              <button
                 key={item.title}
                 data-reveal
-                data-reveal-slide="x"
-                data-reveal-dir="left"
-                className="group cursor-pointer border-l-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-                style={{ borderLeftColor: item.color, transitionDelay: `${index * 90}ms` }}
+                className="group flex flex-col items-start gap-4 bg-card p-7 text-left transition-colors duration-200 hover:bg-muted/60 focus-visible:outline-none"
+                style={{ transitionDelay: `${index * 80}ms` }}
                 onClick={item.action}
               >
-                <CardContent className="flex flex-col gap-3 p-6">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex size-10 shrink-0 items-center justify-center rounded-lg"
-                      style={{ background: item.bg }}
-                    >
-                      <item.icon size={18} style={{ color: item.color }} />
-                    </div>
-                    <CardTitle className="text-base font-extrabold">{item.title}</CardTitle>
-                  </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
-                  <div className="mt-auto flex justify-end">
-                    <Button variant="outline" size="sm" className="gap-1 text-xs font-extrabold">
-                      {t('landing.quickActions.open')} <ArrowRight size={12} />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                <div
+                  className="flex size-11 items-center justify-center rounded-md"
+                  style={{ background: item.bg }}
+                >
+                  <item.icon size={20} style={{ color: item.color }} strokeWidth={2} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="mb-1.5 text-[17px] font-semibold tracking-[-0.01em] text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="text-[14px] leading-[1.55] text-muted-foreground">{item.desc}</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition-transform duration-200 group-hover:translate-x-0.5">
+                  {t('landing.quickActions.open')} <ArrowRight size={14} />
+                </span>
+              </button>
             ))}
           </div>
         </div>
@@ -584,106 +578,69 @@ function MapTeaser() {
   };
 
   const pins = [
-    { x: '20%', y: '28%', color: '#B91C1C', label: t('incident.type.crime'), delay: '0s' },
-    { x: '58%', y: '50%', color: '#B4730A', label: t('incident.type.noise'), delay: '0.4s' },
-    { x: '35%', y: '68%', color: '#0F766E', label: t('incident.type.pollution'), delay: '0.8s' },
-    { x: '72%', y: '30%', color: '#1E3A8A', label: t('incident.type.road_hazard'), delay: '1.2s' },
+    { x: '22%', y: '32%', color: '#B91C1C', label: t('incident.type.crime') },
+    { x: '58%', y: '48%', color: '#865300', label: t('incident.type.noise') },
+    { x: '38%', y: '68%', color: '#0F766E', label: t('incident.type.pollution') },
+    { x: '72%', y: '28%', color: '#1E3A8A', label: t('incident.type.road_hazard') },
   ];
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section
-        data-reveal
-        className="relative overflow-hidden bg-[#0F172A] px-6 py-24"
-      >
-        {/* Background grid */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-
-        <div className="relative z-[1] mx-auto max-w-5xl">
-          <div className="flex flex-wrap items-center gap-12">
-
+      <section data-reveal className="relative overflow-hidden bg-primary px-6 py-20 md:py-28">
+        <div className="relative z-[1] mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr]">
             {/* Left: text */}
-            <div className="flex-[1_1_300px]">
-              <Badge
-                variant="outline"
-                className="mb-4 border-blue-500/30 bg-blue-500/[0.15] text-[11px] font-bold uppercase tracking-[0.06em] text-blue-300"
-              >
-                {t('landing.map.label')}
-              </Badge>
-              <h2 className="mb-3 text-[clamp(22px,4vw,30px)] font-extrabold leading-[1.25] text-white">
-                {t('landing.map.title').split('\n').map((line, i) => (
-                  <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
-                ))}
-              </h2>
-              <p className="mb-6 max-w-[380px] text-sm leading-[1.65] text-white/60">
-                {t('landing.map.desc')}
-              </p>
+            <div>
+              <SectionHeading
+                label={t('landing.map.label')}
+                title={t('landing.map.title').replace('\n', ' ')}
+                subtitle={t('landing.map.desc')}
+                light
+              />
               <Button
                 size="lg"
                 onClick={go}
-                className="gap-2 rounded-lg text-sm font-bold"
+                className="mt-2 gap-2 rounded-md bg-white px-5 text-sm font-semibold text-primary shadow-none hover:bg-white/95"
               >
-                <MapIcon size={16} /> {t('landing.map.exploreBtn')} <ArrowRight size={14} />
+                {t('landing.map.exploreBtn')} <ArrowRight size={14} />
               </Button>
             </div>
 
-            {/* Right: map preview visual */}
-            <div className="relative flex-[1_1_280px]">
-              <div
-                className="relative min-h-[230px] overflow-hidden rounded-xl border border-blue-500/[0.18] bg-[rgba(30,58,138,0.25)] p-7"
-              >
-                {/* Inner grid */}
+            {/* Right: map preview — muted, no glow */}
+            <div className="relative">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-lg border border-white/10 bg-[#0a1a3e]">
                 <div
-                  className="pointer-events-none absolute inset-0 rounded-xl"
+                  className="pointer-events-none absolute inset-0"
                   style={{
-                    backgroundImage: 'linear-gradient(rgba(59,130,246,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.09) 1px, transparent 1px)',
-                    backgroundSize: '28px 28px',
+                    backgroundImage:
+                      'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                    backgroundSize: '32px 32px',
                   }}
                 />
 
-                {/* Incident pins */}
+                {/* Pins — flat, no glow */}
                 {pins.map((pin) => (
                   <div
                     key={pin.label}
-                    className="absolute flex flex-col items-center gap-[3px]"
-                    style={{
-                      left: pin.x, top: pin.y,
-                      transform: 'translate(-50%, -50%)',
-                      animation: `mapPinPulse 2.8s ease-in-out ${pin.delay} infinite alternate`,
-                    }}
+                    className="absolute flex items-center gap-2"
+                    style={{ left: pin.x, top: pin.y, transform: 'translate(-50%, -50%)' }}
                   >
-                    <div
-                      className="size-[13px] rounded-full border-2 border-white/50"
-                      style={{
-                        background: pin.color,
-                        boxShadow: `0 0 10px ${pin.color}90`,
-                      }}
-                    />
                     <span
-                      className="whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold text-white/85"
-                      style={{ background: 'rgba(15,23,42,0.82)' }}
-                    >
+                      className="block size-2.5 rounded-full ring-2 ring-[#0a1a3e]"
+                      style={{ background: pin.color }}
+                    />
+                    <span className="whitespace-nowrap rounded bg-white/10 px-1.5 py-[2px] text-[10px] font-medium text-white/85 backdrop-blur-sm">
                       {pin.label}
                     </span>
                   </div>
                 ))}
 
-                {/* Footer label */}
-                <div
-                  className="absolute bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-blue-500/35 bg-[rgba(15,23,42,0.88)] px-3.5 py-[5px] text-[11px] font-bold text-blue-300"
-                >
-                  {t('landing.map.footer')}
+                <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white/75 backdrop-blur-sm">
+                  <MapIcon size={11} /> {t('landing.map.footer')}
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -722,69 +679,58 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" data-reveal className="bg-muted px-6 py-24">
-      <div className="mx-auto max-w-5xl">
-        <SectionHeading
-          label={t('landing.howItWorks.label')}
-          title={t('landing.howItWorks.threeSteps')}
-          subtitle={t('landing.howItWorks.tagline')}
-        />
+    <section id="how" data-reveal className="bg-muted/50 px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-14 md:grid-cols-[1fr_1.3fr]">
+          <div className="md:sticky md:top-28 md:self-start">
+            <SectionHeading
+              label={t('landing.howItWorks.label')}
+              title={t('landing.howItWorks.threeSteps')}
+              subtitle={t('landing.howItWorks.tagline')}
+            />
+          </div>
 
-        {/* Community image banner */}
-        <div className="mb-8 overflow-hidden rounded-xl">
-          <img
-            src={COMMUNITY_IMAGE}
-            alt="Community collaboration"
-            className="h-48 w-full object-cover"
-          />
-        </div>
-
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-          {steps.map((step, index) => (
-            <Card
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="right"
-              key={step.title}
-              className="gap-0 border shadow-sm"
-              style={{ transitionDelay: `${index * 90}ms` }}
-            >
-              <CardHeader className="gap-2.5 pb-0">
-                <div className="flex items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className="flex size-[50px] items-center justify-center rounded-xl"
-                      style={{ background: step.bg }}
-                    >
-                      <step.icon size={24} color={step.color} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
-                        {t('landing.howItWorks.step', { number: String(index + 1) })}
-                      </div>
-                      <CardTitle className="mt-0.5 text-[17px] font-extrabold">{step.title}</CardTitle>
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="rounded-lg px-2 py-1 text-[11px] font-extrabold"
-                    style={{ color: step.color, background: step.bg, borderColor: `${step.color}33` }}
+          <ol className="relative space-y-px">
+            {steps.map((step, index) => (
+              <li
+                key={step.title}
+                data-reveal
+                className="relative flex gap-5 border-t border-border bg-background px-6 py-7 first:rounded-t-lg last:rounded-b-lg last:border-b md:px-8 md:py-8"
+                style={{ transitionDelay: `${index * 80}ms` }}
+              >
+                <div className="flex flex-col items-center">
+                  <div
+                    className="flex size-11 items-center justify-center rounded-md"
+                    style={{ background: step.bg }}
                   >
-                    {step.visual}
-                  </Badge>
+                    <step.icon size={20} color={step.color} strokeWidth={2} />
+                  </div>
+                  {index < steps.length - 1 && (
+                    <span className="mt-3 w-px flex-1 bg-border" aria-hidden="true" />
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent className="pt-3">
-                <p className="m-0 text-sm leading-[1.55] text-muted-foreground">{step.detail}</p>
-                <div className="mt-3 h-2 overflow-hidden rounded-[5px] bg-muted">
-                  <span
-                    className="block h-full rounded-[5px]"
-                    style={{ width: `${(index + 1) * 33}%`, background: step.color }}
-                  />
+                <div className="flex-1 pb-1">
+                  <div className="mb-1.5 flex items-center gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {t('landing.howItWorks.step', { number: String(index + 1).padStart(2, '0') })}
+                    </span>
+                    <span
+                      className="rounded px-1.5 py-0.5 text-[10px] font-medium"
+                      style={{ color: step.color, background: step.bg }}
+                    >
+                      {step.visual}
+                    </span>
+                  </div>
+                  <h3 className="mb-2 text-[18px] font-semibold tracking-[-0.01em] text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="max-w-[560px] text-[14px] leading-[1.6] text-muted-foreground">
+                    {step.detail}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>
@@ -826,58 +772,57 @@ function SupportedBarangays() {
   ];
 
   return (
-    <section id="barangays" data-reveal className="bg-primary px-6 py-24">
-      <div className="mx-auto max-w-5xl">
+    <section id="barangays" data-reveal className="bg-background px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.barangays.label')}
           title={t('landing.barangays.subtitle')}
           subtitle={t('landing.barangays.tagline')}
-          light
         />
 
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+        <div className="mt-4 overflow-hidden rounded-lg border border-border">
           {barangays.map((item, index) => (
-            <Card
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
+            <div
               key={item.name}
-              className="relative overflow-hidden border-2 border-white/20 bg-white/[0.1] text-center"
-              style={{ transitionDelay: `${index * 90}ms` }}
+              data-reveal
+              className="group flex flex-col gap-4 border-b border-border bg-card px-6 py-6 transition-colors last:border-b-0 hover:bg-muted/40 md:flex-row md:items-center md:gap-8 md:px-8"
+              style={{ transitionDelay: `${index * 70}ms` }}
             >
-              <CardContent className="p-7">
-                <div className="mb-[18px] flex justify-center">
-                  <div className="flex size-[74px] items-center justify-center rounded-2xl border-2 border-white/[0.22] bg-white/[0.13]">
-                    <MapPin size={32} color="#FFFFFF" strokeWidth={2.4} />
-                  </div>
+              <div className="flex items-center gap-4 md:w-[280px] md:shrink-0">
+                <div className="flex size-10 items-center justify-center rounded-md bg-primary/[0.08] text-primary">
+                  <MapPin size={18} strokeWidth={2} />
                 </div>
-
-                <h3 className="mb-1.5 text-xl font-extrabold text-white">{item.name}</h3>
-                <p className="mb-1.5 text-[13px] font-bold text-blue-100">{t('landing.barangays.captain', { name: item.captain })}</p>
-                <p className="mb-1 text-xs font-semibold text-blue-100">{item.district}</p>
-                <p className="mb-[18px] text-xs font-medium text-blue-200">{item.hallAddress}</p>
-
-                <div className="mb-5 flex flex-wrap justify-center gap-1.5">
-                  {item.responders.map(r => (
-                    <Badge
-                      key={r}
-                      variant="secondary"
-                      className="border border-white/20 bg-white/[0.15] text-[11px] font-bold text-white"
-                    >
-                      {r}
-                    </Badge>
-                  ))}
+                <div>
+                  <h3 className="text-[16px] font-semibold tracking-[-0.005em] text-foreground">{item.name}</h3>
+                  <p className="text-[12px] text-muted-foreground">{item.district}</p>
                 </div>
+              </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full gap-1.5 border-white/30 bg-white/[0.12] text-[13px] font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white/20"
-                  onClick={() => navigate('/auth/register')}
-                >
-                  {t('landing.barangays.startReporting')} <ChevronRight size={15} />
-                </Button>
-              </CardContent>
-            </Card>
+              <div className="flex-1 md:border-l md:border-border md:pl-8">
+                <p className="text-[13px] font-medium text-foreground">
+                  {t('landing.barangays.captain', { name: item.captain })}
+                </p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">{item.hallAddress}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 md:w-[180px] md:shrink-0">
+                {item.responders.map((r) => (
+                  <span
+                    key={r}
+                    className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.04em] text-muted-foreground"
+                  >
+                    {r}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/auth/register')}
+                className="inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-primary transition-transform duration-200 hover:translate-x-0.5"
+              >
+                {t('landing.barangays.startReporting')} <ChevronRight size={15} />
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -892,86 +837,50 @@ function SafetyTips() {
     {
       title: t('landing.safety.tip1.title'),
       icon: Shield,
-      color: '#0F766E',
-      bg: '#CCFBF1',
       actions: [t('landing.safety.tip1.action1'), t('landing.safety.tip1.action2')],
     },
     {
       title: t('landing.safety.tip2.title'),
       icon: Users,
-      color: 'var(--primary)',
-      bg: '#DBEAFE',
       actions: [t('landing.safety.tip2.action1'), t('landing.safety.tip2.action2')],
     },
     {
       title: t('landing.safety.tip3.title'),
       icon: AlertTriangle,
-      color: 'var(--severity-medium)',
-      bg: '#FEF3C7',
       actions: [t('landing.safety.tip3.action1'), t('landing.safety.tip3.action2')],
     },
   ];
 
   return (
-    <section id="safety" data-reveal className="bg-background px-6 py-24">
-      <div className="mx-auto max-w-5xl">
+    <section id="safety" data-reveal className="bg-muted/50 px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.safety.label')}
           title={t('landing.safety.subtitle')}
           subtitle={t('landing.safety.tagline')}
         />
 
-        {/* Safety image banner */}
-        <div className="mb-8 overflow-hidden rounded-xl">
-          <img
-            src={SAFETY_IMAGE}
-            alt="Community safety"
-            className="h-48 w-full object-cover"
-          />
-        </div>
-
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+        <div className="mt-4 grid gap-6 md:grid-cols-3">
           {tips.map((tip, index) => (
-            <Card
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="right"
+            <div
               key={tip.title}
-              className="border shadow-sm text-center"
-              style={{ transitionDelay: `${index * 90}ms` }}
+              data-reveal
+              className="flex flex-col gap-4 rounded-lg bg-card p-6 md:p-7"
+              style={{ transitionDelay: `${index * 80}ms` }}
             >
-              <CardContent className="p-6">
-                <div className="mb-3.5 flex justify-center">
-                  <div
-                    className="flex size-16 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: tip.bg }}
-                  >
-                    <tip.icon size={28} color={tip.color} strokeWidth={2.5} />
-                  </div>
-                </div>
-                <h3 className="mb-3 text-[17px] font-extrabold text-foreground">{tip.title}</h3>
-                <div className="mb-3 flex flex-wrap justify-center gap-2">
-                  {tip.actions.map((action) => (
-                    <Badge
-                      key={action}
-                      variant="outline"
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-bold"
-                      style={{
-                        color: tip.color,
-                        background: tip.bg,
-                        borderColor: `${tip.color}33`,
-                      }}
-                    >
-                      {action}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-muted-foreground">
-                  <CheckCircle2 size={14} color={tip.color} />
-                  {t('landing.safety.reportTugon')}
-                </div>
-              </CardContent>
-            </Card>
+              <div className="flex size-10 items-center justify-center rounded-md bg-primary/[0.08] text-primary">
+                <tip.icon size={18} strokeWidth={2} />
+              </div>
+              <h3 className="text-[16px] font-semibold tracking-[-0.005em] text-foreground">{tip.title}</h3>
+              <ul className="flex flex-col gap-2.5">
+                {tip.actions.map((action) => (
+                  <li key={action} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-muted-foreground">
+                    <CheckCircle2 size={14} className="mt-[3px] shrink-0 text-primary" />
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
       </div>
@@ -983,87 +892,60 @@ function EmergencyHotlines() {
   const { t } = useTranslation();
 
   const hotlines = [
-    { name: t('landing.emergency.hotline1.name'), number: '911', note: t('landing.emergency.hotline1.note'), color: 'var(--severity-critical)', bg: '#FEE2E2' },
-    { name: t('landing.emergency.hotline2.name'), number: '117', note: t('landing.emergency.hotline2.note'), color: 'var(--primary)', bg: '#DBEAFE' },
-    { name: t('landing.emergency.hotline3.name'), number: '160', note: t('landing.emergency.hotline3.note'), color: 'var(--severity-medium)', bg: '#FEF3C7' },
+    { name: t('landing.emergency.hotline1.name'), number: '911', note: t('landing.emergency.hotline1.note') },
+    { name: t('landing.emergency.hotline2.name'), number: '117', note: t('landing.emergency.hotline2.note') },
+    { name: t('landing.emergency.hotline3.name'), number: '160', note: t('landing.emergency.hotline3.note') },
   ];
 
   return (
-    <section id="hotlines" data-reveal className="bg-muted px-6 py-24">
-      <div className="mx-auto max-w-5xl">
+    <section id="hotlines" data-reveal className="bg-background px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.emergency.label')}
           title={t('landing.emergency.subtitle')}
           subtitle={t('landing.emergency.tagline')}
         />
 
-        <Card
+        <div
           data-reveal
-          className="mb-4 border-destructive bg-severity-critical shadow-md"
+          className="mb-2 flex flex-wrap items-center justify-between gap-4 rounded-lg bg-destructive px-6 py-5 md:px-7"
           style={{ transitionDelay: '80ms' }}
         >
-          <CardContent className="flex flex-wrap items-center justify-between gap-3.5 p-6">
-            <div>
-              <div className="mb-1 text-xl font-extrabold text-white">{t('landing.emergency.callNow')}</div>
-              <div className="text-sm text-white/90">{t('landing.emergency.callThenFile')}</div>
+          <div className="flex items-center gap-4">
+            <div className="flex size-10 items-center justify-center rounded-md bg-white/15">
+              <AlertTriangle size={18} className="text-white" />
             </div>
-            <Button
-              variant="outline"
-              size="lg"
-              asChild
-              className="gap-1.5 border-white/20 bg-white font-extrabold text-severity-critical hover:bg-white/90 hover:text-severity-critical"
-            >
-              <a href="tel:911">
-                <Phone size={14} /> {t('landing.emergency.callNowBtn')}
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+            <div>
+              <div className="text-[15px] font-semibold text-white">{t('landing.emergency.callNow')}</div>
+              <div className="text-[13px] text-white/80">{t('landing.emergency.callThenFile')}</div>
+            </div>
+          </div>
+          <a
+            href="tel:911"
+            className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-[13px] font-semibold text-destructive transition-colors hover:bg-white/95"
+          >
+            <Phone size={14} /> {t('landing.emergency.callNowBtn')}
+          </a>
+        </div>
 
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
           {hotlines.map((item, index) => (
-            <Card
-              data-reveal
-              data-reveal-slide="x"
-              data-reveal-dir="left"
+            <a
               key={item.name}
-              className="border shadow-sm"
-              style={{ transitionDelay: `${index * 90}ms` }}
+              data-reveal
+              href={`tel:${item.number}`}
+              className="flex items-center gap-5 bg-card px-6 py-5 transition-colors hover:bg-muted/40 md:px-7"
+              style={{ transitionDelay: `${index * 70}ms` }}
             >
-              <CardContent className="p-5">
-                <div className="mb-2 flex items-center gap-2">
-                  <div
-                    className="flex size-[34px] items-center justify-center rounded-lg"
-                    style={{ background: item.bg }}
-                  >
-                    <Phone size={15} color={item.color} />
-                  </div>
-                  <h3 className="m-0 text-[15px] font-bold text-foreground">{item.name}</h3>
-                </div>
-                <div
-                  className="mb-1.5 text-2xl font-extrabold leading-[1.1]"
-                  style={{ color: item.color }}
-                >
-                  {item.number}
-                </div>
-                <p className="mb-2.5 text-[13px] text-muted-foreground">{item.note}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="gap-1.5 text-xs font-extrabold"
-                  style={{
-                    color: item.color,
-                    borderColor: `${item.color}33`,
-                    background: item.bg,
-                  }}
-                >
-                  <a href={`tel:${item.number}`}>
-                    <Phone size={13} /> {t('landing.emergency.callNumber', { number: item.number })}
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
+              <div className="font-mono text-[22px] font-semibold tracking-[-0.01em] text-foreground md:w-[90px]">
+                {item.number}
+              </div>
+              <div className="flex-1 border-l border-border pl-5">
+                <div className="text-[14px] font-medium text-foreground">{item.name}</div>
+                <div className="mt-0.5 text-[12.5px] text-muted-foreground">{item.note}</div>
+              </div>
+              <Phone size={16} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </a>
           ))}
         </div>
       </div>
@@ -1220,7 +1102,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:'Roboto','Helvetica_Neue',Arial,sans-serif]">
+    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:'IBM_Plex_Sans','Public_Sans',system-ui,-apple-system,Segoe_UI,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>
@@ -1271,11 +1153,6 @@ export default function Landing() {
 
         .hero-transition-scope {
           transition: opacity 180ms ease, transform 180ms ease;
-        }
-
-        @keyframes mapPinPulse {
-          from { transform: translate(-50%, -50%) translateY(0px); }
-          to   { transform: translate(-50%, -50%) translateY(-6px); }
         }
 
         .skip-link {
@@ -1371,46 +1248,26 @@ export default function Landing() {
         .landing-scroll-cue {
           position: absolute;
           left: 50%;
-          bottom: 18px;
+          bottom: 24px;
           transform: translateX(-50%);
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.35);
-          background: rgba(15, 23, 42, 0.42);
-          color: #ffffff;
+          width: 32px;
+          height: 32px;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: transparent;
+          color: rgba(255, 255, 255, 0.6);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           z-index: 3;
-          animation: scrollCuePulse 1.8s ease-in-out infinite;
+          transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
         }
 
-        .landing-scroll-cue-icon {
-          display: inline-flex;
-          line-height: 0;
-          animation: scrollCueArrow 1.8s ease-in-out infinite;
-        }
-
-        @keyframes scrollCuePulse {
-          0%,
-          100% {
-            box-shadow: 0 0 0 0 rgba(191, 219, 254, 0.18);
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(191, 219, 254, 0);
-          }
-        }
-
-        @keyframes scrollCueArrow {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(3px);
-          }
+        .landing-scroll-cue:hover {
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.4);
+          transform: translateX(-50%) translateY(2px);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1428,9 +1285,8 @@ export default function Landing() {
             animation: none;
           }
 
-          .landing-scroll-cue,
-          .landing-scroll-cue-icon {
-            animation: none;
+          .landing-scroll-cue {
+            transition: none;
           }
         }
       `}</style>
