@@ -355,7 +355,7 @@ function Layout() {
         <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
           <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
             <div
-              className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white"
+              className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] font-mono text-[13px] font-bold text-white"
               title={sidebarCollapsed ? userFullName : undefined}
             >
               {userInitials}

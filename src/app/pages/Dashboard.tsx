@@ -64,28 +64,21 @@ interface KPICardProps {
   bgLight: string;
 }
 
-function KPICard({ title, value, subtitle, icon, accent, trend, bgLight }: KPICardProps) {
+function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
-  const trendColor = accent === 'var(--severity-critical)' ? 'var(--severity-critical)' : accent === '#059669' ? '#059669' : 'var(--severity-medium)';
+  const isLiveLabel = trend?.val?.includes('Live') || trend?.val?.includes('live');
   return (
-    <div className="card-lifted flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl px-5 py-[18px]">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--on-surface-variant)]">{title}</div>
-          <div className="text-[30px] font-black leading-none text-[var(--on-surface)]">{value}</div>
-        </div>
-        <div
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px]"
-          style={{ background: bgLight, color: accent }}
-        >
-          {icon}
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-[var(--outline)]">{subtitle}</span>
-        {trend && (
-          <span className="flex items-center gap-[3px] text-[11px] font-semibold" style={{ color: trendColor }}>
-            <TrendIcon size={12} />
+    <div
+      className="flex min-w-0 flex-1 flex-col gap-1.5 border border-slate-200 bg-white px-4 py-4"
+      style={{ borderLeft: `3px solid ${accent}` }}
+    >
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
+      <div className="font-mono text-[28px] font-black leading-none text-[#0F172A]">{value}</div>
+      <div className="flex items-center justify-between gap-2 mt-0.5">
+        <span className="text-[11px] text-slate-400">{subtitle}</span>
+        {trend && !isLiveLabel && (
+          <span className="flex items-center gap-[3px] font-mono text-[10px] font-semibold" style={{ color: accent }}>
+            <TrendIcon size={11} />
             {trend.val}
           </span>
         )}
@@ -434,33 +427,37 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {/* District focus hero */}
-      <section className="mb-4 overflow-hidden rounded-2xl bg-[linear-gradient(140deg,#001f65_0%,#1e3a8a_100%)] p-5 text-white shadow-ambient">
+      {/* District focus header */}
+      <section className="mb-4 border-b border-slate-200 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-blue-200">
+            <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
               District Focus
             </div>
-            <h1 className="mb-1 text-[28px] font-black leading-[1.05] tracking-[-0.03em]">
+            <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
               Tondo Patrol Cluster
             </h1>
-            <p className="text-xs text-blue-100">
-              {activeIncidents.length} active incidents, {deployedUnits} responder units deployed, {unresolvedCount} unresolved queue entries.
+            <p className="mt-0.5 text-xs text-slate-500">
+              <span className="font-mono font-bold text-[#DC2626]">{activeIncidents.length}</span> active
+              {' · '}
+              <span className="font-mono font-bold text-[#0F172A]">{deployedUnits}</span> units deployed
+              {' · '}
+              <span className="font-mono font-bold text-[#0F172A]">{unresolvedCount}</span> unresolved
             </p>
           </div>
 
-          <div className="grid gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => navigate('/app/incidents')}
-              className="cursor-pointer rounded-xl border-none bg-white px-4 py-2.5 text-xs font-bold text-primary"
+              className="cursor-pointer rounded border border-[#2563EB] bg-transparent px-4 py-2 text-xs font-bold text-[#2563EB] transition-colors hover:bg-blue-50"
             >
               Dispatch Responder
             </button>
             <button
               type="button"
               onClick={() => navigate('/app/reports')}
-              className="cursor-pointer rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-xs font-bold text-white"
+              className="cursor-pointer rounded border border-slate-300 bg-transparent px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50"
             >
               Request Support
             </button>
@@ -469,29 +466,36 @@ export default function Dashboard() {
       </section>
 
       {strongestHeatCluster ? (
-        <section className="mb-4 rounded-2xl bg-[linear-gradient(140deg,#fff2d8_0%,#ffe4b0_100%)] px-4 py-3 text-[var(--secondary)] shadow-[0_10px_24px_rgba(134,83,0,0.12)]">
+        <section
+          className="mb-4 border border-slate-200 bg-white px-4 py-3"
+          style={{ borderLeft: '3px solid #D97706' }}
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-xs font-bold uppercase tracking-[0.12em]">Geofencing Warning</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#D97706]">Geofencing Warning</div>
             <button
               type="button"
               onClick={() => navigate('/app/map')}
-              className="cursor-pointer rounded-lg border border-[var(--secondary)]/30 bg-white/70 px-2.5 py-1 text-[11px] font-bold text-[var(--secondary)]"
+              className="cursor-pointer rounded border border-[#D97706]/40 bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#D97706]"
             >
               Open Map
             </button>
           </div>
-          <div className="mt-1 text-sm font-semibold text-[var(--on-surface)]">
+          <div className="mt-1 text-xs font-semibold text-[#0F172A]">
             Elevated {strongestHeatCluster.category} activity detected near cluster center ({strongestHeatCluster.incidentCount} incidents).
           </div>
         </section>
       ) : null}
 
       {/* Cross-Border Alerts */}
-      <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--outline-variant)]/30 px-4 py-3">
+      <div className="mb-4 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #D97706' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Bell size={15} color="var(--severity-medium)" />
-            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.crossBorderAlerts')}</span>
+            <Bell size={14} color="#D97706" />
+            <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.crossBorderAlerts')}</span>
+            <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
+              <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
+              Live
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -542,7 +546,8 @@ export default function Dashboard() {
               {alerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className={`flex items-center justify-between gap-2.5 rounded-xl px-2.5 py-[9px] ${alert.readAt ? 'bg-[var(--surface-container-low)]' : 'bg-amber-50'}`}
+                  className="flex items-center justify-between gap-2.5 bg-white py-[9px] pl-3 pr-2.5 border-b border-slate-50 last:border-b-0"
+                  style={{ borderLeft: alert.readAt ? '3px solid #E2E8F0' : '3px solid #D97706' }}
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[var(--on-surface)]">
@@ -587,11 +592,11 @@ export default function Dashboard() {
       </div>
 
       {/* Heatmap Hotspots */}
-      <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--outline-variant)]/30 px-4 py-3">
+      <div className="mb-4 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #2563EB' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
           <div className="flex items-center gap-2">
-            <TrendingUp size={15} color="var(--primary)" />
-            <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.heatmapHotspots')}</span>
+            <TrendingUp size={14} color="#2563EB" />
+            <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.heatmapHotspots')}</span>
           </div>
           <button
             onClick={() => {
@@ -639,14 +644,21 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Cards — 2-col grid on mobile, 4-col on lg */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      {/* KPI Stats — 4-col ruled table */}
+      <div className="mb-1 flex items-center gap-1.5">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Operations Overview</span>
+        <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
+          <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
+          Live
+        </span>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 mb-4 border border-slate-200" style={{ borderTop: '0' }}>
         <KPICard
           title={t('official.dashboard.activeIncidents')}
           value={activeIncidents.length}
           subtitle={t('official.dashboard.criticalResponding', { critical: criticalCount, responding: activeIncidents.filter(i => i.status === 'responding').length })}
           icon={<AlertTriangle size={20} />}
-          accent="var(--severity-critical)"
+          accent="#DC2626"
           bgLight="#FEE2E2"
           trend={{ dir: 'flat', val: t('official.dashboard.liveTotal') }}
         />
@@ -655,7 +667,7 @@ export default function Dashboard() {
           value={unresolvedCount}
           subtitle={staffedActiveIncidents > 0 ? t('official.dashboard.staffedCases', { count: staffedActiveIncidents }) : t('official.dashboard.noResponders')}
           icon={<Users size={20} />}
-          accent="var(--primary)"
+          accent="#2563EB"
           bgLight="#DBEAFE"
           trend={{ dir: 'flat', val: `${deployedUnits} units deployed` }}
         />
@@ -664,7 +676,7 @@ export default function Dashboard() {
           value={resolvedToday.length}
           subtitle={t('official.dashboard.sincePhT')}
           icon={<CheckCircle2 size={20} />}
-          accent="#059669"
+          accent="#16A34A"
           bgLight="#D1FAE5"
           trend={resolvedTrend}
         />
@@ -673,20 +685,20 @@ export default function Dashboard() {
           value={avgResponseMinutes !== null ? formatDurationFromMinutes(avgResponseMinutes) : 'N/A'}
           subtitle={avgResponseMinutes !== null ? t('official.dashboard.basedOnResponded') : t('official.dashboard.waitingTimestamps')}
           icon={<Clock size={20} />}
-          accent="var(--severity-medium)"
+          accent="#D97706"
           bgLight="#FEF3C7"
-          trend={{ dir: 'flat', val: t('official.dashboard.liveMetric') }}
+          trend={{ dir: 'flat', val: '' }}
         />
       </div>
 
       {/* Map + Live Feed Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Map Preview */}
-        <div className="flex flex-[3_1_340px] flex-col overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-          <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/30 px-4 py-3">
+        <div className="flex flex-[3_1_340px] flex-col overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #2563EB' }}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div className="flex items-center gap-2">
-              <MapPin size={16} color="var(--primary)" />
-              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.incidentOverviewMap')}</span>
+              <MapPin size={14} color="#2563EB" />
+              <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.incidentOverviewMap')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
@@ -834,13 +846,16 @@ export default function Dashboard() {
         </div>
 
         {/* Live Feed */}
-        <div className="flex flex-[2_1_260px] flex-col overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-          <div className="flex items-center justify-between border-b border-[var(--outline-variant)]/30 px-4 py-3">
+        <div className="flex flex-[2_1_260px] flex-col overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #16A34A' }}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.2)]" />
-              <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.liveIncidentFeed')}</span>
+              <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.liveIncidentFeed')}</span>
+              <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
+                <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
+                Live
+              </span>
             </div>
-            <RefreshCw size={13} className="text-slate-400 cursor-pointer" />
+            <RefreshCw size={12} className="text-slate-400 cursor-pointer" />
           </div>
           <div className="flex-1">
             {incidentsLoading ? (
@@ -852,38 +867,31 @@ export default function Dashboard() {
                 <div
                   key={inc.id}
                   onClick={() => navigate('/app/incidents')}
-                  className="flex items-start gap-2.5 border-b border-slate-50 px-3.5 py-2.5 cursor-pointer transition-colors hover:bg-slate-50"
+                  className="flex items-center gap-3 border-b border-slate-100 px-4 py-2.5 cursor-pointer transition-colors hover:bg-slate-50 last:border-b-0"
                 >
-                  <div
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                    style={{
-                      background: incidentTypeConfig[inc.type].bgColor,
-                      color: incidentTypeConfig[inc.type].color,
-                    }}
-                  >
-                    {typeIcons[inc.type]}
-                  </div>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-0.5 flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-slate-800">{inc.id}</span>
+                    <div className="mb-0.5 flex items-center gap-2">
+                      <span className="font-mono text-[11px] font-bold text-[#0F172A]">{inc.id}</span>
                       <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
                     </div>
-                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-600">{inc.barangay}</div>
-                    <div className="mt-0.5 text-[10px] text-slate-400">
-                      {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </div>
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-500">{inc.barangay}</div>
                   </div>
-                  <SeverityBadge severity={inc.severity} size="sm" />
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <SeverityBadge severity={inc.severity} size="sm" />
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </span>
+                  </div>
                 </div>
               ))
             )}
           </div>
-          <div className="border-t border-slate-100 px-3.5 py-2.5 text-center">
+          <div className="border-t border-slate-100 px-4 py-2.5">
             <button
               onClick={() => navigate('/app/incidents')}
-              className="mx-auto flex items-center gap-1 border-none bg-transparent text-xs font-semibold text-primary cursor-pointer"
+              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold text-[#2563EB] cursor-pointer"
             >
-              {t('official.dashboard.viewAllIncidents')} <ArrowRight size={13} />
+              {t('official.dashboard.viewAllIncidents')} <ArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -892,11 +900,11 @@ export default function Dashboard() {
       {/* Charts Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Trend Chart */}
-        <div className="flex-[3_1_300px] rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
+        <div className="flex-[3_1_300px] border border-slate-200 bg-white px-4 py-3.5">
           <div className="mb-3.5 flex items-center justify-between">
             <div>
-              <div className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
-              <div className="text-[11px] text-[var(--outline)]">{trendWindowLabel}</div>
+              <div className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
+              <div className="text-[11px] text-slate-400">{trendWindowLabel}</div>
             </div>
             <div className="flex gap-3 text-[11px]">
               <span className="flex items-center gap-1">
@@ -924,9 +932,9 @@ export default function Dashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="flex-[2_1_220px] rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
-          <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.incidentByCategory')}</div>
-          <div className="mb-2.5 text-[11px] text-[var(--outline)]">{t('official.dashboard.categoryDistribution')}</div>
+        <div className="flex-[2_1_220px] border border-slate-200 bg-white px-4 py-3.5">
+          <div className="mb-1 text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.incidentByCategory')}</div>
+          <div className="mb-2.5 text-[11px] text-slate-400">{t('official.dashboard.categoryDistribution')}</div>
           <div className="flex items-center gap-3">
             <PieChart className="shrink-0" width={156} height={156}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
@@ -951,9 +959,9 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Incidents Table */}
-      <div className="mb-2 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--outline-variant)]/30 px-4 py-3">
-          <span className="text-[13px] font-bold text-[var(--on-surface)]">Incident Queue</span>
+      <div className="mb-2 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #0F172A' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+          <span className="text-[13px] font-bold text-[#0F172A]">Incident Queue</span>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -991,7 +999,7 @@ export default function Dashboard() {
                   className="cursor-pointer border-b border-[var(--outline-variant)]/20 transition-colors odd:bg-[var(--surface-container-lowest)] even:bg-[var(--surface-container-low)]/45 hover:bg-[var(--surface-container-low)]"
                   onClick={() => navigate('/app/incidents')}
                 >
-                  <td className="whitespace-nowrap px-3.5 py-2.5 font-semibold text-primary">{inc.id}</td>
+                  <td className="whitespace-nowrap px-3.5 py-2.5 font-mono font-semibold text-[#2563EB]">{inc.id}</td>
                   <td className="px-3.5 py-2.5"><TypeBadge type={inc.type} size="sm" /></td>
                   <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-2.5 text-[var(--on-surface-variant)]">{inc.barangay}</td>
                   <td className="px-3.5 py-2.5"><SeverityBadge severity={inc.severity} size="sm" /></td>

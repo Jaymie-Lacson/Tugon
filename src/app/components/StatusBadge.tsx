@@ -1,13 +1,19 @@
 import React from 'react';
-import { AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
 import { Severity, IncidentStatus, IncidentType, severityConfig, statusConfig, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
-const severityIcons: Record<Severity, React.ReactNode> = {
-  critical: <AlertTriangle size={11} />,
-  high: <AlertCircle size={11} />,
-  medium: <Info size={11} />,
-  low: <CheckCircle size={11} />,
+const SEVERITY_COLORS: Record<Severity, string> = {
+  critical: '#DC2626',
+  high: '#D97706',
+  medium: '#D97706',
+  low: '#16A34A',
+};
+
+const STATUS_DOT_COLORS: Record<IncidentStatus, string> = {
+  active: '#DC2626',
+  responding: '#2563EB',
+  contained: '#D97706',
+  resolved: '#16A34A',
 };
 
 interface SeverityBadgeProps {
@@ -15,20 +21,15 @@ interface SeverityBadgeProps {
   size?: 'sm' | 'md';
 }
 
-export function SeverityBadge({ severity, size = 'md' }: SeverityBadgeProps) {
-  const config = severityConfig[severity];
-  const isSmall = size === 'sm';
+export function SeverityBadge({ severity }: SeverityBadgeProps) {
+  const color = SEVERITY_COLORS[severity] ?? '#64748B';
+  const label = severityConfig[severity]?.label ?? severity;
   return (
     <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
-      style={{ backgroundColor: config.bgColor, color: config.color }}
+      className="inline-block font-mono text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
+      style={{ color }}
     >
-      {severityIcons[severity]}
-      <span
-        className={`inline-block shrink-0 rounded-full ${isSmall ? 'size-[5px]' : 'size-1.5'}`}
-        style={{ backgroundColor: config.dotColor }}
-      />
-      {config.label}
+      {label}
     </span>
   );
 }
@@ -39,33 +40,29 @@ interface StatusBadgeProps {
   pulse?: boolean;
 }
 
-export function StatusBadge({ status, size = 'md', pulse = false }: StatusBadgeProps) {
+export function StatusBadge({ status, pulse = false }: StatusBadgeProps) {
+  const dotColor = STATUS_DOT_COLORS[status] ?? '#94A3B8';
   const config = statusConfig[status];
-  const isSmall = size === 'sm';
   const isActive = status === 'active' || status === 'responding';
   return (
-    <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
-      style={{ backgroundColor: config.bgColor, color: config.color }}
-    >
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
       {isActive && pulse ? (
-        <span className="relative inline-flex size-2 shrink-0">
+        <span className="relative inline-flex size-[7px] shrink-0">
           <span
-            className="absolute inset-0 animate-ping rounded-full opacity-40"
-            style={{ backgroundColor: config.color }}
+            className="absolute inset-0 animate-ping rounded-full opacity-50"
+            style={{ backgroundColor: dotColor }}
           />
-          <span
-            className="relative size-2 rounded-full"
-            style={{ backgroundColor: config.color }}
-          />
+          <span className="relative size-[7px] rounded-full" style={{ backgroundColor: dotColor }} />
         </span>
       ) : (
-        <span
-          className={`inline-block shrink-0 rounded-full ${isSmall ? 'size-[5px]' : 'size-1.5'}`}
-          style={{ backgroundColor: config.color }}
-        />
+        <span className="inline-block size-[7px] shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
       )}
-      {config.label}
+      <span
+        className="text-[10px] font-semibold uppercase tracking-[0.06em]"
+        style={{ color: dotColor }}
+      >
+        {config?.label ?? status}
+      </span>
     </span>
   );
 }
@@ -75,13 +72,12 @@ interface TypeBadgeProps {
   size?: 'sm' | 'md';
 }
 
-export function TypeBadge({ type, size = 'md' }: TypeBadgeProps) {
+export function TypeBadge({ type }: TypeBadgeProps) {
   const config = incidentTypeConfig[type];
-  const isSmall = size === 'sm';
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-[var(--radius-sm)] font-semibold uppercase tracking-wider ${isSmall ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]'}`}
-      style={{ backgroundColor: config.bgColor, color: config.color }}
+      className="inline-block text-[10px] font-semibold uppercase tracking-[0.06em] whitespace-nowrap"
+      style={{ color: config?.color ?? '#475569' }}
     >
       {getCategoryLabelForIncidentType(type)}
     </span>

@@ -49,16 +49,13 @@ export default function Settings() {
 
   return (
     <div className="p-4 px-5 min-h-full">
-      <div className="mb-5">
-        <div className="flex items-center gap-2.5 mb-1">
-          <SettingsIcon size={20} className="text-primary" />
-          <h1 className="text-slate-800 text-xl font-bold">Settings</h1>
-        </div>
-        <p className="text-slate-500 text-xs">{settingsSubtitle}</p>
+      <div className="mb-5 border-b border-slate-200 pb-4">
+        <h1 className="text-[#0F172A] text-xl font-bold">Settings</h1>
+        <p className="text-slate-400 text-xs mt-0.5">{settingsSubtitle}</p>
       </div>
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">
-        <div className="w-[220px] shrink-0 bg-white rounded-xl shadow-card overflow-hidden max-md:w-full">
+        <div className="w-[220px] shrink-0 bg-white border border-slate-200 overflow-hidden max-md:w-full">
           <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
             <User size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">Account</span>
@@ -73,21 +70,21 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-[280px] bg-white rounded-xl shadow-card px-6 py-5 max-md:min-w-0 max-md:w-full">
+        <div className="flex-1 min-w-[280px] bg-white border border-slate-200 px-6 py-5 max-md:min-w-0 max-md:w-full">
           <div className="text-[15px] font-bold text-slate-800 mb-4">User Profile</div>
           <div className="mb-3.5 text-[11px] text-slate-500">
             This page only shows account details backed by your authenticated session.
           </div>
 
-          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 bg-slate-50 rounded-[10px]">
-            <div className="size-14 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center font-bold text-white text-xl shrink-0">
+          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 border border-slate-100 bg-slate-50">
+            <div className="size-14 flex shrink-0 items-center justify-center bg-[#0F172A] font-bold text-white text-xl">
               {initials}
             </div>
             <div>
-              <div className="font-bold text-slate-800 text-[15px]">{fullName}</div>
+              <div className="font-bold text-[#0F172A] text-[15px]">{fullName}</div>
               <div className="text-slate-500 text-xs">{roleLabel} · {areaLabel}</div>
               <div className="mt-1">
-                <span className="bg-blue-100 text-primary text-[10px] font-semibold px-2 py-0.5 rounded">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-[#2563EB]">
                   {role}
                 </span>
               </div>

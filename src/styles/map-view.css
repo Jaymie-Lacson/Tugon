@@ -163,9 +163,13 @@
 .map-stat-item {
   flex: 1;
   text-align: center;
-  background: #f0f4ff;
-  border-radius: 8px;
+  background: #ffffff;
+  border-right: 1px solid rgba(197,197,211,0.25);
   padding: 6px 4px;
+}
+
+.map-stat-item:last-child {
+  border-right: 0;
 }
 
 .map-stat-value {
@@ -202,15 +206,14 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: #f0fdf4;
-  border-radius: 6px;
-  padding: 4px 8px;
+  background: transparent;
+  padding: 2px 0;
 }
 
 .map-osm-badge-text {
-  color: var(--severity-low);
+  color: #94a3b8;
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .map-incident-list {
@@ -231,18 +234,22 @@
 }
 
 .map-incident-card {
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 9px 12px 9px 10px;
   cursor: pointer;
-  border: 1px solid rgba(197,197,211,0.35);
+  border-left: 3px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
   background: #ffffff;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   transition: all 0.15s;
 }
 
+.map-incident-card:last-child {
+  border-bottom: 0;
+}
+
 .map-incident-card.is-selected {
-  border-color: var(--primary);
-  background: #dce9ff;
+  border-left-color: #2563EB;
+  background: #f0f7ff;
 }
 
 .map-incident-card-row {
@@ -252,49 +259,17 @@
 }
 
 .map-incident-type-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
+  display: none;
 }
 
-.map-incident-type-fire {
-  background: #fee2e2;
-  color: var(--severity-critical);
-}
-
-.map-incident-type-flood {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.map-incident-type-accident {
-  background: #fef3c7;
-  color: var(--severity-medium);
-}
-
-.map-incident-type-medical {
-  background: #ccfbf1;
-  color: #0f766e;
-}
-
-.map-incident-type-crime {
-  background: #ede9fe;
-  color: #7c3aed;
-}
-
-.map-incident-type-infrastructure {
-  background: #f3f4f6;
-  color: #374151;
-}
-
+.map-incident-type-fire,
+.map-incident-type-flood,
+.map-incident-type-accident,
+.map-incident-type-medical,
+.map-incident-type-crime,
+.map-incident-type-infrastructure,
 .map-incident-type-typhoon {
-  background: #e0f2fe;
-  color: #0369a1;
+  display: none;
 }
 
 .map-incident-card-content {
@@ -313,7 +288,8 @@
 .map-incident-id {
   font-size: 11px;
   font-weight: 700;
-  color: #0d1c2e;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  color: #0F172A;
 }
 
 .map-incident-barangay {

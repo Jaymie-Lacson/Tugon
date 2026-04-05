@@ -364,28 +364,21 @@ function DSSCard({
 
   return (
     <div
-      className="mb-3 overflow-hidden rounded-xl border bg-card shadow-sm"
-      style={{ border: `1px solid ${rec.bg}` }}
+      className="mb-3 overflow-hidden border border-slate-200 bg-white"
+      style={{ borderLeft: `3px solid ${rec.color}` }}
     >
-      <div className="flex items-start gap-3 bg-[var(--surface-container-lowest)] px-4 py-3.5">
-        {/* Icon */}
-        <div
-          className="mt-0.5 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px]"
-          style={{ background: rec.bg, color: rec.color }}
-        >
-          {rec.icon}
-        </div>
+      <div className="flex items-start gap-3 bg-white px-4 py-3.5">
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2.5">
             <div>
               <span
-                className="mr-2 rounded text-[9px] font-bold tracking-widest"
-                style={{ background: pStyle.bg, color: pStyle.color, padding: '2px 7px' }}
+                className="mr-2 font-mono text-[9px] font-bold uppercase tracking-[0.1em]"
+                style={{ color: pStyle.color }}
               >
                 {pStyle.label}
               </span>
-              <span className="text-[13px] font-bold text-[var(--on-surface)]">{rec.title}</span>
+              <span className="text-[13px] font-bold text-[#0F172A]">{rec.title}</span>
             </div>
             {/* Confidence meter */}
             <div className="flex shrink-0 items-center gap-1.5">
@@ -771,9 +764,9 @@ export default function Reports() {
   return (
     <div className="min-h-full bg-[var(--surface)] px-5 py-4">
       {/* Header */}
-      <div className="mb-4 rounded-xl border bg-card px-4 py-3.5 shadow-sm">
-        <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.reports.pageTitle')}</h1>
-        <p className="text-xs text-[var(--on-surface-variant)]">{t('official.reports.pageSubtitle')}</p>
+      <div className="mb-4 border-b border-slate-200 pb-4">
+        <h1 className="mb-0.5 text-xl font-bold text-[#0F172A]">{t('official.reports.pageTitle')}</h1>
+        <p className="text-xs text-slate-400">{t('official.reports.pageSubtitle')}</p>
       </div>
 
       {/* Status messages */}
@@ -789,7 +782,7 @@ export default function Reports() {
       ) : null}
 
       {/* Tabs */}
-      <div className="mb-4 flex w-fit max-w-full overflow-x-auto rounded-xl border bg-card p-1.5 shadow-sm">
+      <div className="mb-4 flex w-fit max-w-full overflow-x-auto border-b border-slate-200">
         {[
           { key: 'dss', label: t('official.reports.decisionSupport'), icon: <Brain size={14} /> },
           { key: 'templates', label: t('official.reports.reportTemplates'), icon: <FileText size={14} /> },
@@ -798,11 +791,12 @@ export default function Reports() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as ReportsTabKey)}
-            className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border-none px-4 py-2 text-xs transition-all duration-150 ${
+            className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-none bg-transparent px-4 py-2.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === tab.key
-                ? 'bg-primary font-bold text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
-                : 'bg-[var(--surface-container-low)] font-medium text-[var(--on-surface-variant)]'
+                ? 'border-b-2 border-[#2563EB] text-[#2563EB]'
+                : 'text-slate-500 hover:text-[#0F172A]'
             }`}
+            style={activeTab === tab.key ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : undefined}
           >
             {tab.icon} {tab.label}
           </button>
@@ -813,22 +807,22 @@ export default function Reports() {
       {activeTab === 'dss' && (
         <div>
           {/* DSS Header */}
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-[linear-gradient(135deg,#0f2f86,#1e3a8a)] px-5 py-4 shadow-ambient">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border border-slate-200 bg-white px-5 py-4" style={{ borderLeft: '3px solid #2563EB' }}>
             <div>
               <div className="mb-1.5 flex items-center gap-2">
-                <Sparkles size={16} color="#FDE68A" />
-                <span className="text-xs font-bold uppercase tracking-wide text-amber-200">{t('official.reports.aiAssisted')}</span>
+                <Sparkles size={14} color="#2563EB" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#2563EB]">{t('official.reports.aiAssisted')}</span>
               </div>
-              <div className="mb-1 text-base font-bold text-white">{t('official.reports.intelligenceEngine')}</div>
-              <div className="text-xs text-blue-300">
+              <div className="mb-1 text-[15px] font-bold text-[#0F172A]">{t('official.reports.intelligenceEngine')}</div>
+              <div className="text-xs text-slate-500">
                 {analysisWindowDays > 0
                   ? (analysisWindowDays === 1 ? t('official.reports.analyzingDays', { count: analysisWindowDays }) : t('official.reports.analyzingDaysPlural', { count: analysisWindowDays }))
                   : t('official.reports.waitingData')}
               </div>
-              <div className="mt-1 text-[11px] text-blue-300">
+              <div className="mt-0.5 text-[11px] text-slate-400">
                 {t('official.reports.recommendationSource', { source: dssRecommendationSource === 'ai' ? t('official.reports.sourceAI') : t('official.reports.sourceFallback') })}
               </div>
-              <div className="mt-1.5 text-[11px] text-blue-200">
+              <div className="mt-1 font-mono text-[10px] text-slate-400">
                 {t('official.reports.lastRefreshed')}{' '}
                 {dssLastRefreshedAt
                   ? new Date(dssLastRefreshedAt).toLocaleString('en-PH', {
@@ -846,7 +840,7 @@ export default function Reports() {
             <button
               onClick={() => { void reloadReports('dss'); }}
               disabled={dssRefreshing}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-white/30 bg-white/15 px-4 py-2 text-xs font-semibold text-white ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded border border-[#2563EB] bg-transparent px-4 py-2 text-xs font-semibold text-[#2563EB] ${
                 dssRefreshing ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
               }`}
             >
@@ -856,16 +850,16 @@ export default function Reports() {
           </div>
 
           {/* Stats row */}
-          <div className="mb-4 flex flex-wrap gap-2.5">
+          <div className="mb-4 grid grid-cols-2 gap-0 border border-slate-200 sm:grid-cols-4">
             {[
-              { label: t('official.reports.activeRecommendations'), value: visibleDssRecommendations.length, color: 'var(--primary)', bg: '#EFF6FF' },
-              { label: t('official.reports.pendingActions'), value: dssActionCount, color: 'var(--severity-medium)', bg: '#FEF3C7' },
-              { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#059669', bg: '#D1FAE5' },
-              { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED', bg: '#EDE9FE' },
+              { label: t('official.reports.activeRecommendations'), value: visibleDssRecommendations.length, color: '#2563EB' },
+              { label: t('official.reports.pendingActions'), value: dssActionCount, color: '#D97706' },
+              { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#16A34A' },
+              { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED' },
             ].map(s => (
-              <div key={s.label} className="flex-[1_1_120px] rounded-xl border bg-card px-3.5 py-3 shadow-sm">
-                <div className="mb-0.5 text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
-                <div className="text-[11px] text-[var(--outline)]">{s.label}</div>
+              <div key={s.label} className="border-r border-slate-200 bg-white px-3.5 py-3 last:border-r-0" style={{ borderLeft: `3px solid ${s.color}` }}>
+                <div className="mb-0.5 font-mono text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
+                <div className="text-[11px] text-slate-400">{s.label}</div>
               </div>
             ))}
           </div>
@@ -899,28 +893,15 @@ export default function Reports() {
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(tmpl => (
-              <div key={tmpl.id} className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                <div className="bg-[var(--surface-container-low)] px-4 py-3.5">
-                  <div className="flex items-start gap-2.5">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
-                      style={{ background: tmpl.bg, color: tmpl.color }}
-                    >
-                      {tmpl.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{tmpl.title}</div>
-                      <span
-                        className="rounded text-[9px] font-bold uppercase tracking-wide"
-                        style={{ background: tmpl.bg, color: tmpl.color, padding: '2px 7px' }}
-                      >
-                        {tmpl.category}
-                      </span>
-                    </div>
+              <div key={tmpl.id} className="overflow-hidden border border-slate-200 bg-white" style={{ borderTop: `2px solid ${tmpl.color}` }}>
+                <div className="px-4 py-3.5">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: tmpl.color }}>{tmpl.category}</span>
                   </div>
-                  <p className="mt-2.5 text-xs leading-[1.5] text-[var(--outline)]">{tmpl.description}</p>
+                  <div className="mb-1 text-[13px] font-bold text-[#0F172A]">{tmpl.title}</div>
+                  <p className="text-xs leading-[1.5] text-slate-400">{tmpl.description}</p>
                 </div>
-                <div className="bg-[var(--surface-container-lowest)] px-4 py-2.5">
+                <div className="border-t border-slate-100 bg-slate-50 px-4 py-2.5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <div>
                       <div className="mb-0.5 text-[10px] text-[var(--outline)]">{t('official.reports.lastGenerated')}</div>
