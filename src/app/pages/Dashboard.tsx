@@ -4,7 +4,7 @@ import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
   TrendingDown, Minus, Radio, MapPin, ArrowRight,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
-  ChevronRight, RefreshCw, Navigation2, Bell,
+  ChevronRight, RefreshCw, Navigation2, Bell, BellDot, Check,
   SlidersHorizontal, Download,
 } from 'lucide-react';
 import {
@@ -492,16 +492,30 @@ export default function Dashboard() {
             <span className="text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.crossBorderAlerts')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-[11px] font-bold ${unreadAlerts > 0 ? 'text-red-700' : 'text-[var(--outline)]'}`}>
-              {t('official.dashboard.unread', { count: unreadAlerts })}
-            </span>
             <button
+              type="button"
+              onClick={() => {
+                void loadAlerts(true);
+              }}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-2 py-1.5 text-[11px] font-bold ${unreadAlerts > 0 ? 'bg-red-50 text-red-700' : 'bg-[var(--surface-container-low)] text-[var(--outline)]'}`}
+              aria-label={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
+              title={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
+            >
+              <BellDot size={12} />
+              <span>{unreadAlerts}</span>
+              <span className="hidden sm:inline">{t('official.dashboard.unreadLabel')}</span>
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 void loadAlerts();
               }}
-              className="flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--on-surface-variant)]"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border-none bg-[var(--surface-container-low)] px-0 py-0 text-[11px] font-semibold text-[var(--on-surface-variant)] sm:h-auto sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5"
+              aria-label={t('official.dashboard.refreshAlerts')}
+              title={t('official.dashboard.refreshAlerts')}
             >
-              <RefreshCw size={12} /> {t('common.refresh')}
+              <RefreshCw size={12} />
+              <span className="hidden sm:inline">{t('common.refresh')}</span>
             </button>
           </div>
         </div>
@@ -526,7 +540,7 @@ export default function Dashboard() {
               {alerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className={`flex items-start justify-between gap-2.5 rounded-xl px-2.5 py-[9px] ${alert.readAt ? 'bg-[var(--surface-container-low)]' : 'bg-amber-50'}`}
+                  className={`flex items-center justify-between gap-2.5 rounded-xl px-2.5 py-[9px] ${alert.readAt ? 'bg-[var(--surface-container-low)]' : 'bg-amber-50'}`}
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[var(--on-surface)]">
@@ -540,16 +554,27 @@ export default function Dashboard() {
                     </div>
                   </div>
                   {alert.readAt ? (
-                    <span className="whitespace-nowrap text-[10px] font-bold text-emerald-600">{t('official.dashboard.read')}</span>
+                    <button
+                      type="button"
+                      disabled
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border-none bg-emerald-50 text-emerald-600 shadow-[inset_0_0_0_1px_rgba(5,150,105,0.22)] leading-none"
+                      aria-label={t('official.dashboard.read')}
+                      title={t('official.dashboard.read')}
+                    >
+                      <Check size={16} className="block" />
+                    </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={() => {
                         void handleMarkAlertRead(alert.id);
                       }}
                       disabled={markingReadAlertId === alert.id}
-                      className={`whitespace-nowrap rounded-lg border-none bg-[var(--surface-container-lowest)] px-2 py-1.5 text-[10px] font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.14)] ${markingReadAlertId === alert.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      aria-label={t('official.dashboard.markRead')}
+                      title={t('official.dashboard.markRead')}
+                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border-none bg-[var(--surface-container-lowest)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.14)] ${markingReadAlertId === alert.id ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
                     >
-                      {markingReadAlertId === alert.id ? t('official.dashboard.saving') : t('official.dashboard.markRead')}
+                      {markingReadAlertId === alert.id ? <RefreshCw size={14} className="animate-spin" /> : <Check size={16} className="block" />}
                     </button>
                   )}
                 </div>
