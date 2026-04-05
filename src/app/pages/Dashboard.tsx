@@ -69,7 +69,7 @@ function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
   const isLiveLabel = trend?.val?.includes('Live') || trend?.val?.includes('live');
   return (
     <div
-      className="flex min-w-0 flex-1 flex-col gap-1.5 border border-slate-200 bg-white px-4 py-4"
+      className="flex min-w-0 flex-1 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200"
       style={{ borderLeft: `3px solid ${accent}` }}
     >
       <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
@@ -98,7 +98,7 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div className="grid gap-2 rounded-[10px] border border-[#F2C8C8] bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1] px-3.5 py-3 mb-3">
+    <div className="grid gap-2 bg-white px-3.5 py-3 mb-3" style={{ borderLeft: '3px solid #DC2626' }}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 rounded-md border border-[#E8B4B4] bg-[#FDE8E8] flex items-center justify-center shrink-0">
@@ -467,7 +467,7 @@ export default function Dashboard() {
 
       {strongestHeatCluster ? (
         <section
-          className="mb-4 border border-slate-200 bg-white px-4 py-3"
+          className="mb-4 bg-white px-4 py-3"
           style={{ borderLeft: '3px solid #D97706' }}
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -487,7 +487,7 @@ export default function Dashboard() {
       ) : null}
 
       {/* Cross-Border Alerts */}
-      <div className="mb-4 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #D97706' }}>
+      <div className="mb-4 overflow-hidden bg-white">
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
           <div className="flex items-center gap-2">
             <Bell size={14} color="#D97706" />
@@ -592,7 +592,7 @@ export default function Dashboard() {
       </div>
 
       {/* Heatmap Hotspots */}
-      <div className="mb-4 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #2563EB' }}>
+      <div className="mb-4 overflow-hidden bg-white">
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
           <div className="flex items-center gap-2">
             <TrendingUp size={14} color="#2563EB" />
@@ -652,7 +652,7 @@ export default function Dashboard() {
           Live
         </span>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 mb-4 border border-slate-200" style={{ borderTop: '0' }}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-l border-t border-slate-200 mb-4">
         <KPICard
           title={t('official.dashboard.activeIncidents')}
           value={activeIncidents.length}
@@ -694,7 +694,7 @@ export default function Dashboard() {
       {/* Map + Live Feed Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Map Preview */}
-        <div className="flex flex-[3_1_340px] flex-col overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #2563EB' }}>
+        <div className="flex flex-[3_1_340px] flex-col overflow-hidden bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div className="flex items-center gap-2">
               <MapPin size={14} color="#2563EB" />
@@ -846,7 +846,7 @@ export default function Dashboard() {
         </div>
 
         {/* Live Feed */}
-        <div className="flex flex-[2_1_260px] flex-col overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #16A34A' }}>
+        <div className="flex flex-[2_1_260px] flex-col overflow-hidden bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.liveIncidentFeed')}</span>
@@ -900,7 +900,7 @@ export default function Dashboard() {
       {/* Charts Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Trend Chart */}
-        <div className="flex-[3_1_300px] border border-slate-200 bg-white px-4 py-3.5">
+        <div className="flex-[3_1_300px] bg-white px-4 py-3.5">
           <div className="mb-3.5 flex items-center justify-between">
             <div>
               <div className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
@@ -932,7 +932,7 @@ export default function Dashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="flex-[2_1_220px] border border-slate-200 bg-white px-4 py-3.5">
+        <div className="flex-[2_1_220px] bg-white px-4 py-3.5">
           <div className="mb-1 text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.incidentByCategory')}</div>
           <div className="mb-2.5 text-[11px] text-slate-400">{t('official.dashboard.categoryDistribution')}</div>
           <div className="flex items-center gap-3">
@@ -959,7 +959,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Incidents Table */}
-      <div className="mb-2 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #0F172A' }}>
+      <div className="mb-2 overflow-hidden bg-white">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
           <span className="text-[13px] font-bold text-[#0F172A]">Incident Queue</span>
           <div className="flex items-center gap-2">

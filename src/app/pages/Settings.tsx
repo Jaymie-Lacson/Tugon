@@ -55,7 +55,7 @@ export default function Settings() {
       </div>
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">
-        <div className="w-[220px] shrink-0 bg-white border border-slate-200 overflow-hidden max-md:w-full">
+        <div className="w-[220px] shrink-0 bg-white overflow-hidden max-md:w-full">
           <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
             <User size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">Account</span>
@@ -70,13 +70,13 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-[280px] bg-white border border-slate-200 px-6 py-5 max-md:min-w-0 max-md:w-full">
+        <div className="flex-1 min-w-[280px] bg-white px-6 py-5 max-md:min-w-0 max-md:w-full">
           <div className="text-[15px] font-bold text-slate-800 mb-4">User Profile</div>
           <div className="mb-3.5 text-[11px] text-slate-500">
             This page only shows account details backed by your authenticated session.
           </div>
 
-          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 border border-slate-100 bg-slate-50">
+          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 bg-slate-50">
             <div className="size-14 flex shrink-0 items-center justify-center bg-[#0F172A] font-bold text-white text-xl">
               {initials}
             </div>

@@ -30,7 +30,8 @@
       "Bash(npx vite:*)",
       "Bash(ls tsconfig*)",
       "Bash(ls \"C:\\\\Users\\\\Mikell Razon\\\\BSIT\\\\2ND YEAR\\\\2ND SEM\\\\PROF ELEC\\\\Tugon\\\\tsconfig\"*)",
-      "Bash(ls \"C:\\\\Users\\\\Mikell Razon\\\\BSIT\\\\2ND YEAR\\\\2ND SEM\\\\PROF ELEC\\\\Tugon\"/*.json)"
+      "Bash(ls \"C:\\\\Users\\\\Mikell Razon\\\\BSIT\\\\2ND YEAR\\\\2ND SEM\\\\PROF ELEC\\\\Tugon\"/*.json)",
+      "Skill(check)"
     ]
   }
 }

@@ -22,14 +22,10 @@ const typeIcons: Record<IncidentType, React.ReactNode> = {
 
 function IncidentCard({ incident, selected, onClick }: { incident: Incident; selected: boolean; onClick: () => void }) {
   const cardClass = selected ? 'map-incident-card is-selected' : 'map-incident-card';
-  const iconClass = `map-incident-type-icon map-incident-type-${incident.type}`;
 
   return (
     <div onClick={onClick} className={cardClass}>
       <div className="map-incident-card-row">
-        <div className={iconClass}>
-          {typeIcons[incident.type]}
-        </div>
         <div className="map-incident-card-content">
           <div className="map-incident-card-head">
             <span className="map-incident-id">{incident.id}</span>

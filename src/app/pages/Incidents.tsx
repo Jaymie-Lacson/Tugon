@@ -173,26 +173,19 @@ function IncidentDetailModal({
     >
       <div className="max-h-[92vh] w-full max-w-[760px] overflow-auto rounded-2xl bg-[var(--surface-container-low)] shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
-        <div className="flex items-start justify-between rounded-t-2xl bg-primary px-5 py-[18px]">
+        <div className="flex items-start justify-between border-b border-slate-200 bg-white px-5 py-4" style={{ borderTop: '3px solid #2563EB' }}>
           <div>
-            <div className="mb-2 flex items-center gap-2.5">
-              <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-white" style={{ color: cfg.color }}>
-                {typeIcons[incident.type]}
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-200">{t('official.incidents.details')}</div>
-                <div className="text-base font-extrabold text-white">{incident.id}</div>
-              </div>
-            </div>
-            <div className="text-xs text-blue-100">{incident.location}</div>
+            <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('official.incidents.details')}</div>
+            <div className="font-mono text-base font-extrabold text-[#2563EB]">{incident.id}</div>
+            <div className="mt-0.5 text-xs text-slate-500">{incident.location}</div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={t('official.incidents.closeDetails')}
-            className="icon-btn-square rounded-lg border-none bg-white/[0.16] text-white cursor-pointer"
+            className="icon-btn-square cursor-pointer rounded-lg border border-slate-200 bg-white text-slate-600"
           >
-            <X size={16} color="white" />
+            <X size={16} />
           </button>
         </div>
 
@@ -742,18 +735,19 @@ export default function Incidents() {
       </div>
 
       {/* List view toggle */}
-      <div className="mb-3 flex w-fit max-w-full flex-wrap gap-2 rounded-2xl bg-[var(--surface-container-lowest)] p-2 shadow-ambient">
+      <div className="mb-3 flex w-fit max-w-full flex-wrap border-b border-slate-200">
         <button
           type="button"
           onClick={() => {
             setListView('open');
             setPage(1);
           }}
-          className={`cursor-pointer rounded-full border-none px-3.5 py-2 text-xs font-bold ${
+          className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'open'
-              ? 'bg-primary text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
-              : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
+              ? 'border-b-2 border-[#2563EB] text-[#2563EB]'
+              : 'text-[var(--on-surface-variant)]'
           }`}
+          style={listView === 'open' ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : {}}
         >
           {t('official.incidents.openIncidents', { count: openCount })}
         </button>
@@ -763,11 +757,12 @@ export default function Incidents() {
             setListView('archived');
             setPage(1);
           }}
-          className={`cursor-pointer rounded-full border-none px-3.5 py-2 text-xs font-bold ${
+          className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'archived'
-              ? 'bg-primary text-white shadow-[0_10px_24px_rgba(0,35,111,0.24)]'
-              : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
+              ? 'text-[#2563EB]'
+              : 'text-[var(--on-surface-variant)]'
           }`}
+          style={listView === 'archived' ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : {}}
         >
           {t('official.incidents.archived', { count: archivedCount })}
         </button>
@@ -780,7 +775,7 @@ export default function Incidents() {
       ) : null}
 
       {/* Filter bar */}
-      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient">
+      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 border border-slate-200 bg-white px-3.5 py-3">
         <div className="flex-[2_1_200px]">
           <SearchInput
             value={search}
@@ -872,7 +867,7 @@ export default function Incidents() {
       </div>
 
       {/* Desktop table */}
-      <div className="incidents-table-wrapper mb-3.5 overflow-hidden rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient">
+      <div className="incidents-table-wrapper mb-3.5 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #0F172A' }}>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
@@ -1014,7 +1009,7 @@ export default function Incidents() {
         {loading ? (
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
-          <div className="rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-[22px] text-center text-[13px] text-[var(--on-surface-variant)] shadow-ambient">
+          <div className="border border-slate-200 bg-white px-4 py-[22px] text-center text-[13px] text-[var(--on-surface-variant)]">
             {t('official.incidents.noMatchFilters')}
           </div>
         ) : (
@@ -1022,7 +1017,8 @@ export default function Incidents() {
             <article
               key={inc.id}
               onClick={() => setSelectedIncident(inc)}
-              className="cursor-pointer rounded-2xl bg-[var(--surface-container-lowest)] px-3 pb-2.5 pt-3 shadow-ambient"
+              className="cursor-pointer border border-slate-200 bg-white px-3 pb-2.5 pt-3"
+              style={{ borderLeft: '3px solid #E2E8F0' }}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="grid gap-[5px]">
@@ -1081,7 +1077,7 @@ export default function Incidents() {
 
       {/* Pagination */}
       {!loading && filtered.length > 0 ? (
-        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl bg-[var(--surface-container-lowest)] px-3 py-2.5 shadow-ambient">
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 border border-slate-200 bg-white px-3 py-2.5">
           <div className="text-xs text-[var(--on-surface-variant)]">
             {t('official.incidents.showingRange', { from: (page - 1) * perPage + 1, to: Math.min(page * perPage, filtered.length), total: filtered.length })}
           </div>

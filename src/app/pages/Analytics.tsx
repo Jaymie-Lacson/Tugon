@@ -77,7 +77,7 @@ interface MetricCardProps { title: string; value: string; change: string; up: bo
 function MetricCard({ title, value, sub, color }: MetricCardProps) {
   return (
     <div
-      className="border border-slate-200 bg-white px-4 py-4"
+      className="bg-white px-4 py-4"
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
@@ -304,7 +304,7 @@ export default function Analytics() {
           <p className="text-xs text-slate-400">{t('official.analytics.pageSubtitle')}</p>
         </div>
         <div className="analytics-header-controls flex gap-2 items-center flex-wrap">
-          <div className="analytics-period-tabs flex overflow-hidden border border-slate-200 bg-white">
+          <div className="analytics-period-tabs flex overflow-hidden bg-white">
             {PERIODS.map(p => (
               <button
                 key={p}
@@ -317,7 +317,7 @@ export default function Analytics() {
               </button>
             ))}
           </div>
-          <button className="flex cursor-pointer items-center gap-[5px] rounded border border-slate-200 bg-white px-3.5 py-[7px] text-xs font-semibold text-slate-600">
+          <button className="flex cursor-pointer items-center gap-[5px] rounded bg-white px-3.5 py-[7px] text-xs font-semibold text-slate-600">
             <Download size={13} /> {t('official.analytics.export')}
           </button>
         </div>
@@ -338,7 +338,7 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div className="analytics-card analytics-trend-card mb-3.5 border border-slate-200 bg-white p-3.5 px-4">
+      <div className="analytics-card analytics-trend-card mb-3.5 bg-white p-3.5 px-4">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
             <div className="text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
@@ -404,7 +404,7 @@ export default function Analytics() {
       {/* Middle row charts */}
       <div className="analytics-middle-row mb-3.5 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Response time */}
-        <div className="analytics-card flex-[2_1_280px] border border-slate-200 bg-white p-3.5 px-4">
+        <div className="analytics-card flex-[2_1_280px] bg-white p-3.5 px-4">
           <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.avgResponseByCategory')}</div>
           <div className="mb-3 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
@@ -437,7 +437,7 @@ export default function Analytics() {
         </div>
 
         {/* Severity Distribution */}
-        <div className="analytics-card flex-[1_1_200px] border border-slate-200 bg-white p-3.5 px-4">
+        <div className="analytics-card flex-[1_1_200px] bg-white p-3.5 px-4">
           <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.severityDistribution')}</div>
           <div className="mb-2.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
@@ -463,7 +463,7 @@ export default function Analytics() {
         </div>
 
         {/* Hourly pattern */}
-        <div className="analytics-card flex-[2_1_260px] border border-slate-200 bg-white p-3.5 px-4">
+        <div className="analytics-card flex-[2_1_260px] bg-white p-3.5 px-4">
           <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.hourlyPattern')}</div>
           <div className="mb-3 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
@@ -494,7 +494,7 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row mb-2 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Barangay comparison */}
-        <div className="analytics-card flex-[3_1_300px] border border-slate-200 bg-white p-3.5 px-4">
+        <div className="analytics-card flex-[3_1_300px] bg-white p-3.5 px-4">
           <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.barangayComparison')}</div>
           <div className="mb-3.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
@@ -512,7 +512,7 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div className="analytics-card flex-[2_1_240px] border border-slate-200 bg-white p-3.5 px-4">
+        <div className="analytics-card flex-[2_1_240px] bg-white p-3.5 px-4">
           <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.resourceUtilization')}</div>
           <div className="mb-3.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
