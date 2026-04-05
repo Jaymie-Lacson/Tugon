@@ -78,7 +78,6 @@ function MetricCard({ title, value, sub, color }: MetricCardProps) {
   return (
     <div
       className="bg-white px-4 py-4"
-      style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
       <div className="font-mono text-[28px] font-black text-[#0F172A]">{value}</div>

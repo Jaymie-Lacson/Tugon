@@ -1018,7 +1018,6 @@ export default function Incidents() {
               key={inc.id}
               onClick={() => setSelectedIncident(inc)}
               className="cursor-pointer border border-slate-200 bg-white px-3 pb-2.5 pt-3"
-              style={{ borderLeft: '3px solid #E2E8F0' }}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="grid gap-[5px]">

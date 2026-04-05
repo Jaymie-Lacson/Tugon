@@ -808,7 +808,7 @@ export default function SuperAdminLayout() {
           `}</style>
         </header>
 
-        <main className="flex-1 overflow-y-auto" onClick={closeOverlays} onScroll={closeOverlays}>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto" onClick={closeOverlays} onScroll={closeOverlays}>
           <Outlet />
         </main>
       </div>

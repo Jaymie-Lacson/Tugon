@@ -628,7 +628,7 @@ export default function SAUsers() {
           { label: t('superadmin.users.active'), value: counts.active, accent: '#16A34A' },
           { label: t('superadmin.users.inactive'), value: counts.inactive, accent: '#6B7280' },
         ].map(stat => (
-          <div key={stat.label} className="bg-white px-4 py-3 border-r border-b border-slate-200" style={{ borderLeft: `3px solid ${stat.accent}` }}>
+          <div key={stat.label} className="bg-white px-4 py-3 border-r border-b border-slate-200">
             <div className="text-[#0F172A] text-[20px] font-bold font-mono">{stat.value}</div>
             <div className="text-[#6B7280] text-[11px]">{stat.label}</div>
           </div>

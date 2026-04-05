@@ -220,11 +220,11 @@ export default function SAAuditLogs() {
       ) : null}
 
       <div className="grid grid-cols-2 gap-0 border-l border-t border-slate-200 mb-3">
-        <div className="bg-white border-r border-b border-slate-200 px-3 py-2.5" style={{ borderLeft: '3px solid #0F172A' }}>
+        <div className="bg-white border-r border-b border-slate-200 px-3 py-2.5">
           <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
           <div className="text-[#0F172A] text-2xl font-bold font-mono mt-0.5">{logs.length}</div>
         </div>
-        <div className="bg-white border-r border-b border-slate-200" style={{ borderLeft: '3px solid #2563EB' }}>
+        <div className="bg-white border-r border-b border-slate-200">
           <div className="px-3 py-2.5">
           <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
           <div className="text-[#0F172A] text-2xl font-bold font-mono mt-0.5">{Object.keys(actionCounts).length}</div>

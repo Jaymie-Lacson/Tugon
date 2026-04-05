@@ -364,8 +364,7 @@ function DSSCard({
 
   return (
     <div
-      className="mb-3 overflow-hidden bg-white"
-      style={{ borderLeft: `3px solid ${rec.color}` }}
+      className="mb-3 overflow-hidden bg-white border border-slate-200"
     >
       <div className="flex items-start gap-3 bg-white px-4 py-3.5">
         {/* Content */}
@@ -807,7 +806,7 @@ export default function Reports() {
       {activeTab === 'dss' && (
         <div>
           {/* DSS Header */}
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 bg-white px-5 py-4" style={{ borderLeft: '3px solid #2563EB' }}>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 bg-white px-5 py-4 border border-slate-200">
             <div>
               <div className="mb-1.5 flex items-center gap-2">
                 <Sparkles size={14} color="#2563EB" />
@@ -857,8 +856,8 @@ export default function Reports() {
               { label: t('official.reports.resolvedThisWeek'), value: resolvedThisWeek, color: '#16A34A' },
               { label: t('official.reports.avgConfidence'), value: `${avgConfidence}%`, color: '#7C3AED' },
             ].map(s => (
-              <div key={s.label} className="bg-white px-3.5 py-3" style={{ borderLeft: `3px solid ${s.color}` }}>
-                <div className="mb-0.5 font-mono text-[22px] font-bold" style={{ color: s.color }}>{s.value}</div>
+              <div key={s.label} className="bg-white px-3.5 py-3 border border-slate-200">
+                <div className="mb-0.5 font-mono text-[22px] font-bold text-[#0F172A]">{s.value}</div>
                 <div className="text-[11px] text-slate-400">{s.label}</div>
               </div>
             ))}
@@ -893,7 +892,7 @@ export default function Reports() {
         <div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5">
             {REPORT_TEMPLATES.map(tmpl => (
-              <div key={tmpl.id} className="overflow-hidden bg-white" style={{ borderLeft: `3px solid ${tmpl.color}` }}>
+              <div key={tmpl.id} className="overflow-hidden border border-slate-200 bg-white">
                 <div className="px-4 py-3.5">
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: tmpl.color }}>{tmpl.category}</span>

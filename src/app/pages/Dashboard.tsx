@@ -70,7 +70,6 @@ function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
   return (
     <div
       className="flex min-w-0 flex-1 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200"
-      style={{ borderLeft: `3px solid ${accent}` }}
     >
       <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
       <div className="font-mono text-[28px] font-black leading-none text-[#0F172A]">{value}</div>
@@ -467,8 +466,7 @@ export default function Dashboard() {
 
       {strongestHeatCluster ? (
         <section
-          className="mb-4 bg-white px-4 py-3"
-          style={{ borderLeft: '3px solid #D97706' }}
+          className="mb-4 bg-white px-4 py-3 border border-slate-200"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#D97706]">Geofencing Warning</div>
@@ -547,7 +545,6 @@ export default function Dashboard() {
                 <div
                   key={alert.id}
                   className="flex items-center justify-between gap-2.5 bg-white py-[9px] pl-3 pr-2.5 border-b border-slate-50 last:border-b-0"
-                  style={{ borderLeft: alert.readAt ? '3px solid #E2E8F0' : '3px solid #D97706' }}
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[var(--on-surface)]">

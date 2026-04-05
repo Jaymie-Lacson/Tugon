@@ -54,7 +54,6 @@ function KPICard({ label, value, sub, color, trend, trendLabel }: KPIProps) {
   return (
     <div
       className="flex min-w-0 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200"
-      style={{ borderLeft: `3px solid ${accent}` }}
     >
       {trend !== undefined && (
         <div className={`flex items-center gap-[3px] font-mono text-[10px] font-bold ${isUp ? 'text-[#DC2626]' : 'text-[#16A34A]'}`}>

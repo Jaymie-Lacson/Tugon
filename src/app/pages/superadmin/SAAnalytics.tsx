@@ -32,7 +32,7 @@ const STAT_ACCENT: Record<string, string> = {
 function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   const accent = STAT_ACCENT[color] ?? '#2563EB';
   return (
-    <div className="bg-white px-4 py-3.5 border-r border-b border-slate-200" style={{ borderLeft: `3px solid ${accent}` }}>
+    <div className="bg-white px-4 py-3.5 border-r border-b border-slate-200">
       <div className="text-[#0F172A] text-[22px] font-bold font-mono leading-none">{value}</div>
       <div className="text-slate-500 text-[11px] mt-1">{label}</div>
     </div>
