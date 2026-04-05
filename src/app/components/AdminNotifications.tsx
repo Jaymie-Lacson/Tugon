@@ -87,7 +87,7 @@ export function AdminNotifications({
           padding: 0,
         }}
       >
-        <Bell size={18} color="white" />
+        <Bell size={18} color="var(--on-surface)" />
         {unreadCount > 0 ? (
           <span
             style={{
