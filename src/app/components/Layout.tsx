@@ -15,6 +15,7 @@ import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { useTranslation } from '../i18n';
+import { LanguageToggle } from '../i18n';
 import { officialSidebarNavDefs } from '../data/navigationConfig';
 
 function LiveClock() {
@@ -41,6 +42,7 @@ function Layout() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const mobileSearchRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem('tugon-sidebar-collapsed') === 'true'; } catch { return false; }
   });
@@ -99,6 +101,33 @@ function Layout() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen]);
+
+  useEffect(() => {
+    if (!mobileDrawerOpen) {
+      return;
+    }
+
+    const closeMenuOnScroll = () => {
+      setMobileDrawerOpen(false);
+    };
+
+    const closeMenuOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && headerRef.current?.contains(target)) {
+        return;
+      }
+
+      setMobileDrawerOpen(false);
+    };
+
+    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
+    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+
+    return () => {
+      window.removeEventListener('scroll', closeMenuOnScroll);
+      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    };
+  }, [mobileDrawerOpen]);
 
   useEffect(() => {
     let active = true;
@@ -168,6 +197,7 @@ function Layout() {
   }));
 
   const closeOverlays = () => {
+    if (mobileDrawerOpen) setMobileDrawerOpen(false);
     if (profileMenuOpen) setProfileMenuOpen(false);
     if (notificationsOpen) setNotificationsOpen(false);
   };
@@ -307,7 +337,7 @@ function Layout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+        <header ref={headerRef} className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           {/* Mobile: page name */}
           <div className="flex items-center gap-2 lg:hidden">
             <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
@@ -392,21 +422,25 @@ function Layout() {
                 <div
                   role="menu"
                   aria-label="Profile actions"
-                  className="absolute right-0 top-11 z-[2300] w-[190px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated"
+                  className="absolute right-0 top-11 z-[2300] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                 >
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
-                    className="w-full cursor-pointer border-none border-b border-[var(--outline-variant)]/30 bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)]"
+                    className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                   >
                     {t('common.profile')}
                   </button>
+                  <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                    <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
+                    <LanguageToggle compact />
+                  </div>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
-                    className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive"
+                    className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
                   >
                     {t('common.signOut')}
                   </button>
@@ -455,7 +489,7 @@ function Layout() {
 
           {/* Mobile navigation dropdown (landing page style) */}
           <div
-            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)] lg:hidden"
+            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
             aria-hidden={!mobileDrawerOpen}
             style={{
               padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
@@ -478,8 +512,8 @@ function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileDrawerOpen(false)}
-                  className={`flex w-full items-center gap-3 border-b border-white/[0.06] px-0 py-3 no-underline text-[15px] font-semibold ${
-                    active ? 'text-white' : 'text-white/[0.7]'
+                  className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
+                    active ? 'text-primary' : 'text-[var(--on-surface-variant)]'
                   }`}
                   style={{
                     opacity: mobileDrawerOpen ? 1 : 0,
@@ -496,8 +530,8 @@ function Layout() {
             <NavLink
               to="/app/settings"
               onClick={() => setMobileDrawerOpen(false)}
-              className={`flex w-full items-center gap-3 border-b border-white/[0.06] px-0 py-3 no-underline text-[15px] font-semibold ${
-                settingsActive ? 'text-white' : 'text-white/[0.7]'
+              className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
+                settingsActive ? 'text-primary' : 'text-[var(--on-surface-variant)]'
               }`}
               style={{
                 opacity: mobileDrawerOpen ? 1 : 0,
@@ -512,7 +546,7 @@ function Layout() {
             <button
               type="button"
               onClick={() => { setMobileDrawerOpen(false); handleSignOut(); }}
-              className="mt-3 flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-white/[0.08] px-3 py-3 text-[15px] font-semibold text-red-400"
+              className="mt-3 flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-[var(--surface-container-high)] px-3 py-3 text-[15px] font-semibold text-destructive"
               style={{
                 opacity: mobileDrawerOpen ? 1 : 0,
                 transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
