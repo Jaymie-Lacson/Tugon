@@ -207,36 +207,38 @@ export default function SAAuditLogs() {
           onClick={() => {
             void loadLogs();
           }}
-          className="flex w-full justify-center items-center gap-1.5 bg-white border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold md:w-auto"
+          className="flex w-full justify-center items-center gap-1.5 bg-white border border-[var(--outline-variant)] px-3.5 py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold md:w-auto"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
       </div>
 
       {error ? (
-        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] text-severity-critical rounded-[10px] px-3 py-2.5 text-xs">
+        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-[#DC2626] text-xs font-semibold">
           {error}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2.5 mb-3">
-        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
-          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
-          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{logs.length}</div>
+      <div className="grid grid-cols-2 gap-0 border-l border-t border-slate-200 mb-3">
+        <div className="bg-white border-r border-b border-slate-200 px-3 py-2.5" style={{ borderLeft: '3px solid #0F172A' }}>
+          <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.totalEntries')}</div>
+          <div className="text-[#0F172A] text-2xl font-bold font-mono mt-0.5">{logs.length}</div>
         </div>
-        <div className="bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
-          <div className="text-[var(--outline)] text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
-          <div className="text-[var(--on-surface)] text-2xl font-bold mt-0.5">{Object.keys(actionCounts).length}</div>
+        <div className="bg-white border-r border-b border-slate-200" style={{ borderLeft: '3px solid #2563EB' }}>
+          <div className="px-3 py-2.5">
+          <div className="text-slate-400 text-[10px] font-bold tracking-[0.06em] uppercase">{t('superadmin.auditLogs.actionsSeen')}</div>
+          <div className="text-[#0F172A] text-2xl font-bold font-mono mt-0.5">{Object.keys(actionCounts).length}</div>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
+      <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-slate-200 px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
         <Filter size={13} className="text-[var(--outline)]" />
         <select
           title="Filter by action"
           value={actionFilter}
           onChange={(event) => setActionFilter(event.target.value)}
-          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] text-xs text-[var(--on-surface-variant)]"
         >
           {ACTIONS.map((action) => (
             <option key={action} value={action}>{action}</option>
@@ -246,7 +248,7 @@ export default function SAAuditLogs() {
           title="Filter by target type"
           value={targetFilter}
           onChange={(event) => setTargetFilter(event.target.value)}
-          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] text-xs text-[var(--on-surface-variant)]"
         >
           {TARGET_TYPES.map((target) => (
             <option key={target} value={target}>{target}</option>
@@ -257,36 +259,36 @@ export default function SAAuditLogs() {
           type="date"
           value={fromDate}
           onChange={(event) => setFromDate(event.target.value)}
-          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] text-xs text-[var(--on-surface-variant)]"
         />
         <input
           title="Filter to date"
           type="date"
           value={toDate}
           onChange={(event) => setToDate(event.target.value)}
-          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] rounded-lg text-xs text-[var(--on-surface-variant)]"
+          className="w-full md:w-auto px-2.5 py-[7px] border border-[var(--outline-variant)] text-xs text-[var(--on-surface-variant)]"
         />
         <button
           onClick={() => applyDatePreset(1)}
-          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.today')}
         </button>
         <button
           onClick={() => applyDatePreset(7)}
-          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.last7Days')}
         </button>
         <button
           onClick={() => applyDatePreset(30)}
-          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.last30Days')}
         </button>
         <button
           onClick={clearDatePreset}
-          className="w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
+          className="w-full md:w-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold cursor-pointer"
         >
           {t('superadmin.auditLogs.clearDates')}
         </button>
@@ -295,7 +297,7 @@ export default function SAAuditLogs() {
             void handleExportJson();
           }}
           disabled={exportButtonsDisabled}
-          className={`w-full md:w-auto md:ml-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+          className={`w-full md:w-auto md:ml-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
           {exportingJson ? t('superadmin.auditLogs.exportingJson') : t('superadmin.auditLogs.exportJson')}
         </button>
@@ -304,7 +306,7 @@ export default function SAAuditLogs() {
             void handleExportCsv();
           }}
           disabled={exportButtonsDisabled}
-          className={`w-full md:w-auto border border-[var(--outline-variant)] rounded-lg px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+          className={`w-full md:w-auto border border-[var(--outline-variant)] px-2.5 py-[7px] bg-white text-[var(--on-surface-variant)] text-xs font-semibold ${exportButtonsDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
         >
           {exportingCsv ? t('superadmin.auditLogs.exportingCsv') : t('superadmin.auditLogs.exportCsv')}
         </button>

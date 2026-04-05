@@ -117,7 +117,7 @@ export default function Verifications() {
       </div>
 
       {error && (
-        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--error)] shadow-[0_8px_20px_rgba(186,26,26,0.14)]">
+        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-xs font-semibold text-[#DC2626]">
           {error}
         </div>
       )}
@@ -129,7 +129,7 @@ export default function Verifications() {
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl bg-card p-4 text-[13px] text-[var(--on-surface-variant)] shadow-sm">
+        <div className="border border-slate-200 bg-white p-4 text-[13px] text-[var(--on-surface-variant)]">
           {t('official.verifications.noPending')}
         </div>
       ) : (
@@ -163,7 +163,7 @@ export default function Verifications() {
                           setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);
                           setPreviewUrl(row.idImageUrl);
                         }}
-                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-xl border-none bg-[var(--surface-container-high)] px-3 py-2 text-xs font-bold text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.16)]"
+                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-[#2563EB]"
                       >
                         <Upload size={13} /> {t('official.verifications.previewUploadedId')}
                       </button>
@@ -171,7 +171,7 @@ export default function Verifications() {
                         href={row.idImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex w-fit items-center gap-1.5 rounded-xl bg-[var(--surface-container-low)] px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline shadow-[inset_0_0_0_1px_rgba(197,197,211,0.26)]"
+                        className="inline-flex w-fit items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline"
                       >
                         {t('official.verifications.openInNewTab')}
                       </a>
@@ -180,13 +180,13 @@ export default function Verifications() {
                     <div className="text-xs font-bold text-[var(--secondary)]">{t('official.verifications.noIdImage')}</div>
                   )}
 
-                  <div className="grid gap-2.5 rounded-xl bg-[var(--surface-container-low)] p-3">
+                  <div className="grid gap-2.5 border border-slate-200 bg-white p-3">
                     <label className="text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      className="w-full rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
+                      className="w-full border border-slate-200 bg-white px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
                     >
                       <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
@@ -199,7 +199,7 @@ export default function Verifications() {
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      className="box-border w-full resize-y rounded-lg border-none bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] shadow-[inset_0_0_0_1px_rgba(197,197,211,0.3)]"
+                      className="box-border w-full resize-y border border-slate-200 bg-white px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
                     />
                   </div>
 
@@ -240,7 +240,7 @@ export default function Verifications() {
                     </Button>
                   </div>
 
-                  <div className="flex items-start gap-1.5 rounded-xl bg-[var(--secondary-container)]/18 px-2.5 py-2 text-[11px] text-[var(--secondary)]">
+                  <div className="flex items-start gap-1.5 border-l-[3px] border-slate-400 bg-slate-50 px-2.5 py-2 text-[11px] text-slate-600">
                     <ShieldAlert size={14} className="shrink-0 mt-px" />
                     {t('official.verifications.banWarning')}
                   </div>
@@ -281,8 +281,8 @@ export default function Verifications() {
                 </div>
 
                 <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
-                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
-                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
+                  <div className="overflow-hidden border border-slate-200 bg-white">
+                    <div className="border-b border-slate-200 bg-slate-50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
                       {t('official.verifications.frontId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">
@@ -294,8 +294,8 @@ export default function Verifications() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-[10px] bg-card shadow-[inset_0_0_0_1px_rgba(197,197,211,0.32)]">
-                    <div className="bg-[var(--surface-container-low)] px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)] shadow-[inset_0_-1px_0_rgba(197,197,211,0.35)]">
+                  <div className="overflow-hidden border border-slate-200 bg-white">
+                    <div className="border-b border-slate-200 bg-slate-50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
                       {t('official.verifications.backId')}
                     </div>
                     <div className="relative h-[300px] overflow-hidden bg-white">

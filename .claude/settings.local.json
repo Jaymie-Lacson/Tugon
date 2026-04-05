@@ -42,7 +42,9 @@
       "Bash(node:*)",
       "Bash(curl -s https://api.github.com/repos/pbakaus/impeccable/contents/.claude/skills/adapt/SKILL.md)",
       "Read(//usr/**)",
-      "Read(//usr/local/**)"
+      "Read(//usr/local/**)",
+      "Bash(sed -i 's/rounded-lg //' src/app/pages/superadmin/SAAuditLogs.tsx)",
+      "Bash(sed -i 's/ rounded-lg//' src/app/pages/superadmin/SAAuditLogs.tsx)"
     ]
   }
 }

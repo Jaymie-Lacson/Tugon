@@ -315,13 +315,13 @@ export default function SuperAdminLayout() {
         to={item.path}
         onClick={onClick}
         title={t('nav.openPage', { page: item.label })}
-        className={`mb-1.5 flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
+        className={`mb-1.5 flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2.5 no-underline transition-colors ${
           isActive
-            ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-            : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+            ? 'border-l-2 border-[#2563EB] bg-slate-50 text-[#2563EB]'
+            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
         }`}
       >
-        <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
+        <item.icon size={16} className={`shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-slate-400'}`} />
         {!collapsed && (
           <span className={`text-[13px] whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
             {item.label}
@@ -332,17 +332,17 @@ export default function SuperAdminLayout() {
   });
 
   const renderMonitoringStrip = () => (
-    <div className="mb-3 rounded-xl bg-[var(--surface-container)] p-2.5">
-      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+    <div className="mb-3 border border-slate-200 bg-white p-2.5">
+      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
         {t('nav.monitoring')}
       </div>
       {monitoringItems.map((barangay) => (
-        <div key={barangay.code} className="mb-1 flex items-center gap-2 rounded-lg bg-[var(--surface-container-lowest)] px-2 py-1.5 last:mb-0">
+        <div key={barangay.code} className="mb-0 flex items-center gap-2 border-b border-slate-100 px-2 py-1.5 last:border-b-0">
           <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: barangay.color }} />
-          <span className="flex-1 text-[11px] font-medium text-[var(--on-surface)]">{barangay.name}</span>
+          <span className="flex-1 text-[11px] font-medium text-[#0F172A]">{barangay.name}</span>
           <span
-            className="rounded-[5px] px-1.5 py-px text-[9px] font-bold"
-            style={{ color: barangay.color, background: `${barangay.color}20` }}
+            className="font-mono text-[9px] font-bold"
+            style={{ color: barangay.color }}
           >
             {t('superadmin.barangayMap.activeReports', { count: barangay.incidents })}
           </span>
@@ -393,7 +393,7 @@ export default function SuperAdminLayout() {
             type="button"
             onClick={() => setSidebarCollapsed((prev) => !prev)}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl border-none bg-transparent py-2 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]`}
+            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} border border-slate-200 bg-white py-2 text-slate-500 transition-colors hover:bg-slate-50`}
           >
             {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
             {!sidebarCollapsed && <span className="text-[13px] font-medium whitespace-nowrap">Collapse</span>}
@@ -403,7 +403,7 @@ export default function SuperAdminLayout() {
         <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
           <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
             <div
-              className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[13px] font-bold text-white"
+              className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] text-[13px] font-bold text-white"
               title={sidebarCollapsed ? userFullName : undefined}
             >
               {userInitials}
@@ -512,7 +512,7 @@ export default function SuperAdminLayout() {
                             onClick={() => handleSearchResultClick('/superadmin/users')}
                             className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
                           >
-                            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[10px] font-bold text-white">
+                            <div className="flex size-6 shrink-0 items-center justify-center bg-[#0F172A] text-[10px] font-bold text-white">
                               {user.fullName.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -584,7 +584,7 @@ export default function SuperAdminLayout() {
                 aria-label={t('superadmin.layout.ariaProfileActions')}
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
-                className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white"
+                className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
               >
                 {userInitials}
               </button>

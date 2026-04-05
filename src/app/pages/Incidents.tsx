@@ -199,7 +199,7 @@ function IncidentDetailModal({
         {/* Body */}
         <div className="px-5 pt-[18px] pb-5">
           {/* Description */}
-          <div className="mb-4 rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+          <div className="mb-4 border border-slate-200 bg-white px-3.5 py-3">
             <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.descriptionLabel')}</div>
             <div className="text-[13px] leading-[1.65] text-[var(--on-surface-variant)]">
               {incident.description}
@@ -207,7 +207,7 @@ function IncidentDetailModal({
           </div>
 
           {/* Evidence */}
-          <div className="mb-4 rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+          <div className="mb-4 border border-slate-200 bg-white px-3.5 py-3">
             <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">
               {t('official.incidents.evidenceAttachments')}
             </div>
@@ -276,7 +276,7 @@ function IncidentDetailModal({
               { label: t('official.incidents.affectedPersons'), value: incident.affectedPersons !== undefined ? t('official.incidents.affectedValue', { count: incident.affectedPersons }) : t('official.incidents.underAssessment'), icon: <Info size={13} /> },
               { label: t('official.incidents.responseTime'), value: responseTime ? t('official.incidents.responseTimeValue', { minutes: responseTime }) : t('official.incidents.notYetResponded'), icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} className="rounded-[10px] bg-[var(--surface-container-lowest)] px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+              <div key={item.label} className="border border-slate-200 bg-white px-3 py-2.5">
                 <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-[var(--outline)]">
                   {item.icon} {item.label}
                 </div>
@@ -286,7 +286,7 @@ function IncidentDetailModal({
           </div>
 
           {/* Timeline */}
-          <div className="rounded-xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-[inset_0_0_0_1px_rgba(197,197,211,0.2)]">
+          <div className="border border-slate-200 bg-white px-3.5 py-3">
             <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.ticketTimeline')}</div>
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
@@ -769,7 +769,7 @@ export default function Incidents() {
       </div>
 
       {error ? (
-        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2.5 text-[13px] text-[var(--error)]">
+        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-[13px] font-semibold text-[#DC2626]">
           {error}
         </div>
       ) : null}
