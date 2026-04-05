@@ -927,22 +927,22 @@ export default function Dashboard() {
         <div className="flex-[2_1_220px] rounded-2xl bg-[var(--surface-container-lowest)] px-4 py-3.5 shadow-ambient">
           <div className="mb-1 text-[13px] font-bold text-[var(--on-surface)]">{t('official.dashboard.incidentByCategory')}</div>
           <div className="mb-2.5 text-[11px] text-[var(--outline)]">{t('official.dashboard.categoryDistribution')}</div>
-          <div className="flex items-center gap-2.5 max-md:flex-col max-md:items-stretch max-md:gap-2">
-            <PieChart className="max-md:self-center" width={120} height={120}>
-              <Pie data={typeDist} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value">
+          <div className="flex items-center gap-3">
+            <PieChart className="shrink-0" width={156} height={156}>
+              <Pie data={typeDist} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
                 {typeDist.map((entry, index) => (
                   <Cell key={`cell-${index}-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
             </PieChart>
-            <div className="flex-1 max-md:w-full">
+            <div className="min-w-0 flex-1">
               {typeDist.map(item => (
-                <div key={item.name} className="mb-[5px] flex items-center justify-between">
+                <div key={item.name} className="mb-1.5 flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: item.color }} />
-                    <span className="text-[11px] text-slate-600">{item.name}</span>
+                    <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: item.color }} />
+                    <span className="truncate text-[13px] text-slate-600">{item.name}</span>
                   </div>
-                  <span className="text-[11px] font-bold text-slate-800">{item.value}</span>
+                  <span className="text-[13px] font-bold text-slate-800">{item.value}</span>
                 </div>
               ))}
             </div>

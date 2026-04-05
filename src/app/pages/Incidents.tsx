@@ -165,7 +165,7 @@ function IncidentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3.5 backdrop-blur-[4px]"
+      className="fixed inset-0 z-[2600] flex items-center justify-center p-3.5 backdrop-blur-[4px]"
       style={{ background: 'rgba(15,23,42,0.68)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -376,7 +376,7 @@ function IncidentDetailModal({
             aria-modal="true"
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
-            className="fixed inset-0 z-[140] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px]"
+            className="fixed inset-0 z-[2700] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px]"
           >
             <button
               type="button"
@@ -973,7 +973,7 @@ export default function Incidents() {
           role="menu"
           aria-label={`Actions for ${contextMenu.incident.id}`}
           onClick={(event) => event.stopPropagation()}
-          className="fixed z-[160] min-w-[180px] rounded-[10px] bg-[var(--surface-container-lowest)] p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
+          className="fixed z-[2800] min-w-[180px] rounded-[10px] bg-[var(--surface-container-lowest)] p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button

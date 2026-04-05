@@ -58,6 +58,12 @@ export default function SuperAdminLayout() {
   ]);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchNavResults, setSearchNavResults] = useState<typeof NAV_ITEMS>([]);
+  const [searchUserResults, setSearchUserResults] = useState<{ id: string; fullName: string; role: string; barangayCode: string | null }[]>([]);
+  const [searchBarangayResults, setSearchBarangayResults] = useState<MonitoringItem[]>([]);
+  const [searchResultsLoading, setSearchResultsLoading] = useState(false);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -145,6 +151,8 @@ export default function SuperAdminLayout() {
     setMobileSearchOpen(false);
     setProfileMenuOpen(false);
     setNotificationsOpen(false);
+    setSearchDropdownOpen(false);
+    setSearchQuery('');
   }, [location.pathname]);
 
   useEffect(() => {
@@ -155,16 +163,51 @@ export default function SuperAdminLayout() {
   }, [mobileSearchOpen]);
 
   useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchNavResults([]);
+      setSearchUserResults([]);
+      setSearchBarangayResults([]);
+      setSearchDropdownOpen(false);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(async () => {
+      const ql = q.toLowerCase();
+      const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
+      setSearchNavResults(navMatches);
+      const barangayMatches = monitoringItems.filter(
+        (b) => b.name.toLowerCase().includes(ql) || b.code.includes(ql),
+      );
+      setSearchBarangayResults(barangayMatches);
+      setSearchDropdownOpen(true);
+      setSearchResultsLoading(true);
+      try {
+        const { users } = await superAdminApi.getUsers({ search: q });
+        setSearchUserResults(
+          users.slice(0, 5).map((u) => ({ id: u.id, fullName: u.fullName, role: u.role, barangayCode: u.barangayCode })),
+        );
+      } catch {
+        setSearchUserResults([]);
+      } finally {
+        setSearchResultsLoading(false);
+      }
+    }, 300);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (mobileDrawerOpen) setMobileDrawerOpen(false);
       if (mobileSearchOpen) setMobileSearchOpen(false);
       if (profileMenuOpen) setProfileMenuOpen(false);
       if (notificationsOpen) setNotificationsOpen(false);
+      if (searchDropdownOpen) { setSearchDropdownOpen(false); setSearchQuery(''); }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen]);
+  }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen, searchDropdownOpen]);
 
   useEffect(() => {
     if (!mobileDrawerOpen) {
@@ -201,6 +244,14 @@ export default function SuperAdminLayout() {
     setSearchQuery('');
     setMobileSearchOpen(false);
     setMobileDrawerOpen(false);
+    setSearchDropdownOpen(false);
+  };
+
+  const handleSearchResultClick = (path: string) => {
+    setSearchQuery('');
+    setSearchDropdownOpen(false);
+    setMobileSearchOpen(false);
+    navigate(path);
   };
 
   const handleNotificationClick = async (item: ApiAdminNotification) => {
@@ -394,16 +445,91 @@ export default function SuperAdminLayout() {
               <ChevronRight size={12} />
               <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
             </div>
-            <form onSubmit={handleSearch} className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
-              <Search size={14} className="shrink-0 text-[var(--outline)]" />
-              <input
-                type="search"
-                placeholder="Search users, barangays, or audits..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
-              />
-            </form>
+            <div className="relative ml-3 min-w-0 flex-1">
+              <form onSubmit={handleSearch} className="flex items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
+                <Search size={14} className="shrink-0 text-[var(--outline)]" />
+                <input
+                  type="search"
+                  placeholder="Search users, barangays, or audits..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => { if (searchQuery.trim().length >= 2) setSearchDropdownOpen(true); }}
+                  onBlur={() => setTimeout(() => setSearchDropdownOpen(false), 150)}
+                  className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+                />
+              </form>
+              {searchDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] shadow-elevated">
+                  <div className="max-h-80 overflow-y-auto">
+                    {searchNavResults.length > 0 && (
+                      <div>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
+                        {searchNavResults.map((item) => (
+                          <button
+                            key={item.path}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick(item.path)}
+                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left text-[13px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <item.icon size={14} className="shrink-0 text-primary" />
+                            <span className="font-medium">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {searchBarangayResults.length > 0 && (
+                      <div className={searchNavResults.length > 0 ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Barangays</div>
+                        {searchBarangayResults.map((barangay) => (
+                          <button
+                            key={barangay.code}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick('/superadmin/map')}
+                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: barangay.color }} />
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-[13px] font-medium text-[var(--on-surface)]">{barangay.name}</div>
+                            </div>
+                            <span className="shrink-0 text-[11px] font-semibold" style={{ color: barangay.color }}>{barangay.incidents} active</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {(searchResultsLoading || searchUserResults.length > 0) && (
+                      <div className={(searchNavResults.length > 0 || searchBarangayResults.length > 0) ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Users</div>
+                        {searchResultsLoading && searchUserResults.length === 0 && (
+                          <div className="px-3 py-2 text-xs text-[var(--outline)]">Searching…</div>
+                        )}
+                        {searchUserResults.map((user) => (
+                          <button
+                            key={user.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick('/superadmin/users')}
+                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[10px] font-bold text-white">
+                              {user.fullName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-[13px] font-semibold text-[var(--on-surface)]">{user.fullName}</div>
+                              <div className="truncate text-[11px] text-[var(--outline)]">{user.role}{user.barangayCode ? ` · Brgy ${user.barangayCode}` : ''}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!searchResultsLoading && searchNavResults.length === 0 && searchBarangayResults.length === 0 && searchUserResults.length === 0 && (
+                      <div className="px-3 py-3 text-xs text-[var(--outline)]">No results for "{searchQuery.trim()}"</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
@@ -511,7 +637,7 @@ export default function SuperAdminLayout() {
           <div
             className="absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
             style={{
-              maxHeight: mobileSearchOpen ? 80 : 0,
+              maxHeight: mobileSearchOpen ? 600 : 0,
               opacity: mobileSearchOpen ? 1 : 0,
               pointerEvents: mobileSearchOpen ? 'auto' : 'none',
               transition: 'max-height 250ms cubic-bezier(0.2,0.65,0.3,1), opacity 200ms ease',
@@ -530,6 +656,70 @@ export default function SuperAdminLayout() {
                 />
               </div>
             </form>
+            {searchQuery.trim().length >= 2 && (
+              <div className="border-t border-[var(--outline-variant)]/20 pb-2">
+                {searchNavResults.length > 0 && (
+                  <div>
+                    <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
+                    {searchNavResults.map((item) => (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => handleSearchResultClick(item.path)}
+                        className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left text-[14px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                      >
+                        <item.icon size={15} className="shrink-0 text-primary" />
+                        <span className="font-medium">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {searchBarangayResults.length > 0 && (
+                  <div className={searchNavResults.length > 0 ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                    <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Barangays</div>
+                    {searchBarangayResults.map((barangay) => (
+                      <button
+                        key={barangay.code}
+                        type="button"
+                        onClick={() => handleSearchResultClick('/superadmin/map')}
+                        className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                      >
+                        <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: barangay.color }} />
+                        <span className="flex-1 text-[14px] font-medium text-[var(--on-surface)]">{barangay.name}</span>
+                        <span className="shrink-0 text-[12px] font-semibold" style={{ color: barangay.color }}>{barangay.incidents} active</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {(searchResultsLoading || searchUserResults.length > 0) && (
+                  <div className={(searchNavResults.length > 0 || searchBarangayResults.length > 0) ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                    <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Users</div>
+                    {searchResultsLoading && searchUserResults.length === 0 && (
+                      <div className="px-4 py-2 text-sm text-[var(--outline)]">Searching…</div>
+                    )}
+                    {searchUserResults.map((user) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => handleSearchResultClick('/superadmin/users')}
+                        className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                      >
+                        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[11px] font-bold text-white">
+                          {user.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[14px] font-semibold text-[var(--on-surface)]">{user.fullName}</div>
+                          <div className="truncate text-[12px] text-[var(--outline)]">{user.role}{user.barangayCode ? ` · Brgy ${user.barangayCode}` : ''}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!searchResultsLoading && searchNavResults.length === 0 && searchBarangayResults.length === 0 && searchUserResults.length === 0 && (
+                  <div className="px-4 py-3 text-sm text-[var(--outline)]">No results for "{searchQuery.trim()}"</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile navigation dropdown (landing page style) */}

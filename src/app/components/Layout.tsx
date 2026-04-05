@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
+  AlertTriangle,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
@@ -13,6 +14,7 @@ import {
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
+import type { ApiCitizenReport } from '../services/citizenReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
@@ -41,6 +43,11 @@ function Layout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchNavResults, setSearchNavResults] = useState<typeof NAV_ITEMS>([]);
+  const [searchIncidentResults, setSearchIncidentResults] = useState<Pick<ApiCitizenReport, 'id' | 'category' | 'location' | 'status' | 'description' | 'barangay'>[]>([]);
+  const [searchResultsLoading, setSearchResultsLoading] = useState(false);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -81,6 +88,8 @@ function Layout() {
     setMobileSearchOpen(false);
     setProfileMenuOpen(false);
     setNotificationsOpen(false);
+    setSearchDropdownOpen(false);
+    setSearchQuery('');
   }, [location.pathname]);
 
   useEffect(() => {
@@ -91,16 +100,46 @@ function Layout() {
   }, [mobileSearchOpen]);
 
   useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchNavResults([]);
+      setSearchIncidentResults([]);
+      setSearchDropdownOpen(false);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(async () => {
+      const ql = q.toLowerCase();
+      const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
+      setSearchNavResults(navMatches);
+      setSearchDropdownOpen(true);
+      setSearchResultsLoading(true);
+      try {
+        const { reports } = await officialReportsApi.getReports({ search: q });
+        setSearchIncidentResults(
+          reports.slice(0, 5).map((r) => ({ id: r.id, category: r.category, location: r.location, status: r.status, description: r.description, barangay: r.barangay })),
+        );
+      } catch {
+        setSearchIncidentResults([]);
+      } finally {
+        setSearchResultsLoading(false);
+      }
+    }, 300);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (mobileDrawerOpen) setMobileDrawerOpen(false);
       if (mobileSearchOpen) setMobileSearchOpen(false);
       if (profileMenuOpen) setProfileMenuOpen(false);
       if (notificationsOpen) setNotificationsOpen(false);
+      if (searchDropdownOpen) { setSearchDropdownOpen(false); setSearchQuery(''); }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen]);
+  }, [mobileDrawerOpen, mobileSearchOpen, notificationsOpen, profileMenuOpen, searchDropdownOpen]);
 
   useEffect(() => {
     if (!mobileDrawerOpen) {
@@ -210,6 +249,14 @@ function Layout() {
     setSearchQuery('');
     setMobileSearchOpen(false);
     setMobileDrawerOpen(false);
+    setSearchDropdownOpen(false);
+  };
+
+  const handleSearchResultClick = (path: string) => {
+    setSearchQuery('');
+    setSearchDropdownOpen(false);
+    setMobileSearchOpen(false);
+    navigate(path);
   };
 
   return (
@@ -350,16 +397,82 @@ function Layout() {
               <ChevronRight size={12} />
               <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
             </div>
-            <form onSubmit={handleSearch} className="ml-3 flex min-w-0 flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
-              <Search size={14} className="shrink-0 text-[var(--outline)]" />
-              <input
-                type="search"
-                placeholder="Search incidents, barangays, or reports..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
-              />
-            </form>
+            <div className="relative ml-3 min-w-0 flex-1">
+              <form onSubmit={handleSearch} className="flex items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">
+                <Search size={14} className="shrink-0 text-[var(--outline)]" />
+                <input
+                  type="search"
+                  placeholder="Search incidents, barangays, or reports..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => { if (searchQuery.trim().length >= 2) setSearchDropdownOpen(true); }}
+                  onBlur={() => setTimeout(() => setSearchDropdownOpen(false), 150)}
+                  className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+                />
+              </form>
+              {searchDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-[var(--outline-variant)]/40 bg-[var(--surface-container-lowest)] shadow-elevated">
+                  <div className="max-h-80 overflow-y-auto">
+                    {searchNavResults.length > 0 && (
+                      <div>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
+                        {searchNavResults.map((item) => (
+                          <button
+                            key={item.path}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick(item.path)}
+                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left text-[13px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <item.icon size={14} className="shrink-0 text-primary" />
+                            <span className="font-medium">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {(searchResultsLoading || searchIncidentResults.length > 0) && (
+                      <div className={searchNavResults.length > 0 ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Incidents</div>
+                        {searchResultsLoading && searchIncidentResults.length === 0 && (
+                          <div className="px-3 py-2 text-xs text-[var(--outline)]">Searching…</div>
+                        )}
+                        {searchIncidentResults.map((incident) => (
+                          <button
+                            key={incident.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
+                            className="flex w-full cursor-pointer items-center gap-3 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
+                              <AlertTriangle size={12} className="text-destructive" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="truncate text-[13px] font-semibold text-[var(--on-surface)]">{incident.category}</span>
+                                <span className="shrink-0 text-[10px] text-[var(--outline)]">·</span>
+                                <span className="shrink-0 text-[10px] text-[var(--outline)]">{incident.barangay}</span>
+                              </div>
+                              <div className="truncate text-[11px] text-[var(--outline)]">{incident.location}</div>
+                            </div>
+                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                              incident.status === 'Submitted' ? 'bg-blue-50 text-blue-700' :
+                              incident.status === 'Under Review' ? 'bg-yellow-50 text-yellow-700' :
+                              incident.status === 'In Progress' ? 'bg-orange-50 text-orange-700' :
+                              incident.status === 'Resolved' || incident.status === 'Closed' ? 'bg-green-50 text-green-700' :
+                              'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
+                            }`}>{incident.status}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!searchResultsLoading && searchNavResults.length === 0 && searchIncidentResults.length === 0 && (
+                      <div className="px-3 py-3 text-xs text-[var(--outline)]">No results for "{searchQuery.trim()}"</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
@@ -466,7 +579,7 @@ function Layout() {
           <div
             className="absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
             style={{
-              maxHeight: mobileSearchOpen ? 80 : 0,
+              maxHeight: mobileSearchOpen ? 600 : 0,
               opacity: mobileSearchOpen ? 1 : 0,
               pointerEvents: mobileSearchOpen ? 'auto' : 'none',
               transition: 'max-height 250ms cubic-bezier(0.2,0.65,0.3,1), opacity 200ms ease',
@@ -485,6 +598,63 @@ function Layout() {
                 />
               </div>
             </form>
+            {searchQuery.trim().length >= 2 && (
+              <div className="border-t border-[var(--outline-variant)]/20 pb-2">
+                {searchNavResults.length > 0 && (
+                  <div>
+                    <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
+                    {searchNavResults.map((item) => (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => handleSearchResultClick(item.path)}
+                        className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left text-[14px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                      >
+                        <item.icon size={15} className="shrink-0 text-primary" />
+                        <span className="font-medium">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {(searchResultsLoading || searchIncidentResults.length > 0) && (
+                  <div className={searchNavResults.length > 0 ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                    <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Incidents</div>
+                    {searchResultsLoading && searchIncidentResults.length === 0 && (
+                      <div className="px-4 py-2 text-sm text-[var(--outline)]">Searching…</div>
+                    )}
+                    {searchIncidentResults.map((incident) => (
+                      <button
+                        key={incident.id}
+                        type="button"
+                        onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
+                        className="flex w-full cursor-pointer items-center gap-3 border-none bg-transparent px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                      >
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
+                          <AlertTriangle size={13} className="text-destructive" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-[14px] font-semibold text-[var(--on-surface)]">{incident.category}</span>
+                            <span className="shrink-0 text-[11px] text-[var(--outline)]">· {incident.barangay}</span>
+                          </div>
+                          <div className="truncate text-[12px] text-[var(--outline)]">{incident.location}</div>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          incident.status === 'Submitted' ? 'bg-blue-50 text-blue-700' :
+                          incident.status === 'Under Review' ? 'bg-yellow-50 text-yellow-700' :
+                          incident.status === 'In Progress' ? 'bg-orange-50 text-orange-700' :
+                          incident.status === 'Resolved' || incident.status === 'Closed' ? 'bg-green-50 text-green-700' :
+                          'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
+                        }`}>{incident.status}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!searchResultsLoading && searchNavResults.length === 0 && searchIncidentResults.length === 0 && (
+                  <div className="px-4 py-3 text-sm text-[var(--outline)]">No results for "{searchQuery.trim()}"</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile navigation dropdown (landing page style) */}
