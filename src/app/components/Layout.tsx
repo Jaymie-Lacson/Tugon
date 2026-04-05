@@ -337,7 +337,7 @@ function Layout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header ref={headerRef} className="relative z-[90] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+        <header ref={headerRef} className="relative z-[2400] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           {/* Mobile: page name */}
           <div className="flex items-center gap-2 lg:hidden">
             <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
