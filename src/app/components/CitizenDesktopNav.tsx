@@ -1,7 +1,9 @@
 import React from 'react';
+import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from '../i18n';
 import { citizenNavDefs, type CitizenNavKey } from '../data/navigationConfig';
+import { clearAuthSession, getAuthSession } from '../utils/authSession';
 
 interface CitizenDesktopNavProps {
   activeKey: CitizenNavKey;
@@ -11,6 +13,18 @@ interface CitizenDesktopNavProps {
 export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const session = getAuthSession();
+
+  const fullName = session?.user.fullName?.trim() || 'Citizen';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CU';
+  const barangayLabel = session?.user.barangayCode
+    ? `Barangay ${session.user.barangayCode}`
+    : 'Tondo Cluster';
 
   const handleClick = (key: CitizenNavKey) => {
     const handled = onNavigate?.(key);
@@ -23,31 +37,73 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
     else navigate('/citizen');
   };
 
+  const handleSignOut = () => {
+    clearAuthSession();
+    navigate('/auth/login', { replace: true });
+  };
+
   return (
-    <div className="citizen-only-desktop citizen-web-strip flex justify-center pt-3.5 pb-2.5 border-b border-slate-200 bg-slate-50">
-      <div className="citizen-web-strip-inner flex items-center gap-2.5 overflow-x-auto flex-nowrap bg-white border border-slate-200 rounded-xl p-2">
+    <div className="flex flex-col h-full">
+      {/* Wordmark */}
+      <div className="px-5 pt-5 pb-4 shrink-0">
+        <img
+          src="/tugon-wordmark-blue.svg"
+          alt="TUGON"
+          className="h-8 w-auto object-contain"
+        />
+      </div>
+
+      {/* Section label */}
+      <div className="px-4 pb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+        {t('nav.navigation')}
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex-1 px-3 pb-4 overflow-y-auto">
         {citizenNavDefs.map((item) => {
           const Icon = item.icon;
-          const isActionRoute = item.key === 'report' || item.key === 'myreports';
           const isActive = activeKey === item.key;
-
           return (
             <button
-              key={`desktop-${item.key}`}
+              key={item.key}
+              type="button"
               onClick={() => handleClick(item.key)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border text-xs cursor-pointer transition-[border-color,background,transform] duration-[170ms] ${
+              className={`mb-1.5 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] cursor-pointer border-none transition-colors ${
                 isActive
-                  ? 'border-blue-300 bg-[#F8FBFF] text-primary font-bold'
-                  : isActionRoute
-                    ? 'border-slate-200 bg-white text-destructive font-semibold hover:border-blue-200'
-                    : 'border-slate-200 bg-white text-slate-700 font-semibold hover:border-blue-200'
+                  ? 'bg-[var(--surface-container-high)] text-primary font-bold shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                  : 'bg-transparent text-[var(--on-surface-variant)] font-medium hover:bg-[var(--surface-container)]'
               }`}
             >
-              <Icon size={22} />
-              {t(item.labelKey)}
+              <Icon
+                size={16}
+                className={`shrink-0 ${isActive ? 'text-primary' : 'text-[var(--outline)]'}`}
+              />
+              <span className="whitespace-nowrap">{t(item.labelKey)}</span>
             </button>
           );
         })}
+      </nav>
+
+      {/* User info footer — mirrors official sidebar footer */}
+      <div className="shrink-0 border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] font-mono text-[13px] font-bold text-white">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{fullName}</div>
+            <div className="text-[10px] text-[var(--outline)]">{barangayLabel}</div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            aria-label={t('common.signOut')}
+            title={t('common.signOut')}
+            className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[var(--outline)] hover:text-[var(--error)] transition-colors"
+          >
+            <LogOut size={15} />
+          </button>
+        </div>
       </div>
     </div>
   );

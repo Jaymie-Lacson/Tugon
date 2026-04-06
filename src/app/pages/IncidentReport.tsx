@@ -2078,12 +2078,8 @@ export default function IncidentReport() {
             </div>
           </header>
         }
-        beforeMain={
-          <>
-            <CitizenDesktopNav activeKey="report" />
-            <StepIndicator current={step} />
-          </>
-        }
+        sidebar={<CitizenDesktopNav activeKey="report" />}
+        beforeMain={<StepIndicator current={step} />}
         afterMain={
           <>
             <div className="citizen-report-footer">

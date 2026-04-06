@@ -244,14 +244,12 @@ function StatCard({
 }) {
   const tone = statToneClass[resolveAccentTone(accent)];
   return (
-    <div className={`bg-white rounded-lg p-3.5 min-w-0 w-full flex flex-col gap-2 ${tone.card}`}>
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200">
       <div className={`size-8 rounded-md flex items-center justify-center ${tone.icon}`}>
         {icon}
       </div>
-      <div className="flex flex-col gap-0.5">
-        <div className="font-semibold text-[var(--on-surface)] text-[22px] leading-none tracking-[-0.01em]">{value}</div>
-        <div className="text-[var(--on-surface-variant)] text-[11px] font-medium">{label}</div>
-      </div>
+      <div className="font-mono text-[26px] font-black leading-none text-[#0F172A]">{value}</div>
+      <div className="text-[11px] text-slate-400">{label}</div>
     </div>
   );
 }
@@ -692,28 +690,26 @@ export default function CitizenDashboard() {
           </div>
         </header>
       }
-      beforeMain={
-        <>
-          <AlertBanner incidents={incidents} />
-          <CitizenDesktopNav
-            activeKey={activeTab}
-            onNavigate={(key) => {
-              if (key === 'report') {
-                navigate('/citizen/report');
-                return true;
-              }
-              if (key === 'myreports') {
-                navigate('/citizen/my-reports');
-                return true;
-              }
-              if (key === 'map' || key === 'profile' || key === 'home') {
-                setActiveTab(key);
-                return true;
-              }
-              return false;
-            }}
-          />
-        </>
+      beforeMain={<AlertBanner incidents={incidents} />}
+      sidebar={
+        <CitizenDesktopNav
+          activeKey={activeTab}
+          onNavigate={(key) => {
+            if (key === 'report') {
+              navigate('/citizen/report');
+              return true;
+            }
+            if (key === 'myreports') {
+              navigate('/citizen/my-reports');
+              return true;
+            }
+            if (key === 'map' || key === 'profile' || key === 'home') {
+              setActiveTab(key);
+              return true;
+            }
+            return false;
+          }}
+        />
       }
       mainOnClick={() => {
         if (notifOpen) {
@@ -770,7 +766,7 @@ function HomeTab({
 
   if (isLoading) {
     return (
-      <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-3.5">
+      <div className="citizen-content-shell pt-4 pb-[18px]">
         <TextSkeleton rows={3} title={false} className="rounded-xl" />
         <CardSkeleton
           count={3}
@@ -784,28 +780,34 @@ function HomeTab({
   }
 
   return (
-    <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-4">
-      {/* Welcome banner */}
-      <section className="bg-primary rounded-lg px-5 py-5 text-white">
-        <div className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/55">{greetingLabel}, {firstName}</div>
-        <div className="font-semibold text-[22px] leading-[1.2] tracking-[-0.01em] mt-1.5">{t('citizen.dashboard.citizenDashboard')}</div>
-        <div className="text-[13px] text-white/70 mt-1 leading-[1.5]">
-          {t('citizen.dashboard.trackReports')}
-        </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4 pt-4 border-t border-white/10 text-[12px] text-white/65">
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin size={12} className="text-white/50" /> {barangayLabel}
-          </span>
-          <span className="text-white/40">·</span>
-          <span>{todayLabel}</span>
+    <div className="citizen-content-shell pt-4 pb-[18px]">
+      {/* Page header — matches official dashboard district focus header */}
+      <section className="mb-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              {barangayLabel} · {greetingLabel}
+            </div>
+            <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
+              {firstName}'s Dashboard
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {todayLabel} · {t('citizen.dashboard.trackReports')}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/citizen/report')}
+            className="cursor-pointer rounded border border-primary bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+          >
+            {t('citizen.dashboard.submitIncidentReport')}
+          </button>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
-        <div
-          className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
-        >
+      {/* KPI stats — matches official dashboard metric tiles */}
+      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
+        <div className="flex flex-wrap">
           <StatCard
             icon={<AlertTriangle size={16} />}
             value={activeIncidents.length}
@@ -825,7 +827,7 @@ function HomeTab({
             accent="var(--primary)"
           />
         </div>
-      </section>
+      </div>
 
       {/* Verification prompt */}
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
@@ -853,19 +855,20 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
-        <div className="flex justify-between items-center mb-3 px-1">
+      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100">
           <div>
-            <div className="font-semibold text-[var(--on-surface)] text-[15px] tracking-[-0.005em]">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-[12px] text-[var(--on-surface-variant)] mt-0.5">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="text-[13px] font-bold text-[#0F172A]">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
-            className="text-primary font-medium text-[12px] cursor-pointer inline-flex items-center gap-1 hover:underline"
+            className="cursor-pointer rounded border border-slate-300 bg-transparent px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 inline-flex items-center gap-1"
           >
-            {t('citizen.dashboard.openFullMap')} <ArrowRight size={12} />
+            {t('citizen.dashboard.openFullMap')} <ArrowRight size={11} />
           </button>
         </div>
+        <div className="p-3">
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
@@ -920,11 +923,15 @@ function HomeTab({
             </div>
           </div>
         </div>
-      </section>
+        </div>
+      </div>
 
       {/* Quick Actions */}
-      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
-        <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)] mb-3 px-1">{t('citizen.dashboard.quickActions')}</div>
+      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
+        <div className="px-4 py-3 border-b border-slate-100">
+          <div className="text-[13px] font-bold text-[#0F172A]">{t('citizen.dashboard.quickActions')}</div>
+        </div>
+        <div className="p-3">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2"
         >
@@ -958,35 +965,38 @@ function HomeTab({
             onClick={() => setActiveTab('profile')}
           />
         </div>
-      </section>
+        </div>
+      </div>
 
       {/* Recent activity */}
-      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
-        <div className="flex items-center justify-between mb-2 px-1">
-          <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)]">{t('citizen.dashboard.recentReportActivity')}</div>
+      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100">
+          <span className="text-[13px] font-bold text-[#0F172A]">{t('citizen.dashboard.recentReportActivity')}</span>
           <button
-            className="bg-transparent border-0 text-primary text-[12px] font-medium cursor-pointer inline-flex items-center gap-1 hover:underline"
+            className="cursor-pointer rounded border border-slate-300 bg-transparent px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 inline-flex items-center gap-1"
             onClick={() => navigate('/citizen/my-reports')}
           >
-            {t('common.viewAll')} <ChevronRight size={13} />
+            {t('common.viewAll')} <ChevronRight size={11} />
           </button>
         </div>
-        <div className="px-3">
+        <div className="px-4">
           {myReports.slice(0, 3).map((report) => (
             <RecentIncidentRow key={report.id} report={report} />
           ))}
           {myReports.length === 0 && (
-            <div className="text-center py-6 text-[var(--on-surface-variant)] text-[13px]">
+            <div className="text-center py-6 text-slate-400 text-[13px]">
               {t('citizen.dashboard.noSubmittedReports')}
             </div>
           )}
         </div>
-      </section>
+      </div>
 
       {/* Emergency contacts */}
-      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
-        <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)] mb-2.5 px-1">{t('citizen.dashboard.emergencyContacts')}</div>
-        <div className="divide-y divide-[var(--outline-variant)]">
+      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
+        <div className="px-4 py-3 border-b border-slate-100">
+          <div className="text-[13px] font-bold text-[#0F172A]">{t('citizen.dashboard.emergencyContacts')}</div>
+        </div>
+        <div className="divide-y divide-slate-100">
           {[
             { label: t('citizen.dashboard.emergencyHotline'), number: '911', iconTone: 'bg-[var(--error-container)] text-[var(--error)]' },
             { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', iconTone: 'bg-[var(--primary-fixed)] text-[var(--primary)]' },
@@ -995,7 +1005,7 @@ function HomeTab({
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
-              className="flex items-center gap-3 px-3 py-3 no-underline transition-colors hover:bg-[var(--surface-container-low)] rounded-md -mx-1"
+              className="flex items-center gap-3 px-4 py-3 no-underline transition-colors hover:bg-[var(--surface-container-low)]"
             >
               <div className={`size-9 rounded-md flex items-center justify-center shrink-0 ${contact.iconTone}`}>
                 <Phone size={16} />
@@ -1008,7 +1018,7 @@ function HomeTab({
             </a>
           ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -1572,20 +1582,30 @@ function ProfileTab({
 
   return (
     <div className="citizen-content-shell pt-4 pb-4">
-      {/* Profile card */}
-      <div className="bg-primary rounded-lg px-5 py-6 text-white mb-4 flex items-center gap-4">
-        <div className="size-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[18px] font-semibold text-white">
-          {initials}
+      {/* Page header */}
+      <section className="mb-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex size-[46px] shrink-0 items-center justify-center bg-[#0F172A] font-mono text-[16px] font-bold text-white">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                {barangayLabel} · Tondo, Manila
+              </div>
+              <h1 className="text-[22px] font-black leading-tight tracking-tight text-[#0F172A] truncate">
+                {fullName}
+              </h1>
+              <p className="mt-0.5 text-[11px] font-mono text-slate-400">{phoneNumber}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600">
+              <Shield size={11} /> {verificationSummary.statusLabel}
+            </span>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-[17px] tracking-[-0.01em] truncate">{fullName}</div>
-          <div className="text-[12px] text-white/65 mt-0.5 font-mono">{phoneNumber}</div>
-          <div className="text-[11px] text-white/55 mt-1">{barangayLabel} · Tondo, Manila</div>
-        </div>
-        <div className="bg-white/10 rounded-md py-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] inline-flex items-center gap-1.5 border border-white/15 shrink-0">
-          <Shield size={11} /> {verificationSummary.statusLabel}
-        </div>
-      </div>
+      </section>
 
       {/* Stats */}
       <div className="flex gap-2 mb-4">

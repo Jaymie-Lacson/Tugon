@@ -482,7 +482,7 @@ export default function CitizenVerification() {
           </div>
         </header>
       }
-      beforeMain={<CitizenDesktopNav activeKey="profile" />}
+      sidebar={<CitizenDesktopNav activeKey="profile" />}
       mainOnClick={() => {
         if (notifOpen) {
           setNotifOpen(false);
@@ -499,20 +499,23 @@ export default function CitizenVerification() {
     >
       <div className="citizen-content-shell pt-4 pb-6">
         <div className="max-w-[960px] mx-auto grid gap-3">
-          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
-            <div className="flex items-center justify-between gap-[10px] flex-wrap">
-              <div>
-                <h1 className="m-0 text-[22px] font-semibold text-[var(--on-surface)]">{t('citizen.verification.pageTitle')}</h1>
-                <p className="mt-1.5 mb-0 text-[var(--on-surface-variant)] text-[13px]">
+          {/* Page header — official style */}
+          <section className="mb-3 border-b border-slate-200 pb-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                   {t('citizen.verification.pageSubtitle')}
-                </p>
+                </div>
+                <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
+                  {t('citizen.verification.pageTitle')}
+                </h1>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                className="border border-[var(--primary-fixed-dim)] rounded-md bg-[var(--primary-fixed)] text-primary text-xs font-semibold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
+                className="cursor-pointer rounded border border-slate-300 bg-transparent px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 inline-flex items-center gap-1.5"
               >
-                {t('citizen.verification.backToProfile')} <ChevronRight size={12} />
+                {t('citizen.verification.backToProfile')} <ChevronRight size={11} />
               </button>
             </div>
           </section>

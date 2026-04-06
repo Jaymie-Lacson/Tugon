@@ -1384,7 +1384,7 @@ export default function CitizenMyReports() {
         mobileMainPaddingBottom={16}
         desktopMainPaddingBottom={16}
         desktopMainMaxWidth={1320}
-        beforeMain={<CitizenDesktopNav activeKey="myreports" />}
+        sidebar={<CitizenDesktopNav activeKey="myreports" />}
         mainOnClick={() => {
           if (sortOpen) {
             setSortOpen(false);
@@ -1407,30 +1407,31 @@ export default function CitizenMyReports() {
         ) : (
           <>
             <div className="citizen-content-shell pt-4 pb-0">
-              <section
-                className="mb-[10px] rounded-lg border border-[var(--outline-variant)] bg-white px-4 pb-[14px] pt-4"
-              >
-                <div className="flex items-start justify-between gap-3 flex-wrap">
+              {/* Page header — official style */}
+              <section className="mb-3 border-b border-slate-200 pb-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="m-0 text-[11px] font-medium text-primary tracking-[0.08em] uppercase">
+                    <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                       {t('citizen.myReports.headerLabel')}
-                    </p>
-                    <h2 className="mb-1 mt-[6px] text-[clamp(18px,2.4vw,22px)] font-semibold leading-[1.2] text-[var(--on-surface)]">
+                    </div>
+                    <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
                       {t('citizen.myReports.headerTitle')}
-                    </h2>
-                    <p className="m-0 text-[var(--on-surface-variant)] text-xs leading-[1.55]">
+                    </h1>
+                    <p className="mt-0.5 text-xs text-slate-500">
                       {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <span className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] text-primary rounded px-[10px] py-[5px] text-[11px] font-semibold">
-                      {t('citizen.myReports.countTotal', { count: allCount })}
+                  <div className="flex gap-2 flex-wrap items-center">
+                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                      <span className="text-[#0F172A] text-[20px] font-black">{allCount}</span> total
                     </span>
-                    <span className="bg-[var(--secondary-fixed)] border border-[var(--secondary-fixed-dim)] text-[var(--secondary)] rounded px-[10px] py-[5px] text-[11px] font-semibold">
-                      {t('citizen.myReports.countActive', { count: activeCount })}
+                    <span className="font-mono text-[10px] font-bold text-slate-400">·</span>
+                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                      <span className="text-[var(--secondary)] text-[20px] font-black">{activeCount}</span> active
                     </span>
-                    <span className="bg-[var(--severity-low-bg)] border border-[rgba(5,150,105,0.28)] text-[var(--severity-low)] rounded px-[10px] py-[5px] text-[11px] font-semibold">
-                      {t('citizen.myReports.countResolved', { count: resolvedCount })}
+                    <span className="font-mono text-[10px] font-bold text-slate-400">·</span>
+                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                      <span className="text-[var(--severity-low)] text-[20px] font-black">{resolvedCount}</span> resolved
                     </span>
                   </div>
                 </div>
