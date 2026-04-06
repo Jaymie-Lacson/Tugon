@@ -324,6 +324,12 @@
     outline-offset: 2px;
   }
 
+  /* Keep a single custom password toggle icon in auth forms. */
+  input[type='password']::-ms-reveal,
+  input[type='password']::-ms-clear {
+    display: none;
+  }
+
   html  { font-size: var(--font-size); }
   body  { @apply bg-background text-foreground; }
 
