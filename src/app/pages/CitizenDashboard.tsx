@@ -657,6 +657,7 @@ export default function CitizenDashboard() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
+                    onPointerDown={(event) => event.stopPropagation()}
                     className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                   >
                     <button

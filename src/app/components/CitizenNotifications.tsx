@@ -65,6 +65,7 @@ export function CitizenNotificationsPanel<T extends CitizenNotificationItem>({
   return (
     <div
       aria-label="Notifications"
+      onPointerDown={(event) => event.stopPropagation()}
       className="absolute left-4 right-4 top-11 z-[2300] max-h-[360px] w-auto overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.2)] sm:left-auto sm:right-4 sm:w-80"
     >
       <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2.5">

@@ -89,10 +89,10 @@ export function CitizenPageLayout({
           >
             {children}
           </main>
+
+          {afterMain}
         </div>
       </div>
-
-      {afterMain}
       <CitizenOnboardingModal />
 
       <style>{`

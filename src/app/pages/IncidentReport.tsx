@@ -2041,6 +2041,7 @@ export default function IncidentReport() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
+                      onPointerDown={(event) => event.stopPropagation()}
                       className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                     >
                       <button
@@ -2089,11 +2090,11 @@ export default function IncidentReport() {
         afterMain={
           <>
             <div className="citizen-report-footer">
-              <div className="flex gap-2.5">
+              <div className="citizen-report-footer-actions">
               {step > 1 && (
                 <button
                   onClick={goBack}
-                  className="flex-1 p-[14px] rounded-[14px] border-[1.5px] border-[#E2E8F0] bg-[#F8FAFC] text-[#475569] font-bold text-[14px] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="citizen-report-back-btn"
                 >
                   <ChevronLeft size={16} /> {t('common.back')}
                 </button>

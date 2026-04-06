@@ -254,6 +254,19 @@
     left: 0 !important;
     transform: none !important;
     max-width: none !important;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .citizen-report-footer-actions {
+    min-height: 42px;
+  }
+
+  .citizen-report-back-btn,
+  .citizen-report-next-btn {
+    min-height: 42px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .citizen-report-content-wrap {
