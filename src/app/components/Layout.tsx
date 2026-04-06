@@ -146,10 +146,6 @@ function Layout() {
       return;
     }
 
-    const closeMenuOnScroll = () => {
-      setMobileDrawerOpen(false);
-    };
-
     const closeMenuOnOutsideTap = (event: PointerEvent) => {
       const target = event.target as Node | null;
       if (target && headerRef.current?.contains(target)) {
@@ -159,11 +155,9 @@ function Layout() {
       setMobileDrawerOpen(false);
     };
 
-    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
     window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
 
     return () => {
-      window.removeEventListener('scroll', closeMenuOnScroll);
       window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
     };
   }, [mobileDrawerOpen]);
@@ -235,8 +229,9 @@ function Layout() {
     readAt: item.readAt,
   }));
 
-  const closeOverlays = () => {
-    if (mobileDrawerOpen) setMobileDrawerOpen(false);
+  const closeOverlays = (options?: { includeMobileDrawer?: boolean }) => {
+    const includeMobileDrawer = options?.includeMobileDrawer ?? true;
+    if (includeMobileDrawer && mobileDrawerOpen) setMobileDrawerOpen(false);
     if (profileMenuOpen) setProfileMenuOpen(false);
     if (notificationsOpen) setNotificationsOpen(false);
   };
@@ -745,7 +740,11 @@ function Layout() {
           `}</style>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto" onClick={closeOverlays} onScroll={closeOverlays}>
+        <main
+          className="flex-1 overflow-x-hidden overflow-y-auto"
+          onClick={() => closeOverlays({ includeMobileDrawer: true })}
+          onScroll={() => closeOverlays({ includeMobileDrawer: false })}
+        >
           <Outlet />
         </main>
       </div>
