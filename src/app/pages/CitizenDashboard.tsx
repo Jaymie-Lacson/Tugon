@@ -387,7 +387,7 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
+  const { notificationItems: reportNotificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
   const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
     isVerified: Boolean(session?.user.isVerified),
     verificationStatus: session?.user.verificationStatus ?? null,
@@ -629,8 +629,9 @@ export default function CitizenDashboard() {
               />
               <CitizenNotificationBellTrigger
                 unreadCount={unreadNotificationCount}
+                open={notifOpen}
                 onClick={() => {
-                  setNotifOpen(!notifOpen);
+                  setNotifOpen((prev) => !prev);
                   setProfileMenuOpen(false);
                 }}
               />
@@ -689,6 +690,7 @@ export default function CitizenDashboard() {
               open={notifOpen}
               unreadCount={unreadNotificationCount}
               items={notificationItems}
+              onMarkAllRead={markAllNotificationsRead}
               onItemClick={handleNotificationClick}
             />
           </div>

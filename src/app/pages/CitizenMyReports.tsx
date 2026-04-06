@@ -1105,7 +1105,7 @@ export default function CitizenMyReports() {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
-  const { notificationItems, unreadNotificationCount } = useCitizenReportNotifications();
+  const { notificationItems, unreadNotificationCount, markAllNotificationsRead } = useCitizenReportNotifications();
 
   const loadReports = React.useCallback(async (silent = false) => {
     if (!silent) {
@@ -1318,6 +1318,7 @@ export default function CitizenMyReports() {
                 />
                 <CitizenNotificationBellTrigger
                   unreadCount={unreadNotificationCount}
+                  open={notifOpen}
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
@@ -1380,6 +1381,7 @@ export default function CitizenMyReports() {
                 open={notifOpen}
                 unreadCount={unreadNotificationCount}
                 items={notificationItems}
+                onMarkAllRead={markAllNotificationsRead}
                 onItemClick={handleNotificationItemClick}
               />
             </div>

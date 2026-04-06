@@ -1769,7 +1769,7 @@ export default function IncidentReport() {
   const [submittedReportId, setSubmittedReportId] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
+  const { notificationItems: reportNotificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
   const contentRef              = useRef<HTMLDivElement>(null);
 
   const handleNotificationClick = React.useCallback((item: { action?: 'open-my-reports' | 'open-home'; reportId?: string }) => {
@@ -2017,6 +2017,7 @@ export default function IncidentReport() {
                 />
                 <CitizenNotificationBellTrigger
                   unreadCount={unreadNotificationCount}
+                  open={notifOpen}
                   onClick={() => {
                     setNotifOpen((prev) => !prev);
                     setProfileMenuOpen(false);
@@ -2077,6 +2078,7 @@ export default function IncidentReport() {
                 open={notifOpen}
                 unreadCount={unreadNotificationCount}
                 items={notificationItems}
+                onMarkAllRead={markAllNotificationsRead}
                 onItemClick={handleNotificationClick}
               />
             </div>

@@ -38,6 +38,10 @@ function timeAgo(timestamp: string): string {
 export function useCitizenReportNotifications() {
   const [items, setItems] = useState<CitizenReportNotificationItem[]>([]);
 
+  const markAllNotificationsRead = useCallback(() => {
+    setItems((current) => current.map((item) => ({ ...item, unread: false })));
+  }, []);
+
   const loadNotifications = useCallback(async () => {
     try {
       const payload = await citizenReportsApi.getMyReports();
@@ -112,5 +116,6 @@ export function useCitizenReportNotifications() {
   return {
     notificationItems,
     unreadNotificationCount,
+    markAllNotificationsRead,
   };
 }

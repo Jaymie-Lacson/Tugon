@@ -149,7 +149,7 @@ export default function CitizenVerification() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const { notificationItems: reportNotificationItems } = useCitizenReportNotifications();
+  const { notificationItems: reportNotificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const frontFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -421,8 +421,9 @@ export default function CitizenVerification() {
               />
               <CitizenNotificationBellTrigger
                 unreadCount={unreadNotificationCount}
+                open={notifOpen}
                 onClick={() => {
-                  setNotifOpen(!notifOpen);
+                  setNotifOpen((prev) => !prev);
                   setProfileMenuOpen(false);
                 }}
               />
@@ -481,6 +482,7 @@ export default function CitizenVerification() {
               open={notifOpen}
               unreadCount={unreadNotificationCount}
               items={notificationItems}
+              onMarkAllRead={markAllNotificationsRead}
               onItemClick={handleNotificationClick}
             />
           </div>
