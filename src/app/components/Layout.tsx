@@ -254,6 +254,8 @@ function Layout() {
     navigate(path);
   };
 
+  const hasSearchInput = searchQuery.length > 0;
+
   return (
     <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
@@ -593,6 +595,19 @@ function Layout() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full border-none bg-transparent px-2 text-sm text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
                 />
+                {hasSearchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      mobileSearchRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                    className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-[var(--outline)] transition-colors hover:bg-[var(--surface-container)] hover:text-[var(--on-surface)]"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </form>
             {searchQuery.trim().length >= 2 && (
