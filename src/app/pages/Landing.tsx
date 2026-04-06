@@ -251,7 +251,7 @@ function Navbar() {
 
           <button
             type="button"
-            className={`flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
+            className={`landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileOpen ? 'true' : 'false'}
@@ -265,7 +265,7 @@ function Navbar() {
 
         <div
           id="landing-mobile-nav"
-          className="nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
+          className="landing-mobile-panel nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
           aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
             padding: mobileOpen ? '12px 20px 20px' : '0 20px',
@@ -339,6 +339,13 @@ function Navbar() {
           .nav-mobile-panel button:nth-child(2) { transition-delay: 80ms; }
           .nav-mobile-panel button:nth-child(3) { transition-delay: 120ms; }
           .nav-mobile-panel > div { transition-delay: 160ms; }
+        }
+
+        @media (min-width: 769px) {
+          .landing-mobile-toggle,
+          .landing-mobile-panel {
+            display: none !important;
+          }
         }
 
         @media (prefers-reduced-motion: reduce) {
