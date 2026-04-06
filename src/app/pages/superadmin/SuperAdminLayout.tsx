@@ -293,8 +293,12 @@ export default function SuperAdminLayout() {
     readAt: item.readAt,
   }));
 
-  const closeOverlays = () => {
-    if (mobileDrawerOpen) setMobileDrawerOpen(false);
+  const closeOverlays = (options?: { includeMobileDrawer?: boolean; includeSearch?: boolean }) => {
+    const includeMobileDrawer = options?.includeMobileDrawer ?? true;
+    const includeSearch = options?.includeSearch ?? true;
+    if (includeMobileDrawer && mobileDrawerOpen) setMobileDrawerOpen(false);
+    if (includeSearch && mobileSearchOpen) setMobileSearchOpen(false);
+    if (includeSearch && searchDropdownOpen) setSearchDropdownOpen(false);
     if (profileMenuOpen) setProfileMenuOpen(false);
     if (notificationsOpen) setNotificationsOpen(false);
   };
@@ -791,7 +795,11 @@ export default function SuperAdminLayout() {
           `}</style>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto" onClick={closeOverlays} onScroll={closeOverlays}>
+        <main
+          className="flex-1 overflow-x-hidden overflow-y-auto"
+          onClick={() => closeOverlays({ includeMobileDrawer: true })}
+          onScroll={() => closeOverlays({ includeMobileDrawer: true })}
+        >
           <Outlet />
         </main>
       </div>

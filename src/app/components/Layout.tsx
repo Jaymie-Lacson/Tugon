@@ -229,9 +229,12 @@ function Layout() {
     readAt: item.readAt,
   }));
 
-  const closeOverlays = (options?: { includeMobileDrawer?: boolean }) => {
+  const closeOverlays = (options?: { includeMobileDrawer?: boolean; includeSearch?: boolean }) => {
     const includeMobileDrawer = options?.includeMobileDrawer ?? true;
+    const includeSearch = options?.includeSearch ?? true;
     if (includeMobileDrawer && mobileDrawerOpen) setMobileDrawerOpen(false);
+    if (includeSearch && mobileSearchOpen) setMobileSearchOpen(false);
+    if (includeSearch && searchDropdownOpen) setSearchDropdownOpen(false);
     if (profileMenuOpen) setProfileMenuOpen(false);
     if (notificationsOpen) setNotificationsOpen(false);
   };
