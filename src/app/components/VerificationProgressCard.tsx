@@ -67,6 +67,10 @@ function getVerificationConfig(): VerificationConfig | null {
   };
 }
 
+export function hasVerificationProgressPrompt(): boolean {
+  return getVerificationConfig() !== null;
+}
+
 interface VerificationProgressCardProps {
   className?: string;
 }

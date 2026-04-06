@@ -42,10 +42,10 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
       </button>
 
       <div
-        className="citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 top-[60px] z-[95] overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
+        className="citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 top-[60px] z-[95] overflow-hidden border-t border-white/[0.12] bg-primary"
         aria-hidden={!open}
         style={{
-          padding: open ? '12px 20px 20px' : '0 20px',
+          padding: open ? '8px 20px 0' : '0 20px',
           maxHeight: open ? 500 : 0,
           opacity: open ? 1 : 0,
           transform: open ? 'translateY(0)' : 'translateY(-10px)',
@@ -61,8 +61,8 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
               key={`citizen-nav-${item.key}`}
               type="button"
               onClick={() => handleSelect(item.key)}
-              className={`flex w-full cursor-pointer items-center gap-3 border-none border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold ${
-                isActive ? 'text-white' : 'text-white/[0.7]'
+              className={`flex w-full cursor-pointer items-center gap-3 border-none border-b border-white/[0.16] px-3 py-3 text-left text-[15px] font-semibold transition-colors ${
+                isActive ? 'bg-primary text-white' : 'bg-transparent text-white/[0.82]'
               }`}
               style={{
                 opacity: open ? 1 : 0,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { VerificationProgressCard } from './VerificationProgressCard';
+import { VerificationProgressCard, hasVerificationProgressPrompt } from './VerificationProgressCard';
 import { CitizenOnboardingModal } from './CitizenOnboardingModal';
 
 interface CitizenPageLayoutProps {
@@ -39,6 +39,8 @@ export function CitizenPageLayout({
   desktopMainPaddingBottom = 28,
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
+  const showVerificationPrompt = !hideVerificationPrompt && hasVerificationProgressPrompt();
+
   const cssVars = {
     '--citizen-mobile-shell-max': `${mobileShellMaxWidth}px`,
     '--citizen-desktop-main-max': `${desktopMainMaxWidth}px`,
@@ -73,7 +75,7 @@ export function CitizenPageLayout({
           {beforeMain}
 
           {/* Verification progress card */}
-          {!hideVerificationPrompt && (
+          {showVerificationPrompt && (
             <div className="citizen-content-shell citizen-verification-shell w-full py-3">
               <VerificationProgressCard />
             </div>
