@@ -8,6 +8,7 @@ interface AuthLayoutProps {
   title: string;
   subtitle: string;
   topAction?: React.ReactNode;
+  logoSrc?: string;
 }
 
 export interface AuthProgressStep {
@@ -15,7 +16,13 @@ export interface AuthProgressStep {
   status: 'done' | 'active' | 'upcoming';
 }
 
-export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutProps) {
+export function AuthLayout({
+  children,
+  title,
+  subtitle,
+  topAction,
+  logoSrc = '/tugon-header-logo.svg',
+}: AuthLayoutProps) {
   const navigate = useNavigate();
 
   return (
@@ -29,7 +36,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
         <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 py-8 text-white">
           <button onClick={() => navigate('/')} className="w-fit border-none bg-transparent p-0">
             <img
-              src="/tugon-header-logo.svg"
+              src={logoSrc}
               alt="TUGON Tondo Emergency Response"
               className="h-9"
             />
@@ -81,7 +88,7 @@ export function AuthLayout({ children, title, subtitle, topAction }: AuthLayoutP
           <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
             <button onClick={() => navigate('/')} className="border-none bg-transparent p-0">
               <img
-                src="/tugon-header-logo.svg"
+                src={logoSrc}
                 alt="TUGON Tondo Emergency Response"
                 className="h-9"
               />
