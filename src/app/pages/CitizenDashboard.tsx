@@ -138,28 +138,26 @@ function resolveAccentTone(accent: string): AccentTone {
   return 'slate';
 }
 
-// Collapsed tone buckets: neutral card chrome for all, only the icon carries accent hue.
-// Critical/success tints reserved for state that actually matters.
 const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
   critical: {
-    card: 'border border-[var(--outline-variant)]',
-    icon: 'bg-[var(--error-container)] text-[var(--error)]',
+    card: 'border border-[var(--outline-variant)] bg-white',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]',
   },
   warning: {
-    card: 'border border-[var(--outline-variant)]',
-    icon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
+    card: 'border border-[var(--outline-variant)] bg-white',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]',
   },
   primary: {
-    card: 'border border-[var(--outline-variant)]',
-    icon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    card: 'border border-[#93C5FD] bg-[#DBEAFE]',
+    icon: 'bg-[var(--primary)] text-white',
   },
   success: {
-    card: 'border border-[var(--outline-variant)]',
-    icon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+    card: 'border border-[var(--outline-variant)] bg-white',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]',
   },
   slate: {
-    card: 'border border-[var(--outline-variant)]',
-    icon: 'bg-[var(--surface-container-high)] text-[var(--outline)]',
+    card: 'border border-[var(--outline-variant)] bg-white',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]',
   },
 };
 
@@ -242,14 +240,20 @@ function StatCard({
   label: string;
   accent: string;
 }) {
-  const tone = statToneClass[resolveAccentTone(accent)];
+  const toneKey = resolveAccentTone(accent);
+  const tone = statToneClass[toneKey];
+  const isHighlighted = toneKey === 'primary';
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200">
-      <div className={`size-8 rounded-md flex items-center justify-center ${tone.icon}`}>
-        {icon}
+    <div className={`flex min-h-[112px] min-w-0 items-stretch overflow-hidden rounded-xl shadow-[0_1px_2px_rgba(15,23,42,0.05)] ${tone.card}`}>
+      <div className="flex min-w-0 flex-1 items-center justify-center px-4 py-4 text-center">
+        <div className="flex min-w-0 flex-col items-center justify-center">
+          <div className={`font-mono text-[42px] font-black leading-none ${isHighlighted ? 'text-[var(--primary)]' : 'text-[#0F172A]'}`}>{value}</div>
+          <div className={`mt-1.5 max-w-full truncate text-[13px] font-semibold ${isHighlighted ? 'text-[var(--primary)]/85' : 'text-slate-500'}`}>{label}</div>
+        </div>
       </div>
-      <div className="font-mono text-[26px] font-black leading-none text-[#0F172A]">{value}</div>
-      <div className="text-[11px] text-slate-400">{label}</div>
+      <div className={`flex w-[84px] shrink-0 items-center justify-center sm:w-[92px] ${tone.icon}`}>
+        <div className="scale-[1.35]">{icon}</div>
+      </div>
     </div>
   );
 }
@@ -601,7 +605,7 @@ export default function CitizenDashboard() {
         navigate('/citizen/my-reports');
         return null;
       case 'profile':
-        return <ProfileTab myReports={myReports} verificationPreview={verificationPreview} />;
+        return <ProfileTab incidents={mapIncidents} myReports={myReports} verificationPreview={verificationPreview} />;
     }
   };
 
@@ -812,27 +816,25 @@ function HomeTab({
       </section>
 
       {/* KPI stats — matches official dashboard metric tiles */}
-      <div className="mb-4 overflow-hidden bg-white border border-slate-200">
-        <div className="flex flex-wrap">
-          <StatCard
-            icon={<AlertTriangle size={16} />}
-            value={activeIncidents.length}
-            label={t('citizen.dashboard.activeReports')}
-            accent="var(--severity-critical)"
-          />
-          <StatCard
-            icon={<Clock size={16} />}
-            value={criticalCount}
-            label={t('severity.critical')}
-            accent="var(--severity-medium)"
-          />
-          <StatCard
-            icon={<CheckCircle2 size={16} />}
-            value={myReports.length}
-            label={t('citizen.dashboard.totalMyReports')}
-            accent="var(--primary)"
-          />
-        </div>
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          icon={<AlertTriangle size={16} />}
+          value={activeIncidents.length}
+          label={t('citizen.dashboard.activeReports')}
+          accent="var(--severity-critical)"
+        />
+        <StatCard
+          icon={<Clock size={16} />}
+          value={criticalCount}
+          label={t('severity.critical')}
+          accent="var(--severity-medium)"
+        />
+        <StatCard
+          icon={<CheckCircle2 size={16} />}
+          value={myReports.length}
+          label={t('citizen.dashboard.totalMyReports')}
+          accent="var(--primary)"
+        />
       </div>
 
       {/* Verification prompt */}
@@ -1529,9 +1531,11 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
    PROFILE TAB
 ══════════════════════════════════════════════════════════════════════ */
 function ProfileTab({
+  incidents,
   myReports,
   verificationPreview,
 }: {
+  incidents: Incident[];
   myReports: CitizenMyReport[];
   verificationPreview: CitizenVerificationPreview;
 }) {
@@ -1547,8 +1551,8 @@ function ProfileTab({
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'CU';
   const barangayLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Assigned barangay';
-  const resolvedCount = myReports.filter((report) => report.status === 'resolved').length;
-  const pendingCount = myReports.filter((report) => report.status !== 'resolved').length;
+  const activeIncidents = incidents.filter((item) => item.status === 'active' || item.status === 'responding');
+  const criticalCount = activeIncidents.filter((item) => item.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
 
   const _handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
@@ -1614,14 +1618,25 @@ function ProfileTab({
       </section>
 
       {/* Stats */}
-      <div className="flex gap-2 mb-4">
-        {[
-          { label: t('citizen.dashboard.reportsFiled'), value: myReports.length, icon: <FileText size={16} />, accent: 'var(--primary)' },
-          { label: t('status.resolved'), value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
-          { label: t('citizen.dashboard.pending'), value: pendingCount, icon: <Clock size={16} />, accent: 'var(--severity-medium)' },
-        ].map((s) => (
-          <StatCard key={s.label} icon={s.icon} value={s.value} label={s.label} accent={s.accent} />
-        ))}
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          icon={<AlertTriangle size={16} />}
+          value={activeIncidents.length}
+          label={t('citizen.dashboard.activeReports')}
+          accent="var(--severity-critical)"
+        />
+        <StatCard
+          icon={<Clock size={16} />}
+          value={criticalCount}
+          label={t('severity.critical')}
+          accent="var(--severity-medium)"
+        />
+        <StatCard
+          icon={<CheckCircle2 size={16} />}
+          value={myReports.length}
+          label={t('citizen.dashboard.totalMyReports')}
+          accent="var(--primary)"
+        />
       </div>
 
       {/* Verification preview */}
