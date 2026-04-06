@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Clock3, Info } from 'lucide-react';
 import { citizenReportsApi } from '../services/citizenReportsApi';
+import { getAuthSession } from '../utils/authSession';
 
 export type CitizenReportNotificationItem = {
   icon: React.ReactNode;
@@ -35,31 +36,66 @@ function timeAgo(timestamp: string): string {
   return `${days}d ago`;
 }
 
+function getNotificationReadStorageKey(): string {
+  const session = getAuthSession();
+  const userId = session?.user.id ?? 'anonymous';
+  return `tugon:citizen-notifications:last-read:${userId}`;
+}
+
+function getLastReadTimestamp(): number {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  const raw = window.localStorage.getItem(getNotificationReadStorageKey());
+  if (!raw) {
+    return 0;
+  }
+
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function setLastReadTimestamp(value: number): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(getNotificationReadStorageKey(), String(value));
+}
+
 export function useCitizenReportNotifications() {
   const [items, setItems] = useState<CitizenReportNotificationItem[]>([]);
 
   const markAllNotificationsRead = useCallback(() => {
+    setLastReadTimestamp(Date.now());
     setItems((current) => current.map((item) => ({ ...item, unread: false })));
   }, []);
 
   const loadNotifications = useCallback(async () => {
     try {
       const payload = await citizenReportsApi.getMyReports();
+      const lastReadTimestamp = getLastReadTimestamp();
 
         const activeItems = payload.reports
           .filter((report) => report.status === 'Submitted' || report.status === 'Under Review' || report.status === 'In Progress')
           .slice(0, 2)
-          .map((report) => ({
-            icon: <Clock3 size={14} />,
-            color: 'var(--primary)',
-            bg: '#DBEAFE',
-            title: 'Report In Progress',
-            desc: `${report.id} is currently ${report.status.toLowerCase()}.`,
-            time: timeAgo(report.updatedAt),
-            unread: true,
-            action: 'open-my-reports' as const,
-            reportId: report.id,
-          }));
+          .map((report) => {
+            const updatedAtTimestamp = new Date(report.updatedAt).getTime();
+            const isNewSinceLastRead = Number.isFinite(updatedAtTimestamp) && updatedAtTimestamp > lastReadTimestamp;
+
+            return {
+              icon: <Clock3 size={14} />,
+              color: 'var(--primary)',
+              bg: '#DBEAFE',
+              title: 'Report In Progress',
+              desc: `${report.id} is currently ${report.status.toLowerCase()}.`,
+              time: timeAgo(report.updatedAt),
+              unread: isNewSinceLastRead,
+              action: 'open-my-reports' as const,
+              reportId: report.id,
+            };
+          });
 
         const resolvedItems = payload.reports
           .filter((report) => report.status === 'Resolved' || report.status === 'Closed' || report.status === 'Unresolvable')
