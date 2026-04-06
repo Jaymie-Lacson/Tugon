@@ -95,8 +95,7 @@ function Navbar() {
 
   useEffect(() => {
     const onScroll = () => {
-      const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
-      const nextScrolled = isMobileViewport ? true : window.scrollY > 20;
+      const nextScrolled = window.scrollY > 20;
       setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
     };
 
@@ -331,8 +330,6 @@ function Navbar() {
             width: var(--landing-nav-width, 100%) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            background: rgba(15, 23, 42, 0.98) !important;
-            transition: none !important;
           }
 
           .nav-mobile-panel button:nth-child(1) { transition-delay: 40ms; }
