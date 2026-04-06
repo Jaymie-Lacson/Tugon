@@ -44,22 +44,8 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
 
   return (
     <div className="flex flex-col h-full">
-      {/* Wordmark */}
-      <div className="px-5 pt-5 pb-4 shrink-0">
-        <img
-          src="/tugon-wordmark-blue.svg"
-          alt="TUGON"
-          className="h-8 w-auto object-contain"
-        />
-      </div>
-
-      {/* Section label */}
-      <div className="px-4 pb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
-        {t('nav.navigation')}
-      </div>
-
       {/* Nav items */}
-      <nav className="flex-1 px-3 pb-4 overflow-y-auto">
+      <nav className="flex-1 px-3 pt-4 pb-3 overflow-y-auto">
         {citizenNavDefs.map((item) => {
           const Icon = item.icon;
           const isActive = activeKey === item.key;
@@ -82,6 +68,11 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
             </button>
           );
         })}
+
+        {/* Section label */}
+        <div className="px-1 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+          {t('nav.navigation')}
+        </div>
       </nav>
 
       {/* User info footer — mirrors official sidebar footer */}
