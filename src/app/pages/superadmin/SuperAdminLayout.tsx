@@ -551,27 +551,7 @@ export default function SuperAdminLayout() {
               {mobileSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
 
-            <AdminNotifications
-              open={notificationsOpen}
-              loading={notificationsLoading}
-              unreadCount={unreadCount}
-              items={notificationItems}
-              panelLabel={t('superadmin.layout.ariaNotifications')}
-              panelTop={48}
-              panelRight={0}
-              panelZIndex={2300}
-              onToggle={() => {
-                setNotificationsOpen((prev) => !prev);
-                setProfileMenuOpen(false);
-              }}
-              onMarkAllRead={() => { void handleMarkAllRead(); }}
-              onItemClick={(item) => {
-                const target = notifications.find((entry) => entry.id === item.id);
-                if (target) { void handleNotificationClick(target); }
-              }}
-            />
-
-            <div className="relative z-[2200] hidden lg:block">
+            <div className="order-3 relative z-[2200] hidden lg:block">
               <button
                 type="button"
                 onClick={() => {
@@ -622,12 +602,34 @@ export default function SuperAdminLayout() {
               onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
               aria-label={mobileDrawerOpen ? t('superadmin.layout.ariaCloseNav') : t('superadmin.layout.ariaOpenNav')}
               aria-expanded={mobileDrawerOpen}
-              className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileDrawerOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
+              className={`order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileDrawerOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
             >
               <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
                 {mobileDrawerOpen ? <X size={18} /> : <Menu size={18} />}
               </span>
             </button>
+
+            <div className="order-2 lg:order-none">
+              <AdminNotifications
+                open={notificationsOpen}
+                loading={notificationsLoading}
+                unreadCount={unreadCount}
+                items={notificationItems}
+                panelLabel={t('superadmin.layout.ariaNotifications')}
+                panelTop={48}
+                panelRight={0}
+                panelZIndex={2300}
+                onToggle={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setProfileMenuOpen(false);
+                }}
+                onMarkAllRead={() => { void handleMarkAllRead(); }}
+                onItemClick={(item) => {
+                  const target = notifications.find((entry) => entry.id === item.id);
+                  if (target) { void handleNotificationClick(target); }
+                }}
+              />
+            </div>
           </div>
 
           {/* Mobile search bar dropdown */}

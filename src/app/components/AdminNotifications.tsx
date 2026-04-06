@@ -65,8 +65,77 @@ export function AdminNotifications({
   onItemClick,
   onMarkAllRead,
 }: AdminNotificationsProps) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [isMobileViewport, setIsMobileViewport] = React.useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.matchMedia('(max-width: 1023px)').matches;
+  });
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    const onChange = (event: MediaQueryListEvent) => {
+      setIsMobileViewport(event.matches);
+    };
+
+    setIsMobileViewport(mediaQuery.matches);
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', onChange);
+      return () => mediaQuery.removeEventListener('change', onChange);
+    }
+
+    mediaQuery.addListener(onChange);
+    return () => mediaQuery.removeListener(onChange);
+  }, []);
+
+  const [mobilePanelTop, setMobilePanelTop] = React.useState(panelTop + 8);
+
+  React.useEffect(() => {
+    if (!open || !isMobileViewport) {
+      return;
+    }
+
+    const updateMobilePanelTop = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+
+      setMobilePanelTop(Math.max(12, Math.round(rect.bottom + 8)));
+    };
+
+    updateMobilePanelTop();
+    window.addEventListener('resize', updateMobilePanelTop);
+    window.addEventListener('scroll', updateMobilePanelTop, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', updateMobilePanelTop);
+      window.removeEventListener('scroll', updateMobilePanelTop);
+    };
+  }, [isMobileViewport, open]);
+
+  const panelPositionStyle = isMobileViewport
+    ? {
+        position: 'fixed' as const,
+        top: mobilePanelTop,
+        left: '50%',
+        transform: 'translateX(-50%)',
+      }
+    : {
+        position: 'absolute' as const,
+        top: panelTop,
+        right: panelRight,
+      };
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={containerRef} style={{ position: 'relative' }}>
       <button
         type="button"
         aria-label="Open notifications"
@@ -118,10 +187,7 @@ export function AdminNotifications({
           role="menu"
           aria-label={panelLabel}
           style={{
-            position: 'absolute',
-            top: panelTop,
-            right: panelRight,
-            width: 320,
+            width: isMobileViewport ? 'min(360px, calc(100vw - 16px))' : 320,
             maxHeight: 360,
             overflowY: 'auto',
             background: '#fff',
@@ -129,6 +195,7 @@ export function AdminNotifications({
             boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
             border: '1px solid #E2E8F0',
             zIndex: panelZIndex,
+            ...panelPositionStyle,
           }}
         >
           <div
