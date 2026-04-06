@@ -293,7 +293,7 @@ function StepIndicator({ current }: { current: number }) {
   const { t } = useTranslation();
   return (
     <div
-      className="citizen-web-strip sticky top-[60px] z-40 bg-white border-b border-slate-200 pt-3 pb-2.5"
+      className="citizen-web-strip z-40 bg-white border-b border-slate-200 pt-3 pb-2.5"
     >
       <div className="citizen-web-strip-inner flex items-start">
         {STEP_LABEL_KEYS.map((labelKey, i) => {
