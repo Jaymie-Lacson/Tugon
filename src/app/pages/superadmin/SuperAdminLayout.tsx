@@ -7,7 +7,6 @@ import {
   LogOut,
   Menu,
   Search,
-  Settings,
   X,
 } from 'lucide-react';
 import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
@@ -138,8 +137,6 @@ export default function SuperAdminLayout() {
   const currentPage = NAV_ITEMS.find((n) =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path),
   ) || NAV_ITEMS[0];
-  const settingsActive = location.pathname === '/superadmin/settings' || location.pathname.startsWith('/superadmin/settings/');
-
   const handleSignOut = () => {
     clearAuthSession();
     setProfileMenuOpen(false);
@@ -761,22 +758,6 @@ export default function SuperAdminLayout() {
                 </NavLink>
               );
             })}
-
-            <NavLink
-              to="/superadmin/settings"
-              onClick={() => setMobileDrawerOpen(false)}
-              className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
-                settingsActive ? 'text-primary' : 'text-[var(--on-surface-variant)]'
-              }`}
-              style={{
-                opacity: mobileDrawerOpen ? 1 : 0,
-                transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                transition: 'opacity 180ms ease, transform 180ms ease',
-              }}
-            >
-              <Settings size={16} />
-              <span>{t('common.settings')}</span>
-            </NavLink>
 
             <button
               type="button"
