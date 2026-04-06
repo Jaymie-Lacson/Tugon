@@ -24,7 +24,7 @@ export function CitizenNotificationBellTrigger({ unreadCount, onClick }: Citizen
       type="button"
       onClick={onClick}
       aria-label="Notifications"
-      className="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 bg-white/[0.12] text-white"
+      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg bg-white/[0.12] text-white"
     >
       <Bell size={18} />
       {unreadCount > 0 ? (

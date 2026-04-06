@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from '../i18n';
+import { useTranslation, LanguageToggle } from '../i18n';
 import { useNavigate } from 'react-router';
 import {
   CheckCircle2,
@@ -435,7 +435,7 @@ export default function CitizenVerification() {
                   }}
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
-                  className="w-11 h-11 rounded-md border border-white/20 bg-white/10 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-0"
                 >
                   {initials}
                 </button>
@@ -444,7 +444,7 @@ export default function CitizenVerification() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    className="absolute top-11 right-0 w-[190px] bg-white rounded-md shadow-sm border border-[var(--outline-variant)] overflow-hidden z-[110]"
+                    className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                   >
                     <button
                       type="button"
@@ -453,10 +453,14 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         navigate('/citizen?tab=profile');
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-slate-100 text-slate-800 text-[13px] font-semibold cursor-pointer"
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                     >
                       {t('citizen.dashboard.openProfilePage')}
                     </button>
+                    <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                      <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
+                      <LanguageToggle compact />
+                    </div>
                     <button
                       type="button"
                       role="menuitem"
@@ -464,7 +468,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-semibold cursor-pointer"
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
                     >
                       {t('common.signOut')}
                     </button>

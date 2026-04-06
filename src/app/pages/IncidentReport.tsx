@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useTranslation } from '../i18n';
+import { useTranslation, LanguageToggle } from '../i18n';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import {
   ChevronLeft, Check, MapPin, Navigation,
@@ -2022,7 +2022,7 @@ export default function IncidentReport() {
                     setProfileMenuOpen(false);
                   }}
                 />
-                <div className="citizen-report-profile-wrap">
+                <div className="relative">
                   <button
                     type="button"
                     onClick={() => {
@@ -2031,7 +2031,7 @@ export default function IncidentReport() {
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-[14px] border-none cursor-pointer"
+                    className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-none"
                   >
                     {initials}
                   </button>
@@ -2040,7 +2040,7 @@ export default function IncidentReport() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      className="citizen-report-profile-menu"
+                      className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                     >
                       <button
                         type="button"
@@ -2049,10 +2049,14 @@ export default function IncidentReport() {
                           setProfileMenuOpen(false);
                           navigate('/citizen?tab=profile');
                         }}
-                        className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-[#F1F5F9] text-[#1E293B] text-[13px] font-semibold cursor-pointer"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                       >
                         {t('citizen.dashboard.openProfilePage')}
                       </button>
+                      <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                        <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
+                        <LanguageToggle compact />
+                      </div>
                       <button
                         type="button"
                         role="menuitem"
@@ -2060,7 +2064,7 @@ export default function IncidentReport() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="w-full text-left px-3 py-[11px] bg-white border-none text-severity-critical text-[13px] font-bold cursor-pointer"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
                       >
                         {t('common.signOut')}
                       </button>

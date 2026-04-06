@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { useTranslation } from '../i18n';
+import { useTranslation, LanguageToggle } from '../i18n';
 import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
@@ -643,7 +643,7 @@ export default function CitizenDashboard() {
                     setProfileMenuOpen((prev) => !prev);
                     setNotifOpen(false);
                   }}
-                  className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer border-0"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-0"
                 >
                   {initials}
                 </button>
@@ -652,7 +652,7 @@ export default function CitizenDashboard() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-[var(--outline-variant)] overflow-hidden z-[110]"
+                    className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                   >
                     <button
                       type="button"
@@ -661,10 +661,14 @@ export default function CitizenDashboard() {
                         setActiveTab('profile');
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 border-b border-[var(--outline-variant)] text-[var(--on-surface)] text-[13px] font-semibold cursor-pointer"
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                     >
                       {t('citizen.dashboard.openProfilePage')}
                     </button>
+                    <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                      <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
+                      <LanguageToggle compact />
+                    </div>
                     <button
                       type="button"
                       role="menuitem"
@@ -672,7 +676,7 @@ export default function CitizenDashboard() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-bold cursor-pointer"
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
                     >
                       {t('common.signOut')}
                     </button>

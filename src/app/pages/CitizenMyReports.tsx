@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { useTranslation } from '../i18n';
+import { useTranslation, LanguageToggle } from '../i18n';
 import {
   Search, X, ChevronRight,
   MapPin, Clock, FileText, User, Calendar, Camera, Mic,
@@ -1334,7 +1334,7 @@ export default function CitizenMyReports() {
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    className="w-11 h-11 rounded-md bg-white/10 flex items-center justify-center text-white font-semibold text-sm border border-white/20 cursor-pointer"
+                    className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-0"
                   >
                     {initials}
                   </button>
@@ -1343,7 +1343,7 @@ export default function CitizenMyReports() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      className="absolute top-11 right-0 w-[190px] bg-white rounded-md border border-[var(--outline-variant)] overflow-hidden z-[110] shadow-sm"
+                      className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
                     >
                       <button
                         type="button"
@@ -1352,10 +1352,14 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           navigate('/citizen?tab=profile');
                         }}
-                        className="w-full text-left px-3 py-[11px] bg-white border-none border-b border-slate-100 text-slate-900 text-[13px] font-semibold cursor-pointer"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                       >
                         {t('citizen.myReports.openProfilePage')}
                       </button>
+                      <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                        <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
+                        <LanguageToggle compact />
+                      </div>
                       <button
                         type="button"
                         role="menuitem"
@@ -1363,7 +1367,7 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="w-full text-left px-3 py-[11px] bg-white border-none text-red-700 text-[13px] font-bold cursor-pointer"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
                       >
                         {t('common.signOut')}
                       </button>
