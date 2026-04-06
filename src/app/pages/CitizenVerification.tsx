@@ -435,7 +435,7 @@ export default function CitizenVerification() {
                   }}
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
-                  className="w-11 h-11 rounded-[10px] border-0 bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm cursor-pointer"
+                  className="w-11 h-11 rounded-md border border-white/20 bg-white/10 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
                 >
                   {initials}
                 </button>
@@ -444,7 +444,7 @@ export default function CitizenVerification() {
                   <div
                     role="menu"
                     aria-label="Profile actions"
-                    className="absolute top-11 right-0 w-[190px] bg-white rounded-xl shadow-[0_8px_18px_rgba(15,23,42,0.12)] border border-slate-200 overflow-hidden z-[110]"
+                    className="absolute top-11 right-0 w-[190px] bg-white rounded-md shadow-sm border border-[var(--outline-variant)] overflow-hidden z-[110]"
                   >
                     <button
                       type="button"
@@ -464,7 +464,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-bold cursor-pointer"
+                      className="w-full text-left px-3 py-[11px] bg-white border-0 text-severity-critical text-[13px] font-semibold cursor-pointer"
                     >
                       {t('common.signOut')}
                     </button>
@@ -499,27 +499,27 @@ export default function CitizenVerification() {
     >
       <div className="citizen-content-shell pt-4 pb-6">
         <div className="max-w-[960px] mx-auto grid gap-3">
-          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
             <div className="flex items-center justify-between gap-[10px] flex-wrap">
               <div>
-                <h1 className="m-0 text-[22px] text-slate-800">{t('citizen.verification.pageTitle')}</h1>
-                <p className="mt-1.5 mb-0 text-slate-500 text-[13px]">
+                <h1 className="m-0 text-[22px] font-semibold text-[var(--on-surface)]">{t('citizen.verification.pageTitle')}</h1>
+                <p className="mt-1.5 mb-0 text-[var(--on-surface-variant)] text-[13px]">
                   {t('citizen.verification.pageSubtitle')}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                className="border border-blue-200 rounded-[10px] bg-blue-50 text-primary text-xs font-bold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
+                className="border border-[var(--primary-fixed-dim)] rounded-md bg-[var(--primary-fixed)] text-primary text-xs font-semibold px-[10px] py-2 cursor-pointer inline-flex items-center gap-[5px]"
               >
                 {t('citizen.verification.backToProfile')} <ChevronRight size={12} />
               </button>
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
             <div
-              className={`inline-flex items-center gap-2 rounded-lg border px-[10px] py-[6px] text-xs font-bold ${meta.badgeClass}`}
+              className={`inline-flex items-center gap-2 rounded-lg border px-[10px] py-[6px] text-xs font-semibold ${meta.badgeClass}`}
             >
               {meta.icon} {meta.label}
             </div>
@@ -539,36 +539,36 @@ export default function CitizenVerification() {
                 <div className="text-xs text-slate-500">{meta.helper}</div>
 
                 {status?.rejectionReason ? (
-                  <div className="bg-[#FFEDD5] border border-[#FDBA74] rounded-[10px] px-[11px] py-[9px] text-[#9A3412] text-xs">
+                  <div className="bg-[#FFEDD5] border border-[#FDBA74] rounded-md px-[11px] py-[9px] text-[#9A3412] text-xs">
                     {t('citizen.verification.rejectionReason').replace('{{reason}}', status.rejectionReason)}
                   </div>
                 ) : null}
 
                 {status?.bannedReason ? (
-                  <div className="bg-[#FEE2E2] border border-[#FCA5A5] rounded-[10px] px-[11px] py-[9px] text-[#991B1B] text-xs">
+                  <div className="bg-[#FEE2E2] border border-[#FCA5A5] rounded-md px-[11px] py-[9px] text-[#991B1B] text-xs">
                     {t('citizen.verification.restrictionReason').replace('{{reason}}', status.bannedReason)}
                   </div>
                 ) : null}
 
                 {latestUploadedPreviewUrl ? (
-                  <div className="border border-slate-200 rounded-xl p-[10px] bg-slate-50 grid gap-2">
-                    <div className="text-xs font-bold text-slate-700">{t('citizen.verification.latestIdPreview')}</div>
+                  <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-[var(--surface-container-low)] grid gap-2">
+                    <div className="text-xs font-semibold text-[var(--on-surface)]">{t('citizen.verification.latestIdPreview')}</div>
                     <img
                       src={latestUploadedPreviewUrl}
                       alt="Latest uploaded resident ID"
-                      className="w-full max-w-[360px] rounded-[10px] border border-slate-200 object-cover bg-white"
+                      className="w-full max-w-[360px] rounded-md border border-[var(--outline-variant)] object-contain bg-[var(--surface-container-low)]"
                     />
                     <a
                       href={latestUploadedPreviewUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-fit no-underline text-primary text-xs font-bold"
+                      className="w-fit no-underline text-primary text-xs font-semibold"
                     >
                       {t('citizen.verification.openFullImage')}
                     </a>
                   </div>
                 ) : status?.idImageUrl ? (
-                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[10px] px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
+                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-md px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
                     {t('citizen.verification.previewUnavailable')}
                   </div>
                 ) : null}
@@ -576,8 +576,8 @@ export default function CitizenVerification() {
             )}
           </section>
 
-          <section className="bg-white rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm font-bold text-slate-800 mb-[10px]">
+          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
+            <div className="text-sm font-semibold text-[var(--on-surface)] mb-[10px]">
               {t('citizen.verification.acceptedIdsTitle')}
             </div>
             <div className="text-xs text-slate-500 mb-[10px] leading-[1.55]">
@@ -586,8 +586,8 @@ export default function CitizenVerification() {
             <div
               className="mb-[10px] grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[10px]"
             >
-              <div className="border border-[#BBF7D0] rounded-xl p-[10px] bg-[#F0FDF4]">
-                <div className="text-xs font-bold text-[#166534] mb-2">
+              <div className="border border-[#BBF7D0] rounded-lg p-[10px] bg-[#F0FDF4]">
+                <div className="text-xs font-semibold text-[#166534] mb-2">
                   {t('citizen.verification.acceptedIdsLabel')}
                 </div>
                 <div className="grid gap-[6px]">
@@ -604,7 +604,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      className="border border-[#DCFCE7] rounded-[10px] px-[9px] py-[7px] text-xs font-semibold text-slate-700 bg-white flex items-center gap-[7px]"
+                      className="border border-[#DCFCE7] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-white flex items-center gap-[7px]"
                     >
                       <CheckCircle2 size={14} color="#16A34A" /> {idLabel}
                     </div>
@@ -612,8 +612,8 @@ export default function CitizenVerification() {
                 </div>
               </div>
 
-              <div className="border border-[#FECACA] rounded-xl p-[10px] bg-[#FEF2F2]">
-                <div className="text-xs font-bold text-[#991B1B] mb-2">
+              <div className="border border-[#FECACA] rounded-lg p-[10px] bg-[#FEF2F2]">
+                <div className="text-xs font-semibold text-[#991B1B] mb-2">
                   {t('citizen.verification.notAcceptedIdsLabel')}
                 </div>
                 <div className="grid gap-[6px]">
@@ -627,7 +627,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      className="border border-[#FEE2E2] rounded-[10px] px-[9px] py-[7px] text-xs font-semibold text-slate-700 bg-white flex items-center gap-[7px]"
+                      className="border border-[#FEE2E2] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-white flex items-center gap-[7px]"
                     >
                       <XCircle size={14} color="#DC2626" /> {idLabel}
                     </div>
@@ -640,9 +640,9 @@ export default function CitizenVerification() {
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl border border-slate-200 p-4">
+          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
             <div className="grid gap-3">
-              <label className="text-xs font-bold text-slate-700">
+              <label className="text-xs font-semibold text-[var(--on-surface)]">
                 {t('citizen.verification.uploadLabel')}
               </label>
 
@@ -676,7 +676,7 @@ export default function CitizenVerification() {
                 className="hidden"
               />
 
-              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 grid gap-[10px]">
+              <div className="border border-[var(--outline-variant)] rounded-lg p-3 bg-[var(--surface-container-low)] grid gap-[10px]">
                 <div className="grid gap-[10px]">
                   <div className="grid gap-[6px]">
                     {!frontIdFile ? (
@@ -684,13 +684,13 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => frontFileInputRef.current?.click()}
-                        className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border border-blue-200 bg-blue-50 px-3 py-[9px] text-xs font-bold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                        className="inline-flex w-fit items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectFront')}
                       </button>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 border border-slate-200 rounded-[10px] bg-white px-[10px] py-2">
-                        <div className="text-xs text-slate-800 font-semibold">
+                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-white px-[10px] py-2">
+                        <div className="text-xs text-[var(--on-surface)] font-semibold">
                           {t('citizen.verification.frontFile').replace('{{name}}', shortFileName(frontIdFile.name))}
                         </div>
                         <button
@@ -722,13 +722,13 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => backFileInputRef.current?.click()}
-                        className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border border-blue-200 bg-blue-50 px-3 py-[9px] text-xs font-bold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                        className="inline-flex w-fit items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectBack')}
                       </button>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 border border-slate-200 rounded-[10px] bg-white px-[10px] py-2">
-                        <div className="text-xs text-slate-800 font-semibold">
+                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-white px-[10px] py-2">
+                        <div className="text-xs text-[var(--on-surface)] font-semibold">
                           {t('citizen.verification.backFile').replace('{{name}}', shortFileName(backIdFile.name))}
                         </div>
                         <button
@@ -760,34 +760,34 @@ export default function CitizenVerification() {
                 </div>
 
                 {!canUploadVerification && currentVerificationStatus !== 'REJECTED' && currentVerificationStatus !== 'REUPLOAD_REQUESTED' ? (
-                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[10px] px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
+                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-md px-[11px] py-[9px] text-[#92400E] text-xs leading-[1.55]">
                     {t('citizen.verification.uploadDisabled')}
                   </div>
                 ) : null}
 
                 {frontIdPreviewUrl || backIdPreviewUrl ? (
-                  <div className="border border-slate-200 rounded-xl p-[10px] bg-white grid gap-2">
-                    <div className="text-xs font-bold text-slate-700">{t('citizen.verification.selectedPreviews')}</div>
+                  <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-white grid gap-2">
+                    <div className="text-xs font-semibold text-[var(--on-surface)]">{t('citizen.verification.selectedPreviews')}</div>
                     <div
                       className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[10px]"
                     >
                       {frontIdPreviewUrl ? (
                         <div className="grid gap-[6px]">
-                          <div className="text-[11px] font-bold text-slate-600">{t('citizen.verification.frontIdLabel')}</div>
+                          <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.verification.frontIdLabel')}</div>
                           <img
                             src={frontIdPreviewUrl}
                             alt="Selected front ID image preview"
-                            className="w-full rounded-[10px] border border-slate-200 object-cover bg-white"
+                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-white"
                           />
                         </div>
                       ) : null}
                       {backIdPreviewUrl ? (
                         <div className="grid gap-[6px]">
-                          <div className="text-[11px] font-bold text-slate-600">{t('citizen.verification.backIdLabel')}</div>
+                          <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.verification.backIdLabel')}</div>
                           <img
                             src={backIdPreviewUrl}
                             alt="Selected back ID image preview"
-                            className="w-full rounded-[10px] border border-slate-200 object-cover bg-white"
+                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-white"
                           />
                         </div>
                       ) : null}
@@ -797,13 +797,13 @@ export default function CitizenVerification() {
               </div>
 
               {error ? (
-                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[11px] py-[9px] text-severity-critical text-xs">
+                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-md px-[11px] py-[9px] text-severity-critical text-xs">
                   {error}
                 </div>
               ) : null}
 
               {message ? (
-                <div className="bg-[#ECFDF3] border border-[#A7F3D0] rounded-[10px] px-[11px] py-[9px] text-[#065F46] text-xs">
+                <div className="bg-[#ECFDF3] border border-[#A7F3D0] rounded-md px-[11px] py-[9px] text-[#065F46] text-xs">
                   {message}
                 </div>
               ) : null}
@@ -812,7 +812,7 @@ export default function CitizenVerification() {
                 type="button"
                 onClick={() => void submit()}
                 disabled={!frontIdFile || !backIdFile || !canUploadVerification || submitting}
-                className="inline-flex w-fit items-center gap-[6px] rounded-[10px] border-0 bg-primary px-[14px] py-[10px] text-[13px] font-bold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                className="inline-flex w-fit items-center gap-[6px] rounded-md border-0 bg-primary px-[14px] py-[10px] text-[13px] font-semibold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
               >
                 <UploadCloud size={15} /> {submitting ? t('citizen.verification.uploading') : t('citizen.verification.submitBtn')}
               </button>

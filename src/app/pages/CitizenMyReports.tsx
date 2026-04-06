@@ -222,56 +222,56 @@ const typeToneClass: Record<CitizenReportType, {
 }> = {
   pollution: {
     iconChip: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--severity-low)]',
-    detailIcon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)] shadow-[0_2px_10px_rgba(5,150,105,0.18)]',
+    detailHeader: 'border-b-2 border-b-[var(--severity-low)]',
+    detailIcon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
     fieldIcon: 'text-[var(--severity-low)]',
   },
   noise: {
     iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
-    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
     fieldIcon: 'text-[var(--primary-container)]',
   },
   crime: {
     iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
-    detailHeader: 'border-b-[3px] border-b-primary',
-    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)] shadow-[0_2px_10px_rgba(30,58,138,0.18)]',
+    detailHeader: 'border-b-2 border-b-primary',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
     fieldIcon: 'text-primary',
   },
   road_hazard: {
     iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
-    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    detailHeader: 'border-b-2 border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
     fieldIcon: 'text-[var(--secondary)]',
   },
   flood: {
     iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--primary-container)]',
-    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)] shadow-[0_2px_10px_rgba(30,58,138,0.16)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
     fieldIcon: 'text-[var(--primary-container)]',
   },
   accident: {
     iconChip: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
-    detailIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.22)]',
+    detailHeader: 'border-b-2 border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
     fieldIcon: 'text-[var(--secondary)]',
   },
   medical: {
     iconChip: 'bg-[var(--error-container)] text-[var(--error)]',
-    detailHeader: 'border-b-[3px] border-b-severity-critical',
-    detailIcon: 'bg-[var(--error-container)] text-[var(--error)] shadow-[0_2px_10px_rgba(186,26,26,0.2)]',
+    detailHeader: 'border-b-2 border-b-severity-critical',
+    detailIcon: 'bg-[var(--error-container)] text-[var(--error)]',
     fieldIcon: 'text-[var(--error)]',
   },
   infrastructure: {
     iconChip: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--secondary)]',
-    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)] shadow-[0_2px_10px_rgba(134,83,0,0.2)]',
+    detailHeader: 'border-b-2 border-b-[var(--secondary)]',
+    detailIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
     fieldIcon: 'text-[var(--secondary)]',
   },
   other: {
     iconChip: 'bg-surface-container-high text-[var(--outline)]',
-    detailHeader: 'border-b-[3px] border-b-[var(--outline)]',
-    detailIcon: 'bg-surface-container-high text-[var(--outline)] shadow-[0_2px_10px_rgba(117,118,130,0.2)]',
+    detailHeader: 'border-b-2 border-b-[var(--outline)]',
+    detailIcon: 'bg-surface-container-high text-[var(--outline)]',
     fieldIcon: 'text-[var(--outline)]',
   },
 };
@@ -373,14 +373,14 @@ function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStat
   const cfg = citizenStatusConfig[status];
   const Icon = cfg.icon;
   const sizes: Record<'sm' | 'md' | 'lg', { className: string; iconSize: number }> = {
-    sm: { className: 'gap-1 rounded-[6px] px-[8px] py-[3px] text-[10px]', iconSize: 10 },
-    md: { className: 'gap-[5px] rounded-[7px] px-[10px] py-1 text-[11px]', iconSize: 11 },
-    lg: { className: 'gap-[6px] rounded-[10px] px-[14px] py-[7px] text-[13px]', iconSize: 14 },
+    sm: { className: 'gap-1 rounded px-[8px] py-[3px] text-[10px]', iconSize: 10 },
+    md: { className: 'gap-[5px] rounded px-[10px] py-1 text-[11px]', iconSize: 11 },
+    lg: { className: 'gap-[6px] rounded-md px-[14px] py-[7px] text-[13px]', iconSize: 14 },
   };
   const s = sizes[size];
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap border-[1.5px] font-bold leading-none tracking-[0.02em] ${statusToneClass[status].badge} ${s.className}`}
+      className={`inline-flex items-center whitespace-nowrap border font-semibold leading-none tracking-[0.02em] ${statusToneClass[status].badge} ${s.className}`}
     >
       <Icon size={s.iconSize} />
       {cfg.label}
@@ -425,12 +425,16 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
           <div key={s.key} className="contents">
             <div className="flex flex-1 flex-col items-center gap-[3px]">
               <div
-                className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border-2 transition-all duration-300 ${stepToneClassName}`}
+                className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded border transition-all duration-300 ${stepToneClassName}`}
               >
                 {(done || (isTerminal && stepNum === 4)) ? (
-                  <span className={`text-[9px] ${isTerminal && stepNum === 4 ? (isFailed ? 'text-severity-critical' : 'text-[var(--severity-low)]') : 'text-white'}`}>
-                    {isTerminal && stepNum === 4 ? (isFailed ? 'X' : 'OK') : 'OK'}
-                  </span>
+                  isTerminal && stepNum === 4 ? (
+                    isFailed
+                      ? <X size={10} className="text-[var(--error)]" />
+                      : <CheckCircle2 size={10} className="text-[var(--severity-low)]" />
+                  ) : (
+                    <CheckCircle2 size={10} className="text-white" />
+                  )
                 ) : active ? (
                   <div className="h-[7px] w-[7px] rounded-[2px] bg-primary" />
                 ) : (
@@ -469,18 +473,18 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
   return (
     <button
-      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 text-left transition-[box-shadow,border-color] duration-200 ease-in-out"
+      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-lg border border-[var(--outline-variant)] bg-white p-0 text-left transition-[border-color] duration-200 ease-in-out"
       onClick={onClick}
     >
       <div className="p-[14px] pb-0">
         {/* Top row: ID + Status */}
         <div className="flex items-center justify-between mb-[10px]">
           <div className="flex items-center gap-2">
-            <div className={`w-[34px] h-[34px] rounded-[10px] shrink-0 flex items-center justify-center ${typeTone.iconChip}`}>
+            <div className={`w-[34px] h-[34px] rounded-md shrink-0 flex items-center justify-center ${typeTone.iconChip}`}>
               <Icon size={17} />
             </div>
             <div>
-              <div className="font-extrabold text-[13px] text-slate-900 leading-[1.1]">
+              <div className="font-semibold text-[13px] text-[var(--on-surface)] leading-[1.1]">
                 {report.id}
               </div>
               <div className="text-[10px] text-slate-500 mt-[1px] font-medium">
@@ -634,14 +638,14 @@ function DetailView({
           <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
-              <div className="font-extrabold text-base text-slate-900">{t('citizen.myReports.detailsTitle')}</div>
-              <div className="text-[11px] text-slate-400 mt-[1px]">{report.id}</div>
+              <div className="font-semibold text-base text-[var(--on-surface)]">{t('citizen.myReports.detailsTitle')}</div>
+              <div className="text-[11px] text-[var(--on-surface-variant)] mt-[1px]">{report.id}</div>
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close details"
-              className="w-[34px] h-[34px] rounded-[10px] bg-slate-100 border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600"
+              className="w-[34px] h-[34px] rounded-md bg-slate-100 border border-[var(--outline-variant)] flex items-center justify-center cursor-pointer text-[var(--on-surface-variant)]"
             >
               <X size={16} />
             </button>
@@ -649,19 +653,19 @@ function DetailView({
         </header>
 
         <main className="flex-1 overflow-y-auto p-4">
-          <section className="mb-4 border-[1.5px] border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.07)]">
+          <section className="mb-4 rounded-lg border border-[var(--outline-variant)] overflow-hidden">
             {/* Colored header */}
             <div className={`flex items-start gap-[14px] px-[18px] pt-[18px] pb-[14px] ${typeTone.detailHeader}`}>
-              <div className={`w-[52px] h-[52px] rounded-[15px] shrink-0 flex items-center justify-center ${typeTone.detailIcon}`}>
+              <div className={`w-[52px] h-[52px] rounded-lg shrink-0 flex items-center justify-center ${typeTone.detailIcon}`}>
                 <TypeIcon size={26} />
               </div>
               <div className="flex-1">
-                <div className="font-extrabold text-[18px] text-slate-900 leading-[1.15] mb-1">
+                <div className="font-semibold text-[18px] text-[var(--on-surface)] leading-[1.15] mb-1">
                   {t('citizen.myReports.incidentHeading', { type: tc.label })}
                 </div>
                 <div className="flex items-center gap-[6px] flex-wrap">
                   <CitizenStatusBadge status={report.status} size="md" />
-                  <span className={`rounded-[6px] px-[8px] py-[3px] text-[10px] font-bold uppercase tracking-[0.06em] ${severityToneClass[report.severity]}`}>
+                  <span className={`rounded px-[8px] py-[3px] text-[10px] font-semibold uppercase tracking-[0.06em] ${severityToneClass[report.severity]}`}>
                     {t('citizen.myReports.severityBadge', { severity: report.severity })}
                   </span>
                 </div>
@@ -677,27 +681,27 @@ function DetailView({
                 ...(report.assignedOfficer ? [{ icon: <User size={13} />, label: t('citizen.myReports.fieldAssignedOfficer'), value: `${report.assignedOfficer} - ${report.assignedUnit}` }] : []),
                 ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: t('citizen.myReports.fieldAffected'), value: t('citizen.myReports.affectedValue', { count: report.affectedCount }) }] : []),
               ].map(({ icon, label, value }) => (
-                <div key={label} className="border border-slate-200 rounded-xl bg-slate-50 px-3 py-[10px]">
-                  <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-slate-500 font-bold tracking-[0.04em] uppercase">
+                <div key={label} className="border border-[var(--outline-variant)] rounded-md bg-[var(--surface-container-low)] px-3 py-[10px]">
+                  <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-[var(--on-surface-variant)] font-medium tracking-[0.04em] uppercase">
                     <span className={typeTone.fieldIcon}>{icon}</span>
                     {label}
                   </dt>
-                  <dd className="m-0 text-[13px] text-[#0F172A] leading-[1.5] font-medium">{value}</dd>
+                  <dd className="m-0 text-[13px] text-[var(--on-surface)] leading-[1.5] font-medium">{value}</dd>
                 </div>
               ))}
             </dl>
           </section>
 
-          <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
+          <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-white p-4">
             <div className="flex items-center gap-[6px] mb-[10px]">
               <MessageSquare size={14} color={tc.color} />
-              <span className="font-bold text-[13px] text-slate-900">{t('citizen.myReports.description')}</span>
+              <span className="font-semibold text-[13px] text-[var(--on-surface)]">{t('citizen.myReports.description')}</span>
             </div>
-            <p className="text-[13px] text-slate-600 leading-[1.7] m-0">{report.description}</p>
+            <p className="text-[13px] text-[var(--on-surface-variant)] leading-[1.7] m-0">{report.description}</p>
           </section>
 
           {canCancel && (
-            <section className="mb-4 rounded-[14px] border border-[#FDE68A] bg-[#FFFBEB] px-[14px] py-3">
+            <section className="mb-4 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-[14px] py-3">
               <p className="m-0 text-xs text-[#78350F] leading-[1.6]">
                 {t('citizen.myReports.cancelNotice')}
               </p>
@@ -710,7 +714,7 @@ function DetailView({
                   }
                   setConfirmCancelOpen(true);
                 }}
-                className={`mt-[10px] rounded-[10px] border-none px-[14px] py-[9px] text-xs font-bold text-white ${
+                className={`mt-[10px] rounded-md border-none px-[14px] py-[9px] text-xs font-semibold text-white ${
                   cancelling
                     ? 'cursor-not-allowed bg-slate-400'
                     : 'cursor-pointer bg-severity-critical'
@@ -725,19 +729,19 @@ function DetailView({
           )}
 
           {(report.hasPhotos || report.hasAudio) && (
-            <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
-              <div className="font-bold text-[13px] text-slate-900 mb-3">
+            <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-white p-4">
+              <div className="font-semibold text-[13px] text-[var(--on-surface)] mb-3">
                 {t('citizen.myReports.evidenceAttached')}
               </div>
               <div className={`flex gap-2 flex-wrap ${hasPreviewableEvidence ? 'mb-3' : ''}`}>
                 {report.hasPhotos ? (
-                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-2">
+                  <div className="flex items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-2">
                     <Camera size={14} className="text-primary" />
-                    <span className="text-xs text-primary font-bold">{report.photoCount > 1 ? t('citizen.myReports.photoCountPlural', { count: report.photoCount }) : t('citizen.myReports.photoCount', { count: report.photoCount })}</span>
+                    <span className="text-xs text-primary font-semibold">{report.photoCount > 1 ? t('citizen.myReports.photoCountPlural', { count: report.photoCount }) : t('citizen.myReports.photoCount', { count: report.photoCount })}</span>
                   </div>
                 ) : null}
                 {report.hasAudio ? (
-                  <div className="flex items-center gap-[6px] rounded-[10px] border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
+                  <div className="flex items-center gap-[6px] rounded-md border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
                     <Mic size={14} className="text-[var(--primary-container)]" />
                     <span className="text-xs font-bold text-[var(--primary-container)]">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
@@ -753,7 +757,7 @@ function DetailView({
                         key={item.id}
                         type="button"
                         onClick={() => setPreviewPhotoIndex(index)}
-                        className="border border-[#DBEAFE] rounded-[10px] p-0 overflow-hidden bg-blue-50 cursor-pointer"
+                        className="border border-[var(--primary-fixed-dim)] rounded-md p-0 overflow-hidden bg-[var(--primary-fixed)] cursor-pointer"
                       >
                         <img
                           src={item.publicUrl}
@@ -771,7 +775,7 @@ function DetailView({
                   <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.audioSection')}</div>
                   <div className="grid gap-2">
                     {audioEvidence.map((item) => (
-                      <article key={item.id} className="border border-slate-200 rounded-[10px] px-3 py-[10px] bg-slate-50">
+                      <article key={item.id} className="border border-[var(--outline-variant)] rounded-md px-3 py-[10px] bg-[var(--surface-container-low)]">
                         <div className="text-[11px] text-slate-600 mb-[6px] font-semibold">{item.fileName}</div>
                         <audio controls preload="metadata" src={item.publicUrl} className="w-full" />
                       </article>
@@ -790,7 +794,7 @@ function DetailView({
 
           {report.resolutionNote && (
             <section
-              className={`mb-4 rounded-xl border-[1.5px] p-4 ${
+              className={`mb-4 rounded-lg border p-4 ${
                 report.status === 'unresolvable'
                   ? 'border-[#FECACA] bg-[#FEF2F2]'
                   : 'border-[#6EE7B7] bg-[#ECFDF5]'
@@ -802,7 +806,7 @@ function DetailView({
                   : <CheckCircle2 size={14} color="#059669" />
                 }
                 <span
-                  className={`text-[13px] font-bold ${
+                  className={`text-[13px] font-semibold ${
                     report.status === 'unresolvable' ? 'text-severity-critical' : 'text-emerald-600'
                   }`}
                 >
@@ -824,8 +828,8 @@ function DetailView({
             </section>
           )}
 
-          <section className="mb-2 rounded-xl border border-slate-200 bg-white p-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.06)]">
-            <div className="font-bold text-[13px] text-slate-900 mb-4 flex items-center gap-[7px]">
+          <section className="mb-2 rounded-lg border border-[var(--outline-variant)] bg-white p-[18px]">
+            <div className="font-semibold text-[13px] text-[var(--on-surface)] mb-4 flex items-center gap-[7px]">
               <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
 
@@ -845,11 +849,11 @@ function DetailView({
 
                   <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-5'}`}>
                     <div className="flex items-start justify-between gap-2 mb-[2px]">
-                      <div className="font-bold text-[13px] text-slate-900 leading-[1.2]">
+                      <div className="font-semibold text-[13px] text-[var(--on-surface)] leading-[1.2]">
                         {event.label}
                       </div>
                       {isLast && (
-                        <span className={`shrink-0 rounded-[7px] px-2 py-[2px] text-[9px] font-extrabold tracking-[0.06em] uppercase ${timelineTone.latestBadge}`}>
+                        <span className={`shrink-0 rounded px-2 py-[2px] text-[9px] font-semibold tracking-[0.06em] uppercase ${timelineTone.latestBadge}`}>
                           {t('citizen.myReports.timelineLatest')}
                         </span>
                       )}
@@ -878,7 +882,7 @@ function DetailView({
             </ul>
           </section>
 
-          <section className="bg-[#FEF2F2] rounded-[14px] px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
+          <section className="bg-[#FEF2F2] rounded-lg px-[14px] py-3 border border-[#FECACA] flex gap-2 items-start">
             <Info size={14} color="var(--severity-critical)" className="shrink-0 mt-[1px]" />
             <p className="text-xs text-[#7F1D1D] leading-[1.6] m-0">
               {t('citizen.myReports.emergencyNotice')}
@@ -904,7 +908,7 @@ function DetailView({
           />
 
           <article
-            className="relative w-[min(460px,100%)] overflow-hidden rounded-2xl bg-white shadow-[0_18px_44px_rgba(15,23,42,0.28)]"
+            className="relative w-[min(460px,100%)] overflow-hidden rounded-lg bg-white shadow-md"
           >
             <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -939,7 +943,7 @@ function DetailView({
                 type="button"
                 onClick={() => setConfirmCancelOpen(false)}
                 disabled={cancelling}
-                className={`h-[38px] rounded-[10px] border border-slate-300 bg-slate-50 px-[14px] text-xs font-bold text-slate-600 ${
+                className={`h-[38px] rounded-md border border-[var(--outline-variant)] bg-[var(--surface-container-low)] px-[14px] text-xs font-semibold text-[var(--on-surface-variant)] ${
                   cancelling ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
@@ -955,7 +959,7 @@ function DetailView({
                   setConfirmCancelOpen(false);
                 }}
                 disabled={cancelling}
-                className={`h-[38px] rounded-[10px] border-none px-[14px] text-xs font-bold text-white ${
+                className={`h-[38px] rounded-md border-none px-[14px] text-xs font-semibold text-white ${
                   cancelling
                     ? 'cursor-not-allowed bg-slate-400'
                     : 'cursor-pointer bg-severity-critical'
@@ -1030,7 +1034,7 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
       <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
         <FileText size={36} />
       </div>
-      <div className="font-extrabold text-[17px] text-slate-900 mb-2">
+      <div className="font-semibold text-[17px] text-[var(--on-surface)] mb-2">
         {headingText}
       </div>
       <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
@@ -1045,13 +1049,13 @@ function TicketPageLoadingState() {
   return (
     <div className="citizen-content-shell pt-7 pb-7">
       <section
-        className="grid min-h-[320px] place-items-center rounded-[18px] border border-[#DBEAFE] bg-[linear-gradient(135deg,#EFF6FF_0%,#FFFFFF_56%,#F8FAFC_100%)] px-5 py-6 text-center shadow-[0_12px_28px_rgba(30,58,138,0.08)]"
+        className="grid min-h-[320px] place-items-center rounded-lg border border-[var(--outline-variant)] bg-white px-5 py-6 text-center"
       >
         <div className="grid justify-items-center gap-3">
           <div
             role="status"
             aria-label="Loading my reports"
-            className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full bg-[rgba(255,255,255,0.96)] shadow-[0_18px_40px_rgba(15,23,42,0.18)]"
+            className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full bg-white border border-[var(--outline-variant)]"
           >
             <span
               aria-hidden="true"
@@ -1063,7 +1067,7 @@ function TicketPageLoadingState() {
               className="block h-10 w-10 [filter:drop-shadow(0_2px_3px_rgba(15,23,42,0.15))]"
             />
           </div>
-          <p className="m-0 text-primary text-sm font-extrabold">
+          <p className="m-0 text-primary text-sm font-semibold">
             {t('citizen.myReports.loadingTitle')}
           </p>
           <p className="m-0 text-slate-500 text-xs leading-[1.55]">
@@ -1330,7 +1334,7 @@ export default function CitizenMyReports() {
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    className="w-11 h-11 rounded-[10px] bg-severity-medium flex items-center justify-center text-white font-extrabold text-sm border-none cursor-pointer"
+                    className="w-11 h-11 rounded-md bg-white/10 flex items-center justify-center text-white font-semibold text-sm border border-white/20 cursor-pointer"
                   >
                     {initials}
                   </button>
@@ -1339,7 +1343,7 @@ export default function CitizenMyReports() {
                     <div
                       role="menu"
                       aria-label="Profile actions"
-                      className="absolute top-11 right-0 w-[190px] bg-white rounded-xl border border-slate-200 overflow-hidden z-[110] shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
+                      className="absolute top-11 right-0 w-[190px] bg-white rounded-md border border-[var(--outline-variant)] overflow-hidden z-[110] shadow-sm"
                     >
                       <button
                         type="button"
@@ -1404,28 +1408,28 @@ export default function CitizenMyReports() {
           <>
             <div className="citizen-content-shell pt-4 pb-0">
               <section
-                className="mb-[10px] rounded-2xl border border-[#DBEAFE] bg-[linear-gradient(140deg,#EFF6FF_0%,#F8FAFC_46%,#FFFFFF_100%)] px-4 pb-[14px] pt-4 shadow-[0_8px_24px_rgba(30,58,138,0.08)]"
+                className="mb-[10px] rounded-lg border border-[var(--outline-variant)] bg-white px-4 pb-[14px] pt-4"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0 flex-1">
-                    <p className="m-0 text-[11px] font-extrabold text-primary tracking-[0.08em] uppercase">
+                    <p className="m-0 text-[11px] font-medium text-primary tracking-[0.08em] uppercase">
                       {t('citizen.myReports.headerLabel')}
                     </p>
-                    <h2 className="mb-1 mt-[6px] text-[clamp(18px,2.4vw,22px)] font-extrabold leading-[1.2] text-slate-900">
+                    <h2 className="mb-1 mt-[6px] text-[clamp(18px,2.4vw,22px)] font-semibold leading-[1.2] text-[var(--on-surface)]">
                       {t('citizen.myReports.headerTitle')}
                     </h2>
-                    <p className="m-0 text-slate-500 text-xs leading-[1.55]">
+                    <p className="m-0 text-[var(--on-surface-variant)] text-xs leading-[1.55]">
                       {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    <span className="bg-white border border-[#BFDBFE] text-primary rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                    <span className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] text-primary rounded px-[10px] py-[5px] text-[11px] font-semibold">
                       {t('citizen.myReports.countTotal', { count: allCount })}
                     </span>
-                    <span className="bg-[#FFFBEB] border border-[#FDE68A] text-severity-medium rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                    <span className="bg-[var(--secondary-fixed)] border border-[var(--secondary-fixed-dim)] text-[var(--secondary)] rounded px-[10px] py-[5px] text-[11px] font-semibold">
                       {t('citizen.myReports.countActive', { count: activeCount })}
                     </span>
-                    <span className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] rounded-full px-[10px] py-[6px] text-[11px] font-bold">
+                    <span className="bg-[var(--severity-low-bg)] border border-[rgba(5,150,105,0.28)] text-[var(--severity-low)] rounded px-[10px] py-[5px] text-[11px] font-semibold">
                       {t('citizen.myReports.countResolved', { count: resolvedCount })}
                     </span>
                   </div>
@@ -1433,16 +1437,16 @@ export default function CitizenMyReports() {
               </section>
 
               <section
-                className="rounded-2xl border border-[#DBEAFE] bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
+                className="rounded-lg border border-[var(--outline-variant)] bg-white p-3"
               >
               <div className="flex gap-2 flex-wrap">
-                <div className="flex-1 flex min-w-0 items-center gap-2 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 px-3 py-[10px] transition-colors duration-200">
-                  <Search size={14} color="#94A3B8" className="shrink-0" />
+                <div className="flex-1 flex min-w-0 items-center gap-2 rounded-md border border-[var(--outline-variant)] bg-[var(--surface-container-low)] px-3 py-[10px] transition-colors duration-200">
+                  <Search size={14} className="shrink-0 text-[var(--outline)]" />
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder={t('citizen.myReports.searchPlaceholder')}
-                    className="flex-1 border-none bg-transparent text-[13px] text-slate-900 outline-none"
+                    className="flex-1 border-none bg-transparent text-[13px] text-[var(--on-surface)] outline-none"
                   />
                   {query && (
                     <button
@@ -1450,7 +1454,7 @@ export default function CitizenMyReports() {
                       onClick={() => setQuery('')}
                       aria-label="Clear search"
                       title="Clear search"
-                      className="flex cursor-pointer border-none bg-transparent p-0 text-slate-400"
+                      className="flex cursor-pointer border-none bg-transparent p-0 text-[var(--outline)]"
                     >
                       <X size={13} />
                     </button>
@@ -1460,14 +1464,14 @@ export default function CitizenMyReports() {
                 <div className="citizen-sort-panel relative">
                   <button
                     onClick={() => setSortOpen(v => !v)}
-                    className="h-[42px] bg-slate-50 border-[1.5px] border-slate-200 rounded-xl px-3 flex items-center gap-[5px] cursor-pointer text-slate-600 font-semibold text-xs whitespace-nowrap"
+                    className="h-[42px] bg-[var(--surface-container-low)] border border-[var(--outline-variant)] rounded-md px-3 flex items-center gap-[5px] cursor-pointer text-[var(--on-surface-variant)] font-semibold text-xs whitespace-nowrap"
                   >
                     <SlidersHorizontal size={13} />
                     {sortBy === 'newest' ? t('citizen.myReports.sortNewestShort') : t('citizen.myReports.sortOldestShort')}
                     <ChevronDown size={12} />
                   </button>
                   {sortOpen && (
-                    <div className="citizen-sort-panel absolute right-0 top-[calc(100%+4px)] z-[60] min-w-[130px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.15)]">
+                    <div className="citizen-sort-panel absolute right-0 top-[calc(100%+4px)] z-[60] min-w-[130px] overflow-hidden rounded-md border border-[var(--outline-variant)] bg-white shadow-sm">
                       {(['newest', 'oldest'] as const).map(opt => (
                         <button
                           key={opt}
@@ -1499,7 +1503,7 @@ export default function CitizenMyReports() {
                     >
                       <span
                         className={`flex items-center gap-[5px] text-[13px] ${
-                          isActive ? 'font-extrabold text-primary' : 'font-medium text-slate-400'
+                          isActive ? 'font-semibold text-primary' : 'font-medium text-slate-400'
                         }`}
                       >
                         {tab.label}

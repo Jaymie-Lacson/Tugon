@@ -5,7 +5,7 @@ import {
   Shield, Bell, MapPin, FileText, User, Plus,
   ChevronRight, AlertTriangle, CheckCircle2, Clock,
   Droplets, Car, Activity, Zap, AlertCircle,
-  Phone, Info, CloudRain,
+  Phone, Info, CloudRain, X as XIcon,
   ArrowRight, ArrowLeft,
 } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
@@ -138,26 +138,28 @@ function resolveAccentTone(accent: string): AccentTone {
   return 'slate';
 }
 
+// Collapsed tone buckets: neutral card chrome for all, only the icon carries accent hue.
+// Critical/success tints reserved for state that actually matters.
 const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
   critical: {
-    card: 'border-[1.5px] border-[rgba(186,26,26,0.2)]',
+    card: 'border border-[var(--outline-variant)]',
     icon: 'bg-[var(--error-container)] text-[var(--error)]',
   },
   warning: {
-    card: 'border-[1.5px] border-[var(--secondary-fixed-dim)]',
+    card: 'border border-[var(--outline-variant)]',
     icon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   primary: {
-    card: 'border-[1.5px] border-[var(--primary-fixed-dim)]',
+    card: 'border border-[var(--outline-variant)]',
     icon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   },
   success: {
-    card: 'border-[1.5px] border-[rgba(5,150,105,0.24)]',
+    card: 'border border-[var(--outline-variant)]',
     icon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
   },
   slate: {
-    card: 'border-[1.5px] border-[var(--outline-variant)]',
-    icon: 'bg-surface-container-high text-[var(--outline)]',
+    card: 'border border-[var(--outline-variant)]',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--outline)]',
   },
 };
 
@@ -167,28 +169,28 @@ const quickActionToneClass: Record<AccentTone, {
   cta: string;
 }> = {
   critical: {
-    card: 'bg-[var(--error-container)] border border-[rgba(186,26,26,0.22)] text-[var(--error)]',
+    card: 'bg-white border border-[var(--outline-variant)]',
     icon: 'bg-[var(--error-container)] text-[var(--error)]',
     cta: 'text-[var(--error)]',
   },
   warning: {
-    card: 'bg-[var(--secondary-fixed)] border border-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
-    icon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
+    card: 'bg-white border border-[var(--outline-variant)]',
+    icon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
     cta: 'text-[var(--secondary)]',
   },
   primary: {
-    card: 'bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] text-[var(--primary)]',
-    icon: 'bg-[var(--primary-fixed-dim)] text-[var(--primary)]',
+    card: 'bg-white border border-[var(--outline-variant)]',
+    icon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
     cta: 'text-[var(--primary)]',
   },
   success: {
-    card: 'bg-[var(--severity-low-bg)] border border-[rgba(5,150,105,0.24)] text-[var(--severity-low)]',
-    icon: 'bg-[rgba(5,150,105,0.16)] text-[var(--severity-low)]',
+    card: 'bg-white border border-[var(--outline-variant)]',
+    icon: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
     cta: 'text-[var(--severity-low)]',
   },
   slate: {
-    card: 'bg-surface-container-low border border-[var(--outline-variant)] text-[var(--on-surface-variant)]',
-    icon: 'bg-surface-container-high text-[var(--on-surface-variant)]',
+    card: 'bg-white border border-[var(--outline-variant)]',
+    icon: 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]',
     cta: 'text-[var(--on-surface-variant)]',
   },
 };
@@ -211,10 +213,8 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
   ).length;
   if (dismissed || criticalCount === 0) return null;
   return (
-    <div className="bg-severity-critical border-b border-[rgba(186,26,26,0.35)] px-4 py-2.5 text-[13px] text-white flex items-center gap-2.5">
-      <span className="bg-white/20 rounded-lg w-7 h-7 flex items-center justify-center shrink-0">
-        <AlertTriangle size={15} />
-      </span>
+    <div className="bg-severity-critical px-4 py-2.5 text-[13px] text-white flex items-center gap-3">
+      <AlertTriangle size={15} className="shrink-0" />
       <span className="flex-1">
         {criticalCount > 1
           ? t('citizen.dashboard.alertBannerPlural', { count: criticalCount })
@@ -222,9 +222,10 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
       </span>
       <button
         onClick={() => setDismissed(true)}
-        className="bg-transparent border-0 text-white/70 cursor-pointer text-lg leading-none p-0"
+        aria-label="Dismiss"
+        className="bg-transparent border-0 text-white/70 hover:text-white cursor-pointer p-0 inline-flex items-center"
       >
-        x
+        <XIcon size={15} />
       </button>
     </div>
   );
@@ -243,12 +244,14 @@ function StatCard({
 }) {
   const tone = statToneClass[resolveAccentTone(accent)];
   return (
-    <div className={`bg-white rounded-xl p-3 min-w-0 w-full flex flex-col gap-1 shadow-sm ${tone.card}`}>
-      <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center mb-0.5 ${tone.icon}`}>
+    <div className={`bg-white rounded-lg p-3.5 min-w-0 w-full flex flex-col gap-2 ${tone.card}`}>
+      <div className={`size-8 rounded-md flex items-center justify-center ${tone.icon}`}>
         {icon}
       </div>
-      <div className="font-extrabold text-[var(--on-surface)] text-xl leading-none">{value}</div>
-      <div className="text-[var(--on-surface-variant)] text-[11px] font-medium">{label}</div>
+      <div className="flex flex-col gap-0.5">
+        <div className="font-semibold text-[var(--on-surface)] text-[22px] leading-none tracking-[-0.01em]">{value}</div>
+        <div className="text-[var(--on-surface-variant)] text-[11px] font-medium">{label}</div>
+      </div>
     </div>
   );
 }
@@ -268,31 +271,31 @@ function QuickActionCard({
   onClick: () => void;
   featured?: boolean;
 }) {
-  const { t } = useTranslation();
   const tone = quickActionToneClass[resolveAccentTone(accent)];
   return (
     <button
       onClick={onClick}
-      className={`w-full cursor-pointer rounded-xl px-4 py-[18px] text-left transition-transform duration-150 hover:-translate-y-0.5 flex flex-col items-start gap-2 ${
+      className={`group w-full cursor-pointer rounded-lg px-4 py-4 text-left transition-colors duration-150 flex items-start gap-3.5 ${
         featured
-          ? 'border-0 bg-primary text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]'
-          : `shadow-[0_1px_4px_rgba(0,0,0,0.06)] ${tone.card}`
+          ? 'border-0 bg-primary text-white hover:bg-primary/90'
+          : `${tone.card} hover:bg-[var(--surface-container-low)]`
       }`}
     >
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${featured ? 'bg-white/25 text-white' : tone.icon}`}>
+      <div className={`size-10 rounded-md flex items-center justify-center shrink-0 ${featured ? 'bg-white/15 text-white' : tone.icon}`}>
         {icon}
       </div>
-      <div>
-        <div className={`mb-0.5 text-sm font-bold ${featured ? 'text-white' : 'text-[var(--on-surface)]'}`}>
+      <div className="flex-1 min-w-0 pt-[2px]">
+        <div className={`text-[14px] font-semibold tracking-[-0.005em] ${featured ? 'text-white' : 'text-[var(--on-surface)]'}`}>
           {label}
         </div>
-        <div className={`text-[11px] leading-snug ${featured ? 'text-white/75' : 'text-[var(--on-surface-variant)]'}`}>
+        <div className={`text-[12px] leading-[1.5] mt-0.5 ${featured ? 'text-white/70' : 'text-[var(--on-surface-variant)]'}`}>
           {sublabel}
         </div>
       </div>
-      <div className={`mt-auto flex items-center gap-[3px] text-[11px] font-semibold ${featured ? 'text-white/80' : tone.cta}`}>
-        {t('citizen.dashboard.tapToOpen')} <ArrowRight size={11} />
-      </div>
+      <ArrowRight
+        size={15}
+        className={`mt-1 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5 ${featured ? 'text-white/70' : 'text-[var(--outline)]'}`}
+      />
     </button>
   );
 }
@@ -783,24 +786,23 @@ function HomeTab({
   return (
     <div className="citizen-content-shell pt-4 pb-[18px] flex flex-col gap-4">
       {/* Welcome banner */}
-      <section className="bg-primary rounded-xl px-4 pt-4 pb-3.5 text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]">
-        <div className="text-[13px] text-[var(--primary-fixed-dim)]">{greetingLabel}, {firstName}.</div>
-        <div className="font-extrabold text-[28px] leading-[1.15] mt-1">{t('citizen.dashboard.citizenDashboard')}</div>
-        <div className="text-[13px] text-[var(--primary-fixed)] mt-0.5">
+      <section className="bg-primary rounded-lg px-5 py-5 text-white">
+        <div className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/55">{greetingLabel}, {firstName}</div>
+        <div className="font-semibold text-[22px] leading-[1.2] tracking-[-0.01em] mt-1.5">{t('citizen.dashboard.citizenDashboard')}</div>
+        <div className="text-[13px] text-white/70 mt-1 leading-[1.5]">
           {t('citizen.dashboard.trackReports')}
         </div>
-        <div className="flex flex-wrap gap-2 mt-3">
-          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
-            {barangayLabel}
+        <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4 pt-4 border-t border-white/10 text-[12px] text-white/65">
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin size={12} className="text-white/50" /> {barangayLabel}
           </span>
-          <span className="bg-white/[0.14] border border-white/[0.24] rounded-lg px-2.5 py-[5px] text-[11px] font-semibold">
-            {todayLabel}
-          </span>
+          <span className="text-white/40">·</span>
+          <span>{todayLabel}</span>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5"
         >
@@ -828,21 +830,21 @@ function HomeTab({
       {/* Verification prompt */}
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <section
-          className={`rounded-2xl p-3.5 shadow-[0_4px_16px_rgba(15,23,42,0.06)] ${verificationSummary.surfaceClass}`}
+          className={`rounded-lg p-4 ${verificationSummary.surfaceClass}`}
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className={`font-bold text-[15px] ${verificationSummary.titleClass}`}>
+              <div className={`font-semibold text-[14px] ${verificationSummary.titleClass}`}>
                 {verificationSummary.title}
               </div>
-              <div className="text-xs text-[var(--on-surface-variant)] mt-1">
+              <div className="text-[12px] text-[var(--on-surface-variant)] mt-1 leading-[1.5]">
                 {verificationSummary.detail}
               </div>
             </div>
             <button
               type="button"
               onClick={() => navigate('/citizen/verification')}
-              className="border-0 rounded-[10px] bg-primary text-white text-xs font-bold px-3 py-2.5 cursor-pointer whitespace-nowrap"
+              className="border-0 rounded-md bg-primary text-white text-[12px] font-semibold px-3 py-2 cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
             >
               {t('citizen.dashboard.openVerification')}
             </button>
@@ -851,15 +853,15 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <section className="bg-white rounded-2xl border border-[var(--outline-variant)] shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="flex justify-between items-center mb-2.5">
+      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
+        <div className="flex justify-between items-center mb-3 px-1">
           <div>
-            <div className="font-bold text-[var(--on-surface)] text-base">{t('citizen.dashboard.myReportMap')}</div>
-            <div className="text-xs text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapPinsDesc')}</div>
+            <div className="font-semibold text-[var(--on-surface)] text-[15px] tracking-[-0.005em]">{t('citizen.dashboard.myReportMap')}</div>
+            <div className="text-[12px] text-[var(--on-surface-variant)] mt-0.5">{t('citizen.dashboard.mapPinsDesc')}</div>
           </div>
           <button
             onClick={() => setActiveTab('map')}
-            className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] rounded-lg px-2.5 py-[7px] text-primary font-bold text-xs cursor-pointer inline-flex items-center gap-[5px]"
+            className="text-primary font-medium text-[12px] cursor-pointer inline-flex items-center gap-1 hover:underline"
           >
             {t('citizen.dashboard.openFullMap')} <ArrowRight size={12} />
           </button>
@@ -867,45 +869,45 @@ function HomeTab({
 
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
-            <div className="bg-surface-container-low border border-[var(--outline-variant)] rounded-[10px] px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="bg-[var(--surface-container-low)] rounded-md px-3.5 py-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
+              <div className="grid grid-cols-2 gap-2 mt-2.5">
                 <div>
-                  <div className="text-[10px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.totalPins')}</div>
-                  <div className="text-lg font-extrabold text-primary">{incidents.length}</div>
+                  <div className="text-[18px] font-semibold text-primary leading-none tracking-[-0.01em]">{incidents.length}</div>
+                  <div className="text-[10px] text-[var(--on-surface-variant)] mt-1">{t('citizen.dashboard.totalPins')}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.needsAttention')}</div>
-                  <div className="text-lg font-extrabold text-severity-medium">{criticalCount}</div>
+                  <div className="text-[18px] font-semibold text-severity-medium leading-none tracking-[-0.01em]">{criticalCount}</div>
+                  <div className="text-[10px] text-[var(--on-surface-variant)] mt-1">{t('citizen.dashboard.needsAttention')}</div>
                 </div>
               </div>
             </div>
 
             {selectedIncident ? (
-              <div className="bg-[var(--primary-fixed)] border border-[var(--primary-fixed-dim)] rounded-[10px] px-3 py-2.5">
-                <div className="text-[11px] text-primary font-bold mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 ${incidentIconToneClass[selectedIncident.type]}`}>
+              <div className="bg-[var(--primary-fixed)] rounded-md px-3.5 py-3">
+                <div className="text-[10px] text-primary font-semibold uppercase tracking-[0.08em] mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
+                <div className="flex items-center gap-2.5">
+                  <div className={`size-8 rounded-md flex items-center justify-center shrink-0 ${incidentIconToneClass[selectedIncident.type]}`}>
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-[var(--on-surface)] font-bold truncate">{selectedIncident.id}</div>
+                    <div className="text-[12px] text-[var(--on-surface)] font-semibold truncate">{selectedIncident.id}</div>
                     <div className="text-[10px] text-[var(--on-surface-variant)] truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
-                <div className="mt-1.5">
+                <div className="mt-2">
                   <StatusBadge status={selectedIncident.status} size="sm" pulse />
                 </div>
               </div>
             ) : (
-              <div className="bg-surface-container-low border border-dashed border-[var(--outline)] rounded-[10px] px-3 py-2.5 text-[11px] text-[var(--on-surface-variant)]">
+              <div className="bg-[var(--surface-container-low)] rounded-md px-3.5 py-3 text-[11px] text-[var(--on-surface-variant)] leading-[1.5]">
                 {t('citizen.dashboard.tapPinHint')}
               </div>
             )}
           </aside>
 
           <div className="flex-[1_1_420px] min-w-0">
-            <div className="rounded-xl overflow-hidden border border-[var(--outline-variant)] bg-white block w-full min-h-[360px]">
+            <div className="rounded-md overflow-hidden border border-[var(--outline-variant)] bg-white block w-full min-h-[360px]">
               <IncidentMap
                 incidents={incidents}
                 height={360}
@@ -921,10 +923,10 @@ function HomeTab({
       </section>
 
       {/* Quick Actions */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.quickActions')}</div>
+      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
+        <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)] mb-3 px-1">{t('citizen.dashboard.quickActions')}</div>
         <div
-          className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2.5"
+          className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2"
         >
           <QuickActionCard
             icon={<Plus size={22} />}
@@ -959,22 +961,22 @@ function HomeTab({
       </section>
 
       {/* Recent activity */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="font-bold text-base text-slate-900">{t('citizen.dashboard.recentReportActivity')}</div>
+      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)]">{t('citizen.dashboard.recentReportActivity')}</div>
           <button
-            className="bg-transparent border-0 text-primary text-xs font-bold cursor-pointer inline-flex items-center gap-1"
+            className="bg-transparent border-0 text-primary text-[12px] font-medium cursor-pointer inline-flex items-center gap-1 hover:underline"
             onClick={() => navigate('/citizen/my-reports')}
           >
             {t('common.viewAll')} <ChevronRight size={13} />
           </button>
         </div>
-        <div className="border border-slate-100 rounded-xl px-3 py-1">
+        <div className="px-3">
           {myReports.slice(0, 3).map((report) => (
             <RecentIncidentRow key={report.id} report={report} />
           ))}
           {myReports.length === 0 && (
-            <div className="text-center py-5 text-slate-400 text-[13px]">
+            <div className="text-center py-6 text-[var(--on-surface-variant)] text-[13px]">
               {t('citizen.dashboard.noSubmittedReports')}
             </div>
           )}
@@ -982,27 +984,27 @@ function HomeTab({
       </section>
 
       {/* Emergency contacts */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_16px_rgba(15,23,42,0.06)] p-3">
-        <div className="font-bold text-base text-slate-900 mb-2.5">{t('citizen.dashboard.emergencyContacts')}</div>
-        <div className="flex flex-col gap-2">
+      <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-3">
+        <div className="font-semibold text-[15px] tracking-[-0.005em] text-[var(--on-surface)] mb-2.5 px-1">{t('citizen.dashboard.emergencyContacts')}</div>
+        <div className="divide-y divide-[var(--outline-variant)]">
           {[
-            { label: t('citizen.dashboard.emergencyHotline'), number: '911', tone: 'text-[var(--error)]', iconTone: 'bg-[var(--error-container)] text-[var(--error)]' },
-            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', tone: 'text-[var(--primary)]', iconTone: 'bg-[var(--primary-fixed)] text-[var(--primary)]' },
-            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', tone: 'text-[var(--severity-low)]', iconTone: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]' },
+            { label: t('citizen.dashboard.emergencyHotline'), number: '911', iconTone: 'bg-[var(--error-container)] text-[var(--error)]' },
+            { label: t('citizen.dashboard.mdrrmoOffice'), number: '(02) 123-4567', iconTone: 'bg-[var(--primary-fixed)] text-[var(--primary)]' },
+            { label: t('citizen.dashboard.barangayHotline'), number: '(02) 765-4321', iconTone: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]' },
           ].map((contact) => (
             <a
               key={contact.label}
               href={`tel:${contact.number.replace(/\D/g, '')}`}
-              className="bg-white rounded-xl px-3.5 py-3 flex items-center gap-3 no-underline border border-slate-200"
+              className="flex items-center gap-3 px-3 py-3 no-underline transition-colors hover:bg-[var(--surface-container-low)] rounded-md -mx-1"
             >
-              <div className={`w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${contact.iconTone}`}>
-                <Phone size={17} />
+              <div className={`size-9 rounded-md flex items-center justify-center shrink-0 ${contact.iconTone}`}>
+                <Phone size={16} />
               </div>
-              <div className="flex-1">
-                <div className="font-semibold text-[13px] text-slate-900">{contact.label}</div>
-                <div className={`text-xs font-bold mt-px ${contact.tone}`}>{contact.number}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-[13px] text-[var(--on-surface)]">{contact.label}</div>
+                <div className="text-[12px] font-mono text-[var(--on-surface-variant)] mt-0.5">{contact.number}</div>
               </div>
-              <ChevronRight size={16} className="text-[var(--outline)]" />
+              <ChevronRight size={15} className="text-[var(--outline)]" />
             </a>
           ))}
         </div>
@@ -1382,35 +1384,37 @@ function MapTab({
   return (
     <div className={`flex flex-col ${mapShellMinHeightClass}`}>
       {/* Filters */}
-      <div className="citizen-map-filter-bar px-4 py-3 bg-white border-b border-slate-100 flex gap-2 items-center flex-wrap">
-        <div className="font-bold text-sm text-slate-900 flex-1">{t('citizen.dashboard.myReportMap')}</div>
+      <div className="citizen-map-filter-bar px-4 py-3 bg-white border-b border-[var(--outline-variant)] flex gap-2 items-center flex-wrap">
+        <div className="font-semibold text-[14px] tracking-[-0.005em] text-[var(--on-surface)] flex-1">{t('citizen.dashboard.myReportMap')}</div>
         <button
           type="button"
           onClick={onBack}
-          className={`inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-[11px] font-bold text-primary cursor-pointer ${
-            isMobileViewport ? 'px-3 py-2' : 'px-[10px] py-1.5'
+          className={`inline-flex items-center gap-1.5 rounded-md text-[12px] font-medium text-[var(--on-surface-variant)] cursor-pointer hover:bg-[var(--surface-container-low)] transition-colors ${
+            isMobileViewport ? 'px-3 py-2' : 'px-2.5 py-1.5'
           }`}
         >
-          <ArrowLeft size={12} />
+          <ArrowLeft size={13} />
           {t('citizen.dashboard.backToDashboard')}
         </button>
-        {(['all', 'active', 'responding'] as const).map((f) => (
-          <button
-            className={`citizen-map-filter-chip border-0 rounded-full font-semibold capitalize cursor-pointer ${
-              isMobileViewport ? 'px-[14px] py-2 text-xs' : 'px-3 py-[5px] text-[11px]'
-            } ${filter === f ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}
-            key={f}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
+        <div className="inline-flex items-center gap-px rounded-md bg-[var(--surface-container-low)] p-0.5">
+          {(['all', 'active', 'responding'] as const).map((f) => (
+            <button
+              className={`rounded-[5px] font-medium capitalize cursor-pointer transition-colors ${
+                isMobileViewport ? 'px-3 py-1.5 text-[12px]' : 'px-2.5 py-1 text-[11px]'
+              } ${filter === f ? 'bg-white text-[var(--on-surface)] shadow-sm' : 'text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]'}`}
+              key={f}
+              onClick={() => setFilter(f)}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
         {selectedIncident ? (
           <button
             type="button"
             onClick={() => setSelectedIncident(null)}
-            className={`citizen-map-clear-btn ml-auto border border-slate-200 bg-white text-slate-600 font-bold text-[11px] rounded-[10px] cursor-pointer ${
-              isMobileViewport ? 'px-3 py-2' : 'px-[10px] py-1.5'
+            className={`citizen-map-clear-btn ml-auto text-[var(--on-surface-variant)] font-medium text-[11px] rounded-md cursor-pointer hover:bg-[var(--surface-container-low)] transition-colors ${
+              isMobileViewport ? 'px-3 py-2' : 'px-2.5 py-1.5'
             }`}
           >
             {t('citizen.dashboard.clearSelection')}
@@ -1430,15 +1434,15 @@ function MapTab({
           showSelectedPopup
         />
         {!hasPinsForFilter ? (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-gradient-to-b from-white/[0.16] to-white/[0.42]">
-            <div className="citizen-map-empty-card pointer-events-auto bg-white/[0.96] border border-slate-200 rounded-xl px-3 py-2.5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
-              <div className="text-xs font-bold text-slate-900 mb-1">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/40 backdrop-blur-[2px]">
+            <div className="citizen-map-empty-card pointer-events-auto bg-white border border-[var(--outline-variant)] rounded-lg px-4 py-3 text-center">
+              <div className="text-[12px] font-medium text-[var(--on-surface)] mb-2">
                 {t('citizen.dashboard.noMapPins')}
               </div>
               <button
                 type="button"
                 onClick={() => setFilter('all')}
-                className="border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary rounded-lg text-[11px] font-bold px-2.5 py-1.5 cursor-pointer"
+                className="bg-primary text-white rounded-md text-[11px] font-semibold px-3 py-1.5 cursor-pointer hover:bg-primary/90 transition-colors"
               >
                 {t('citizen.dashboard.showAllPins')}
               </button>
@@ -1569,22 +1573,22 @@ function ProfileTab({
   return (
     <div className="citizen-content-shell pt-4 pb-4">
       {/* Profile card */}
-      <div className="bg-primary rounded-[20px] px-5 py-6 text-white mb-5 flex flex-col items-center gap-2.5 text-center">
-        <div className="w-[72px] h-[72px] rounded-full bg-severity-medium flex items-center justify-center text-[28px] font-extrabold text-white border-[3px] border-white/30">
+      <div className="bg-primary rounded-lg px-5 py-6 text-white mb-4 flex items-center gap-4">
+        <div className="size-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[18px] font-semibold text-white">
           {initials}
         </div>
-        <div>
-          <div className="font-extrabold text-xl">{fullName}</div>
-          <div className="text-xs text-[var(--primary-fixed-dim)] mt-0.5">{phoneNumber}</div>
-          <div className="text-[11px] text-[var(--primary-fixed)] mt-1">{barangayLabel} - Tondo, Manila</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-[17px] tracking-[-0.01em] truncate">{fullName}</div>
+          <div className="text-[12px] text-white/65 mt-0.5 font-mono">{phoneNumber}</div>
+          <div className="text-[11px] text-white/55 mt-1">{barangayLabel} · Tondo, Manila</div>
         </div>
-        <div className="bg-white/15 rounded-full py-[5px] px-3.5 text-[11px] font-bold flex items-center gap-[5px] border border-white/20">
-          <Shield size={12} /> {verificationSummary.statusLabel}
+        <div className="bg-white/10 rounded-md py-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] inline-flex items-center gap-1.5 border border-white/15 shrink-0">
+          <Shield size={11} /> {verificationSummary.statusLabel}
         </div>
       </div>
 
       {/* Stats */}
-      <div className="flex gap-2.5 mb-5">
+      <div className="flex gap-2 mb-4">
         {[
           { label: t('citizen.dashboard.reportsFiled'), value: myReports.length, icon: <FileText size={16} />, accent: 'var(--primary)' },
           { label: t('status.resolved'), value: resolvedCount, icon: <CheckCircle2 size={16} />, accent: '#059669' },
@@ -1595,20 +1599,20 @@ function ProfileTab({
       </div>
 
       {/* Verification preview */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.verificationPreview')}</div>
+      <div className="font-semibold text-[12px] uppercase tracking-[0.08em] text-[var(--on-surface-variant)] mb-2 px-1">{t('citizen.dashboard.verificationPreview')}</div>
       <div
-        className={`mb-4 rounded-[14px] px-3.5 py-3 ${verificationSummary.surfaceClass}`}
+        className={`mb-4 rounded-lg px-4 py-3 ${verificationSummary.surfaceClass}`}
       >
-        <div className={`font-bold text-[13px] ${verificationSummary.titleClass}`}>
+        <div className={`font-semibold text-[13px] ${verificationSummary.titleClass}`}>
           {verificationSummary.title}
         </div>
-        <div className="text-xs text-slate-600 mt-1 leading-[1.5]">{verificationSummary.detail}</div>
+        <div className="text-[12px] text-[var(--on-surface-variant)] mt-1 leading-[1.5]">{verificationSummary.detail}</div>
         {verificationPreview.idImageUrl ? (
           <a
             href={verificationPreview.idImageUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex mt-2 no-underline text-primary text-xs font-bold"
+            className="inline-flex mt-2 no-underline text-primary text-[12px] font-medium hover:underline"
           >
             {t('citizen.dashboard.viewLatestId')}
           </a>
@@ -1616,40 +1620,40 @@ function ProfileTab({
       </div>
 
       {/* Account info */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">{t('citizen.dashboard.accountInformation')}</div>
-      <div className="bg-white rounded-[14px] overflow-hidden border border-slate-100 mb-4">
+      <div className="font-semibold text-[12px] uppercase tracking-[0.08em] text-[var(--on-surface-variant)] mb-2 px-1">{t('citizen.dashboard.accountInformation')}</div>
+      <div className="bg-white rounded-lg overflow-hidden border border-[var(--outline-variant)] mb-4">
         {[
-          { icon: <User size={16} />, label: t('settings.personalInfo'), sub: fullName, action: 'personal' as const },
-          { icon: <Bell size={16} />, label: t('common.notifications'), sub: t('citizen.dashboard.alertsSubLabel'), action: 'notifications' as const },
-          { icon: <Shield size={16} />, label: t('citizen.dashboard.verificationStatus'), sub: verificationSummary.statusLabel, action: 'verification' as const },
-          { icon: <MapPin size={16} />, label: t('citizen.dashboard.homeBarangay'), sub: barangayLabel, action: 'barangay' as const },
-          { icon: <Phone size={16} />, label: t('citizen.dashboard.contactNumber'), sub: phoneNumber, action: 'contact' as const },
+          { icon: <User size={15} />, label: t('settings.personalInfo'), sub: fullName, action: 'personal' as const },
+          { icon: <Bell size={15} />, label: t('common.notifications'), sub: t('citizen.dashboard.alertsSubLabel'), action: 'notifications' as const },
+          { icon: <Shield size={15} />, label: t('citizen.dashboard.verificationStatus'), sub: verificationSummary.statusLabel, action: 'verification' as const },
+          { icon: <MapPin size={15} />, label: t('citizen.dashboard.homeBarangay'), sub: barangayLabel, action: 'barangay' as const },
+          { icon: <Phone size={15} />, label: t('citizen.dashboard.contactNumber'), sub: phoneNumber, action: 'contact' as const },
         ].map((item, idx, arr) => (
           <div
             key={item.label}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 cursor-default text-left bg-white ${
-              idx < arr.length - 1 ? 'border-b border-slate-50' : ''
+            className={`w-full flex items-center gap-3 px-4 py-3 cursor-default text-left bg-white ${
+              idx < arr.length - 1 ? 'border-b border-[var(--outline-variant)]' : ''
             }`}
           >
-            <div className="w-9 h-9 rounded-[10px] bg-[var(--primary-fixed)] text-primary flex items-center justify-center shrink-0">
+            <div className="size-8 rounded-md bg-[var(--primary-fixed)] text-primary flex items-center justify-center shrink-0">
               {item.icon}
             </div>
-            <div className="flex-1">
-              <div className="font-semibold text-[13px] text-slate-900">{item.label}</div>
-              <div className="text-[11px] text-slate-400 mt-px">{item.sub}</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-[13px] text-[var(--on-surface)]">{item.label}</div>
+              <div className="text-[11px] text-[var(--on-surface-variant)] mt-0.5 truncate">{item.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 mb-3.5 text-slate-600 text-xs leading-[1.5]">
+      <div className="bg-[var(--surface-container-low)] rounded-md px-3 py-2.5 mb-4 text-[var(--on-surface-variant)] text-[12px] leading-[1.5]">
         Your profile details are tied to your registered and verified account. For account corrections, contact your barangay administrator.
       </div>
 
       {!session?.user.isPhoneVerified ? (
         <button
           onClick={() => navigate('/auth/register')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-2.5 rounded-md border border-[var(--outline-variant)] bg-white text-primary font-semibold text-[13px] cursor-pointer mb-2 hover:bg-[var(--surface-container-low)] transition-colors"
         >
           {t('citizen.dashboard.verifyPhoneNumber')}
         </button>
@@ -1658,7 +1662,7 @@ function ProfileTab({
       {!verificationPreview.isVerified && !verificationPreview.isBanned ? (
         <button
           onClick={() => navigate('/citizen/verification')}
-          className="w-full py-3 rounded-xl border-[1.5px] border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] text-primary font-bold text-[13px] cursor-pointer mb-3"
+          className="w-full py-2.5 rounded-md border border-[var(--outline-variant)] bg-white text-primary font-semibold text-[13px] cursor-pointer mb-2 hover:bg-[var(--surface-container-low)] transition-colors"
         >
           {t('citizen.dashboard.openVerificationStatus')}
         </button>
@@ -1670,7 +1674,7 @@ function ProfileTab({
           clearAuthSession();
           navigate('/auth/login', { replace: true });
         }}
-        className="w-full py-3.5 rounded-xl border-[1.5px] border-[rgba(186,26,26,0.2)] bg-[var(--error-container)] text-severity-critical font-bold text-sm cursor-pointer"
+        className="w-full py-2.5 rounded-md border border-[var(--outline-variant)] bg-white text-[var(--error)] font-medium text-[13px] cursor-pointer hover:bg-[var(--error-container)] transition-colors"
       >
         {t('common.signOut')}
       </button>
