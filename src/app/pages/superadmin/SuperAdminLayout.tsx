@@ -404,7 +404,7 @@ export default function SuperAdminLayout() {
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
+    <div className="app-shell-height flex overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
       {/* Desktop sidebar */}
       <aside className={`hidden ${sidebarCollapsed ? 'w-[68px]' : 'w-72'} shrink-0 flex-col overflow-hidden border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-300 ease-in-out lg:flex`}>

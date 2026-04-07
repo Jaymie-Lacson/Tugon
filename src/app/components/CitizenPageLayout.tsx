@@ -53,7 +53,7 @@ export function CitizenPageLayout({
 
   return (
     <div
-      className={`citizen-page-layout h-dvh bg-citizen-bg flex flex-col w-full relative tracking-[-0.004em]${sidebar ? ' citizen-has-sidebar' : ''}`}
+      className={`citizen-page-layout app-shell-height bg-citizen-bg flex flex-col w-full relative tracking-[-0.004em]${sidebar ? ' citizen-has-sidebar' : ''}`}
       style={cssVars}
     >
       {/* Sticky top header (full width) */}

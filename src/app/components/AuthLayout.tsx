@@ -26,7 +26,7 @@ export function AuthLayout({
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-dvh w-full bg-[var(--surface)]">
+    <div className="app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[linear-gradient(150deg,#00194f_0%,#00236f_40%,#1e3a8a_100%)] lg:flex">
         <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
