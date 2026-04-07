@@ -66,6 +66,7 @@ export function AdminNotifications({
   onMarkAllRead,
 }: AdminNotificationsProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const panelRef = React.useRef<HTMLDivElement | null>(null);
   const [isMobileViewport, setIsMobileViewport] = React.useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -121,116 +122,93 @@ export function AdminNotifications({
     };
   }, [isMobileViewport, open]);
 
-  const panelPositionStyle = isMobileViewport
-    ? {
-        position: 'fixed' as const,
-        top: mobilePanelTop,
-        left: '50%',
-        transform: 'translateX(-50%)',
-      }
-    : {
-        position: 'absolute' as const,
-        top: panelTop,
-        right: panelRight,
-      };
+  React.useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) {
+      return;
+    }
+
+    panel.style.zIndex = String(panelZIndex);
+    panel.style.top = `${isMobileViewport ? mobilePanelTop : panelTop}px`;
+
+    if (isMobileViewport) {
+      panel.style.right = '';
+    } else {
+      panel.style.right = `${panelRight}px`;
+    }
+  }, [isMobileViewport, mobilePanelTop, panelRight, panelTop, panelZIndex, open]);
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        aria-label="Open notifications"
-        title="Open notifications"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className="icon-btn-square"
-        onClick={onToggle}
-        style={{
-          lineHeight: 0,
-          background: 'rgba(255,255,255,0.1)',
-          border: 'none',
-          borderRadius: 8,
-          cursor: 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 0,
-        }}
-      >
-        <Bell size={18} color="var(--on-surface)" />
-        {unreadCount > 0 ? (
-          <span
-            style={{
-              position: 'absolute',
-              top: -4,
-              right: -4,
-              minWidth: 18,
-              height: 18,
-              borderRadius: 9,
-              background: 'var(--severity-critical)',
-              color: '#fff',
-              fontSize: 10,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 4px',
-              border: '1px solid rgba(255,255,255,0.35)',
-            }}
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        ) : null}
-      </button>
+    <div ref={containerRef} className="relative">
+      {open ? (
+        <button
+          type="button"
+          aria-label="Open notifications"
+          title="Open notifications"
+          aria-expanded="true"
+          aria-haspopup="dialog"
+          className="icon-btn-square inline-flex cursor-pointer items-center justify-center rounded-lg border-none bg-[rgba(255,255,255,0.1)] p-0 leading-none"
+          onClick={onToggle}
+        >
+          <Bell size={18} color="var(--on-surface)" />
+          {unreadCount > 0 ? (
+            <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] border border-[rgba(255,255,255,0.35)] bg-[var(--severity-critical)] px-1 text-[10px] font-bold text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          ) : null}
+        </button>
+      ) : (
+        <button
+          type="button"
+          aria-label="Open notifications"
+          title="Open notifications"
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          className="icon-btn-square inline-flex cursor-pointer items-center justify-center rounded-lg border-none bg-[rgba(255,255,255,0.1)] p-0 leading-none"
+          onClick={onToggle}
+        >
+          <Bell size={18} color="var(--on-surface)" />
+          {unreadCount > 0 ? (
+            <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] border border-[rgba(255,255,255,0.35)] bg-[var(--severity-critical)] px-1 text-[10px] font-bold text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          ) : null}
+        </button>
+      )}
 
       {open ? (
         <div
-          role="menu"
+          ref={panelRef}
+          role="region"
           aria-label={panelLabel}
-          style={{
-            width: isMobileViewport ? 'min(360px, calc(100vw - 16px))' : 320,
-            maxHeight: 360,
-            overflowY: 'auto',
-            background: '#fff',
-            borderRadius: 12,
-            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-            border: '1px solid #E2E8F0',
-            zIndex: panelZIndex,
-            ...panelPositionStyle,
-          }}
+          className={`max-h-[360px] overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.2)] ${
+            isMobileViewport
+              ? 'fixed left-1/2 z-[2300] w-[min(360px,calc(100vw-16px))] -translate-x-1/2'
+              : 'absolute z-[2300] w-80'
+          }`}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 12px',
-              borderBottom: '1px solid #E2E8F0',
-            }}
-          >
-            <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700 }}>Notifications</span>
+          <div className="flex items-center justify-between border-b border-[#E2E8F0] px-3 py-2.5">
+            <span className="text-xs font-bold text-[#1E293B]">Notifications</span>
             <button
               type="button"
               onClick={onMarkAllRead}
               disabled={unreadCount === 0}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: unreadCount === 0 ? '#94A3B8' : 'var(--primary)',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: unreadCount === 0 ? 'default' : 'pointer',
-              }}
+              className={`border-none bg-transparent text-[11px] font-bold ${
+                unreadCount === 0
+                  ? 'cursor-default text-[#94A3B8]'
+                  : 'cursor-pointer text-[var(--primary)]'
+              }`}
             >
               Mark all read
             </button>
           </div>
 
           {loading ? (
-            <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>Loading notifications...</div>
+            <div className="p-3 text-xs text-[#64748B]">Loading notifications...</div>
           ) : null}
 
           {!loading && items.length === 0 ? (
-            <div style={{ padding: 12, color: '#64748B', fontSize: 12 }}>No notifications yet.</div>
+            <div className="p-3 text-xs text-[#64748B]">No notifications yet.</div>
           ) : null}
 
           {!loading
@@ -240,28 +218,21 @@ export function AdminNotifications({
                   <button
                     key={item.id}
                     type="button"
-                    role="menuitem"
                     onClick={() => {
                       onItemClick(item);
                     }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '10px 12px',
-                      border: 'none',
-                      borderBottom: '1px solid #F1F5F9',
-                      background: isUnread ? '#EFF6FF' : '#fff',
-                      cursor: 'pointer',
-                    }}
+                    className={`w-full cursor-pointer border-none border-b border-[#F1F5F9] px-3 py-2.5 text-left ${
+                      isUnread ? 'bg-[#EFF6FF]' : 'bg-white'
+                    }`}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ color: '#1E293B', fontSize: 12, fontWeight: 700, flex: 1 }}>{item.title}</span>
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="flex-1 text-xs font-bold text-[#1E293B]">{item.title}</span>
                       {isUnread ? (
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--severity-critical)', flexShrink: 0 }} />
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--severity-critical)]" />
                       ) : null}
                     </div>
-                    <div style={{ color: '#334155', fontSize: 12, lineHeight: 1.35 }}>{item.message}</div>
-                    <div style={{ color: '#64748B', fontSize: 11, marginTop: 4 }}>
+                    <div className="text-xs leading-[1.35] text-[#334155]">{item.message}</div>
+                    <div className="mt-1 text-[11px] text-[#64748B]">
                       {formatNotificationTimestamp(item.createdAt)}
                     </div>
                   </button>

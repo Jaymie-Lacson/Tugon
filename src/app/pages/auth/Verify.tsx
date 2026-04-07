@@ -216,6 +216,7 @@ export default function Verify() {
               key={idx}
               ref={el => { inputRefs.current[idx] = el; }}
               type="text"
+              aria-label={`Verification code digit ${idx + 1}`}
               inputMode="numeric"
               maxLength={1}
               value={digit}

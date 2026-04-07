@@ -103,6 +103,9 @@ function Layout() {
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app',
   ) || NAV_ITEMS[0];
   const settingsActive = location.pathname === '/app/settings' || location.pathname.startsWith('/app/settings/');
+  const mobileDrawerItemMotionClass = mobileDrawerOpen
+    ? 'opacity-100 translate-y-0'
+    : 'pointer-events-none opacity-0 -translate-y-1.5';
 
   const handleSignOut = () => {
     clearAuthSession();
@@ -597,17 +600,33 @@ function Layout() {
             </div>
 
             {/* Mobile hamburger (upper right) */}
-            <button
-              type="button"
-              onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
-              aria-label={mobileDrawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={mobileDrawerOpen}
-              className={`order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileDrawerOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
-            >
-              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-                {mobileDrawerOpen ? <X size={18} /> : <Menu size={18} />}
-              </span>
-            </button>
+            {mobileDrawerOpen ? (
+              <button
+                type="button"
+                onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
+                aria-label="Close navigation menu"
+                aria-expanded="true"
+                aria-controls="layout-mobile-drawer"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-high)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out scale-[0.97] lg:hidden"
+              >
+                <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                  <X size={18} />
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+                aria-controls="layout-mobile-drawer"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden"
+              >
+                <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                  <Menu size={18} />
+                </span>
+              </button>
+            )}
 
             <div className="order-2 lg:order-none">
               <AdminNotifications
@@ -634,13 +653,11 @@ function Layout() {
 
           {/* Mobile search bar dropdown */}
           <div
-            className="absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
-            style={{
-              maxHeight: mobileSearchOpen ? 600 : 0,
-              opacity: mobileSearchOpen ? 1 : 0,
-              pointerEvents: mobileSearchOpen ? 'auto' : 'none',
-              transition: 'max-height 250ms cubic-bezier(0.2,0.65,0.3,1), opacity 200ms ease',
-            }}
+            className={`absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg transition-[max-height,opacity] duration-[250ms,200ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease] lg:hidden ${
+              mobileSearchOpen
+                ? 'max-h-[600px] opacity-100 pointer-events-auto'
+                : 'max-h-0 opacity-0 pointer-events-none'
+            }`}
           >
             <form onSubmit={handleSearch} className="flex items-center gap-2 px-4 py-3">
               <div className="flex flex-1 items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2.5">
@@ -729,16 +746,12 @@ function Layout() {
 
           {/* Mobile navigation dropdown (landing page style) */}
           <div
-            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
-            aria-hidden={!mobileDrawerOpen}
-            style={{
-              padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
-              maxHeight: mobileDrawerOpen ? 500 : 0,
-              opacity: mobileDrawerOpen ? 1 : 0,
-              transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-10px)',
-              pointerEvents: mobileDrawerOpen ? 'auto' : 'none',
-              transition: 'max-height 320ms cubic-bezier(0.2,0.65,0.3,1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-            }}
+            id="layout-mobile-drawer"
+            className={`nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] lg:hidden ${
+              mobileDrawerOpen
+                ? 'pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-3 pb-5 opacity-100'
+                : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
+            }`}
           >
             {NAV_ITEMS.map((item) => {
               const isActive = item.exact
@@ -754,12 +767,7 @@ function Layout() {
                   onClick={() => setMobileDrawerOpen(false)}
                   className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
                     active ? 'text-primary' : 'text-[var(--on-surface-variant)]'
-                  }`}
-                  style={{
-                    opacity: mobileDrawerOpen ? 1 : 0,
-                    transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                    transition: 'opacity 180ms ease, transform 180ms ease',
-                  }}
+                  } ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
                 >
                   <item.icon size={16} />
                   <span>{item.label}</span>
@@ -772,12 +780,7 @@ function Layout() {
               onClick={() => setMobileDrawerOpen(false)}
               className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
                 settingsActive ? 'text-primary' : 'text-[var(--on-surface-variant)]'
-              }`}
-              style={{
-                opacity: mobileDrawerOpen ? 1 : 0,
-                transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                transition: 'opacity 180ms ease, transform 180ms ease',
-              }}
+              } ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
             >
               <Settings size={16} />
               <span>{t('common.settings')}</span>
@@ -786,12 +789,7 @@ function Layout() {
             <button
               type="button"
               onClick={() => { setMobileDrawerOpen(false); handleSignOut(); }}
-              className="mt-3 flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-[var(--surface-container-high)] px-3 py-3 text-[15px] font-semibold text-destructive"
-              style={{
-                opacity: mobileDrawerOpen ? 1 : 0,
-                transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-6px)',
-                transition: 'opacity 180ms ease, transform 180ms ease',
-              }}
+              className={`mt-3 flex w-full cursor-pointer items-center gap-3 rounded-lg border-none bg-[var(--surface-container-high)] px-3 py-3 text-[15px] font-semibold text-destructive ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
             >
               <LogOut size={16} />
               <span>{t('common.signOut')}</span>

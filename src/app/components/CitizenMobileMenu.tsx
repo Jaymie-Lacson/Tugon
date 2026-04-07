@@ -13,6 +13,9 @@ interface CitizenMobileMenuProps {
 export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const panelItemMotionClass = open
+    ? 'opacity-100 translate-y-0'
+    : 'pointer-events-none opacity-0 -translate-y-1.5';
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -29,29 +32,38 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? 'Close menu' : 'Open menu'}
-        aria-expanded={open}
-        className={`citizen-mobile-hamburger relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 bg-white/[0.12] text-white transition-[background,transform] duration-150 ease-out${open ? ' scale-[0.97] !bg-white/25' : ''}`}
-      >
-        <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-          {open ? <X size={18} /> : <Menu size={18} />}
-        </span>
-      </button>
+      {open ? (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Close menu"
+          aria-expanded="true"
+          className="citizen-mobile-hamburger relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 text-white transition-[background,transform] duration-150 ease-out scale-[0.97] !bg-white/25"
+        >
+          <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+            <X size={18} />
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Open menu"
+          aria-expanded="false"
+          className="citizen-mobile-hamburger relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 bg-white/[0.12] text-white transition-[background,transform] duration-150 ease-out"
+        >
+          <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+            <Menu size={18} />
+          </span>
+        </button>
+      )}
 
       <div
-        className="citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 top-[60px] z-[95] overflow-hidden border-t border-white/[0.12] bg-primary"
-        aria-hidden={!open}
-        style={{
-          padding: open ? '8px 20px 0' : '0 20px',
-          maxHeight: open ? 500 : 0,
-          opacity: open ? 1 : 0,
-          transform: open ? 'translateY(0)' : 'translateY(-10px)',
-          pointerEvents: open ? 'auto' : 'none',
-          transition: 'max-height 320ms cubic-bezier(0.2,0.65,0.3,1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-        }}
+        className={`citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 top-[60px] z-[95] overflow-hidden border-t border-white/[0.12] bg-primary transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] ${
+          open
+            ? 'pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-2 pb-0 opacity-100'
+            : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
+        }`}
       >
         {citizenNavDefs.map((item) => {
           const Icon = item.icon;
@@ -63,12 +75,7 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
               onClick={() => handleSelect(item.key)}
               className={`flex w-full cursor-pointer items-center gap-3 border-none border-b border-white/[0.16] px-3 py-3 text-left text-[15px] font-semibold transition-colors ${
                 isActive ? 'bg-primary text-white' : 'bg-transparent text-white/[0.82]'
-              }`}
-              style={{
-                opacity: open ? 1 : 0,
-                transform: open ? 'translateY(0)' : 'translateY(-6px)',
-                transition: 'opacity 180ms ease, transform 180ms ease',
-              }}
+              } ${panelItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
             >
               <Icon size={16} />
               <span>{t(item.labelKey)}</span>

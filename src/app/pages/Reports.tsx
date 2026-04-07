@@ -1068,7 +1068,7 @@ export default function Reports() {
                       <button onClick={() => { void handleHistoryDownload(r.reportId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-high)] px-2.5 py-[5px] text-[11px] font-semibold text-primary">
                         <Download size={11} /> {t('official.reports.download')}
                       </button>
-                      <button onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-low)] px-2 py-[5px]">
+                      <button aria-label={t('official.reports.print')} title={t('official.reports.print')} onClick={() => { void handleHistoryPrint(r.reportId); }} className="flex cursor-pointer items-center gap-1 rounded-md border-none bg-[var(--surface-container-low)] px-2 py-[5px]">
                         <Printer size={12} color="#64748B" />
                       </button>
                     </div>

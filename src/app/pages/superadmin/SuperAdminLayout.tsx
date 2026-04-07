@@ -607,19 +607,35 @@ export default function SuperAdminLayout() {
             </button>
 
             <div className="order-3 relative z-[2200] hidden lg:block">
-              <button
-                type="button"
-                onClick={() => {
-                  setProfileMenuOpen((prev) => !prev);
-                  setNotificationsOpen(false);
-                }}
-                aria-label={t('superadmin.layout.ariaProfileActions')}
-                aria-haspopup="menu"
-                aria-expanded={profileMenuOpen}
-                className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
-              >
-                {userInitials}
-              </button>
+              {profileMenuOpen ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen((prev) => !prev);
+                    setNotificationsOpen(false);
+                  }}
+                  aria-label={t('superadmin.layout.ariaProfileActions')}
+                  aria-haspopup="menu"
+                  aria-expanded="true"
+                  className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
+                >
+                  {userInitials}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen((prev) => !prev);
+                    setNotificationsOpen(false);
+                  }}
+                  aria-label={t('superadmin.layout.ariaProfileActions')}
+                  aria-haspopup="menu"
+                  aria-expanded="false"
+                  className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
+                >
+                  {userInitials}
+                </button>
+              )}
 
               {profileMenuOpen && (
                 <div
@@ -652,17 +668,33 @@ export default function SuperAdminLayout() {
             </div>
 
             {/* Mobile hamburger (upper right) */}
-            <button
-              type="button"
-              onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
-              aria-label={mobileDrawerOpen ? t('superadmin.layout.ariaCloseNav') : t('superadmin.layout.ariaOpenNav')}
-              aria-expanded={mobileDrawerOpen}
-              className={`order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileDrawerOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
-            >
-              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-                {mobileDrawerOpen ? <X size={18} /> : <Menu size={18} />}
-              </span>
-            </button>
+            {mobileDrawerOpen ? (
+              <button
+                type="button"
+                onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
+                aria-label={t('superadmin.layout.ariaCloseNav')}
+                aria-expanded="true"
+                aria-controls="superadmin-mobile-drawer"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-high)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out scale-[0.97] lg:hidden"
+              >
+                <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                  <X size={18} />
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
+                aria-label={t('superadmin.layout.ariaOpenNav')}
+                aria-expanded="false"
+                aria-controls="superadmin-mobile-drawer"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden"
+              >
+                <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                  <Menu size={18} />
+                </span>
+              </button>
+            )}
 
             <div className="order-2 lg:order-none">
               <AdminNotifications
@@ -778,8 +810,8 @@ export default function SuperAdminLayout() {
 
           {/* Mobile navigation dropdown (landing page style) */}
           <div
+            id="superadmin-mobile-drawer"
             className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
-            aria-hidden={!mobileDrawerOpen}
             style={{
               padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
               maxHeight: mobileDrawerOpen ? 600 : 0,

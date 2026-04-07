@@ -771,6 +771,7 @@ export default function Dashboard() {
                   </div>
                   <input
                     type="range"
+                    aria-label={t('official.dashboard.radius')}
                     min={50}
                     max={100}
                     step={1}
@@ -793,6 +794,7 @@ export default function Dashboard() {
                   </div>
                   <input
                     type="range"
+                    aria-label={t('official.dashboard.opacity')}
                     min={50}
                     max={120}
                     step={1}

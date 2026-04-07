@@ -8,6 +8,7 @@ import {
   Camera, Mic, MicOff, Square, Trash2,
   FileText, User, Clock, CheckCircle2, Info, X, Phone,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
@@ -58,7 +59,7 @@ interface ReportForm {
    CONSTANTS
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const CATEGORIES: {
-  type: IncidentCategory; label: string; icon: React.FC<{ size?: number }>;
+  type: IncidentCategory; label: string; icon: LucideIcon;
   color: string; bg: string; desc: string; descKey: string; emoji: string;
 }[] = [
   { type: 'Pollution', label: 'Pollution', icon: Wind, color: '#0F766E', bg: '#CCFBF1', desc: 'Air, water, and waste pollution concerns', descKey: 'citizen.report.category.pollution.desc', emoji: 'P' },

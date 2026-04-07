@@ -19,6 +19,8 @@
     "check:prod": "npm run build && npm run build:server && npm run prisma:validate && npm run prisma:generate && npm run prisma:status"
   },
   "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -78,6 +80,8 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "4.1.12",
     "@vitejs/plugin-legacy": "^6.1.1",

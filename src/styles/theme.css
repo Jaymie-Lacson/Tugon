@@ -309,7 +309,10 @@
   *::-webkit-scrollbar-corner       { background: var(--scrollbar-track); }
 
   /* Border default */
-  * { @apply border-border outline-ring/50; }
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
 
   /* Focus ring — WCAG AA */
   a:focus-visible,
@@ -339,11 +342,14 @@
     height: 100%;
     width: 100%;
     max-width: 100%;
+    /* Keep both declarations for broader text autosize control across WebKit and Chromium engines. */
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: var(--background);
+    color: var(--foreground);
     min-height: 100%;
     width: 100%;
     max-width: 100%;

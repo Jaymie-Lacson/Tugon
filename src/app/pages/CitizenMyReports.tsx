@@ -9,6 +9,7 @@ import {
   MessageSquare, Phone, RefreshCw, Eye, XCircle, Ban,
   ChevronDown, SlidersHorizontal, Info,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { CitizenPageLayout } from '../components/CitizenPageLayout';
 import { CitizenDesktopNav } from '../components/CitizenDesktopNav';
 import { CitizenMobileMenu } from '../components/CitizenMobileMenu';
@@ -127,7 +128,7 @@ function mapApiReport(report: ApiCitizenReport): CitizenReport {
 
 export const citizenStatusConfig: Record<CitizenReportStatus, {
   label: string; color: string; bg: string; border: string;
-  dotColor: string; icon: React.FC<{ size?: number }>; step: number;
+  dotColor: string; icon: LucideIcon; step: number;
   filterGroup: 'active' | 'resolved';
   description: string;
 }> = {
@@ -164,7 +165,7 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
 };
 
 const typeConfig: Record<CitizenReportType, {
-  label: string; color: string; bg: string; icon: React.FC<{ size?: number }>;
+  label: string; color: string; bg: string; icon: LucideIcon;
 }> = {
   pollution:     { label: 'Pollution',      color: '#0F766E', bg: '#CCFBF1', icon: Wind },
   noise:         { label: 'Noise',          color: '#7C3AED', bg: '#EDE9FE', icon: Volume2 },

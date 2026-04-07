@@ -7,6 +7,8 @@ import Landing from './pages/Landing';
 import Layout from './components/Layout';
 import SuperAdminLayout from './pages/superadmin/SuperAdminLayout';
 import { TranslationProvider } from './i18n';
+import { saveAuthSession } from './utils/authSession';
+import type { Role } from './services/authApi';
 
 vi.mock('./services/superAdminApi', () => ({
   superAdminApi: {
@@ -55,6 +57,24 @@ class MockIntersectionObserver {
 }
 
 const act = React.act;
+
+function seedSession(role: Role) {
+  saveAuthSession({
+    user: {
+      id: role === 'SUPER_ADMIN' ? 'sa-1' : 'off-1',
+      fullName: role === 'SUPER_ADMIN' ? 'Super Admin' : 'Barangay Official',
+      phoneNumber: '639170000001',
+      role,
+      barangayCode: role === 'SUPER_ADMIN' ? undefined : '251',
+      isPhoneVerified: true,
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      verificationRejectionReason: null,
+      idImageUrl: null,
+      isBanned: false,
+    },
+  });
+}
 
 describe('Accessibility layout safeguards', () => {
   beforeEach(() => {
@@ -115,6 +135,8 @@ describe('Accessibility layout safeguards', () => {
   });
 
   it('renders official Layout with accessible mobile drawer controls', async () => {
+    seedSession('OFFICIAL');
+
     mounted = await mount(
       React.createElement(
         TranslationProvider,
@@ -147,6 +169,8 @@ describe('Accessibility layout safeguards', () => {
   });
 
   it('renders SuperAdminLayout with accessible mobile drawer controls', async () => {
+    seedSession('SUPER_ADMIN');
+
     mounted = await mount(
       React.createElement(
         TranslationProvider,

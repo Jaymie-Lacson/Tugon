@@ -248,24 +248,38 @@ function Navbar() {
             </Button>
           </div>
 
-          <button
-            type="button"
-            className={`landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden${mobileOpen ? ' scale-[0.97] !bg-white/20' : ''}`}
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileOpen ? 'true' : 'false'}
-            aria-controls="landing-mobile-nav"
-          >
-            <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-              {mobileOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
-            </span>
-          </button>
+          {mobileOpen ? (
+            <button
+              type="button"
+              className="landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] transition-[background,transform] duration-150 ease-out scale-[0.97] !bg-white/20 md:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Close navigation menu"
+              aria-expanded="true"
+              aria-controls="landing-mobile-nav"
+            >
+              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                <X size={20} color="white" />
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Open navigation menu"
+              aria-expanded="false"
+              aria-controls="landing-mobile-nav"
+            >
+              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
+                <Menu size={20} color="white" />
+              </span>
+            </button>
+          )}
         </div>
 
         <div
           id="landing-mobile-nav"
           className="landing-mobile-panel nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
-          aria-hidden={mobileOpen ? 'false' : 'true'}
           style={{
             padding: mobileOpen ? '12px 20px 20px' : '0 20px',
             maxHeight: mobileOpen ? 360 : 0,
