@@ -221,7 +221,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           )}
 
           {error ? (
-            <div className="mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-severity-critical text-xs px-[10px] py-2">
+            <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-[10px] py-2 text-severity-critical text-xs font-semibold">
               {error}
             </div>
           ) : null}
@@ -733,7 +733,7 @@ export default function SAUsers() {
       )}
 
       {/* Table */}
-      <div className="mb-[14px] overflow-hidden border border-slate-200 border-t-2 border-t-[#0F172A] bg-white">
+      <div className="mb-[14px] overflow-hidden border border-slate-200 bg-white">
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           <thead>

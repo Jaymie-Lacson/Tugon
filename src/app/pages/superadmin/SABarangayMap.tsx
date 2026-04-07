@@ -160,9 +160,9 @@ const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
 const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
 
 const alertLevelConfig: Record<string, { label: string; badgeClass: string }> = {
-  normal: { label: 'NORMAL', badgeClass: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]' },
-  elevated: { label: 'ELEVATED', badgeClass: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]' },
-  critical: { label: 'CRITICAL', badgeClass: 'bg-[var(--error-container)] text-[var(--error)]' },
+  normal: { label: 'NORMAL', badgeClass: 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]' },
+  elevated: { label: 'ELEVATED', badgeClass: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]' },
+  critical: { label: 'CRITICAL', badgeClass: 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]' },
 };
 
 const SEVERITY_TEXT_CLASS: Record<string, string> = {
@@ -173,10 +173,10 @@ const SEVERITY_TEXT_CLASS: Record<string, string> = {
 };
 
 const SEVERITY_BADGE_CLASS: Record<string, string> = {
-  critical: 'bg-[var(--error-container)] text-[var(--error)]',
-  high: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
-  medium: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
-  low: 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
+  critical: 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]',
+  high: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]',
+  medium: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]',
+  low: 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]',
 };
 
 const INCIDENT_BUTTON_CLASS: Record<string, { active: string; inactive: string }> = {
@@ -761,20 +761,20 @@ export default function SABarangayMap() {
       </div>
 
       {barangaysError ? (
-        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-severity-critical text-xs font-semibold">
           {barangaysError}
         </div>
       ) : null}
 
       {incidentsError ? (
-        <div className="mb-3 bg-[var(--error-container)] border border-[rgba(186,26,26,0.2)] rounded-[10px] text-severity-critical text-xs px-3 py-2.5">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-severity-critical text-xs font-semibold">
           {incidentsError}
         </div>
       ) : null}
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_296px] gap-3.5">
         {/* ── OSM Map ── */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,.08)] border border-[var(--outline-variant)] flex flex-col">
+        <div className="bg-white overflow-hidden border border-[var(--outline-variant)] flex flex-col">
           {/* Toolbar */}
           <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[var(--outline-variant)] bg-surface-container-low flex-wrap">
             <Filter size={13} className="text-[var(--outline)]" />
@@ -1104,8 +1104,7 @@ export default function SABarangayMap() {
 
           {/* Barangay detail card */}
           {selectedBrgy ? (
-            <div className="bg-white rounded-[14px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,.07)] border border-[var(--outline-variant)]">
-              <div className={`h-1 ${BARANGAY_ACCENT_CLASS_BY_CODE[selectedBrgy.code] ?? 'bg-primary'}`} />
+            <div className="bg-white overflow-hidden border border-[var(--outline-variant)]">
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -1222,10 +1221,10 @@ export default function SABarangayMap() {
                     className="w-full min-h-[120px] border border-[#DBEAFE] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[#334155] box-border bg-[#F8FAFF]"
                   />
                   {boundaryError ? (
-                    <div className="text-[10px] text-severity-critical mt-[5px]">{boundaryError}</div>
+                    <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-white px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
                   ) : null}
                   {boundaryMessage ? (
-                    <div className="text-[10px] text-[#059669] mt-[5px]">{boundaryMessage}</div>
+                    <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
                   ) : null}
                   {BOUNDARY_EDIT_ENABLED ? (
                     <button
@@ -1242,7 +1241,7 @@ export default function SABarangayMap() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-[14px] p-5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
+            <div className="bg-white p-5 border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
               <MapPin size={28} className="text-[var(--outline-variant)]" />
               <div className="text-xs text-[#9CA3AF] text-center">
                 {t('superadmin.barangayMap.clickBoundaryHint')}
@@ -1251,7 +1250,7 @@ export default function SABarangayMap() {
           )}
 
           {/* Active incidents list */}
-          <div className="bg-white rounded-[14px] p-4 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[var(--outline-variant)] flex-1 flex flex-col">
+          <div className="bg-white p-4 border border-[var(--outline-variant)] flex-1 flex flex-col">
             <div className="text-sm font-bold text-[var(--on-surface)] mb-2.5">
               {selectedBrgy ? t('superadmin.barangayMap.barangayIncidents', { name: selectedBrgy.name }) : t('superadmin.barangayMap.allActiveIncidents')}
             </div>
@@ -1276,7 +1275,7 @@ export default function SABarangayMap() {
                         <div className="text-[10px] text-[#9CA3AF]">{inc.barangay}</div>
                       </div>
                       <div
-                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'bg-surface-container-high text-[var(--on-surface-variant)]'}`}
+                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)]'}`}
                       >{inc.severity}</div>
                     </div>
                   );
@@ -1317,7 +1316,7 @@ export default function SABarangayMap() {
       </div>
 
       {/* Comparison table */}
-      <div className="bg-white rounded-[14px] px-5 py-[18px] mt-3.5 shadow-[0_1px_6px_rgba(0,0,0,.07)] border border-[var(--outline-variant)]">
+      <div className="bg-white px-5 py-[18px] mt-3.5 border border-[var(--outline-variant)]">
         <div className="text-[15px] font-bold text-[var(--on-surface)] mb-3.5">{t('superadmin.barangayMap.comparisonTitle')}</div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">

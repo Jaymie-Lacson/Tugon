@@ -232,7 +232,7 @@ export default function SAAuditLogs() {
         </div>
       </div>
 
-      <div className="flex flex-col items-stretch gap-2 mb-3 rounded-xl bg-white border border-slate-200 px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
+      <div className="flex flex-col items-stretch gap-2 mb-3 bg-white border border-slate-200 px-3 py-2.5 md:flex-row md:items-center md:flex-wrap">
         <Filter size={13} className="text-[var(--outline)]" />
         <select
           title="Filter by action"
@@ -312,7 +312,7 @@ export default function SAAuditLogs() {
         </button>
       </div>
 
-      <div className="bg-white border border-[var(--outline-variant)] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[var(--outline-variant)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>

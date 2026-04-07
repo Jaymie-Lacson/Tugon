@@ -81,13 +81,13 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
 function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
   switch (level) {
     case 'normal':
-      return 'bg-[var(--severity-low-bg)] text-[var(--severity-low)]';
+      return 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]';
     case 'elevated':
-      return 'bg-[var(--secondary-fixed)] text-[var(--secondary)]';
+      return 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]';
     case 'critical':
-      return 'bg-[var(--error-container)] text-[var(--error)]';
+      return 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]';
     default:
-      return 'bg-surface-container-high text-[var(--outline)]';
+      return 'border border-[var(--outline-variant)] bg-white text-[var(--outline)]';
   }
 }
 
@@ -95,12 +95,6 @@ function getBarangayAccentClass(code: string) {
   if (code === '251') return 'text-[#2563EB]';
   if (code === '252') return 'text-[#16A34A]';
   return 'text-[#D97706]';
-}
-
-function getBarangayBorderTopClass(code: string) {
-  if (code === '251') return 'border-t-[#2563EB]';
-  if (code === '252') return 'border-t-[#16A34A]';
-  return 'border-t-[#D97706]';
 }
 
 function getStatValueClass(color: string) {
@@ -382,10 +376,11 @@ export default function SAOverview() {
     const itemHeight = sampleItem?.offsetHeight ?? 58;
     const cardVerticalPadding = 40; // p-5 top and bottom
     const rowGap = 8; // gap-2
-    const available = incidentCardHeight - header.offsetHeight - cardVerticalPadding;
+    const available = Math.max(0, incidentCardHeight - header.offsetHeight - cardVerticalPadding);
     const nextMax = Math.max(1, Math.floor((available + rowGap) / (itemHeight + rowGap)));
 
     setMaxVisibleLogItems((prev) => (prev === nextMax ? prev : nextMax));
+    list.style.maxHeight = `${available}px`;
   }, [incidentCardHeight, systemLogs]);
 
   const visibleSystemLogs = systemLogs.slice(0, maxVisibleLogItems);
@@ -508,13 +503,13 @@ export default function SAOverview() {
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
           return (
-            <div key={b.id} className={`flex-1 min-w-[260px] bg-white rounded-xl overflow-hidden border border-slate-200 border-t-2 ${getBarangayBorderTopClass(b.code)}`}>
+            <div key={b.id} className="flex-1 min-w-[260px] bg-white overflow-hidden border border-slate-200">
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-[3px]">
                       <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
-                      <span className={`font-mono text-[9px] font-bold uppercase ${getAlertLevelClass(b.alertLevel).split(' ')[1]}`}>{al.label}</span>
+                      <span className={`font-mono text-[9px] font-bold uppercase rounded px-1.5 py-0.5 ${getAlertLevelClass(b.alertLevel)}`}>{al.label}</span>
                     </div>
                     <div className="text-[#6B7280] text-[11px]">{b.district}</div>
                     <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
@@ -583,7 +578,7 @@ export default function SAOverview() {
       {/* Charts + Logs row */}
       <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
-        <div ref={incidentTypesCardRef} className="bg-white p-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
+        <div ref={incidentTypesCardRef} className="bg-white p-5 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
@@ -609,7 +604,7 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200 border-t-2 border-t-[#0F172A] flex flex-col">
+        <div className="bg-white p-5 border border-slate-200 flex flex-col">
           <div ref={activityLogHeaderRef} className="flex items-center justify-between mb-[14px]">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
@@ -638,7 +633,7 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview bg-white rounded-xl overflow-hidden mb-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
+      <div className="sa-overview-map-preview bg-white overflow-hidden mb-5 border border-slate-200">
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
             <MapPin size={15} className="text-[#2563EB]" />
