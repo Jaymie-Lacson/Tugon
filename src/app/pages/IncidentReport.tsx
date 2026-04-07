@@ -754,11 +754,7 @@ function Step2({
 
       {mapExpanded ? (
         <div
-          className="fixed inset-0 z-[250] bg-[#0B1220] flex flex-col"
-          style={{
-            top: 'var(--app-vv-top, 0px)',
-            bottom: 'var(--app-vv-bottom-gap, 0px)',
-          }}
+          className="incident-step2-fullscreen fixed inset-0 z-[250] flex flex-col bg-[#0B1220]"
         >
           <div className="flex items-center justify-between gap-3 px-[14px] py-3 text-white border-b border-white/[0.15]">
             <div className="text-[13px] font-bold">{t('citizen.report.step2.expandedMapTitle')}</div>
@@ -859,6 +855,13 @@ function Step2({
           {validationError}
         </div>
       ) : null}
+
+      <style>{`
+        .incident-step2-fullscreen {
+          top: var(--app-vv-top, 0px);
+          bottom: var(--app-vv-bottom-gap, 0px);
+        }
+      `}</style>
     </div>
   );
 }
@@ -2137,10 +2140,11 @@ export default function IncidentReport() {
                 .citizen-report-footer {
                   position: fixed !important;
                   left: var(--app-vv-left, 0px) !important;
-                  width: min(var(--app-vv-width, 100vw), 520px) !important;
-                  transform: translateX(calc((var(--app-vv-width, 100vw) - min(var(--app-vv-width, 100vw), 520px)) / 2)) !important;
+                  width: min(var(--app-vv-width, 100vw), var(--citizen-mobile-shell-max, 520px)) !important;
+                  transform: translateX(calc((var(--app-vv-width, 100vw) - min(var(--app-vv-width, 100vw), var(--citizen-mobile-shell-max, 520px))) / 2)) !important;
                   bottom: calc(var(--app-vv-bottom-gap, 0px)) !important;
-                  max-width: 520px !important;
+                  max-width: var(--citizen-mobile-shell-max, 520px) !important;
+                  padding-bottom: calc(12px + env(safe-area-inset-bottom));
                 }
               }
 

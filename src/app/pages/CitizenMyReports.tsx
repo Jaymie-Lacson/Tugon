@@ -374,7 +374,7 @@ function CitizenStatusBadge({ status, size = 'md' }: { status: CitizenReportStat
   const cfg = citizenStatusConfig[status];
   const Icon = cfg.icon;
   const sizes: Record<'sm' | 'md' | 'lg', { className: string; iconSize: number }> = {
-    sm: { className: 'gap-1 rounded px-[8px] py-[3px] text-[10px]', iconSize: 10 },
+    sm: { className: 'gap-1 rounded px-[8px] py-[4px] text-[11px]', iconSize: 10 },
     md: { className: 'gap-[5px] rounded px-[10px] py-1 text-[11px]', iconSize: 11 },
     lg: { className: 'gap-[6px] rounded-md px-[14px] py-[7px] text-[13px]', iconSize: 14 },
   };
@@ -488,7 +488,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
               <div className="font-semibold text-[13px] text-[var(--on-surface)] leading-[1.1]">
                 {report.id}
               </div>
-              <div className="text-[10px] text-slate-500 mt-[1px] font-medium">
+              <div className="mt-[1px] text-[11px] font-medium text-slate-500">
                 {tc.label}
               </div>
             </div>
@@ -513,13 +513,13 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         <div className="flex items-center gap-2 flex-wrap mb-3">
           <div className="flex items-center gap-1">
             <Calendar size={10} className="text-[var(--outline)]" />
-            <span className="text-[10px] text-slate-400">{formatDate(report.submittedAt)}</span>
+            <span className="text-[11px] text-slate-400">{formatDate(report.submittedAt)}</span>
           </div>
-          <span className="text-slate-300 text-[10px]"> - </span>
-          <span className="text-[10px] text-slate-400">{timeAgo(report.submittedAt)}</span>
+          <span className="text-[11px] text-slate-300"> - </span>
+          <span className="text-[11px] text-slate-400">{timeAgo(report.submittedAt)}</span>
           {report.hasPhotos && (
             <span className="contents">
-              <span className="text-slate-300 text-[10px]"> - </span>
+              <span className="text-[11px] text-slate-300"> - </span>
               <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
                 <Camera size={9} className="text-[var(--outline)]" />
                 <span className="text-[9px] text-slate-500 font-semibold">{report.photoCount}</span>
@@ -528,7 +528,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
           )}
           {report.hasAudio && (
             <span className="contents">
-              <span className="text-slate-300 text-[10px]"> - </span>
+              <span className="text-[11px] text-slate-300"> - </span>
               <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
                 <Mic size={9} className="text-[var(--outline)]" />
                 <span className="text-[9px] text-slate-500 font-semibold">{t('citizen.myReports.audioSection')}</span>
@@ -640,13 +640,13 @@ function DetailView({
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
               <div className="font-semibold text-base text-[var(--on-surface)]">{t('citizen.myReports.detailsTitle')}</div>
-              <div className="text-[11px] text-[var(--on-surface-variant)] mt-[1px]">{report.id}</div>
+              <div className="mt-[1px] text-[12px] text-[var(--on-surface-variant)]">{report.id}</div>
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close details"
-              className="w-[34px] h-[34px] rounded-md bg-slate-100 border border-[var(--outline-variant)] flex items-center justify-center cursor-pointer text-[var(--on-surface-variant)]"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-[var(--outline-variant)] bg-slate-100 text-[var(--on-surface-variant)]"
             >
               <X size={16} />
             </button>
@@ -683,7 +683,7 @@ function DetailView({
                 ...(report.affectedCount ? [{ icon: <AlertTriangle size={13} />, label: t('citizen.myReports.fieldAffected'), value: t('citizen.myReports.affectedValue', { count: report.affectedCount }) }] : []),
               ].map(({ icon, label, value }) => (
                 <div key={label} className="border border-[var(--outline-variant)] rounded-md bg-[var(--surface-container-low)] px-3 py-[10px]">
-                  <dt className="flex items-center gap-[6px] mb-1 text-[10px] text-[var(--on-surface-variant)] font-medium tracking-[0.04em] uppercase">
+                  <dt className="mb-1 flex items-center gap-[6px] text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--on-surface-variant)]">
                     <span className={typeTone.fieldIcon}>{icon}</span>
                     {label}
                   </dt>
@@ -724,7 +724,7 @@ function DetailView({
                 {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.cancelBtn')}
               </button>
               {cancelError && (
-                <p className="mt-2 mb-0 text-[11px] text-red-700 leading-[1.5]">{cancelError}</p>
+                <p className="mb-0 mt-2 text-[12px] leading-[1.5] text-red-700">{cancelError}</p>
               )}
             </section>
           )}
@@ -751,7 +751,7 @@ function DetailView({
 
               {photoEvidence.length > 0 && (
                 <section className={audioEvidence.length > 0 ? 'mb-3' : ''}>
-                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.photosSection')}</div>
+                  <div className="mb-2 text-[12px] font-bold text-slate-500">{t('citizen.myReports.photosSection')}</div>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-2">
                     {photoEvidence.map((item, index) => (
                       <button
@@ -773,11 +773,11 @@ function DetailView({
 
               {audioEvidence.length > 0 && (
                 <section>
-                  <div className="text-[11px] font-bold text-slate-500 mb-2">{t('citizen.myReports.audioSection')}</div>
+                  <div className="mb-2 text-[12px] font-bold text-slate-500">{t('citizen.myReports.audioSection')}</div>
                   <div className="grid gap-2">
                     {audioEvidence.map((item) => (
                       <article key={item.id} className="border border-[var(--outline-variant)] rounded-md px-3 py-[10px] bg-[var(--surface-container-low)]">
-                        <div className="text-[11px] text-slate-600 mb-[6px] font-semibold">{item.fileName}</div>
+                        <div className="mb-[6px] text-[12px] font-semibold text-slate-600">{item.fileName}</div>
                         <audio controls preload="metadata" src={item.publicUrl} className="w-full" />
                       </article>
                     ))}
@@ -871,8 +871,8 @@ function DetailView({
                       <time className="text-[10px] text-slate-400 [font-variant-numeric:tabular-nums]">
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span className="text-slate-200 text-[10px]"> - </span>
-                      <span className={`text-[10px] font-semibold rounded-[4px] px-[6px] py-[1px] ${timelineTone.actorBadge}`}>
+                      <span className="text-[11px] text-slate-200"> - </span>
+                      <span className={`rounded-[4px] px-[6px] py-[1px] text-[11px] font-semibold ${timelineTone.actorBadge}`}>
                         {event.actor} - {event.actorRole}
                       </span>
                     </div>
@@ -897,11 +897,7 @@ function DetailView({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm report cancellation"
-          className="fixed inset-0 z-[230] flex items-center justify-center p-4"
-          style={{
-            top: 'var(--app-vv-top, 0px)',
-            bottom: 'var(--app-vv-bottom-gap, 0px)',
-          }}
+          className="citizen-vv-bounds fixed inset-0 z-[230] flex items-center justify-center p-4"
         >
           <div
             onClick={() => {
@@ -979,15 +975,11 @@ function DetailView({
 
       {selectedPhoto && (
         <div
-          className="citizen-photo-preview-overlay fixed inset-0 z-[220] flex items-center justify-center bg-[rgba(2,6,23,0.82)] p-4"
+          className="citizen-photo-preview-overlay citizen-vv-bounds fixed inset-0 z-[220] flex items-center justify-center bg-[rgba(2,6,23,0.82)] p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Photo preview"
           onClick={() => setPreviewPhotoIndex(null)}
-          style={{
-            top: 'var(--app-vv-top, 0px)',
-            bottom: 'var(--app-vv-bottom-gap, 0px)',
-          }}
         >
           <div
             className="citizen-photo-preview-stage flex max-h-full w-full max-w-[980px] flex-col gap-2"
@@ -1019,6 +1011,11 @@ function DetailView({
         }
 
         .citizen-report-modal {
+          top: var(--app-vv-top, 0px);
+          bottom: var(--app-vv-bottom-gap, 0px);
+        }
+
+        .citizen-vv-bounds {
           top: var(--app-vv-top, 0px);
           bottom: var(--app-vv-bottom-gap, 0px);
         }
@@ -1447,7 +1444,7 @@ export default function CitizenMyReports() {
               <section className="mb-3 border-b border-slate-200 pb-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                    <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                       {t('citizen.myReports.headerLabel')}
                     </div>
                     <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
@@ -1457,16 +1454,16 @@ export default function CitizenMyReports() {
                       {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-wrap items-center">
-                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-semibold text-slate-500">
                       <span className="text-[#0F172A] text-[20px] font-black">{allCount}</span> total
                     </span>
-                    <span className="font-mono text-[10px] font-bold text-slate-400">·</span>
-                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                    <span className="text-[11px] font-semibold text-slate-400">·</span>
+                    <span className="text-[11px] font-semibold text-slate-500">
                       <span className="text-[var(--secondary)] text-[20px] font-black">{activeCount}</span> active
                     </span>
-                    <span className="font-mono text-[10px] font-bold text-slate-400">·</span>
-                    <span className="font-mono text-[10px] font-bold text-slate-400">
+                    <span className="text-[11px] font-semibold text-slate-400">·</span>
+                    <span className="text-[11px] font-semibold text-slate-500">
                       <span className="text-[var(--severity-low)] text-[20px] font-black">{resolvedCount}</span> resolved
                     </span>
                   </div>
@@ -1545,7 +1542,7 @@ export default function CitizenMyReports() {
                       >
                         {tab.label}
                         <span
-                          className={`rounded-[20px] px-[7px] py-[1px] text-[10px] font-bold ${
+                          className={`rounded-[20px] px-[7px] py-[1px] text-[11px] font-bold ${
                             isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'
                           }`}
                         >

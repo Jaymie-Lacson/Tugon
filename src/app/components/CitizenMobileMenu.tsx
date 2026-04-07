@@ -38,6 +38,7 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
           onClick={() => setOpen((v) => !v)}
           aria-label="Close menu"
           aria-expanded="true"
+          aria-controls="citizen-mobile-nav-panel"
           className="citizen-mobile-hamburger relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 text-white transition-[background,transform] duration-150 ease-out scale-[0.97] !bg-white/25"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
@@ -50,6 +51,7 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
           onClick={() => setOpen((v) => !v)}
           aria-label="Open menu"
           aria-expanded="false"
+          aria-controls="citizen-mobile-nav-panel"
           className="citizen-mobile-hamburger relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-white/20 bg-white/[0.12] text-white transition-[background,transform] duration-150 ease-out"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
@@ -59,9 +61,10 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
       )}
 
       <div
-        className={`citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 top-[60px] z-[95] overflow-hidden border-t border-white/[0.12] bg-primary transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] ${
+        id="citizen-mobile-nav-panel"
+        className={`citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 z-[95] overflow-hidden border-t border-white/[0.12] bg-primary transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] ${
           open
-            ? 'pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-2 pb-0 opacity-100'
+            ? 'is-open pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-2 pb-0 opacity-100'
             : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
         }`}
       >
@@ -88,6 +91,12 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
         @media (min-width: 901px) {
           .citizen-mobile-hamburger { display: none !important; }
           .citizen-mobile-nav-panel { display: none !important; }
+        }
+        .citizen-mobile-nav-panel {
+          top: calc(var(--app-vv-top, 0px) + 60px);
+        }
+        .citizen-mobile-nav-panel.is-open {
+          padding-bottom: max(10px, env(safe-area-inset-bottom));
         }
         .citizen-mobile-nav-panel > *:nth-child(1) { transition-delay: 40ms; }
         .citizen-mobile-nav-panel > *:nth-child(2) { transition-delay: 80ms; }

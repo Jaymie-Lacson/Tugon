@@ -510,7 +510,7 @@ export default function CitizenVerification() {
           <section className="mb-3 border-b border-slate-200 pb-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   {t('citizen.verification.pageSubtitle')}
                 </div>
                 <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
@@ -520,7 +520,7 @@ export default function CitizenVerification() {
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                className="cursor-pointer rounded border border-slate-300 bg-transparent px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 inline-flex items-center gap-1.5"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-slate-300 bg-transparent px-4 py-2.5 text-[13px] font-semibold text-slate-600 transition-colors hover:bg-slate-50"
               >
                 {t('citizen.verification.backToProfile')} <ChevronRight size={11} />
               </button>
@@ -694,7 +694,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => frontFileInputRef.current?.click()}
-                        className="inline-flex w-fit items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                        className="inline-flex w-fit cursor-pointer items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[10px] text-[13px] font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectFront')}
                       </button>
@@ -711,7 +711,7 @@ export default function CitizenVerification() {
                               frontFileInputRef.current.value = '';
                             }
                           }}
-                          className="border-0 rounded-lg bg-slate-200 text-slate-700 w-6 h-6 inline-flex items-center justify-center cursor-pointer shrink-0"
+                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-slate-200 text-slate-700"
                           aria-label="Clear front ID file"
                         >
                           <X size={13} />
@@ -732,7 +732,7 @@ export default function CitizenVerification() {
                         type="button"
                         disabled={!canUploadVerification || submitting}
                         onClick={() => backFileInputRef.current?.click()}
-                        className="inline-flex w-fit items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[9px] text-xs font-semibold text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                        className="inline-flex w-fit cursor-pointer items-center gap-[6px] rounded-md border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)] px-3 py-[10px] text-[13px] font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-[0.65]"
                       >
                         <Paperclip size={14} /> {t('citizen.verification.selectBack')}
                       </button>
@@ -749,7 +749,7 @@ export default function CitizenVerification() {
                               backFileInputRef.current.value = '';
                             }
                           }}
-                          className="border-0 rounded-lg bg-slate-200 text-slate-700 w-6 h-6 inline-flex items-center justify-center cursor-pointer shrink-0"
+                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-slate-200 text-slate-700"
                           aria-label="Clear back ID file"
                         >
                           <X size={13} />

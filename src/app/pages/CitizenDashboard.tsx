@@ -221,7 +221,7 @@ function AlertBanner({ incidents }: { incidents: Incident[] }) {
       <button
         onClick={() => setDismissed(true)}
         aria-label="Dismiss"
-        className="bg-transparent border-0 text-white/70 hover:text-white cursor-pointer p-0 inline-flex items-center"
+        className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-white/70 transition-colors hover:text-white"
       >
         <XIcon size={15} />
       </button>
@@ -247,7 +247,7 @@ function StatCard({
     <div className={`flex min-h-[112px] min-w-0 items-stretch overflow-hidden rounded-xl shadow-[0_1px_2px_rgba(15,23,42,0.05)] ${tone.card}`}>
       <div className="flex min-w-0 flex-1 items-center justify-center px-4 py-4 text-center">
         <div className="flex min-w-0 flex-col items-center justify-center">
-          <div className={`font-mono text-[42px] font-black leading-none ${isHighlighted ? 'text-[var(--primary)]' : 'text-[#0F172A]'}`}>{value}</div>
+          <div className={`text-[40px] font-extrabold leading-none tracking-[-0.02em] ${isHighlighted ? 'text-[var(--primary)]' : 'text-[#0F172A]'}`}>{value}</div>
           <div className={`mt-1.5 max-w-full truncate text-[13px] font-semibold ${isHighlighted ? 'text-[var(--primary)]/85' : 'text-slate-500'}`}>{label}</div>
         </div>
       </div>
@@ -313,7 +313,7 @@ function RecentIncidentRow({ report }: { report: CitizenMyReport }) {
         <div className="font-semibold text-[13px] text-[var(--on-surface)] truncate">
           {cfg.label} - {report.id}
         </div>
-        <div className="text-[11px] text-[var(--outline)] mt-0.5">
+        <div className="mt-0.5 text-[12px] text-[var(--outline)]">
           {timeAgo(report.reportedAt)} - {report.location}
         </div>
       </div>
@@ -337,7 +337,7 @@ function MyReportRow({
         <div className="font-semibold text-[13px] text-[var(--on-surface)] truncate">
           {report.description}
         </div>
-        <div className="text-[11px] text-[var(--outline)] mt-0.5">
+        <div className="mt-0.5 text-[12px] text-[var(--outline)]">
           {report.id} - {timeAgo(report.reportedAt)}
         </div>
       </div>
@@ -882,29 +882,29 @@ function HomeTab({
         <div className="flex flex-wrap gap-3">
           <aside className="flex-[1_1_320px] max-w-full min-w-0 flex flex-col gap-2">
             <div className="bg-[var(--surface-container-low)] rounded-md px-3.5 py-3">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">{t('citizen.dashboard.mapSummary')}</div>
               <div className="grid grid-cols-2 gap-2 mt-2.5">
                 <div>
                   <div className="text-[18px] font-semibold text-primary leading-none tracking-[-0.01em]">{incidents.length}</div>
-                  <div className="text-[10px] text-[var(--on-surface-variant)] mt-1">{t('citizen.dashboard.totalPins')}</div>
+                  <div className="mt-1 text-[11px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.totalPins')}</div>
                 </div>
                 <div>
                   <div className="text-[18px] font-semibold text-severity-medium leading-none tracking-[-0.01em]">{criticalCount}</div>
-                  <div className="text-[10px] text-[var(--on-surface-variant)] mt-1">{t('citizen.dashboard.needsAttention')}</div>
+                  <div className="mt-1 text-[11px] text-[var(--on-surface-variant)]">{t('citizen.dashboard.needsAttention')}</div>
                 </div>
               </div>
             </div>
 
             {selectedIncident ? (
               <div className="bg-[var(--primary-fixed)] rounded-md px-3.5 py-3">
-                <div className="text-[10px] text-primary font-semibold uppercase tracking-[0.08em] mb-1.5">{t('citizen.dashboard.selectedPin')}</div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">{t('citizen.dashboard.selectedPin')}</div>
                 <div className="flex items-center gap-2.5">
                   <div className={`size-8 rounded-md flex items-center justify-center shrink-0 ${incidentIconToneClass[selectedIncident.type]}`}>
                     {typeIcon[selectedIncident.type]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-[12px] text-[var(--on-surface)] font-semibold truncate">{selectedIncident.id}</div>
-                    <div className="text-[10px] text-[var(--on-surface-variant)] truncate">{selectedIncident.location}</div>
+                    <div className="text-[11px] text-[var(--on-surface-variant)] truncate">{selectedIncident.location}</div>
                   </div>
                 </div>
                 <div className="mt-2">
