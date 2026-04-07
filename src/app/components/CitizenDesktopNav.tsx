@@ -46,7 +46,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
 
   return (
     <div className="flex flex-col h-full">
-      <div className={collapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
+      <div className={collapsed ? 'overflow-x-hidden px-3 pb-3 pt-4' : 'overflow-x-hidden px-5 pb-5 pt-6'}>
         {collapsed ? (
           <div className="flex items-center justify-center">
             <img
@@ -56,12 +56,12 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
             />
           </div>
         ) : (
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center">
+          <div className="flex items-start justify-between gap-2 overflow-x-hidden">
+            <div className="flex min-w-0 items-center">
               <img
                 src="/tugon-wordmark-blue.svg"
                 alt="TUGON"
-                className="h-9 w-auto object-contain"
+                className="h-9 w-auto max-w-full object-contain"
               />
             </div>
             <button
@@ -69,7 +69,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
               onClick={onToggleSidebar}
               aria-label="Collapse sidebar"
               title="Collapse sidebar"
-              className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/45 bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+              className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/45 bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
             >
               <ChevronsLeft size={16} />
             </button>
@@ -78,7 +78,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 px-3 pt-4 pb-3 overflow-y-auto">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 pb-3">
         {collapsed ? (
           <button
             type="button"
@@ -123,16 +123,16 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
       </nav>
 
       {/* User info footer — mirrors official sidebar footer */}
-      <div className={`shrink-0 border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${collapsed ? 'px-2' : 'px-4'} py-3`}>
-        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
+      <div className={`shrink-0 overflow-x-hidden border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${collapsed ? 'px-2' : 'px-4'} py-3`}>
+        <div className={`flex min-w-0 items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
             {initials}
           </div>
           {!collapsed ? (
             <>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{fullName}</div>
-                <div className="text-[11px] text-[var(--outline)]">{barangayLabel}</div>
+                <div className="truncate text-[11px] font-semibold text-[var(--on-surface)]">{fullName}</div>
+                <div className="truncate text-[9px] leading-tight text-[var(--outline)]">{barangayLabel}</div>
               </div>
               <button
                 type="button"

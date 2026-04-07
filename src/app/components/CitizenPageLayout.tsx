@@ -81,7 +81,7 @@ export function CitizenPageLayout({
 
         {/* Left sidebar — desktop only (lg+) */}
         {sidebar && (
-          <aside className={`citizen-sidebar hidden lg:flex flex-col ${desktopSidebarOpen ? 'w-[240px]' : 'w-[68px]'} shrink-0 border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] overflow-y-auto transition-[width] duration-200 ease-out`}>
+          <aside className={`citizen-sidebar hidden lg:flex flex-col ${desktopSidebarOpen ? 'w-[240px]' : 'w-[68px]'} shrink-0 border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] overflow-y-auto overflow-x-clip transition-[width] duration-200 ease-out`}>
             {React.isValidElement(sidebar)
               ? React.cloneElement(sidebar as React.ReactElement<Record<string, unknown>>, {
                   collapsed: !desktopSidebarOpen,
