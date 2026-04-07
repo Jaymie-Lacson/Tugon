@@ -1,6 +1,7 @@
 import React from 'react';
 import { VerificationProgressCard, hasVerificationProgressPrompt } from './VerificationProgressCard';
 import { CitizenOnboardingModal } from './CitizenOnboardingModal';
+import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 
 interface CitizenPageLayoutProps {
   header: React.ReactNode;
@@ -39,6 +40,8 @@ export function CitizenPageLayout({
   desktopMainPaddingBottom = 28,
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
+  useImmersiveThemeColor('#00236f');
+
   const showVerificationPrompt = !hideVerificationPrompt && hasVerificationProgressPrompt();
 
   const cssVars = {

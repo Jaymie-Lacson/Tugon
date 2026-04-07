@@ -20,6 +20,7 @@ import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
+import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 // Card/Badge primitives intentionally not used — landing sections use bespoke layouts
 
 
@@ -1072,6 +1073,8 @@ function Footer() {
 
 export default function Landing() {
   const { t } = useTranslation();
+
+  useImmersiveThemeColor('#0f172a');
 
   useEffect(() => {
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));

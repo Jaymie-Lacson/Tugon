@@ -16,6 +16,7 @@ import { useTranslation } from '../../i18n';
 import { LanguageToggle } from '../../i18n';
 import { superAdminSidebarNavDefs } from '../../data/navigationConfig';
 import { usePretextBlockMetrics } from '../../hooks/usePretextBlockMetrics';
+import { useImmersiveThemeColor } from '../../hooks/useImmersiveThemeColor';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -44,6 +45,8 @@ function getMonitoringColor(incidents: number): string {
 }
 
 export default function SuperAdminLayout() {
+  useImmersiveThemeColor('#ffffff');
+
   const { t } = useTranslation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);

@@ -20,6 +20,7 @@ import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
 import { officialSidebarNavDefs } from '../data/navigationConfig';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
+import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -35,6 +36,8 @@ function LiveClock() {
 }
 
 function Layout() {
+  useImmersiveThemeColor('#ffffff');
+
   const { t } = useTranslation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);

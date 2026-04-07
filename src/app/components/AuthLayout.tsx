@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
+import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,8 @@ export function AuthLayout({
   topAction,
   logoSrc = '/tugon-header-logo.svg',
 }: AuthLayoutProps) {
+  useImmersiveThemeColor('#f8f9ff');
+
   const navigate = useNavigate();
   const titleMetrics = usePretextBlockMetrics<HTMLHeadingElement>(title, {
     font: '900 28px "Public Sans"',
