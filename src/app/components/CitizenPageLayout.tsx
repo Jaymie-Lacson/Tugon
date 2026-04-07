@@ -3,6 +3,8 @@ import { VerificationProgressCard, hasVerificationProgressPrompt } from './Verif
 import { CitizenOnboardingModal } from './CitizenOnboardingModal';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 
+const CITIZEN_SIDEBAR_OPEN_STORAGE_KEY = 'tugon:citizen-desktop-sidebar-open';
+
 interface CitizenPageLayoutProps {
   header: React.ReactNode;
   /** Left sidebar rendered on desktop (lg+). Typically CitizenDesktopNav. */
@@ -41,6 +43,18 @@ export function CitizenPageLayout({
   contentGutter = 16,
 }: CitizenPageLayoutProps) {
   useImmersiveThemeColor('#00236f');
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = React.useState(() => {
+    if (typeof window === 'undefined') return true;
+    const storedValue = window.localStorage.getItem(CITIZEN_SIDEBAR_OPEN_STORAGE_KEY);
+    if (storedValue === 'true') return true;
+    if (storedValue === 'false') return false;
+    return true;
+  });
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(CITIZEN_SIDEBAR_OPEN_STORAGE_KEY, String(desktopSidebarOpen));
+  }, [desktopSidebarOpen]);
 
   const showVerificationPrompt = !hideVerificationPrompt && hasVerificationProgressPrompt();
 
@@ -67,8 +81,13 @@ export function CitizenPageLayout({
 
         {/* Left sidebar — desktop only (lg+) */}
         {sidebar && (
-          <aside className="citizen-sidebar hidden lg:flex flex-col w-[240px] shrink-0 border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] overflow-y-auto">
-            {sidebar}
+          <aside className={`citizen-sidebar hidden lg:flex flex-col ${desktopSidebarOpen ? 'w-[240px]' : 'w-[68px]'} shrink-0 border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] overflow-y-auto transition-[width] duration-200 ease-out`}>
+            {React.isValidElement(sidebar)
+              ? React.cloneElement(sidebar as React.ReactElement<Record<string, unknown>>, {
+                  collapsed: !desktopSidebarOpen,
+                  onToggleSidebar: () => setDesktopSidebarOpen((prev) => !prev),
+                })
+              : sidebar}
           </aside>
         )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from '../i18n';
 import { citizenNavDefs, type CitizenNavKey } from '../data/navigationConfig';
@@ -8,9 +8,11 @@ import { clearAuthSession, getAuthSession } from '../utils/authSession';
 interface CitizenDesktopNavProps {
   activeKey: CitizenNavKey;
   onNavigate?: (key: CitizenNavKey) => boolean | void;
+  collapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavProps) {
+export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, onToggleSidebar }: CitizenDesktopNavProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const session = getAuthSession();
@@ -44,8 +46,51 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
 
   return (
     <div className="flex flex-col h-full">
+      <div className={collapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
+        {collapsed ? (
+          <div className="flex items-center justify-center">
+            <img
+              src="/favicon.svg"
+              alt="TUGON"
+              className="h-9 w-9 object-contain"
+            />
+          </div>
+        ) : (
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center">
+              <img
+                src="/tugon-wordmark-blue.svg"
+                alt="TUGON"
+                className="h-9 w-auto object-contain"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/45 bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+            >
+              <ChevronsLeft size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Nav items */}
       <nav className="flex-1 px-3 pt-4 pb-3 overflow-y-auto">
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            className="mb-1.5 flex w-full cursor-pointer items-center justify-center rounded-xl border-none bg-transparent px-2 py-2.5 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+          >
+            <ChevronsRight size={16} className="shrink-0" />
+          </button>
+        ) : null}
+
         {citizenNavDefs.map((item) => {
           const Icon = item.icon;
           const isActive = activeKey === item.key;
@@ -54,7 +99,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
               key={item.key}
               type="button"
               onClick={() => handleClick(item.key)}
-              className={`mb-1.5 flex w-full cursor-pointer items-center gap-3 rounded-xl border-none px-3 py-2.5 text-[14px] transition-colors ${
+              className={`mb-1.5 flex w-full cursor-pointer items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl border-none py-2.5 text-[14px] transition-colors ${
                 isActive
                   ? 'bg-[var(--surface-container-high)] text-primary font-bold shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
                   : 'bg-transparent text-[var(--on-surface-variant)] font-medium hover:bg-[var(--surface-container)]'
@@ -64,36 +109,42 @@ export function CitizenDesktopNav({ activeKey, onNavigate }: CitizenDesktopNavPr
                 size={16}
                 className={`shrink-0 ${isActive ? 'text-primary' : 'text-[var(--outline)]'}`}
               />
-              <span className="whitespace-nowrap">{t(item.labelKey)}</span>
+              {!collapsed ? <span className="whitespace-nowrap">{t(item.labelKey)}</span> : null}
             </button>
           );
         })}
 
         {/* Section label */}
-        <div className="px-1 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
-          {t('nav.navigation')}
-        </div>
+        {!collapsed ? (
+          <div className="px-1 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
+            {t('nav.navigation')}
+          </div>
+        ) : null}
       </nav>
 
       {/* User info footer — mirrors official sidebar footer */}
-      <div className="shrink-0 border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] px-4 py-3">
-        <div className="flex items-center gap-2.5">
+      <div className={`shrink-0 border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${collapsed ? 'px-2' : 'px-4'} py-3`}>
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
             {initials}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{fullName}</div>
-            <div className="text-[11px] text-[var(--outline)]">{barangayLabel}</div>
-          </div>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            aria-label={t('common.signOut')}
-            title={t('common.signOut')}
-            className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 text-[var(--outline)] transition-colors hover:text-[var(--error)]"
-          >
-            <LogOut size={15} />
-          </button>
+          {!collapsed ? (
+            <>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{fullName}</div>
+                <div className="text-[11px] text-[var(--outline)]">{barangayLabel}</div>
+              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                aria-label={t('common.signOut')}
+                title={t('common.signOut')}
+                className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 text-[var(--outline)] transition-colors hover:text-[var(--error)]"
+              >
+                <LogOut size={15} />
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
     </div>
