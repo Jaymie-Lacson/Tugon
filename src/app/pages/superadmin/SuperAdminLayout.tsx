@@ -625,7 +625,7 @@ export default function SuperAdminLayout() {
               type="button"
               onClick={() => { setMobileSearchOpen((v) => !v); setMobileDrawerOpen(false); }}
               aria-label="Search"
-              className={`icon-btn-square icon-btn-md flex shrink-0 cursor-pointer rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileSearchOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
+              className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden${mobileSearchOpen ? ' scale-[0.97] bg-[var(--surface-container-high)]' : ''}`}
             >
               {mobileSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
@@ -699,7 +699,7 @@ export default function SuperAdminLayout() {
                 aria-label={t('superadmin.layout.ariaCloseNav')}
                 aria-expanded="true"
                 aria-controls="superadmin-mobile-drawer"
-                className="icon-btn-square icon-btn-md order-1 flex shrink-0 cursor-pointer rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-high)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out scale-[0.97] lg:hidden"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-high)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out scale-[0.97] lg:hidden"
               >
                 <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
                   <X size={18} />
@@ -712,7 +712,7 @@ export default function SuperAdminLayout() {
                 aria-label={t('superadmin.layout.ariaOpenNav')}
                 aria-expanded="false"
                 aria-controls="superadmin-mobile-drawer"
-                className="icon-btn-square icon-btn-md order-1 flex shrink-0 cursor-pointer rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden"
+                className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out lg:hidden"
               >
                 <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
                   <Menu size={18} />
