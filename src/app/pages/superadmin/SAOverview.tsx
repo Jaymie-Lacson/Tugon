@@ -675,7 +675,7 @@ export default function SAOverview() {
       </div>
 
       {/* Bottom quick nav */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {[
           { label: t('superadmin.overview.quickNavMap'),       desc: t('superadmin.overview.quickNavMapDesc'),       path: '/superadmin/map',       accent: '#2563EB' },
           { label: t('superadmin.analytics.title'),            desc: t('superadmin.overview.quickNavAnalyticsDesc'), path: '/superadmin/analytics', accent: '#2563EB' },
@@ -684,13 +684,13 @@ export default function SAOverview() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-white border border-slate-200 px-4 py-[14px] cursor-pointer text-left flex items-center gap-3"
+            className="w-full bg-white border border-slate-200 px-3.5 py-3.5 sm:px-4 sm:py-[14px] cursor-pointer text-left flex items-start gap-3 min-h-[84px]"
           >
-            <div className="min-w-0">
-              <div className={`text-[13px] font-semibold ${getQuickNavAccentClass(item.path)}`}>{item.label}</div>
-              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
+            <div className="min-w-0 flex-1">
+              <div className={`text-[13px] leading-[1.35] font-semibold sm:leading-normal ${getQuickNavAccentClass(item.path)}`}>{item.label}</div>
+              <div className="text-[#9CA3AF] text-[11px] leading-[1.45] mt-[3px]">{item.desc}</div>
             </div>
-            <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />
+            <ChevronRight size={16} className="ml-auto mt-0.5 shrink-0 text-slate-400" />
           </button>
         ))}
       </div>
