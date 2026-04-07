@@ -241,6 +241,7 @@ export interface IncidentMapProps {
   heatmapOpacityPercent?: number;
   interactive?: boolean;
   viewportKey?: string;
+  showMarkerTooltip?: boolean;
 }
 
 export interface HeatmapClusterOverlay {
@@ -338,6 +339,7 @@ export function IncidentMap({
   heatmapOpacityPercent = 100,
   interactive = true,
   viewportKey = 'default',
+  showMarkerTooltip = true,
 }: IncidentMapProps) {
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
@@ -517,7 +519,7 @@ export function IncidentMap({
                   </div>
                 </Popup>
               ) : null}
-              {!compact && (
+              {!compact && showMarkerTooltip && (
                 <Tooltip
                   direction="top"
                   offset={[0, -30]}

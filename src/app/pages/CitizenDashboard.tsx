@@ -1345,6 +1345,7 @@ function MapTab({
   onBack: () => void;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'active' | 'responding'>('all');
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 900px)').matches);
   const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
@@ -1378,6 +1379,14 @@ function MapTab({
       : filter === 'active'
       ? incidents.filter((i) => i.status === 'active')
       : incidents.filter((i) => i.status === 'responding');
+  const incidentTypeChipClass: Record<IncidentType, string> = {
+    flood: 'bg-blue-100 text-blue-700',
+    accident: 'bg-amber-100 text-amber-800',
+    medical: 'bg-teal-100 text-teal-700',
+    crime: 'bg-violet-100 text-violet-700',
+    infrastructure: 'bg-slate-200 text-slate-700',
+    typhoon: 'bg-sky-100 text-sky-700',
+  };
   const hasPinsForFilter = filtered.length > 0;
   const isCompactMobileHeight = isMobileViewport && viewportHeight < 760;
   // Keep map viewport-filling across header variants while preserving space for filters/detail panel.
@@ -1428,17 +1437,6 @@ function MapTab({
             </button>
           ))}
         </div>
-        {selectedIncident ? (
-          <button
-            type="button"
-            onClick={() => setSelectedIncident(null)}
-            className={`citizen-map-clear-btn ml-auto text-[var(--on-surface-variant)] font-medium text-[11px] rounded-md cursor-pointer hover:bg-[var(--surface-container-low)] transition-colors ${
-              isMobileViewport ? 'px-3 py-2' : 'px-2.5 py-1.5'
-            }`}
-          >
-            {t('citizen.dashboard.clearSelection')}
-          </button>
-        ) : null}
       </div>
 
       {/* Map */}
@@ -1450,7 +1448,7 @@ function MapTab({
           onSelectIncident={setSelectedIncident}
           compact={false}
           zoom={17}
-          showSelectedPopup
+          showMarkerTooltip={false}
         />
         {!hasPinsForFilter ? (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/40 backdrop-blur-[2px]">
@@ -1470,7 +1468,82 @@ function MapTab({
         ) : null}
       </div>
 
-      {/* Details now appear in popup anchored to selected pin. */}
+      {selectedIncident ? (
+        <div
+          className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/45 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="citizen-map-report-modal-title"
+          onClick={() => setSelectedIncident(null)}
+        >
+          <div
+            className="w-full max-w-[520px] rounded-2xl border border-[var(--outline-variant)] bg-white shadow-[0_18px_48px_rgba(15,23,42,0.28)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-[var(--outline-variant)] px-5 py-4">
+              <div className="min-w-0">
+                <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--on-surface-variant)]">Selected Report</div>
+                <h3 id="citizen-map-report-modal-title" className="truncate text-[18px] font-extrabold text-[var(--on-surface)]">
+                  {selectedIncident.id}
+                </h3>
+                <div className="mt-1 text-[13px] text-[var(--on-surface-variant)]">{selectedIncident.barangay}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedIncident(null)}
+                aria-label="Close report preview"
+                className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container-low)]"
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4 px-5 py-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <StatusBadge status={selectedIncident.status} size="sm" />
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${incidentTypeChipClass[selectedIncident.type]}`}
+                >
+                  {incidentTypeConfig[selectedIncident.type].label}
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-[13px] text-[var(--on-surface)]">
+                <div className="flex items-start gap-2">
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-[var(--on-surface-variant)]" />
+                  <span>{selectedIncident.location}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Clock size={14} className="mt-0.5 shrink-0 text-[var(--on-surface-variant)]" />
+                  <span>{new Date(selectedIncident.reportedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] px-3.5 py-3 text-[13px] leading-relaxed text-[var(--on-surface)]">
+                {selectedIncident.description}
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2.5 border-t border-[var(--outline-variant)] px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedIncident(null)}
+                className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)] bg-white px-4 py-2.5 text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-low)]"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/citizen/my-reports?reportId=${encodeURIComponent(selectedIncident.id)}`)}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-primary px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-primary/90"
+              >
+                <FileText size={14} />
+                View Full Details
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
