@@ -36,6 +36,8 @@ type BarangayOverviewCard = {
   alertLevel: 'normal' | 'elevated' | 'critical';
 };
 
+const MAX_VISIBLE_SYSTEM_LOGS = 4;
+
 
 const KPI_ACCENT: Record<string, string> = {
   'var(--severity-critical)': '#DC2626',
@@ -147,8 +149,8 @@ export default function SAOverview() {
   const [authRedirecting, setAuthRedirecting] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [incidentCardHeight, setIncidentCardHeight] = useState<number | null>(null);
-  const [maxVisibleLogItems, setMaxVisibleLogItems] = useState(8);
   const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
+  const activityLogCardRef = useRef<HTMLDivElement | null>(null);
   const activityLogHeaderRef = useRef<HTMLDivElement | null>(null);
   const activityLogListRef = useRef<HTMLDivElement | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
@@ -366,24 +368,25 @@ export default function SAOverview() {
   }, []);
 
   useEffect(() => {
+    const activityCard = activityLogCardRef.current;
     const header = activityLogHeaderRef.current;
     const list = activityLogListRef.current;
-    if (!header || !list || !incidentCardHeight) {
+    if (!activityCard || !header || !list || !incidentCardHeight) {
       return;
     }
 
-    const sampleItem = list.firstElementChild as HTMLElement | null;
-    const itemHeight = sampleItem?.offsetHeight ?? 58;
     const cardVerticalPadding = 40; // p-5 top and bottom
-    const rowGap = 8; // gap-2
-    const available = Math.max(0, incidentCardHeight - header.offsetHeight - cardVerticalPadding);
-    const nextMax = Math.max(1, Math.floor((available + rowGap) / (itemHeight + rowGap)));
+    const headerMarginBottom = Number.parseFloat(window.getComputedStyle(header).marginBottom) || 0;
+    const available = Math.max(0, incidentCardHeight - header.offsetHeight - headerMarginBottom - cardVerticalPadding);
 
-    setMaxVisibleLogItems((prev) => (prev === nextMax ? prev : nextMax));
+    activityCard.style.height = `${incidentCardHeight}px`;
+    activityCard.style.maxHeight = `${incidentCardHeight}px`;
+    activityCard.style.minHeight = `${incidentCardHeight}px`;
+    list.style.height = `${available}px`;
     list.style.maxHeight = `${available}px`;
   }, [incidentCardHeight, systemLogs]);
 
-  const visibleSystemLogs = systemLogs.slice(0, maxVisibleLogItems);
+  const visibleSystemLogs = systemLogs.slice(0, MAX_VISIBLE_SYSTEM_LOGS);
 
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
@@ -604,13 +607,21 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div className="bg-white p-5 border border-slate-200 flex flex-col">
+        <div ref={activityLogCardRef} className="bg-white p-5 border border-slate-200 flex flex-col overflow-hidden">
           <div ref={activityLogHeaderRef} className="flex items-center justify-between mb-[14px]">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
               <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
-            <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => navigate('/superadmin/audit-logs')}
+                className="flex items-center gap-1 border border-slate-200 bg-white px-[10px] py-1 cursor-pointer text-[11px] font-semibold text-[#2563EB]"
+              >
+                {t('nav.auditLogs')} <ArrowRight size={11} />
+              </button>
+              <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
+            </div>
           </div>
           <div ref={activityLogListRef} className="flex-1 overflow-hidden flex flex-col gap-2">
             {visibleSystemLogs.map((log) => {
