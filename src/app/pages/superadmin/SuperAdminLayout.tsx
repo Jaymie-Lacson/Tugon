@@ -9,7 +9,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
+import { isAuthExpiredError, superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
 import { useTranslation } from '../../i18n';
@@ -62,6 +62,7 @@ export default function SuperAdminLayout() {
   const [searchBarangayResults, setSearchBarangayResults] = useState<MonitoringItem[]>([]);
   const [searchResultsLoading, setSearchResultsLoading] = useState(false);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -80,6 +81,28 @@ export default function SuperAdminLayout() {
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'SA';
 
+  const handleAuthFailure = React.useCallback((error: unknown) => {
+    if (!isAuthExpiredError(error)) {
+      return false;
+    }
+
+    clearAuthSession();
+    setAuthRedirecting(true);
+    setProfileMenuOpen(false);
+    setNotificationsOpen(false);
+    navigate('/auth/login', { replace: true });
+    return true;
+  }, [navigate]);
+
+  useEffect(() => {
+    if (getAuthSession()?.user.role === 'SUPER_ADMIN') {
+      return;
+    }
+
+    setAuthRedirecting(true);
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
+
   useEffect(() => {
     try { localStorage.setItem('tugon-sa-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
   }, [sidebarCollapsed]);
@@ -88,6 +111,10 @@ export default function SuperAdminLayout() {
     let mounted = true;
 
     const loadMonitoring = async () => {
+      if (authRedirecting) {
+        return;
+      }
+
       try {
         const payload = await superAdminApi.getBarangays();
         if (!mounted) return;
@@ -103,26 +130,38 @@ export default function SuperAdminLayout() {
           }));
 
         if (next.length > 0) setMonitoringItems(next);
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         // Keep zeroed fallback values if monitoring fetch fails.
       }
     };
 
     void loadMonitoring();
     return () => { mounted = false; };
-  }, []);
+  }, [authRedirecting, handleAuthFailure]);
 
   useEffect(() => {
     let mounted = true;
 
     const loadNotifications = async () => {
+      if (authRedirecting) {
+        return;
+      }
+
       if (mounted) setNotificationsLoading(true);
       try {
         const payload = await superAdminApi.getNotifications({ limit: 15 });
         if (!mounted) return;
         setNotifications(payload.notifications);
         setUnreadCount(payload.unreadCount);
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         if (!mounted) return;
       } finally {
         if (mounted) setNotificationsLoading(false);
@@ -132,7 +171,7 @@ export default function SuperAdminLayout() {
     void loadNotifications();
     const interval = window.setInterval(() => { void loadNotifications(); }, 30000);
     return () => { mounted = false; window.clearInterval(interval); };
-  }, []);
+  }, [authRedirecting, handleAuthFailure]);
 
   const currentPage = NAV_ITEMS.find((n) =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path),
@@ -184,14 +223,18 @@ export default function SuperAdminLayout() {
         setSearchUserResults(
           users.slice(0, 5).map((u) => ({ id: u.id, fullName: u.fullName, role: u.role, barangayCode: u.barangayCode })),
         );
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         setSearchUserResults([]);
       } finally {
         setSearchResultsLoading(false);
       }
     }, 300);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, authRedirecting, handleAuthFailure]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -261,7 +304,11 @@ export default function SuperAdminLayout() {
           ),
         );
         setUnreadCount((current) => Math.max(0, current - 1));
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         // Keep UI usable even if mark-read fails.
       }
     }
@@ -280,7 +327,11 @@ export default function SuperAdminLayout() {
         current.map((item) => ({ ...item, readAt: item.readAt ?? nowIso })),
       );
       setUnreadCount(0);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       // Keep menu open; next poll can recover latest state.
     }
   };

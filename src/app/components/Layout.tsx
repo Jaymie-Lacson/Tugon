@@ -47,6 +47,7 @@ function Layout() {
   const [searchIncidentResults, setSearchIncidentResults] = useState<Pick<ApiCitizenReport, 'id' | 'category' | 'location' | 'status' | 'description' | 'barangay'>[]>([]);
   const [searchResultsLoading, setSearchResultsLoading] = useState(false);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -65,6 +66,36 @@ function Layout() {
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'BO';
   const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? t('role.superAdmin') : t('role.official');
+
+  const handleAuthFailure = React.useCallback((error: unknown) => {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+
+    const normalized = error.message.trim().toLowerCase();
+    if (
+      normalized !== 'your session has expired. please log in again.' &&
+      !normalized.includes('must be logged in')
+    ) {
+      return false;
+    }
+
+    clearAuthSession();
+    setAuthRedirecting(true);
+    setProfileMenuOpen(false);
+    setNotificationsOpen(false);
+    navigate('/auth/login', { replace: true });
+    return true;
+  }, [navigate]);
+
+  useEffect(() => {
+    if (getAuthSession()?.user) {
+      return;
+    }
+
+    setAuthRedirecting(true);
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
 
   const NAV_ITEMS = officialSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
 
@@ -109,6 +140,10 @@ function Layout() {
       return;
     }
     searchDebounceRef.current = setTimeout(async () => {
+      if (authRedirecting) {
+        return;
+      }
+
       const ql = q.toLowerCase();
       const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
       setSearchNavResults(navMatches);
@@ -119,14 +154,18 @@ function Layout() {
         setSearchIncidentResults(
           reports.slice(0, 5).map((r) => ({ id: r.id, category: r.category, location: r.location, status: r.status, description: r.description, barangay: r.barangay })),
         );
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         setSearchIncidentResults([]);
       } finally {
         setSearchResultsLoading(false);
       }
     }, 300);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, authRedirecting, handleAuthFailure]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -166,13 +205,21 @@ function Layout() {
     let active = true;
 
     const loadNotifications = async () => {
+      if (authRedirecting) {
+        return;
+      }
+
       if (active) setNotificationsLoading(true);
       try {
         const payload = await officialReportsApi.getAlerts();
         if (!active) return;
         setNotifications(payload.alerts);
         setUnreadCount(payload.alerts.filter((alert) => !alert.readAt).length);
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         if (active) {
           setUnreadCount(0);
           setNotifications([]);
@@ -185,7 +232,7 @@ function Layout() {
     void loadNotifications();
     const timer = window.setInterval(() => { void loadNotifications(); }, 30000);
     return () => { active = false; window.clearInterval(timer); };
-  }, []);
+  }, [authRedirecting, handleAuthFailure]);
 
   const handleNotificationClick = async (item: ApiCrossBorderAlert) => {
     if (!item.readAt) {
@@ -197,7 +244,11 @@ function Layout() {
           ),
         );
         setUnreadCount((current) => Math.max(0, current - 1));
-      } catch {
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
         // Keep UI usable even if mark-read fails.
       }
     }
@@ -216,7 +267,11 @@ function Layout() {
         current.map((item) => ({ ...item, readAt: item.readAt ?? nowIso })),
       );
       setUnreadCount(0);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       // Keep menu open; next poll can recover latest state.
     }
   };

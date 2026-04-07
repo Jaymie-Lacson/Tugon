@@ -21,7 +21,7 @@ const verificationIdMaxBytesFromEnv = Number(process.env.VERIFICATION_ID_MAX_BYT
 const authCookieNameFromEnv = (process.env.AUTH_COOKIE_NAME ?? "tugon.sid").trim();
 const authCookieSecureModeFromEnv = (process.env.AUTH_COOKIE_SECURE_MODE ?? "auto").trim().toLowerCase();
 const authCookieSameSiteFromEnv = (process.env.AUTH_COOKIE_SAME_SITE ?? "lax").trim().toLowerCase();
-const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "28800");
+const authCookieMaxAgeSecondsFromEnv = Number(process.env.AUTH_COOKIE_MAX_AGE_SECONDS ?? "2592000");
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
 const authReturnTokenInBodyFromEnv = !isProductionEnv && process.env.AUTH_RETURN_TOKEN_IN_BODY === "1";
 const authAllowBearerTokensFromEnv = !isProductionEnv && process.env.AUTH_ALLOW_BEARER_TOKENS === "1";
@@ -182,7 +182,7 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: portFromEnv,
   jwtSecret,
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "30d",
   otpExpiryMinutes: otpExpiryMinutesFromEnv,
   otpDeliveryMode: otpDeliveryModeFromEnv as "mock" | "sms",
   otpMaxVerifyAttempts: otpMaxVerifyAttemptsFromEnv,

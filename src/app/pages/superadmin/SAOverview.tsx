@@ -13,10 +13,11 @@ import { IncidentMap } from '../../components/IncidentMap';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
-import { superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
+import { isAuthExpiredError, superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
 import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
+import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 
 type BarangayOverviewCard = {
   id: string;
@@ -132,6 +133,7 @@ export default function SAOverview() {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [authRedirecting, setAuthRedirecting] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
@@ -178,13 +180,41 @@ export default function SAOverview() {
     row[barangayKey] += 1;
   }
 
+  const handleAuthFailure = React.useCallback((error: unknown) => {
+    if (!isAuthExpiredError(error)) {
+      return false;
+    }
+
+    clearAuthSession();
+    setAuthRedirecting(true);
+    navigate('/auth/login', { replace: true });
+    return true;
+  }, [navigate]);
+
+  useEffect(() => {
+    if (getAuthSession()?.user.role === 'SUPER_ADMIN') {
+      return;
+    }
+
+    setAuthRedirecting(true);
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
+
   const loadAnalyticsSummary = async () => {
+    if (authRedirecting) {
+      return;
+    }
+
     setSummaryLoading(true);
     setSummaryError(null);
     try {
       const payload = await superAdminApi.getAnalyticsSummary();
       setAnalyticsSummary(payload);
     } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       const message = error instanceof Error ? error.message : 'Unable to load analytics summary.';
       setSummaryError(message);
     } finally {
@@ -193,11 +223,19 @@ export default function SAOverview() {
   };
 
   const loadReports = async () => {
+    if (authRedirecting) {
+      return;
+    }
+
     setReportsLoading(true);
     try {
       const payload = await officialReportsApi.getReports();
       setReportIncidents(payload.reports.map((report) => reportToIncident(report)));
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       setReportIncidents([]);
     } finally {
       setReportsLoading(false);
@@ -205,6 +243,10 @@ export default function SAOverview() {
   };
 
   const loadBarangays = async () => {
+    if (authRedirecting) {
+      return;
+    }
+
     try {
       const payload = await superAdminApi.getBarangays();
       const colorByCode: Record<string, string> = {
@@ -243,12 +285,20 @@ export default function SAOverview() {
         });
 
       setBarangayCards(nextCards);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       setBarangayCards([]);
     }
   };
 
   const loadAuditLogs = async () => {
+    if (authRedirecting) {
+      return;
+    }
+
     setLogsLoading(true);
     try {
       const payload = await superAdminApi.getAuditLogs({ limit: 8, offset: 0 });
@@ -261,7 +311,11 @@ export default function SAOverview() {
           severity: 'info',
         })),
       );
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
       setSystemLogs([]);
     } finally {
       setLogsLoading(false);

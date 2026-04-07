@@ -1,6 +1,8 @@
 
 import { createRoot } from 'react-dom/client';
 import App from './app/App.tsx';
+import { authApi } from './app/services/authApi';
+import { clearAuthSession, saveAuthSession } from './app/utils/authSession';
 import './styles/index.css';
 
 const AUTH_SESSION_KEY = 'tugon.auth.session';
@@ -21,6 +23,24 @@ function hasValidSession(): boolean {
   }
 }
 
+async function restoreSessionFromCookie() {
+  if (hasValidSession()) {
+    return;
+  }
+
+  try {
+    const payload = await authApi.me();
+    if (payload?.user) {
+      saveAuthSession({ user: payload.user });
+      return;
+    }
+  } catch {
+    // Keep startup resilient when no cookie session exists.
+  }
+
+  clearAuthSession();
+}
+
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_ROUTE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
@@ -37,14 +57,19 @@ function enforceProtectedRouteAuth() {
   window.location.replace('/auth/login');
 }
 
-enforceProtectedRouteAuth();
-window.addEventListener('pageshow', enforceProtectedRouteAuth);
-window.addEventListener('popstate', enforceProtectedRouteAuth);
-window.addEventListener('storage', (event) => {
-  if (event.key === AUTH_SESSION_KEY || event.key === null) {
-    enforceProtectedRouteAuth();
-  }
-});
+async function bootstrapAndRender() {
+  await restoreSessionFromCookie();
 
-createRoot(document.getElementById('root')!).render(<App />);
-  
+  enforceProtectedRouteAuth();
+  window.addEventListener('pageshow', enforceProtectedRouteAuth);
+  window.addEventListener('popstate', enforceProtectedRouteAuth);
+  window.addEventListener('storage', (event) => {
+    if (event.key === AUTH_SESSION_KEY || event.key === null) {
+      enforceProtectedRouteAuth();
+    }
+  });
+
+  createRoot(document.getElementById('root')!).render(<App />);
+}
+
+void bootstrapAndRender();

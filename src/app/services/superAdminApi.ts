@@ -1,8 +1,19 @@
-import { getAuthSession } from "../utils/authSession";
+import { clearAuthSession, getAuthSession } from "../utils/authSession";
 import { withSecurityHeaders } from "../utils/requestSecurity";
 import type { Role } from "./authApi";
 
 const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api").replace(/\/+$/, "");
+
+const SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again.";
+
+export function isAuthExpiredError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.trim().toLowerCase();
+  return message === SESSION_EXPIRED_MESSAGE.toLowerCase() || message.includes("must be logged in");
+}
 
 async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const session = getAuthSession();
@@ -15,14 +26,27 @@ async function authedRequest<T>(path: string, init?: RequestInit): Promise<T> {
     ...(init?.headers ?? {}),
   }, { method: init?.method, token: session.token });
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    ...init,
-    headers,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      credentials: "include",
+      ...init,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      `Unable to reach the API server (${API_BASE}). Check VITE_API_BASE_URL and make sure the backend is running.`,
+    );
+  }
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthSession();
+      throw new Error(SESSION_EXPIRED_MESSAGE);
+    }
+
     const message = typeof payload?.message === "string" ? payload.message : "Request failed.";
     throw new Error(message);
   }
