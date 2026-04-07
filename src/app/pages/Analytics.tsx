@@ -142,6 +142,13 @@ function formatBarangayTick(label: string): string {
   return label.replace('Barangay ', 'Brgy ');
 }
 
+function getTimelineCategoryKey(period: string): 'day' | 'week' | 'month' | 'quarter' {
+  if (period === 'Today') return 'day';
+  if (period.includes('Week')) return 'week';
+  if (period.includes('Month')) return 'month';
+  return 'quarter';
+}
+
 export default function Analytics() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState('This Week');
@@ -346,6 +353,9 @@ export default function Analytics() {
     const maxVisibleTicks = isMobile ? 4 : 8;
     return Math.max(0, Math.ceil(DAILY_TREND.length / maxVisibleTicks) - 1);
   }, [DAILY_TREND.length, isMobile]);
+  const hasTimelineData = filteredIncidents.length > 0;
+  const timelineCategoryKey = React.useMemo(() => getTimelineCategoryKey(period), [period]);
+  const timelineCategoryLabel = t(`official.analytics.timelineCategory.${timelineCategoryKey}`);
 
   if (initialLoadPending) {
     return (
@@ -432,63 +442,80 @@ export default function Analytics() {
             ))}
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={trendChartHeight}>
-          {chartType === 'area' ? (
-            <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
-              <defs>
-                {TREND_SERIES_FOR_CHART.map(({ key, color }) => (
-                  <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={color} stopOpacity={0.2} />
-                    <stop offset="95%" stopColor={color} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
-                axisLine={false}
-                tickLine={false}
-                interval={trendTickInterval}
-                tickFormatter={isMobile ? formatCompactTrendTick : undefined}
-                tickMargin={8}
-                minTickGap={isMobile ? 18 : 10}
-              />
-              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
+        {!hasTimelineData ? (
+          <div
+            className="flex h-[250px] items-center justify-center rounded-xl border border-dashed border-[var(--outline-variant)]/70 bg-[var(--surface-container-low)] px-4 text-center md:h-[240px]"
+          >
+            <div>
+              <div className="text-sm font-semibold text-[var(--on-surface)]">
+                {t('official.analytics.noTimelineDataTitle')}
+              </div>
+              <div className="mt-1 text-xs text-[var(--on-surface-variant)]">
+                {t('official.analytics.noTimelineDataBody', { category: timelineCategoryLabel })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <ResponsiveContainer width="100%" height={trendChartHeight}>
+              {chartType === 'area' ? (
+                <AreaChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
+                  <defs>
+                    {TREND_SERIES_FOR_CHART.map(({ key, color }) => (
+                      <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={color} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={trendTickInterval}
+                    tickFormatter={isMobile ? formatCompactTrendTick : undefined}
+                    tickMargin={8}
+                    minTickGap={isMobile ? 18 : 10}
+                  />
+                  <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
+                  {TREND_SERIES_FOR_CHART.map((series) => (
+                    <Area key={`area-${series.key}`} type="monotone" dataKey={series.key} stroke={series.color} fill={`url(#grad-${series.key})`} strokeWidth={1.5} name={series.chartName} />
+                  ))}
+                </AreaChart>
+              ) : (
+                <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={trendTickInterval}
+                    tickFormatter={isMobile ? formatCompactTrendTick : undefined}
+                    tickMargin={8}
+                    minTickGap={isMobile ? 18 : 10}
+                  />
+                  <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
+                  {TREND_SERIES_FOR_CHART.map((series) => (
+                    <Bar key={`bar-${series.key}`} dataKey={series.key} stackId="a" fill={series.color} name={series.chartName} radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined} />
+                  ))}
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+            <div className="analytics-trend-legend flex flex-wrap gap-1.5 gap-x-2.5 mt-2.5">
               {TREND_SERIES_FOR_CHART.map((series) => (
-                <Area key={`area-${series.key}`} type="monotone" dataKey={series.key} stroke={series.color} fill={`url(#grad-${series.key})`} strokeWidth={1.5} name={series.chartName} />
+                <span key={`legend-${series.key}`} className="inline-flex items-center gap-1.5 text-[var(--on-surface-variant)] text-[10px] leading-tight">
+                  <span className={`inline-block size-2 shrink-0 rounded-full ${trendLegendDotClass(series.key)}`} />
+                  {series.chartName}
+                </span>
               ))}
-            </AreaChart>
-          ) : (
-            <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
-                axisLine={false}
-                tickLine={false}
-                interval={trendTickInterval}
-                tickFormatter={isMobile ? formatCompactTrendTick : undefined}
-                tickMargin={8}
-                minTickGap={isMobile ? 18 : 10}
-              />
-              <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
-              {TREND_SERIES_FOR_CHART.map((series) => (
-                <Bar key={`bar-${series.key}`} dataKey={series.key} stackId="a" fill={series.color} name={series.chartName} radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined} />
-              ))}
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-        <div className="analytics-trend-legend flex flex-wrap gap-1.5 gap-x-2.5 mt-2.5">
-          {TREND_SERIES_FOR_CHART.map((series) => (
-            <span key={`legend-${series.key}`} className="inline-flex items-center gap-1.5 text-[var(--on-surface-variant)] text-[10px] leading-tight">
-              <span className={`inline-block size-2 shrink-0 rounded-full ${trendLegendDotClass(series.key)}`} />
-              {series.chartName}
-            </span>
-          ))}
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Middle row charts */}
