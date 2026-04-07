@@ -164,7 +164,7 @@ export default function SAAnalytics() {
           onClick={() => {
             void loadIncidents();
           }}
-          className="flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 cursor-pointer text-slate-700 text-xs font-semibold max-md:w-full max-md:min-h-10 max-md:justify-center"
+          className="flex min-h-11 items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-3.5 py-2 cursor-pointer text-slate-700 text-xs font-semibold max-md:w-full max-md:justify-center"
         >
           <RefreshCw size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
         </button>
@@ -185,7 +185,7 @@ export default function SAAnalytics() {
       </div>
 
       <div className="grid gap-[14px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="bg-white px-5 py-[18px] border border-slate-200" style={{ borderTop: '2px solid #2563EB' }}>
+        <div className="bg-white rounded-xl px-5 py-[18px] border border-slate-200 border-t-2 border-t-[#2563EB]">
           <div className="text-[#0F172A] text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportsByBarangay')}</div>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barangayData} barSize={32}>
@@ -198,7 +198,7 @@ export default function SAAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white px-5 py-[18px] border border-slate-200" style={{ borderTop: '2px solid #0F172A' }}>
+        <div className="bg-white rounded-xl px-5 py-[18px] border border-slate-200 border-t-2 border-t-[#0F172A]">
           <div className="text-[#0F172A] text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportCategoryMix')}</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
@@ -213,7 +213,7 @@ export default function SAAnalytics() {
         </div>
       </div>
 
-      <div className="mt-3.5 bg-white px-[18px] py-3.5 border border-slate-200" style={{ borderTop: '2px solid #D97706' }}>
+      <div className="mt-3.5 bg-white rounded-xl px-[18px] py-3.5 border border-slate-200 border-t-2 border-t-[#D97706]">
         <div className="flex items-center gap-2 text-[#0F172A] text-[13px] font-bold mb-2">
           <AlertTriangle size={14} color="#D97706" />
           {t('superadmin.analytics.reportingHealth')}

@@ -98,6 +98,30 @@ function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
   }
 }
 
+function getBarangayAccentClass(code: string) {
+  if (code === '251') return 'text-[#2563EB]';
+  if (code === '252') return 'text-[#16A34A]';
+  return 'text-[#D97706]';
+}
+
+function getBarangayBorderTopClass(code: string) {
+  if (code === '251') return 'border-t-[#2563EB]';
+  if (code === '252') return 'border-t-[#16A34A]';
+  return 'border-t-[#D97706]';
+}
+
+function getStatValueClass(color: string) {
+  if (color === 'var(--severity-critical)') return 'text-[#DC2626]';
+  if (color === 'var(--severity-medium)') return 'text-[#D97706]';
+  if (color === 'var(--primary)') return 'text-[#2563EB]';
+  return 'text-[#16A34A]';
+}
+
+function getQuickNavAccentClass(path: string) {
+  if (path === '/superadmin/users') return 'text-[#16A34A]';
+  return 'text-[#2563EB]';
+}
+
 function formatLogTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
@@ -375,14 +399,14 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            className="flex items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
+            className="flex min-h-11 items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:justify-center"
           >
             <RefreshCw size={13} className="text-[var(--outline)]" />
             {summaryLoading ? t('common.refreshing') : t('common.refresh')}
           </button>
           <button
             onClick={() => navigate('/superadmin/analytics')}
-            className="flex items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold max-md:flex-1 max-md:min-h-10 max-md:justify-center"
+            className="flex min-h-11 items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold max-md:flex-1 max-md:justify-center"
           >
             {t('superadmin.overview.viewAnalytics')}
             <ArrowRight size={13} />
@@ -446,21 +470,19 @@ export default function SAOverview() {
       <div className="flex gap-[14px] mb-5 flex-wrap">
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
-          const accentColor = b.alertLevel === 'critical' ? '#DC2626' : b.alertLevel === 'elevated' ? '#D97706' : '#16A34A';
-          const bColor = b.color === 'var(--primary)' ? '#2563EB' : b.color === 'var(--severity-low)' ? '#16A34A' : '#D97706';
           return (
-            <div key={b.id} className="flex-1 min-w-[260px] bg-white overflow-hidden border border-slate-200" style={{ borderTop: `2px solid ${bColor}` }}>
+            <div key={b.id} className={`flex-1 min-w-[260px] bg-white rounded-xl overflow-hidden border border-slate-200 border-t-2 ${getBarangayBorderTopClass(b.code)}`}>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-[3px]">
                       <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
-                      <span className="font-mono text-[9px] font-bold uppercase" style={{ color: accentColor }}>{al.label}</span>
+                      <span className={`font-mono text-[9px] font-bold uppercase ${getAlertLevelClass(b.alertLevel).split(' ')[1]}`}>{al.label}</span>
                     </div>
                     <div className="text-[#6B7280] text-[11px]">{b.district}</div>
                     <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
-                  <MapPin size={16} style={{ color: bColor }} className="shrink-0 mt-1" />
+                  <MapPin size={16} className={`shrink-0 mt-1 ${getBarangayAccentClass(b.code)}`} />
                 </div>
 
                 {/* Stats grid */}
@@ -472,7 +494,7 @@ export default function SAOverview() {
                     { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
                     <div key={s.label} className="border border-slate-100 bg-white px-[10px] py-2">
-                      <div className="text-[17px] font-bold font-mono leading-none" style={{ color: s.color === 'var(--severity-critical)' ? '#DC2626' : s.color === 'var(--severity-medium)' ? '#D97706' : s.color === 'var(--primary)' ? '#2563EB' : '#16A34A' }}>{s.value}</div>
+                      <div className={`text-[17px] font-bold font-mono leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
                       <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
@@ -524,10 +546,7 @@ export default function SAOverview() {
       {/* Charts + Logs row */}
       <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
-        <div
-          className="bg-white p-5 border border-slate-200"
-          style={{ borderTop: '2px solid #2563EB' }}
-        >
+        <div className="bg-white p-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
@@ -553,7 +572,7 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div className="bg-white p-5 border border-slate-200 flex flex-col" style={{ borderTop: '2px solid #0F172A' }}>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 border-t-2 border-t-[#0F172A] flex flex-col">
           <div className="flex items-center justify-between mb-[14px]">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
@@ -583,7 +602,7 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview bg-white overflow-hidden mb-5 border border-slate-200" style={{ borderTop: '2px solid #2563EB' }}>
+      <div className="sa-overview-map-preview bg-white rounded-xl overflow-hidden mb-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
             <MapPin size={15} className="text-[#2563EB]" />
@@ -626,7 +645,7 @@ export default function SAOverview() {
             className="flex-1 min-w-[220px] max-[420px]:min-w-full bg-white border border-slate-200 px-4 py-[14px] cursor-pointer text-left flex items-center gap-3"
           >
             <div className="min-w-0">
-              <div className="text-[#0F172A] text-[13px] font-semibold" style={{ color: item.accent }}>{item.label}</div>
+              <div className={`text-[13px] font-semibold ${getQuickNavAccentClass(item.path)}`}>{item.label}</div>
               <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{item.desc}</div>
             </div>
             <ChevronRight size={16} className="ml-auto shrink-0 text-slate-400" />

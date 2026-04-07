@@ -59,6 +59,16 @@ function getStatusBadgeClass(status: SupportedUiStatus) {
     : 'bg-surface-container-low text-[var(--outline)]';
 }
 
+function getRoleTextClass(role: SupportedUiRole) {
+  if (role === 'Super Admin') return 'text-primary';
+  if (role === 'Barangay Admin') return 'text-[var(--primary-container)]';
+  return 'text-[var(--on-surface-variant)]';
+}
+
+function getStatusTextClass(status: SupportedUiStatus) {
+  return status === 'active' ? 'text-[var(--severity-low)]' : 'text-[var(--on-surface-variant)]';
+}
+
 type SAUserRow = {
   id: number;
   name: string;
@@ -170,7 +180,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
   return (
     <div className="fixed inset-0 z-[100] bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-5">
       <div
-        className="bg-white rounded-2xl w-full max-w-[500px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease]"
+        className="bg-white rounded-2xl w-full max-w-[500px] max-h-[calc(100vh-2.5rem)] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease] flex flex-col"
       >
         {/* Modal header */}
         <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
@@ -195,7 +205,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-5 overflow-y-auto">
           {/* Avatar */}
           {user && (
             <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[#F9FAFB] rounded-[10px]">
@@ -387,6 +397,18 @@ export default function SAUsers() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginatedIds = paginated.map((user) => user.id);
+  const selectedOnPageCount = paginatedIds.filter((id) => selectedIds.has(id)).length;
+  const isAllOnPageSelected = paginatedIds.length > 0 && selectedOnPageCount === paginatedIds.length;
+  const isPartiallySelected = selectedOnPageCount > 0 && selectedOnPageCount < paginatedIds.length;
+  const selectAllRef = React.useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!selectAllRef.current) {
+      return;
+    }
+    selectAllRef.current.indeterminate = isPartiallySelected;
+  }, [isPartiallySelected]);
 
   const toggleSelect = (id: number) => {
     setSelectedIds(prev => {
@@ -597,7 +619,7 @@ export default function SAUsers() {
         <div className="sa-users-header-actions flex gap-[10px]">
           <button
             onClick={() => { void loadUsers(); }}
-            className="flex items-center gap-[6px] border border-slate-200 bg-white px-3 py-2 cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex min-h-11 items-center gap-[6px] rounded-lg border border-slate-200 bg-white px-3 py-2 cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             <Download size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
           </button>
@@ -608,7 +630,7 @@ export default function SAUsers() {
               setModalSaving(false);
               setModal({ user: null, mode: 'create' });
             }}
-            className="flex items-center gap-[6px] bg-[#2563EB] border-0 px-3 py-2 cursor-pointer text-xs font-semibold text-white hover:bg-[#1D4ED8]"
+            className="flex min-h-11 items-center gap-[6px] rounded-lg bg-[#2563EB] border-0 px-3 py-2 cursor-pointer text-xs font-semibold text-white hover:bg-[#1D4ED8]"
           >
             <Plus size={14} /> {t('superadmin.users.addUser')}
           </button>
@@ -616,7 +638,7 @@ export default function SAUsers() {
       </div>
 
       {apiError ? (
-        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-[#DC2626] text-xs font-semibold">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
           {apiError}
         </div>
       ) : null}
@@ -630,7 +652,7 @@ export default function SAUsers() {
         ].map(stat => (
           <div key={stat.label} className="bg-white px-4 py-3 border-r border-b border-slate-200">
             <div className="text-[#0F172A] text-[20px] font-bold font-mono">{stat.value}</div>
-            <div className="text-[#6B7280] text-[11px]">{stat.label}</div>
+            <div className="text-[#6B7280] text-xs">{stat.label}</div>
           </div>
         ))}
       </div>
@@ -711,14 +733,27 @@ export default function SAUsers() {
       )}
 
       {/* Table */}
-      <div className="mb-[14px] overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #0F172A' }}>
+      <div className="mb-[14px] overflow-hidden border border-slate-200 border-t-2 border-t-[#0F172A] bg-white">
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-100">
               <th className="px-3 py-2.5 text-left w-8">
                 <input
+                  ref={selectAllRef}
                   type="checkbox"
+                  checked={isAllOnPageSelected}
+                  onChange={(event) => {
+                    const nextChecked = event.target.checked;
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      paginatedIds.forEach((id) => {
+                        if (nextChecked) next.add(id);
+                        else next.delete(id);
+                      });
+                      return next;
+                    });
+                  }}
                   title="Select all users"
                   aria-label="Select all users"
                   className="cursor-pointer accent-[#2563EB]"
@@ -771,7 +806,7 @@ export default function SAUsers() {
 
                     {/* Role */}
                     <td className="px-3 py-2.5">
-                      <span className="font-mono text-[10px] font-bold uppercase" style={{ color: rc.color === 'var(--primary)' ? '#2563EB' : rc.color === 'var(--primary-container)' ? '#1D4ED8' : '#6B7280' }}>
+                      <span className={`font-mono text-[10px] font-bold uppercase ${getRoleTextClass(user.role)}`}>
                         {user.role}
                       </span>
                     </td>
@@ -781,7 +816,7 @@ export default function SAUsers() {
 
                     {/* Status */}
                     <td className="px-3 py-2.5">
-                      <span className="font-mono text-[10px] font-bold uppercase" style={{ color: sc.color === 'var(--severity-low)' ? '#16A34A' : '#6B7280' }}>
+                      <span className={`font-mono text-[10px] font-bold uppercase ${getStatusTextClass(user.status)}`}>
                         {sc.label}
                       </span>
                     </td>
