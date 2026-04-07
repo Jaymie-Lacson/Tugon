@@ -264,9 +264,9 @@ export const en: TranslationDictionary = {
 
   // Hero
   'landing.hero.liveIn': 'Live in Barangays 251, 252, 256',
-  'landing.hero.subtagline': 'Report. Track. Stay aware.',
+  'landing.hero.subtagline': 'Submit verified incident reports, track each status update, and stay coordinated with your barangay.',
   'landing.hero.reportIncident': 'Report an Incident',
-  'landing.hero.trackStatus': 'Track Status',
+  'landing.hero.trackStatus': 'Track My Report',
   'landing.hero.statBarangays': 'Barangays\nCovered',
   'landing.hero.statCategories': 'Incident\nCategories',
   'landing.hero.statReporting': 'Real-time\nReporting',

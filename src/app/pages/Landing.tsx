@@ -431,11 +431,11 @@ function Hero() {
 
         <div
           data-reveal
-          className={`relative z-[2] mx-auto w-full max-w-[1100px] px-6 pb-14 pt-[100px] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
+          className={`landing-hero-content relative z-[2] mx-auto w-full max-w-[1120px] px-6 pb-14 pt-[clamp(112px,14vh,154px)] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
           style={{ transitionDelay: '90ms' }}
         >
           <div>
-            <div className="mb-7 inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
+            <div className="landing-hero-live mb-7 inline-flex items-center gap-2.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 backdrop-blur-sm">
               <span className="relative flex size-2 items-center justify-center">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/60" aria-hidden="true" />
                 <span className="relative inline-flex size-2 rounded-full bg-red-400" aria-hidden="true" />
@@ -444,26 +444,26 @@ function Hero() {
               {t('landing.hero.liveIn')}
             </div>
 
-            <h1 className="mb-5 max-w-[780px] text-[clamp(34px,6vw,60px)] font-bold leading-[1.04] tracking-[-0.025em] text-white">
-              Empowering <span className="text-blue-300">Tondo</span> with instant{' '}
+            <h1 className="landing-hero-title mb-5 max-w-[860px] text-[clamp(42px,7vw,74px)] font-bold leading-[1] tracking-[-0.03em] text-white">
+              Coordinated incident response for <span className="text-blue-300">Tondo</span> starts with{' '}
               <span className="inline-flex items-baseline">
                 <img
                   src="/tugon-wordmark-red.svg"
                   alt="TUGON"
-                  className="inline-block h-[0.92em] w-auto max-w-[min(35vw,248px)] translate-y-[0.1em] md:max-w-[min(35vw,248px)]"
+                  className="landing-hero-wordmark inline-block h-[0.92em] w-auto max-w-[min(35vw,248px)] translate-y-[0.1em] md:max-w-[min(35vw,248px)]"
                 />
               </span>
             </h1>
 
-            <p className="mb-9 max-w-[560px] text-[clamp(15px,1.6vw,18px)] leading-[1.6] text-white/75">
+            <p className="landing-hero-copy mb-9 max-w-[52ch] text-[clamp(18px,2.1vw,24px)] leading-[1.5] text-white/80">
               {t('landing.hero.subtagline')}
             </p>
 
-            <div className="mb-10 flex flex-wrap items-center gap-3">
+            <div className="landing-hero-actions mb-10 flex flex-wrap items-center gap-3">
               <Button
                 size="lg"
                 onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={`gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#00236f] shadow-none hover:bg-white/95 ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`min-h-[46px] gap-2 rounded-md bg-white px-5 text-[15px] font-semibold text-[#00236f] shadow-none hover:bg-white/95 ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 {t('landing.hero.reportIncident')} <ArrowRight size={16} />
               </Button>
@@ -471,14 +471,14 @@ function Hero() {
                 variant="ghost"
                 size="lg"
                 onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={`gap-2 rounded-md px-4 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+                className={`min-h-[46px] gap-2 rounded-md px-4 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
               >
                 {t('landing.hero.trackStatus')}
               </Button>
             </div>
 
             {/* Hero stats strip */}
-            <div className="flex flex-wrap items-end gap-x-10 gap-y-4 border-t border-white/10 pt-6">
+            <div className="landing-hero-stats flex flex-wrap items-end gap-x-10 gap-y-4 border-t border-white/10 pt-6">
               {([
                 { val: '3', labelKey: 'landing.hero.statBarangays' as const },
                 { val: '5', labelKey: 'landing.hero.statCategories' as const },
@@ -486,7 +486,7 @@ function Hero() {
               ]).map((stat) => (
                 <div key={stat.val} className="flex flex-col gap-1">
                   <span className="text-[28px] font-bold leading-none tracking-[-0.02em] text-white">{stat.val}</span>
-                  <span className="whitespace-pre-line text-[11px] font-medium uppercase tracking-[0.1em] text-white/50">{t(stat.labelKey)}</span>
+                  <span className="whitespace-pre-line text-[12px] font-medium uppercase tracking-[0.11em] text-white/55">{t(stat.labelKey)}</span>
                 </div>
               ))}
               <button
@@ -558,7 +558,7 @@ function QuickActions() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal className="bg-background px-6 py-20 md:py-24">
+      <section id="quick-actions" data-reveal className="bg-background px-6 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <SectionHeading
@@ -621,7 +621,7 @@ function MapTeaser() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section data-reveal className="relative overflow-hidden bg-primary px-6 py-20 md:py-28">
+      <section data-reveal className="relative overflow-hidden bg-primary px-6 py-24 md:py-32">
         <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr]">
             {/* Left: text */}
@@ -713,7 +713,7 @@ function HowToUse() {
   ];
 
   return (
-    <section id="how" data-reveal className="bg-muted/50 px-6 py-20 md:py-28">
+    <section id="how" data-reveal className="bg-muted/50 px-6 py-[5.5rem] md:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-14 md:grid-cols-[1fr_1.3fr]">
           <div className="md:sticky md:top-28 md:self-start">
@@ -806,7 +806,7 @@ function SupportedBarangays() {
   ];
 
   return (
-    <section id="barangays" data-reveal className="bg-background px-6 py-20 md:py-28">
+    <section id="barangays" data-reveal className="bg-background px-6 py-16 md:py-24">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.barangays.label')}
@@ -886,7 +886,7 @@ function SafetyTips() {
   ];
 
   return (
-    <section id="safety" data-reveal className="bg-muted/50 px-6 py-20 md:py-28">
+    <section id="safety" data-reveal className="bg-muted/50 px-6 py-[5.5rem] md:py-28">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.safety.label')}
@@ -932,7 +932,7 @@ function EmergencyHotlines() {
   ];
 
   return (
-    <section id="hotlines" data-reveal className="bg-background px-6 py-20 md:py-28">
+    <section id="hotlines" data-reveal className="bg-background px-6 py-16 md:py-24">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           label={t('landing.emergency.label')}
@@ -968,7 +968,7 @@ function EmergencyHotlines() {
               key={item.name}
               data-reveal
               href={`tel:${item.number}`}
-              className="flex items-center gap-5 bg-card px-6 py-5 transition-colors hover:bg-muted/40 md:px-7"
+              className="group flex items-center gap-5 bg-card px-6 py-5 transition-colors hover:bg-muted/40 md:px-7"
               style={{ transitionDelay: `${index * 70}ms` }}
             >
               <div className="font-mono text-[22px] font-semibold tracking-[-0.01em] text-foreground md:w-[90px]">
@@ -1136,7 +1136,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:'IBM_Plex_Sans','Public_Sans',system-ui,-apple-system,Segoe_UI,sans-serif]">
+    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>
@@ -1284,8 +1284,8 @@ export default function Landing() {
           left: 50%;
           bottom: 24px;
           transform: translateX(-50%);
-          width: 32px;
-          height: 32px;
+          width: 44px;
+          height: 44px;
           border-radius: 9999px;
           border: 1px solid rgba(255, 255, 255, 0.2);
           background: transparent;
@@ -1302,6 +1302,55 @@ export default function Landing() {
           color: #ffffff;
           border-color: rgba(255, 255, 255, 0.4);
           transform: translateX(-50%) translateY(2px);
+        }
+
+        @media (max-width: 480px) {
+          .landing-hero-content {
+            padding-top: 104px;
+            padding-bottom: 80px;
+          }
+
+          .landing-hero-live {
+            padding: 5px 12px;
+            font-size: 10px;
+            letter-spacing: 0.13em;
+          }
+
+          .landing-hero-title {
+            max-width: 14ch;
+            font-size: clamp(34px, 10.8vw, 46px);
+            line-height: 1.03;
+          }
+
+          .landing-hero-wordmark {
+            max-width: min(48vw, 196px);
+          }
+
+          .landing-hero-copy {
+            max-width: 36ch;
+            font-size: 16px;
+            line-height: 1.55;
+            margin-bottom: 1.75rem;
+          }
+
+          .landing-hero-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+
+          .landing-hero-actions .hero-action-btn {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .landing-hero-stats {
+            gap: 14px 24px;
+          }
+
+          .landing-scroll-cue {
+            bottom: 14px;
+          }
         }
 
         @media (prefers-reduced-motion: reduce) {

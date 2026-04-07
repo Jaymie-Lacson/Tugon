@@ -264,9 +264,9 @@ export const fil: TranslationDictionary = {
 
   // Hero
   'landing.hero.liveIn': 'Live sa Barangay 251, 252, 256',
-  'landing.hero.subtagline': 'Mag-ulat. Subaybayan. Manatiling handa.',
+  'landing.hero.subtagline': 'Magsumite ng beripikadong ulat ng insidente, subaybayan ang bawat status update, at manatiling naka-ugnay sa barangay ninyo.',
   'landing.hero.reportIncident': 'Mag-ulat ng Insidente',
-  'landing.hero.trackStatus': 'Subaybayan ang Status',
+  'landing.hero.trackStatus': 'Subaybayan ang Aking Ulat',
   'landing.hero.statBarangays': 'Mga Barangay\nSaklaw',
   'landing.hero.statCategories': 'Mga Kategorya\nng Insidente',
   'landing.hero.statReporting': 'Real-time\nPag-uulat',
