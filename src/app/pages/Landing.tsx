@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
+import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 // Card/Badge primitives intentionally not used — landing sections use bespoke layouts
 
 
@@ -39,6 +40,17 @@ function SectionHeading({
   align?: 'left' | 'center';
 }) {
   const isCenter = align === 'center';
+  const titleMetrics = usePretextBlockMetrics<HTMLHeadingElement>(title, {
+    font: '700 36px "Public Sans"',
+    lineHeight: 43,
+    maxLines: 3,
+  });
+  const subtitleMetrics = usePretextBlockMetrics<HTMLParagraphElement>(subtitle, {
+    font: '400 15px "IBM Plex Sans"',
+    lineHeight: 24,
+    maxLines: 4,
+  });
+
   return (
     <div className={`mb-10 ${isCenter ? 'text-center' : 'text-left'}`}>
       <div
@@ -53,6 +65,8 @@ function SectionHeading({
         {label}
       </div>
       <h2
+        ref={titleMetrics.ref}
+        style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
         className={`mb-3 max-w-[640px] text-[clamp(26px,3.6vw,36px)] font-bold leading-[1.18] tracking-[-0.015em] ${
           isCenter ? 'mx-auto' : ''
         } ${light ? 'text-white' : 'text-foreground'}`}
@@ -60,6 +74,8 @@ function SectionHeading({
         {title}
       </h2>
       <p
+        ref={subtitleMetrics.ref}
+        style={subtitleMetrics.minHeight ? { minHeight: subtitleMetrics.minHeight } : undefined}
         className={`max-w-[600px] text-[15px] leading-[1.6] ${isCenter ? 'mx-auto' : ''} ${
           light ? 'text-white/70' : 'text-muted-foreground'
         }`}

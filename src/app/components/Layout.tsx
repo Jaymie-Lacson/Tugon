@@ -19,6 +19,7 @@ import { AdminNotifications, type AdminNotificationItem } from './AdminNotificat
 import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
 import { officialSidebarNavDefs } from '../data/navigationConfig';
+import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -102,6 +103,17 @@ function Layout() {
   const currentPage = NAV_ITEMS.find((n) =>
     n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app',
   ) || NAV_ITEMS[0];
+  const currentPageLabel = currentPage?.label ?? '';
+  const mobileTitleMetrics = usePretextBlockMetrics<HTMLSpanElement>(currentPageLabel, {
+    font: '700 17px "IBM Plex Sans"',
+    lineHeight: 22,
+    maxLines: 2,
+  });
+  const breadcrumbTitleMetrics = usePretextBlockMetrics<HTMLSpanElement>(currentPageLabel, {
+    font: '600 12px "IBM Plex Sans"',
+    lineHeight: 16,
+    maxLines: 1,
+  });
   const settingsActive = location.pathname === '/app/settings' || location.pathname.startsWith('/app/settings/');
   const mobileDrawerItemMotionClass = mobileDrawerOpen
     ? 'opacity-100 translate-y-0'
@@ -445,7 +457,13 @@ function Layout() {
         <header ref={headerRef} className="relative z-[2400] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           {/* Mobile: page name */}
           <div className="flex items-center gap-2 lg:hidden">
-            <span className="text-[17px] font-bold text-primary">{currentPage?.label}</span>
+            <span
+              ref={mobileTitleMetrics.ref}
+              style={mobileTitleMetrics.minHeight ? { minHeight: mobileTitleMetrics.minHeight } : undefined}
+              className="block text-[17px] font-bold text-primary"
+            >
+              {currentPageLabel}
+            </span>
           </div>
 
           {/* Desktop: breadcrumb + functional search */}
@@ -453,7 +471,13 @@ function Layout() {
             <div className="flex items-center gap-1.5 text-xs text-[var(--outline)]">
               <span className="font-semibold text-primary">TUGON</span>
               <ChevronRight size={12} />
-              <span className="font-semibold text-[var(--on-surface)]">{currentPage?.label}</span>
+              <span
+                ref={breadcrumbTitleMetrics.ref}
+                style={breadcrumbTitleMetrics.minHeight ? { minHeight: breadcrumbTitleMetrics.minHeight } : undefined}
+                className="block font-semibold text-[var(--on-surface)]"
+              >
+                {currentPageLabel}
+              </span>
             </div>
             <div className="relative ml-3 min-w-0 flex-1">
               <form onSubmit={handleSearch} className="flex items-center rounded-xl bg-[var(--surface-container-high)] px-3 py-2">

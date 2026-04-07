@@ -4,7 +4,9 @@ import './utils/rechartsWarningPatch';
 
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
+import { clearCache, setLocale } from '@chenglou/pretext';
 import CardSkeleton from './components/ui/CardSkeleton';
+import PretextAutoTextBridge from './components/PretextAutoTextBridge';
 import TableSkeleton from './components/ui/TableSkeleton';
 import TextSkeleton from './components/ui/TextSkeleton';
 import { TranslationProvider } from './i18n';
@@ -65,9 +67,25 @@ function ViewportCompatibilityBridge() {
   return null;
 }
 
+function PretextRuntimeBridge() {
+  useEffect(() => {
+    // Keep Pretext measurement locale aligned with the current browser locale.
+    const locale = navigator.language?.trim();
+    setLocale(locale || undefined);
+
+    return () => {
+      clearCache();
+    };
+  }, []);
+
+  return null;
+}
+
 export default function App() {
   return (
     <TranslationProvider>
+      <PretextRuntimeBridge />
+      <PretextAutoTextBridge />
       <ViewportCompatibilityBridge />
       <Suspense
         fallback={<AppSkeletonFallback />}

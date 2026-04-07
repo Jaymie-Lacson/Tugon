@@ -13,6 +13,7 @@ import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import '../../styles/map-view.css';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
@@ -277,6 +278,16 @@ export default function MapView() {
     }
     return `Barangay Coverage: ${barangays.join(' • ')} — OpenStreetMap`;
   }, [mapIncidents]);
+  const titleMetrics = usePretextBlockMetrics<HTMLSpanElement>('TUGON Incident Map', {
+    font: '700 20px "Public Sans"',
+    lineHeight: 24,
+    maxLines: 2,
+  });
+  const subtitleMetrics = usePretextBlockMetrics<HTMLSpanElement>(coverageSubtitle, {
+    font: '400 13px "IBM Plex Sans"',
+    lineHeight: 18,
+    maxLines: 2,
+  });
 
   const handleResetHeatmapTuning = () => {
     setHeatRadiusPercent(85);
@@ -417,8 +428,20 @@ export default function MapView() {
           )}
 
           <div className="map-header-title">
-            <span className="map-header-title-main">TUGON Incident Map</span>
-            <span className="map-header-title-sub">{coverageSubtitle}</span>
+            <span
+              ref={titleMetrics.ref}
+              style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
+              className="map-header-title-main"
+            >
+              TUGON Incident Map
+            </span>
+            <span
+              ref={subtitleMetrics.ref}
+              style={subtitleMetrics.minHeight ? { minHeight: subtitleMetrics.minHeight } : undefined}
+              className="map-header-title-sub"
+            >
+              {coverageSubtitle}
+            </span>
           </div>
 
           {!isPublicCommunityMap && (

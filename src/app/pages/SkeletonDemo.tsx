@@ -2,14 +2,26 @@ import { useState } from 'react';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
+import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 
 export default function SkeletonDemo() {
   const [isLoading, setIsLoading] = useState(true);
+  const titleMetrics = usePretextBlockMetrics<HTMLHeadingElement>('Skeleton Loader Demo', {
+    font: '600 24px "Public Sans"',
+    lineHeight: 32,
+    maxLines: 2,
+  });
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       <header className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-900">Skeleton Loader Demo</h1>
+        <h1
+          ref={titleMetrics.ref}
+          style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
+          className="text-2xl font-semibold text-gray-900"
+        >
+          Skeleton Loader Demo
+        </h1>
         <p className="mt-2 text-sm text-gray-600">
           Reusable loading placeholders for cards, text content, and tables.
         </p>

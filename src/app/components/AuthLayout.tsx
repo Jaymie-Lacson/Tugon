@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router';
 import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
+import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,16 @@ export function AuthLayout({
   logoSrc = '/tugon-header-logo.svg',
 }: AuthLayoutProps) {
   const navigate = useNavigate();
+  const titleMetrics = usePretextBlockMetrics<HTMLHeadingElement>(title, {
+    font: '900 28px "Public Sans"',
+    lineHeight: 34,
+    maxLines: 3,
+  });
+  const subtitleMetrics = usePretextBlockMetrics<HTMLParagraphElement>(subtitle, {
+    font: '400 14px "IBM Plex Sans"',
+    lineHeight: 23,
+    maxLines: 4,
+  });
 
   return (
     <div className="app-shell-height flex w-full bg-[var(--surface)]">
@@ -98,8 +109,20 @@ export function AuthLayout({
 
           <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-6 shadow-ambient sm:p-8 lg:p-10">
             <div className="mb-6">
-              <h1 className="text-[28px] font-black tracking-[-0.03em] text-[var(--on-surface)]">{title}</h1>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--on-surface-variant)]">{subtitle}</p>
+              <h1
+                ref={titleMetrics.ref}
+                style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
+                className="text-[28px] font-black tracking-[-0.03em] text-[var(--on-surface)]"
+              >
+                {title}
+              </h1>
+              <p
+                ref={subtitleMetrics.ref}
+                style={subtitleMetrics.minHeight ? { minHeight: subtitleMetrics.minHeight } : undefined}
+                className="mt-1.5 text-sm leading-relaxed text-[var(--on-surface-variant)]"
+              >
+                {subtitle}
+              </p>
             </div>
             {children}
           </div>
