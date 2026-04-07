@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, ArrowRight, MapPin,
-  RefreshCw, ChevronRight, Info, Bell, Server,
+  RefreshCw, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 import { useNavigate } from 'react-router';
@@ -76,13 +76,6 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
   normal:   { label: 'NORMAL',   color: 'var(--severity-low)', bg: 'var(--severity-low-bg)' },
   elevated: { label: 'ELEVATED', color: 'var(--secondary)', bg: 'var(--secondary-fixed)' },
   critical: { label: 'CRITICAL', color: 'var(--error)', bg: 'var(--error-container)' },
-};
-
-const logTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = {
-  incident: { icon: <AlertTriangle size={13} />, color: 'var(--severity-critical)' },
-  user:     { icon: <Users size={13} />,         color: 'var(--primary)' },
-  alert:    { icon: <Bell size={13} />,           color: 'var(--severity-medium)' },
-  system:   { icon: <Server size={13} />,         color: 'var(--severity-low)' },
 };
 
 function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
@@ -159,6 +152,11 @@ export default function SAOverview() {
   const [logsLoading, setLogsLoading] = useState(true);
   const [authRedirecting, setAuthRedirecting] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [incidentCardHeight, setIncidentCardHeight] = useState<number | null>(null);
+  const [maxVisibleLogItems, setMaxVisibleLogItems] = useState(8);
+  const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
+  const activityLogHeaderRef = useRef<HTMLDivElement | null>(null);
+  const activityLogListRef = useRef<HTMLDivElement | null>(null);
   const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -353,6 +351,45 @@ export default function SAOverview() {
     void loadAuditLogs();
   }, []);
 
+  useEffect(() => {
+    const card = incidentTypesCardRef.current;
+    if (!card || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const syncHeight = () => {
+      const next = Math.round(card.getBoundingClientRect().height);
+      if (Number.isFinite(next) && next > 0) {
+        setIncidentCardHeight(next);
+      }
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(card);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const header = activityLogHeaderRef.current;
+    const list = activityLogListRef.current;
+    if (!header || !list || !incidentCardHeight) {
+      return;
+    }
+
+    const sampleItem = list.firstElementChild as HTMLElement | null;
+    const itemHeight = sampleItem?.offsetHeight ?? 58;
+    const cardVerticalPadding = 40; // p-5 top and bottom
+    const rowGap = 8; // gap-2
+    const available = incidentCardHeight - header.offsetHeight - cardVerticalPadding;
+    const nextMax = Math.max(1, Math.floor((available + rowGap) / (itemHeight + rowGap)));
+
+    setMaxVisibleLogItems((prev) => (prev === nextMax ? prev : nextMax));
+  }, [incidentCardHeight, systemLogs]);
+
+  const visibleSystemLogs = systemLogs.slice(0, maxVisibleLogItems);
+
   const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
 
   if (initialLoadPending) {
@@ -546,7 +583,7 @@ export default function SAOverview() {
       {/* Charts + Logs row */}
       <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
-        <div className="bg-white p-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
+        <div ref={incidentTypesCardRef} className="bg-white p-5 border border-slate-200 border-t-2 border-t-[#2563EB]">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
@@ -573,16 +610,15 @@ export default function SAOverview() {
 
         {/* System activity log */}
         <div className="bg-white rounded-xl p-5 border border-slate-200 border-t-2 border-t-[#0F172A] flex flex-col">
-          <div className="flex items-center justify-between mb-[14px]">
+          <div ref={activityLogHeaderRef} className="flex items-center justify-between mb-[14px]">
             <div>
               <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
               <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
             <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
           </div>
-          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
-            {systemLogs.map((log) => {
-              const ltc = logTypeConfig[log.type] ?? { icon: <Info size={13} />, color: 'var(--outline)' };
+          <div ref={activityLogListRef} className="flex-1 overflow-hidden flex flex-col gap-2">
+            {visibleSystemLogs.map((log) => {
               return (
                 <div key={log.id} className="flex gap-[10px] px-[10px] py-2 border-b border-slate-100 last:border-b-0">
                   <div className="flex-1 min-w-0">
