@@ -127,6 +127,12 @@ function formatTrendDayLabel(date: Date, period: string): string {
   return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
 }
 
+function formatCompactTrendTick(label: string): string {
+  const parsed = new Date(label);
+  if (Number.isNaN(parsed.getTime())) return label;
+  return `${parsed.getMonth() + 1}/${parsed.getDate()}`;
+}
+
 function getCompactCategoryLabel(label: string): string {
   if (label === 'Road Hazard') return 'Road Haz';
   return label;
@@ -308,6 +314,10 @@ export default function Analytics() {
   }, [RESPONSE_TIME]);
   const deployedUnits = RESOURCE_DATA.reduce((sum, row) => sum + row.deployed, 0);
   const totalSeverityCount = SEVERITY_DATA.reduce((sum, row) => sum + row.value, 0);
+  const trendTickInterval = React.useMemo(() => {
+    const maxVisibleTicks = isMobile ? 4 : 8;
+    return Math.max(0, Math.ceil(DAILY_TREND.length / maxVisibleTicks) - 1);
+  }, [DAILY_TREND.length, isMobile]);
 
   if (initialLoadPending) {
     return (
@@ -402,7 +412,16 @@ export default function Analytics() {
                 ))}
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 1 : 0} tickMargin={8} minTickGap={isMobile ? 14 : 8} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
+                axisLine={false}
+                tickLine={false}
+                interval={trendTickInterval}
+                tickFormatter={isMobile ? formatCompactTrendTick : undefined}
+                tickMargin={8}
+                minTickGap={isMobile ? 18 : 10}
+              />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
               {TREND_SERIES_FOR_CHART.map((series) => (
@@ -412,7 +431,16 @@ export default function Analytics() {
           ) : (
             <BarChart data={DAILY_TREND} margin={{ top: 5, right: 5, left: -20, bottom: isMobile ? 10 : 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 1 : 0} tickMargin={8} minTickGap={isMobile ? 14 : 8} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: isMobile ? 11 : 10, fill: '#64748B' }}
+                axisLine={false}
+                tickLine={false}
+                interval={trendTickInterval}
+                tickFormatter={isMobile ? formatCompactTrendTick : undefined}
+                tickMargin={8}
+                minTickGap={isMobile ? 18 : 10}
+              />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
               {TREND_SERIES_FOR_CHART.map((series) => (
