@@ -166,7 +166,11 @@ function IncidentDetailModal({
   return (
     <div
       className="fixed inset-0 z-[2600] flex items-center justify-center p-3.5 backdrop-blur-[4px]"
-      style={{ background: 'rgba(15,23,42,0.68)' }}
+      style={{
+        top: 'var(--app-vv-top, 0px)',
+        bottom: 'var(--app-vv-bottom-gap, 0px)',
+        background: 'rgba(15,23,42,0.68)',
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -370,6 +374,10 @@ function IncidentDetailModal({
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
             className="fixed inset-0 z-[2700] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px]"
+            style={{
+              top: 'var(--app-vv-top, 0px)',
+              bottom: 'var(--app-vv-bottom-gap, 0px)',
+            }}
           >
             <button
               type="button"
@@ -384,7 +392,10 @@ function IncidentDetailModal({
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
                 className="rounded-xl shadow-[0_20px_44px_rgba(13,28,46,0.36)]"
-                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 92px)' }}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: 'calc(100dvh - 92px - var(--app-vv-top, 0px) - var(--app-vv-bottom-gap, 0px))',
+                }}
               />
               <div className="text-center text-xs font-semibold text-white/90">
                 {previewPhotoName}

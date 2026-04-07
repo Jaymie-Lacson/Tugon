@@ -387,6 +387,10 @@ export default function SAAuditLogs() {
         <div
           onClick={() => setSelectedLog(null)}
           className="fixed inset-0 bg-[rgba(13,28,46,0.45)] z-[120] flex justify-end"
+          style={{
+            top: 'var(--app-vv-top, 0px)',
+            bottom: 'var(--app-vv-bottom-gap, 0px)',
+          }}
         >
           <div
             onClick={(event) => event.stopPropagation()}

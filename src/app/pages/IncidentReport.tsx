@@ -753,7 +753,13 @@ function Step2({
       </div>
 
       {mapExpanded ? (
-        <div className="fixed inset-0 z-[250] bg-[#0B1220] flex flex-col">
+        <div
+          className="fixed inset-0 z-[250] bg-[#0B1220] flex flex-col"
+          style={{
+            top: 'var(--app-vv-top, 0px)',
+            bottom: 'var(--app-vv-bottom-gap, 0px)',
+          }}
+        >
           <div className="flex items-center justify-between gap-3 px-[14px] py-3 text-white border-b border-white/[0.15]">
             <div className="text-[13px] font-bold">{t('citizen.report.step2.expandedMapTitle')}</div>
             <button
@@ -2130,8 +2136,10 @@ export default function IncidentReport() {
               @media (max-width: 900px) {
                 .citizen-report-footer {
                   position: fixed !important;
-                  left: 50% !important;
-                  transform: translateX(-50%) !important;
+                  left: var(--app-vv-left, 0px) !important;
+                  width: min(var(--app-vv-width, 100vw), 520px) !important;
+                  transform: translateX(calc((var(--app-vv-width, 100vw) - min(var(--app-vv-width, 100vw), 520px)) / 2)) !important;
+                  bottom: calc(var(--app-vv-bottom-gap, 0px)) !important;
                   max-width: 520px !important;
                 }
               }

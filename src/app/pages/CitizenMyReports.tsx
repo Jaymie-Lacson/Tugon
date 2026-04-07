@@ -634,7 +634,7 @@ function DetailView({
         className="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[3px]"
       />
 
-      <article className="absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[#F8FAFC] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
+      <article className="citizen-report-modal-sheet absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[#F8FAFC] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
         <header className="bg-white pt-[10px] pb-0 flex flex-col items-center border-b border-slate-100 shrink-0">
           <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
@@ -898,6 +898,10 @@ function DetailView({
           aria-modal="true"
           aria-label="Confirm report cancellation"
           className="fixed inset-0 z-[230] flex items-center justify-center p-4"
+          style={{
+            top: 'var(--app-vv-top, 0px)',
+            bottom: 'var(--app-vv-bottom-gap, 0px)',
+          }}
         >
           <div
             onClick={() => {
@@ -905,7 +909,7 @@ function DetailView({
                 setConfirmCancelOpen(false);
               }
             }}
-            className="absolute inset-0 bg-[rgba(15,23,42,0.65)]"
+            className="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[3px]"
           />
 
           <article
@@ -980,6 +984,10 @@ function DetailView({
           aria-modal="true"
           aria-label="Photo preview"
           onClick={() => setPreviewPhotoIndex(null)}
+          style={{
+            top: 'var(--app-vv-top, 0px)',
+            bottom: 'var(--app-vv-bottom-gap, 0px)',
+          }}
         >
           <div
             className="citizen-photo-preview-stage flex max-h-full w-full max-w-[980px] flex-col gap-2"
@@ -1008,6 +1016,24 @@ function DetailView({
         @keyframes slideUp {
           from { transform: translateY(100%); }
           to   { transform: translateY(0); }
+        }
+
+        .citizen-report-modal {
+          top: var(--app-vv-top, 0px);
+          bottom: var(--app-vv-bottom-gap, 0px);
+        }
+
+        .citizen-report-modal-sheet {
+          max-height: calc(92dvh - var(--app-vv-top, 0px) - var(--app-vv-bottom-gap, 0px));
+          padding-bottom: calc(env(safe-area-inset-bottom, 0px));
+        }
+
+        @supports (-webkit-touch-callout: none) {
+          @media (hover: none) and (pointer: coarse) {
+            .citizen-report-modal-sheet {
+              max-height: calc(-webkit-fill-available - var(--app-vv-top, 0px) - var(--app-vv-bottom-gap, 0px));
+            }
+          }
         }
       `}</style>
     </div>

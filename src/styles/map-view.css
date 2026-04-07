@@ -1,12 +1,25 @@
 .map-view-root {
   display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
   height: 100%;
   position: relative;
   overflow: hidden;
 }
 
 .map-view-root-public {
+  min-height: 100vh;
   height: 100dvh;
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (hover: none) and (pointer: coarse) {
+    .map-view-root,
+    .map-view-root-public {
+      min-height: -webkit-fill-available;
+      height: -webkit-fill-available;
+    }
+  }
 }
 
 .map-panel-backdrop {
@@ -325,7 +338,7 @@
 
 .map-dispatch-success-modal {
   position: absolute;
-  top: 58px;
+  top: calc(var(--app-vv-top, 0px) + 58px);
   right: 14px;
   z-index: 1600;
   min-width: 260px;
@@ -369,7 +382,7 @@
 
 .map-header-bar {
   position: absolute;
-  top: 0;
+  top: var(--app-vv-top, 0px);
   left: 0;
   right: 0;
   z-index: 1000;
@@ -530,7 +543,7 @@
 
 .map-public-login-modal-wrap {
   position: absolute;
-  top: 68px;
+  top: calc(var(--app-vv-top, 0px) + 68px);
   left: 50%;
   transform: translateX(-50%);
   width: min(92%, 480px);
@@ -591,7 +604,7 @@
 
 .map-selected-wrap {
   position: absolute;
-  bottom: 16px;
+  bottom: calc(16px + var(--app-vv-bottom-gap, 0px) + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);
@@ -749,7 +762,10 @@
   .map-panel-backdrop {
     display: block;
     position: fixed;
-    inset: 0;
+    left: 0;
+    right: 0;
+    top: var(--app-vv-top, 0px);
+    bottom: var(--app-vv-bottom-gap, 0px);
     background: rgba(0, 0, 0, 0.4);
     z-index: 199;
   }
@@ -771,12 +787,12 @@
   }
 
   .map-public-login-modal-wrap {
-    top: 72px;
+    top: calc(var(--app-vv-top, 0px) + 72px);
     width: calc(100% - 20px);
   }
 
   .map-dispatch-success-modal {
-    top: 70px;
+    top: calc(var(--app-vv-top, 0px) + 70px);
     right: 10px;
     max-width: calc(100% - 20px);
   }

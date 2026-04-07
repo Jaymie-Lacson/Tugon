@@ -258,6 +258,10 @@ export default function Verifications() {
           aria-label={previewTitle}
           onClick={() => setPreviewUrl(null)}
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(13,28,46,0.58)] p-4 backdrop-blur-[2px]"
+          style={{
+            top: 'var(--app-vv-top, 0px)',
+            bottom: 'var(--app-vv-bottom-gap, 0px)',
+          }}
         >
           <div
             onClick={(event) => event.stopPropagation()}

@@ -470,7 +470,7 @@ export default function MapView() {
             <div
               style={{
                 position: 'absolute',
-                top: 56,
+                top: 'calc(var(--app-vv-top, 0px) + 56px)',
                 right: 12,
                 zIndex: 1200,
                 width: 230,

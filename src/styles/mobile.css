@@ -859,7 +859,7 @@
 
   /* ── Map view: hide panel, show as sheet ── */
   .map-panel { display: none !important; }
-  .map-panel.panel-open { display: flex !important; position: fixed !important; top: 56px !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 1250 !important; width: 100% !important; min-width: unset !important; border-right: none !important; box-shadow: none !important; }
+  .map-panel.panel-open { display: flex !important; position: fixed !important; top: calc(var(--app-vv-top, 0px) + 56px) !important; left: var(--app-vv-left, 0px) !important; width: var(--app-vv-width, 100%) !important; bottom: calc(var(--app-vv-bottom-gap, 0px) + env(safe-area-inset-bottom, 0px)) !important; z-index: 1250 !important; min-width: unset !important; border-right: none !important; box-shadow: none !important; }
   .map-header-title { display: none !important; }
 
   /* ── Incident Report Step 2 map tuning ── */
@@ -904,7 +904,8 @@
 
   /* ── Incident report sticky footer ── */
   .citizen-report-footer {
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(var(--app-vv-bottom-gap, 0px)) !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     -webkit-backdrop-filter: saturate(120%) blur(6px);
     backdrop-filter: saturate(120%) blur(6px);
   }

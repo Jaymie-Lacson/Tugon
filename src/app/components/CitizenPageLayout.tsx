@@ -170,6 +170,7 @@ export function CitizenPageLayout({
 
         /* ── Shared ────────────────────────────────────────────────────── */
         .citizen-web-header {
+          top: var(--app-vv-top, 0px);
           -webkit-backdrop-filter: saturate(115%) blur(6px);
           backdrop-filter: saturate(115%) blur(6px);
         }
