@@ -390,7 +390,7 @@ export default function SAAuditLogs() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-[min(560px,100vw)] h-full bg-white shadow-[-8px_0_24px_rgba(15,23,42,0.2)] flex flex-col"
+            className="box-border max-w-full w-[min(560px,100%)] h-full overflow-x-hidden bg-white shadow-[-8px_0_24px_rgba(15,23,42,0.2)] flex flex-col"
           >
             <div className="px-4 py-3.5 border-b border-[var(--outline-variant)] flex items-center justify-between">
               <div>

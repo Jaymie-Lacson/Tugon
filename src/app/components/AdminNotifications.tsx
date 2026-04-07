@@ -183,7 +183,7 @@ export function AdminNotifications({
           aria-label={panelLabel}
           className={`max-h-[360px] overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.2)] ${
             isMobileViewport
-              ? 'fixed left-1/2 z-[2300] w-[min(360px,calc(100vw-16px))] -translate-x-1/2'
+              ? 'fixed left-1/2 z-[2300] box-border max-w-[calc(100%-16px)] w-[min(360px,calc(100%-16px))] -translate-x-1/2 overflow-x-hidden'
               : 'absolute z-[2300] w-80'
           }`}
         >

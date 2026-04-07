@@ -342,6 +342,7 @@
     height: 100%;
     width: 100%;
     max-width: 100%;
+    overflow-x: clip;
     /* Keep both declarations for broader text autosize control across WebKit and Chromium engines. */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -402,6 +403,14 @@
     height: 100dvh;
     min-height: 100vh;
     min-height: 100dvh;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  @supports not (overflow: clip) {
+    .app-shell-height {
+      overflow-x: hidden;
+    }
   }
 
   @supports (-webkit-touch-callout: none) {

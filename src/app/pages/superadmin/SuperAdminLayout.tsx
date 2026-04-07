@@ -51,6 +51,7 @@ export default function SuperAdminLayout() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifications, setNotifications] = useState<ApiAdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [monitoringItems, setMonitoringItems] = useState<MonitoringItem[]>([
     { code: '251', name: 'Brgy 251', incidents: 0, color: '#22C55E' },
     { code: '252', name: 'Brgy 252', incidents: 0, color: '#22C55E' },
@@ -67,9 +68,6 @@ export default function SuperAdminLayout() {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try { return localStorage.getItem('tugon-sa-sidebar-collapsed') === 'true'; } catch { return false; }
-  });
   const navigate = useNavigate();
   const location = useLocation();
   const NAV_ITEMS = superAdminSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
@@ -103,10 +101,6 @@ export default function SuperAdminLayout() {
     setAuthRedirecting(true);
     navigate('/auth/login', { replace: true });
   }, [navigate]);
-
-  useEffect(() => {
-    try { localStorage.setItem('tugon-sa-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
-  }, [sidebarCollapsed]);
 
   useEffect(() => {
     let mounted = true;
@@ -366,7 +360,7 @@ export default function SuperAdminLayout() {
     if (notificationsOpen) setNotificationsOpen(false);
   };
 
-  const renderNavLinks = (onClick?: () => void, collapsed?: boolean) => NAV_ITEMS.map((item) => {
+  const renderNavLinks = (onClick?: () => void, collapsed = false) => NAV_ITEMS.map((item) => {
     const active = item.exact
       ? location.pathname === item.path
       : location.pathname.startsWith(item.path) && !item.exact;
@@ -386,11 +380,11 @@ export default function SuperAdminLayout() {
         }`}
       >
         <item.icon size={16} className={`shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-slate-400'}`} />
-        {!collapsed && (
+        {!collapsed ? (
           <span className={`text-[13px] whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
             {item.label}
           </span>
-        )}
+        ) : null}
       </NavLink>
     );
   });
@@ -419,64 +413,73 @@ export default function SuperAdminLayout() {
     <div className="app-shell-height flex overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
       {/* Desktop sidebar */}
-      <aside className={`hidden ${sidebarCollapsed ? 'w-[68px]' : 'w-72'} shrink-0 flex-col overflow-hidden border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-300 ease-in-out lg:flex`}>
-        <div className={sidebarCollapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
-          <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="no-underline">
-            {sidebarCollapsed ? (
-              <div className="flex items-center justify-center">
-                <img
-                  src="/favicon.svg"
-                  alt="TUGON"
-                  className="h-9 w-9 object-contain"
-                />
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <img
-                  src="/tugon-wordmark-blue.svg"
-                  alt="TUGON"
-                  className="h-9 w-auto object-contain"
-                />
-              </div>
-            )}
-          </NavLink>
+      <aside className={`hidden ${desktopSidebarOpen ? 'w-72' : 'w-[68px]'} shrink-0 flex-col overflow-hidden overflow-x-clip border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-200 ease-out lg:flex`}>
+        <div className={desktopSidebarOpen ? 'overflow-x-hidden px-5 pb-5 pt-6' : 'overflow-x-hidden px-3 pb-3 pt-4'}>
+          {desktopSidebarOpen ? (
+            <div className="flex items-start justify-between gap-2 overflow-x-hidden">
+              <NavLink to="/superadmin" aria-label={t('superadmin.layout.ariaOverview')} className="block min-w-0 flex-1 no-underline">
+                <div className="flex min-w-0 items-center">
+                  <img
+                    src="/tugon-wordmark-blue.svg"
+                    alt="TUGON"
+                    className="h-9 w-auto max-w-full object-contain"
+                  />
+                </div>
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => setDesktopSidebarOpen(false)}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/45 bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+              >
+                <ChevronsLeft size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <img
+                src="/favicon.svg"
+                alt="TUGON"
+                className="h-9 w-9 object-contain"
+              />
+            </div>
+          )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4">
-          {!sidebarCollapsed && renderMonitoringStrip()}
-          {!sidebarCollapsed && (
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
+          {!desktopSidebarOpen ? (
+            <button
+              type="button"
+              onClick={() => setDesktopSidebarOpen(true)}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              className="mb-1.5 flex w-full cursor-pointer items-center justify-center rounded-xl border-none bg-transparent px-2 py-2.5 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+            >
+              <ChevronsRight size={16} className="shrink-0" />
+            </button>
+          ) : null}
+          {desktopSidebarOpen ? renderMonitoringStrip() : null}
+          {desktopSidebarOpen ? (
             <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
               {t('nav.navigation')}
             </div>
-          )}
-          {renderNavLinks(undefined, sidebarCollapsed)}
+          ) : null}
+          {renderNavLinks(undefined, !desktopSidebarOpen)}
         </nav>
 
-        <div className="px-3 pb-2">
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed((prev) => !prev)}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} border border-slate-200 bg-white py-2 text-slate-500 transition-colors hover:bg-slate-50`}
-          >
-            {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-            {!sidebarCollapsed && <span className="text-[13px] font-medium whitespace-nowrap">Collapse</span>}
-          </button>
-        </div>
-
-        <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+        <div className={`overflow-x-hidden border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${desktopSidebarOpen ? 'px-4' : 'px-2'} py-3`}>
+          <div className={`flex min-w-0 items-center ${desktopSidebarOpen ? 'gap-2.5' : 'justify-center'}`}>
             <div
               className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] text-[13px] font-bold text-white"
-              title={sidebarCollapsed ? userFullName : undefined}
             >
               {userInitials}
             </div>
-            {!sidebarCollapsed && (
+            {desktopSidebarOpen ? (
               <>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
-                  <div className="text-[10px] text-[var(--outline)]">{t('role.superAdmin')}</div>
+                  <div className="truncate text-[11px] font-semibold text-[var(--on-surface)]">{userFullName}</div>
+                  <div className="truncate text-[9px] leading-tight text-[var(--outline)]">{t('role.superAdmin')}</div>
                 </div>
                 <button
                   type="button"
@@ -488,7 +491,7 @@ export default function SuperAdminLayout() {
                   <LogOut size={15} />
                 </button>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>
@@ -496,7 +499,7 @@ export default function SuperAdminLayout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header ref={headerRef} className="relative z-[2600] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+        <header ref={headerRef} className="relative z-[2600] flex h-16 shrink-0 items-center gap-3 overflow-x-clip border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           {/* Mobile: page name */}
           <div className="flex items-center gap-2 lg:hidden">
             <span
@@ -745,7 +748,7 @@ export default function SuperAdminLayout() {
 
           {/* Mobile search bar dropdown */}
           <div
-            className="absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
+            className="absolute inset-x-0 top-full z-[2] box-border max-w-full overflow-x-hidden overflow-y-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg lg:hidden"
             style={{
               maxHeight: mobileSearchOpen ? 600 : 0,
               opacity: mobileSearchOpen ? 1 : 0,
@@ -835,7 +838,7 @@ export default function SuperAdminLayout() {
           {/* Mobile navigation dropdown (landing page style) */}
           <div
             id="superadmin-mobile-drawer"
-            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
+            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] box-border max-w-full overflow-x-hidden overflow-y-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
             style={{
               padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
               maxHeight: mobileDrawerOpen ? 600 : 0,

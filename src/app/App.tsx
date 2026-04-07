@@ -37,8 +37,13 @@ function ViewportCompatibilityBridge() {
 
     const syncViewportVars = () => {
       const topOffset = Math.max(0, viewport.offsetTop || 0);
-      const leftOffset = Math.max(0, viewport.offsetLeft || 0);
-      const viewportWidth = Math.max(0, viewport.width || window.innerWidth);
+      const leftOffsetRaw = Math.max(0, viewport.offsetLeft || 0);
+      const layoutViewportWidth = Math.max(0, document.documentElement.clientWidth || window.innerWidth);
+      const visualViewportWidth = Math.max(0, viewport.width || layoutViewportWidth);
+
+      // Clamp visual viewport geometry so left + width never exceeds layout viewport width.
+      const leftOffset = Math.floor(Math.min(leftOffsetRaw, layoutViewportWidth));
+      const viewportWidth = Math.floor(Math.min(visualViewportWidth, Math.max(0, layoutViewportWidth - leftOffset)));
       const visibleBottom = topOffset + Math.max(0, viewport.height || window.innerHeight);
       const bottomGap = Math.max(0, window.innerHeight - visibleBottom);
 

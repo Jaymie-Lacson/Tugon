@@ -42,6 +42,7 @@ function Layout() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notifications, setNotifications] = useState<ApiCrossBorderAlert[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchNavResults, setSearchNavResults] = useState<typeof NAV_ITEMS>([]);
@@ -52,9 +53,6 @@ function Layout() {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLElement | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try { return localStorage.getItem('tugon-sidebar-collapsed') === 'true'; } catch { return false; }
-  });
   const navigate = useNavigate();
   const location = useLocation();
   const session = getAuthSession();
@@ -124,10 +122,6 @@ function Layout() {
     setProfileMenuOpen(false);
     navigate('/auth/login', { replace: true });
   };
-
-  useEffect(() => {
-    try { localStorage.setItem('tugon-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
-  }, [sidebarCollapsed]);
 
   useEffect(() => {
     setMobileDrawerOpen(false);
@@ -333,35 +327,57 @@ function Layout() {
     <div className="app-shell-height flex overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
 
       {/* Desktop sidebar */}
-      <aside className={`hidden ${sidebarCollapsed ? 'w-[68px]' : 'w-72'} shrink-0 flex-col overflow-hidden border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-300 ease-in-out lg:flex`}>
-        <div className={sidebarCollapsed ? 'px-3 pb-3 pt-4' : 'px-5 pb-5 pt-6'}>
-          <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="no-underline">
-            {sidebarCollapsed ? (
-              <div className="flex items-center justify-center">
-                <img
-                  src="/favicon.svg"
-                  alt="TUGON"
-                  className="h-9 w-9 object-contain"
-                />
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <img
-                  src="/tugon-wordmark-blue.svg"
-                  alt="TUGON"
-                  className="h-9 w-auto object-contain"
-                />
-              </div>
-            )}
-          </NavLink>
+      <aside className={`hidden ${desktopSidebarOpen ? 'w-72' : 'w-[68px]'} shrink-0 flex-col overflow-hidden overflow-x-clip border-r border-[var(--outline-variant)]/25 bg-[var(--surface-container-low)] transition-[width] duration-200 ease-out lg:flex`}>
+        <div className={desktopSidebarOpen ? 'overflow-x-hidden px-5 pb-5 pt-6' : 'overflow-x-hidden px-3 pb-3 pt-4'}>
+          {desktopSidebarOpen ? (
+            <div className="flex items-start justify-between gap-2 overflow-x-hidden">
+              <NavLink to={roleHomePath} aria-label="Go to TUGON home" className="block min-w-0 flex-1 no-underline">
+                <div className="flex min-w-0 items-center">
+                  <img
+                    src="/tugon-wordmark-blue.svg"
+                    alt="TUGON"
+                    className="h-9 w-auto max-w-full object-contain"
+                  />
+                </div>
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => setDesktopSidebarOpen(false)}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/45 bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+              >
+                <ChevronsLeft size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <img
+                src="/favicon.svg"
+                alt="TUGON"
+                className="h-9 w-9 object-contain"
+              />
+            </div>
+          )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4">
-          {!sidebarCollapsed && (
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
+          {!desktopSidebarOpen ? (
+            <button
+              type="button"
+              onClick={() => setDesktopSidebarOpen(true)}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              className="mb-1.5 flex w-full cursor-pointer items-center justify-center rounded-xl border-none bg-transparent px-2 py-2.5 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+            >
+              <ChevronsRight size={16} className="shrink-0" />
+            </button>
+          ) : null}
+          {desktopSidebarOpen ? (
             <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
               {t('nav.navigation')}
             </div>
-          )}
+          ) : null}
           {NAV_ITEMS.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.path
@@ -374,18 +390,18 @@ function Layout() {
                 key={item.path}
                 to={item.path}
                 title={t('nav.openPage', { page: item.label })}
-                className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
+                className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
                   active
                     ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
                     : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                 }`}
               >
                 <item.icon size={16} className={`shrink-0 ${active ? 'text-primary' : 'text-[var(--outline)]'}`} />
-                {!sidebarCollapsed && (
+                {desktopSidebarOpen ? (
                   <span className={`text-[13px] whitespace-nowrap ${active ? 'font-bold' : 'font-medium'}`}>
                     {item.label}
                   </span>
-                )}
+                ) : null}
               </NavLink>
             );
           })}
@@ -394,47 +410,34 @@ function Layout() {
             <NavLink
               to="/app/settings"
               title={t('nav.openSettingsPage')}
-              className={`mb-1.5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl py-2.5 no-underline transition-colors ${
+              className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
                 settingsActive
                   ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
                   : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
               }`}
             >
               <Settings size={16} className={`shrink-0 ${settingsActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
-              {!sidebarCollapsed && (
+              {desktopSidebarOpen ? (
                 <span className={`text-[13px] whitespace-nowrap ${settingsActive ? 'font-bold' : 'font-medium'}`}>
                   {t('common.settings')}
                 </span>
-              )}
+              ) : null}
             </NavLink>
           </div>
         </nav>
 
-        <div className="px-3 pb-2">
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed((prev) => !prev)}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`flex w-full cursor-pointer items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} rounded-xl border-none bg-transparent py-2 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]`}
-          >
-            {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-            {!sidebarCollapsed && <span className="text-[13px] font-medium whitespace-nowrap">Collapse</span>}
-          </button>
-        </div>
-
-        <div className={`border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${sidebarCollapsed ? 'px-2' : 'px-4'} py-3`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+        <div className={`overflow-x-hidden border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${desktopSidebarOpen ? 'px-4' : 'px-2'} py-3`}>
+          <div className={`flex min-w-0 items-center ${desktopSidebarOpen ? 'gap-2.5' : 'justify-center'}`}>
             <div
               className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] font-mono text-[13px] font-bold text-white"
-              title={sidebarCollapsed ? userFullName : undefined}
             >
               {userInitials}
             </div>
-            {!sidebarCollapsed && (
+            {desktopSidebarOpen ? (
               <>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-semibold text-[var(--on-surface)]">{userFullName}</div>
-                  <div className="text-[10px] text-[var(--outline)]">{userRoleLabel}</div>
+                  <div className="truncate text-[11px] font-semibold text-[var(--on-surface)]">{userFullName}</div>
+                  <div className="truncate text-[9px] leading-tight text-[var(--outline)]">{userRoleLabel}</div>
                 </div>
                 <button
                   type="button"
@@ -446,7 +449,7 @@ function Layout() {
                   <LogOut size={15} />
                 </button>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>
@@ -454,7 +457,7 @@ function Layout() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header */}
-        <header ref={headerRef} className="relative z-[2400] flex h-16 shrink-0 items-center gap-3 border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
+        <header ref={headerRef} className="relative z-[2400] flex h-16 shrink-0 items-center gap-3 overflow-x-clip border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] px-4 lg:px-5">
           {/* Mobile: page name */}
           <div className="flex items-center gap-2 lg:hidden">
             <span
@@ -677,7 +680,7 @@ function Layout() {
 
           {/* Mobile search bar dropdown */}
           <div
-            className={`absolute inset-x-0 top-full z-[2] overflow-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg transition-[max-height,opacity] duration-[250ms,200ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease] lg:hidden ${
+            className={`absolute inset-x-0 top-full z-[2] box-border max-w-full overflow-x-hidden overflow-y-hidden border-b border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] shadow-lg transition-[max-height,opacity] duration-[250ms,200ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease] lg:hidden ${
               mobileSearchOpen
                 ? 'max-h-[600px] opacity-100 pointer-events-auto'
                 : 'max-h-0 opacity-0 pointer-events-none'
@@ -771,7 +774,7 @@ function Layout() {
           {/* Mobile navigation dropdown (landing page style) */}
           <div
             id="layout-mobile-drawer"
-            className={`nav-mobile-panel absolute inset-x-0 top-full z-[1] overflow-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] lg:hidden ${
+            className={`nav-mobile-panel absolute inset-x-0 top-full z-[1] box-border max-w-full overflow-x-hidden overflow-y-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] lg:hidden ${
               mobileDrawerOpen
                 ? 'pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-3 pb-5 opacity-100'
                 : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
