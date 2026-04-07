@@ -90,7 +90,7 @@ export function AuthLayout({
       </aside>
 
       {/* Right form panel */}
-      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 sm:px-8 sm:py-10 lg:items-center">
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-6 sm:px-8 sm:py-10 lg:items-center">
         <div className="absolute right-6 top-6 hidden lg:block">
           <LanguageToggle />
         </div>
@@ -107,12 +107,12 @@ export function AuthLayout({
             <LanguageToggle />
           </div>
 
-          <div className="rounded-2xl bg-[var(--surface-container-lowest)] p-6 shadow-ambient sm:p-8 lg:p-10">
+          <div className="rounded-xl bg-[var(--surface-container-lowest)] p-5 shadow-ambient sm:rounded-2xl sm:p-8 lg:p-10">
             <div className="mb-6">
               <h1
                 ref={titleMetrics.ref}
                 style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
-                className="text-[28px] font-black tracking-[-0.03em] text-[var(--on-surface)]"
+                className="text-[26px] font-black tracking-[-0.03em] text-[var(--on-surface)] sm:text-[28px]"
               >
                 {title}
               </h1>
@@ -170,12 +170,12 @@ export function InputField({
   const autoCompleteProps = autoComplete ? { autoComplete } : {};
 
   return (
-    <div className="mb-5">
+    <div className="mb-4.5 sm:mb-5">
       <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
         {label}
       </label>
       <div
-        className={`flex items-center gap-2 rounded-xl px-3.5 py-3 transition-all ${
+        className={`flex min-h-12 items-center gap-2 rounded-xl px-3.5 py-2.5 transition-all duration-200 ${
           error
             ? 'bg-red-50 shadow-[inset_0_-2px_0_#dc2626]'
             : focused
@@ -231,7 +231,7 @@ export function PrimaryButton({ children, onClick, loading = false, disabled = f
 
   return (
     <button
-      className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-all ${colorClasses} disabled:cursor-not-allowed disabled:opacity-55`}
+      className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-all duration-200 ${colorClasses} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-fixed)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-55`}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
@@ -248,15 +248,15 @@ interface AuthProgressStepperProps {
 
 export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressStepperProps) {
   return (
-    <div className={`${className} flex items-center`}>
+    <div className={`${className} flex items-start gap-1 sm:gap-0`}>
       {steps.flatMap((step, idx) => {
         const isDone = step.status === 'done';
         const isActive = step.status === 'active';
 
         const items = [
-          <div key={`step-${idx}`} className="flex flex-1 flex-col items-center">
+          <div key={`step-${idx}`} className="flex flex-1 flex-col items-center px-1 text-center">
             <div
-              className={`mb-1 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[12px] font-bold ${
+              className={`mb-1.5 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[12px] font-bold ${
                 isDone
                   ? 'bg-emerald-600 text-white'
                   : isActive
@@ -267,7 +267,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
             </div>
             <span
-              className={`text-[10px] ${
+              className={`max-w-[90px] text-[10px] leading-tight sm:max-w-[120px] ${
                 isDone
                   ? 'text-emerald-600'
                   : isActive
@@ -284,7 +284,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
           items.push(
             <div
               key={`connector-${idx}`}
-              className={`mb-[18px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-[var(--surface-container-high)]'}`}
+              className={`mt-[15px] h-0.5 flex-1 ${isDone ? 'bg-emerald-600' : 'bg-[var(--surface-container-high)]'}`}
             />,
           );
         }

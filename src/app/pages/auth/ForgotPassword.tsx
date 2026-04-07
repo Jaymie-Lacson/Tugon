@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Phone, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react';
 import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
 
@@ -22,8 +23,8 @@ export default function ForgotPassword() {
 
   const handleSend = async () => {
     const digits = phone.replace(/\D/g, '');
-    if (!phone) { setError('Phone number is required.'); return; }
-    if (digits.length < 10) { setError('Enter a valid Philippine phone number.'); return; }
+    if (!phone) { setError(t('auth.forgotPassword.error.phoneRequired')); return; }
+    if (digits.length < 10) { setError(t('auth.forgotPassword.error.phoneInvalid')); return; }
     setError('');
     setLoading(true);
     try {
@@ -32,7 +33,7 @@ export default function ForgotPassword() {
       });
       setSent(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to send reset OTP.';
+      const message = err instanceof Error ? err.message : t('auth.forgotPassword.error.sendFailed');
       setError(message);
     } finally {
       setLoading(false);
@@ -43,6 +44,7 @@ export default function ForgotPassword() {
     <AuthLayout
       title={t('auth.forgotPassword.title')}
       subtitle={t('auth.forgotPassword.subtitle')}
+      logoSrc="/tugon-wordmark-blue.svg"
     >
       <AuthProgressStepper
         steps={[
@@ -53,28 +55,29 @@ export default function ForgotPassword() {
       />
 
       {sent ? (
-        <div className="text-center py-2">
-          <div className="size-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="py-2 text-center">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-green-100">
             <CheckCircle2 size={32} color="#059669" />
           </div>
-          <div className="text-emerald-800 text-[17px] font-extrabold mb-2">{t('auth.forgotPassword.codeSentTitle')}</div>
-          <p className="text-muted-foreground text-[13px] leading-relaxed mb-6">
+          <div className="mb-2 text-[17px] font-extrabold text-emerald-800">{t('auth.forgotPassword.codeSentTitle')}</div>
+          <p className="mb-6 text-[13px] leading-relaxed text-muted-foreground">
             {t('auth.forgotPassword.codeSentDesc', { phone })}
           </p>
 
-          <button
+          <PrimaryButton
             onClick={() => navigate('/auth/verify', { state: { phone, flow: 'password-reset' } })}
-            className="w-full py-3.5 bg-primary border-none rounded-lg text-white text-sm font-bold cursor-pointer flex items-center justify-center gap-2 font-[inherit] mb-3 hover:bg-primary/90 transition-colors"
+            color="#1E3A8A"
           >
             <ArrowRight size={15} /> {t('auth.forgotPassword.enterCode')}
-          </button>
+          </PrimaryButton>
 
-          <button
+          <Button
             onClick={() => setSent(false)}
-            className="w-full py-3 bg-muted border border-border rounded-lg text-primary text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5 font-[inherit] hover:bg-accent transition-colors"
+            variant="outline"
+            className="mt-3 h-12 w-full gap-1.5 border-border text-sm font-semibold"
           >
             <RefreshCw size={13} /> {t('auth.forgotPassword.differentNumber')}
-          </button>
+          </Button>
         </div>
       ) : (
         <form onSubmit={e => { e.preventDefault(); handleSend(); }}>
@@ -88,11 +91,12 @@ export default function ForgotPassword() {
             error={error}
             hint={t('auth.forgotPassword.phoneHint')}
             inputMode="tel"
+            maxLength={13}
             autoComplete="tel"
             autoFocus
           />
 
-          <div className="rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 mb-6 text-xs text-amber-800 leading-relaxed">
+          <div className="mb-6 rounded-[var(--radius-lg)] border border-orange-200 bg-orange-50 p-3 text-xs leading-relaxed text-amber-800">
             {t('auth.forgotPassword.notRegistered')}
           </div>
 
@@ -102,10 +106,11 @@ export default function ForgotPassword() {
         </form>
       )}
 
-      <div className="text-center mt-5">
+      <div className="mt-5 text-center">
         <button
+          type="button"
           onClick={() => navigate('/auth/login')}
-          className="bg-transparent border-none text-muted-foreground text-sm cursor-pointer inline-flex items-center gap-1.5 font-[inherit] hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md border-none bg-transparent px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
         >
           <ArrowLeft size={14} /> {t('auth.forgotPassword.backToLogin')} <span className="text-primary font-bold ml-0.5">{t('auth.login.submit')}</span>
         </button>

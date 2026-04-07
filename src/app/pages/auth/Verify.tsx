@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { CheckCircle2, RefreshCw, Phone, ArrowLeft, ShieldCheck, House } from 'lucide-react';
 import { AuthLayout, AuthProgressStepper, PrimaryButton } from '../../components/AuthLayout';
+import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
 
@@ -54,7 +55,7 @@ export default function Verify() {
 
   useEffect(() => {
     if (!pendingState.phone) {
-      setError('Registration session expired. Please restart registration.');
+      setError(t('auth.verify.sessionExpired'));
       return;
     }
 
@@ -67,7 +68,7 @@ export default function Verify() {
         flow,
       }),
     );
-  }, [flow, pendingState.barangay, pendingState.fullName, pendingState.phone]);
+  }, [flow, pendingState.barangay, pendingState.fullName, pendingState.phone, t]);
 
   const handleDigit = (idx: number, val: string) => {
     const digit = val.replace(/\D/g, '').slice(-1);
@@ -106,7 +107,7 @@ export default function Verify() {
 
   const handleVerify = async () => {
     if (!pendingState.phone) {
-      setError('Registration session expired. Please restart registration.');
+      setError(t('auth.verify.sessionExpired'));
       return;
     }
 
@@ -136,7 +137,7 @@ export default function Verify() {
         },
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'OTP verification failed.';
+      const message = err instanceof Error ? err.message : t('auth.verify.failed');
       setError(message);
       setDigits(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
@@ -147,7 +148,7 @@ export default function Verify() {
 
   const handleResend = async () => {
     if (!pendingState.phone) {
-      setError('Registration session expired. Please restart registration.');
+      setError(t('auth.verify.sessionExpired'));
       return;
     }
 
@@ -163,7 +164,7 @@ export default function Verify() {
       setError('');
       inputRefs.current[0]?.focus();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to resend OTP.';
+      const message = err instanceof Error ? err.message : t('auth.verify.resendFailed');
       setError(message);
     } finally {
       setResending(false);
@@ -174,16 +175,19 @@ export default function Verify() {
     <AuthLayout
       title={t('auth.verify.title')}
       subtitle={t('auth.verify.subtitle', { phone: displayPhone })}
+      logoSrc="/tugon-wordmark-blue.svg"
       topAction={(
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+          className="gap-1.5 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft size={14} />
           <House size={14} />
           {t('auth.backToHome')}
-        </button>
+        </Button>
       )}
     >
       <AuthProgressStepper
@@ -210,7 +214,7 @@ export default function Verify() {
         <label className="mb-3 block text-xs font-semibold text-muted-foreground">
           {t('auth.verify.codeLabel')}
         </label>
-        <div className="mb-2 flex justify-center gap-2.5" onPaste={handlePaste}>
+        <div className="mb-2 flex justify-center gap-2 sm:gap-2.5" onPaste={handlePaste}>
           {digits.map((digit, idx) => (
             <input
               key={idx}
@@ -222,7 +226,7 @@ export default function Verify() {
               value={digit}
               onChange={e => handleDigit(idx, e.target.value)}
               onKeyDown={e => handleKeyDown(idx, e)}
-              className={`w-[52px] h-[60px] text-center text-2xl font-bold text-foreground border-2 rounded-xl outline-none transition-all caret-transparent ${
+              className={`h-[52px] w-[44px] rounded-xl border-2 text-center text-xl font-bold text-foreground caret-transparent outline-none transition-all sm:h-[60px] sm:w-[52px] sm:text-2xl ${
                 error
                   ? 'border-destructive bg-destructive/5'
                   : digit
@@ -235,7 +239,7 @@ export default function Verify() {
 
         {/* Error */}
         {error && (
-          <div className="mb-2 text-center text-xs font-medium text-destructive">
+          <div className="mb-2 text-center text-xs font-medium text-destructive" role="status" aria-live="polite">
             ! {error}
           </div>
         )}
@@ -274,9 +278,10 @@ export default function Verify() {
           </p>
         ) : (
           <button
+            type="button"
             onClick={handleResend}
             disabled={resending}
-            className={`inline-flex items-center gap-1.5 border-none bg-transparent text-[13px] font-bold text-primary ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-md border-none bg-transparent px-2 text-[13px] font-bold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 ${
               resending ? 'opacity-60' : 'opacity-100'
             }`}
           >
@@ -289,8 +294,9 @@ export default function Verify() {
       {/* Back */}
       <div className="mt-3 text-center">
         <button
+          type="button"
           onClick={() => navigate(flow === 'password-reset' ? '/auth/forgot-password' : '/auth/register')}
-          className="inline-flex items-center gap-1 border-none bg-transparent text-xs text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md border-none bg-transparent px-2 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
         >
           <ArrowLeft size={13} /> {flow === 'password-reset' ? t('auth.verify.backToForgot') : t('auth.verify.backToRegister')}
         </button>

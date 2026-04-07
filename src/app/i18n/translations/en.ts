@@ -100,6 +100,9 @@ export const en: TranslationDictionary = {
   'auth.login.signingIn': 'Signing in...',
   'auth.login.invalidCredentials': 'Invalid phone number or password.',
   'auth.login.accountLocked': 'Account is temporarily locked. Try again later.',
+  'auth.login.unableSignIn': 'Unable to sign in right now. Please try again.',
+  'auth.password.show': 'Show password',
+  'auth.password.hide': 'Hide password',
 
   // ── Auth: Register ──
   'auth.register.title': 'Create your account',
@@ -115,6 +118,11 @@ export const en: TranslationDictionary = {
   'auth.register.login': 'Sign in',
   'auth.register.registering': 'Creating account...',
   'auth.register.phoneExists': 'This phone number is already registered.',
+  'auth.register.error.fullName': 'Enter your complete full name (first and last).',
+  'auth.register.error.phoneRequired': 'Phone number is required.',
+  'auth.register.error.phoneInvalid': 'Enter a valid Philippine phone number.',
+  'auth.register.error.barangayRequired': 'Please select your barangay.',
+  'auth.register.error.sendOtpFailed': 'Unable to send OTP right now.',
 
   // ── Auth: OTP Verification ──
   'auth.verify.title': 'Verify your phone',
@@ -177,6 +185,9 @@ export const en: TranslationDictionary = {
   'auth.verify.otpSent': 'OTP sent via SMS',
   'auth.verify.hint': 'Enter the OTP sent to your phone number.',
   'auth.verify.allDigits': 'Please enter all 6 digits of your OTP.',
+  'auth.verify.sessionExpired': 'Registration session expired. Please restart registration.',
+  'auth.verify.failed': 'OTP verification failed.',
+  'auth.verify.resendFailed': 'Unable to resend OTP.',
   'auth.verify.verified': 'Verified! Redirecting\u2026',
   'auth.verify.verifyCode': 'Verify Code',
   'auth.verify.resendPrompt': 'Didn\'t receive a code? Resend',
@@ -217,6 +228,9 @@ export const en: TranslationDictionary = {
   'auth.forgotPassword.sendResetCode': 'Send Reset Code',
   'auth.forgotPassword.phoneLabel': 'Registered Phone Number',
   'auth.forgotPassword.phoneHint': 'Must match the phone number used during registration.',
+  'auth.forgotPassword.error.phoneRequired': 'Phone number is required.',
+  'auth.forgotPassword.error.phoneInvalid': 'Enter a valid Philippine phone number.',
+  'auth.forgotPassword.error.sendFailed': 'Unable to send reset OTP.',
   'auth.forgotPassword.step.requestCode': 'Request Code',
   'auth.forgotPassword.step.verifyCode': 'Verify Code',
   'auth.forgotPassword.step.newPassword': 'New Password',

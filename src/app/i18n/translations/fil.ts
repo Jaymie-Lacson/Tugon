@@ -100,6 +100,9 @@ export const fil: TranslationDictionary = {
   'auth.login.signingIn': 'Nagsa-sign in...',
   'auth.login.invalidCredentials': 'Hindi tamang numero ng telepono o password.',
   'auth.login.accountLocked': 'Pansamantalang naka-lock ang account. Subukan muli mamaya.',
+  'auth.login.unableSignIn': 'Hindi makapag-sign in ngayon. Pakisubukang muli.',
+  'auth.password.show': 'Ipakita ang password',
+  'auth.password.hide': 'Itago ang password',
 
   // ── Auth: Register ──
   'auth.register.title': 'Gumawa ng iyong account',
@@ -115,6 +118,11 @@ export const fil: TranslationDictionary = {
   'auth.register.login': 'Mag-sign in',
   'auth.register.registering': 'Gumagawa ng account...',
   'auth.register.phoneExists': 'Nakarehistro na ang numerong ito.',
+  'auth.register.error.fullName': 'Ilagay ang iyong kumpletong buong pangalan (pangalan at apelyido).',
+  'auth.register.error.phoneRequired': 'Kinakailangan ang numero ng telepono.',
+  'auth.register.error.phoneInvalid': 'Maglagay ng wastong numero ng telepono sa Pilipinas.',
+  'auth.register.error.barangayRequired': 'Mangyaring piliin ang iyong barangay.',
+  'auth.register.error.sendOtpFailed': 'Hindi makapagpadala ng OTP ngayon.',
 
   // ── Auth: OTP Verification ──
   'auth.verify.title': 'I-verify ang iyong telepono',
@@ -177,6 +185,9 @@ export const fil: TranslationDictionary = {
   'auth.verify.otpSent': 'Naipadala ang OTP sa pamamagitan ng SMS',
   'auth.verify.hint': 'Ilagay ang OTP na ipinadala sa iyong numero ng telepono.',
   'auth.verify.allDigits': 'Ilagay ang lahat ng 6 na digit ng iyong OTP.',
+  'auth.verify.sessionExpired': 'Nag-expire ang session ng pagpaparehistro. Mangyaring simulan muli ang pagpaparehistro.',
+  'auth.verify.failed': 'Nabigo ang pag-verify ng OTP.',
+  'auth.verify.resendFailed': 'Hindi maipadala muli ang OTP.',
   'auth.verify.verified': 'Na-verify na! Nire-redirect\u2026',
   'auth.verify.verifyCode': 'I-verify ang Code',
   'auth.verify.resendPrompt': 'Hindi nakatanggap ng code? Ipadala muli',
@@ -217,6 +228,9 @@ export const fil: TranslationDictionary = {
   'auth.forgotPassword.sendResetCode': 'Ipadala ang Reset Code',
   'auth.forgotPassword.phoneLabel': 'Nakarehistrong Numero ng Telepono',
   'auth.forgotPassword.phoneHint': 'Dapat tumugma sa numero ng telepono na ginamit sa pagpaparehistro.',
+  'auth.forgotPassword.error.phoneRequired': 'Kinakailangan ang numero ng telepono.',
+  'auth.forgotPassword.error.phoneInvalid': 'Maglagay ng wastong numero ng telepono sa Pilipinas.',
+  'auth.forgotPassword.error.sendFailed': 'Hindi makapagpadala ng reset OTP.',
   'auth.forgotPassword.step.requestCode': 'Humiling ng Code',
   'auth.forgotPassword.step.verifyCode': 'I-verify ang Code',
   'auth.forgotPassword.step.newPassword': 'Bagong Password',

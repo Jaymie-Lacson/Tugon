@@ -52,7 +52,7 @@ export default function Login() {
 
       navigate('/app', { replace: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to sign in.';
+      const message = error instanceof Error ? error.message : t('auth.login.unableSignIn');
       setErrors({ general: message });
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome Back"
+      title={t('auth.login.title')}
       subtitle={t('auth.login.subtitle')}
       logoSrc="/tugon-wordmark-blue.svg"
       topAction={
@@ -102,6 +102,7 @@ export default function Login() {
           error={errors.phone}
           hint={t('auth.login.phoneHint')}
           inputMode="tel"
+          maxLength={13}
           autoComplete="tel"
           autoFocus
         />
@@ -119,7 +120,9 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="flex items-center border-none bg-transparent p-1 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? t('auth.password.hide') : t('auth.password.show')}
+              title={showPassword ? t('auth.password.hide') : t('auth.password.show')}
+              className="flex items-center rounded-md border-none bg-transparent p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
             >
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle2, Shield, ArrowLeft, UserCheck, House } from 'lucide-react';
 import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../../components/AuthLayout';
+import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { useTranslation } from '../../i18n';
@@ -116,15 +117,17 @@ export default function CreatePassword() {
         title={flow === 'password-reset' ? t('auth.createPassword.titleReset') : t('auth.createPassword.title')}
         subtitle={flow === 'password-reset' ? t('auth.createPassword.subtitleReset') : t('auth.createPassword.subtitleRegister')}
         topAction={(
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             type="button"
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+            className="gap-1.5 text-muted-foreground hover:text-primary"
           >
             <ArrowLeft size={14} />
             <House size={14} />
             {t('auth.backToHome')}
-          </button>
+          </Button>
         )}
       >
         <AuthProgressStepper
@@ -137,22 +140,22 @@ export default function CreatePassword() {
 
         {/* Account summary pill */}
         {flow !== 'password-reset' && state.fullName && (
-          <div className="flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-green-200 bg-green-50 p-3 mb-6">
-            <div className="w-[34px] h-[34px] bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+          <div className="mb-6 flex items-center gap-2.5 rounded-[var(--radius-lg)] border border-green-200 bg-green-50 p-3">
+            <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg bg-green-100">
               <UserCheck size={16} className="text-emerald-600" />
             </div>
             <div>
               <div className="text-xs font-bold text-emerald-900">{state.fullName}</div>
               <div className="text-[11px] text-emerald-600">{barangayLabel} · {state.phone || ''}</div>
             </div>
-            <CheckCircle2 size={16} className="text-emerald-600 ml-auto shrink-0" />
+            <CheckCircle2 size={16} className="ml-auto shrink-0 text-emerald-600" />
           </div>
         )}
 
         {done ? (
           /* Success state */
-          <div className="text-center py-4" style={{ animation: 'fadeSlideUp 0.4s ease' }}>
-            <div className="w-[72px] h-[72px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4" style={{ animation: 'checkPop 0.4s ease' }}>
+          <div className="py-4 text-center" style={{ animation: 'fadeSlideUp 0.4s ease' }}>
+            <div className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-emerald-100" style={{ animation: 'checkPop 0.4s ease' }}>
               <CheckCircle2 size={36} className="text-emerald-600" />
             </div>
             <div className="text-emerald-900 text-lg font-extrabold mb-1.5">
@@ -183,7 +186,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="flex items-center rounded-md border-none bg-transparent p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -241,7 +244,7 @@ export default function CreatePassword() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="flex items-center bg-transparent border-none p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="flex items-center rounded-md border-none bg-transparent p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
                 >
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
@@ -280,8 +283,9 @@ export default function CreatePassword() {
         {!done && (
           <div className="text-center mt-4">
             <button
+              type="button"
               onClick={() => navigate('/auth/verify', { state })}
-              className="bg-transparent border-none text-muted-foreground text-xs cursor-pointer inline-flex items-center gap-1 font-[inherit] hover:text-foreground"
+              className="inline-flex min-h-11 items-center gap-1 rounded-md border-none bg-transparent px-2 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
             >
               <ArrowLeft size={13} /> {t('auth.createPassword.backToVerify')}
             </button>

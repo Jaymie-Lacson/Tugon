@@ -26,11 +26,11 @@ export default function Register() {
 
   const validate = () => {
     const e: typeof errors = {};
-    if (!fullName.trim() || fullName.trim().split(' ').length < 2) e.fullName = 'Enter your complete full name (first and last).';
+    if (!fullName.trim() || fullName.trim().split(' ').length < 2) e.fullName = t('auth.register.error.fullName');
     const digits = phone.replace(/\D/g, '');
-    if (!phone) e.phone = 'Phone number is required.';
-    else if (digits.length < 10) e.phone = 'Enter a valid Philippine phone number.';
-    if (!barangay) e.barangay = 'Please select your barangay.';
+    if (!phone) e.phone = t('auth.register.error.phoneRequired');
+    else if (digits.length < 10) e.phone = t('auth.register.error.phoneInvalid');
+    if (!barangay) e.barangay = t('auth.register.error.barangayRequired');
     return e;
   };
 
@@ -54,7 +54,7 @@ export default function Register() {
       sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(pendingRegistration));
       navigate('/auth/verify', { state: pendingRegistration });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to send OTP right now.';
+      const message = error instanceof Error ? error.message : t('auth.register.error.sendOtpFailed');
       setErrors((prev) => ({ ...prev, general: message }));
     } finally {
       setLoading(false);
@@ -125,6 +125,7 @@ export default function Register() {
           error={errors.phone}
           hint={t('auth.register.phoneHint')}
           inputMode="tel"
+          maxLength={13}
           autoComplete="tel"
         />
 
@@ -142,7 +143,7 @@ export default function Register() {
                 : dropdownOpen
                   ? 'border-ring ring-[3px] ring-ring/50'
                   : 'border-input hover:border-ring/50'
-            }`}
+            } focus-visible:outline-none`}
           >
             <MapPin size={17} className={`shrink-0 ${dropdownOpen ? 'text-primary' : 'text-muted-foreground'}`} />
             <div className="flex-1">
