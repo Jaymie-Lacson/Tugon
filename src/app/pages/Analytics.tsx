@@ -149,6 +149,7 @@ export default function Analytics() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportingCsv, setExportingCsv] = useState(false);
   const [initialLoadPending, setInitialLoadPending] = useState(true);
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
 
@@ -290,6 +291,33 @@ export default function Analytics() {
     return counts.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
   }, [filteredIncidents]);
 
+  const handleExportCsv = useCallback(async () => {
+    if (exportingCsv) return;
+
+    setExportingCsv(true);
+    try {
+      const exported = await officialReportsApi.exportAllReports();
+      const blob = new Blob([exported.text], { type: 'text/csv;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      const periodSlug = period.toLowerCase().replace(/\s+/g, '-');
+      const defaultName = `tugon-analytics-${periodSlug}-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.href = url;
+      anchor.download = exported.fileName
+        ? exported.fileName.replace(/\.csv$/i, `-${periodSlug}.csv`)
+        : defaultName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (exportError) {
+      const message = exportError instanceof Error ? exportError.message : 'Failed to export CSV.';
+      setError(message);
+    } finally {
+      setExportingCsv(false);
+    }
+  }, [exportingCsv, period]);
+
   const totalIncidents = filteredIncidents.length;
   const resolvedIncidents = filteredIncidents.filter((incident) => incident.status === 'resolved').length;
   const resolutionRate = totalIncidents > 0 ? (resolvedIncidents / totalIncidents) * 100 : 0;
@@ -356,8 +384,12 @@ export default function Analytics() {
                 </button>
               ))}
             </div>
-            <button className="flex cursor-pointer items-center gap-[5px] rounded bg-[var(--surface-container-lowest)] px-3.5 py-[7px] text-xs font-semibold text-slate-600">
-              <Download size={13} /> {t('official.analytics.export')}
+            <button
+              onClick={() => { void handleExportCsv(); }}
+              disabled={exportingCsv}
+              className="flex cursor-pointer items-center gap-[5px] rounded bg-[var(--surface-container-lowest)] px-3.5 py-[7px] text-xs font-semibold text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download size={13} /> {exportingCsv ? 'Exporting...' : t('official.analytics.export')}
             </button>
           </div>
         )}
