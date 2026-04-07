@@ -17,6 +17,7 @@ import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -31,6 +32,23 @@ const CATEGORY_DIST_CONFIG = [
 ];
 
 const LIVE_FEED_LIMIT = 5;
+
+function trendColorClass(accent: string): string {
+  if (accent === '#DC2626') return 'text-red-600';
+  if (accent === '#2563EB') return 'text-blue-600';
+  if (accent === '#16A34A') return 'text-emerald-600';
+  if (accent === '#D97706') return 'text-amber-600';
+  return 'text-[var(--on-surface-variant)]';
+}
+
+function legendDotClass(color: string): string {
+  if (color === '#0F766E') return 'bg-teal-700';
+  if (color === '#7C3AED') return 'bg-violet-600';
+  if (color === 'var(--primary)') return 'bg-primary';
+  if (color === 'var(--severity-medium)') return 'bg-severity-medium';
+  if (color === '#475569') return 'bg-slate-600';
+  return 'bg-slate-400';
+}
 
 const typeIcons: Record<string, React.ReactNode> = {
   flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -76,7 +94,7 @@ function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
       <div className="flex items-center justify-between gap-2 mt-0.5">
         <span className="text-[11px] text-slate-400">{subtitle}</span>
         {trend && !isLiveLabel && (
-          <span className="flex items-center gap-[3px] font-mono text-[10px] font-semibold" style={{ color: accent }}>
+          <span className={`flex items-center gap-[3px] font-mono text-[10px] font-semibold ${trendColorClass(accent)}`}>
             <TrendIcon size={11} />
             {trend.val}
           </span>
@@ -97,7 +115,7 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div className="grid gap-2 bg-white px-3.5 py-3 mb-3" style={{ borderLeft: '3px solid #DC2626' }}>
+    <div className="mb-3 grid gap-2 border-l-[3px] border-l-[#DC2626] bg-white px-3.5 py-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 rounded-md border border-[#E8B4B4] bg-[#FDE8E8] flex items-center justify-center shrink-0">
@@ -426,26 +444,20 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {/* District focus header */}
-      <section className="mb-4 border-b border-slate-200 pb-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-              District Focus
-            </div>
-            <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
-              Tondo Patrol Cluster
-            </h1>
-            <p className="mt-0.5 text-xs text-slate-500">
-              <span className="font-mono font-bold text-[#DC2626]">{activeIncidents.length}</span> active
-              {' · '}
-              <span className="font-mono font-bold text-[#0F172A]">{deployedUnits}</span> units deployed
-              {' · '}
-              <span className="font-mono font-bold text-[#0F172A]">{unresolvedCount}</span> unresolved
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+      <OfficialPageHeader
+        eyebrow="District Focus"
+        title="Tondo Patrol Cluster"
+        meta={(
+          <>
+            <span className="font-mono font-bold text-[#DC2626]">{activeIncidents.length}</span> active
+            {' · '}
+            <span className="font-mono font-bold text-[var(--on-surface)]">{deployedUnits}</span> units deployed
+            {' · '}
+            <span className="font-mono font-bold text-[var(--on-surface)]">{unresolvedCount}</span> unresolved
+          </>
+        )}
+        actions={(
+          <>
             <button
               type="button"
               onClick={() => navigate('/app/incidents')}
@@ -460,9 +472,9 @@ export default function Dashboard() {
             >
               Request Support
             </button>
-          </div>
-        </div>
-      </section>
+          </>
+        )}
+      />
 
       {strongestHeatCluster ? (
         <section
@@ -946,7 +958,7 @@ export default function Dashboard() {
               {typeDist.map(item => (
                 <div key={item.name} className="mb-1.5 flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: item.color }} />
+                    <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${legendDotClass(item.color)}`} />
                     <span className="truncate text-[13px] text-slate-600">{item.name}</span>
                   </div>
                   <span className="text-[13px] font-bold text-slate-800">{item.value}</span>
@@ -983,7 +995,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs" style={{ minWidth: 580 }}>
+          <table className="w-full min-w-[580px] border-collapse text-xs">
             <thead>
               <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.dashboard.incidentId'), t('official.dashboard.type'), t('official.dashboard.location'), t('official.dashboard.severity'), t('official.dashboard.status'), t('official.dashboard.reportedCol'), t('official.dashboard.responders')].map(col => (

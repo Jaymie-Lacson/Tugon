@@ -1,17 +1,18 @@
 import React from 'react';
-import { Settings as SettingsIcon, User, Shield, Globe } from 'lucide-react';
+import { User, Shield, Globe } from 'lucide-react';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation, SUPPORTED_LOCALES, LOCALE_LABELS } from '../i18n';
 import type { Locale } from '../i18n';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 
 function SettingRow({ label, description, value }: { label: string; description?: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3.5 border-b border-slate-100">
+    <div className="flex items-center justify-between gap-4 border-b border-[var(--outline-variant)]/35 py-3.5">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-semibold text-slate-800">{label}</div>
-        {description && <div className="text-[11px] text-slate-400 mt-0.5">{description}</div>}
+        <div className="text-[13px] font-semibold text-[var(--on-surface)]">{label}</div>
+        {description && <div className="mt-0.5 text-[11px] text-[var(--on-surface-variant)]">{description}</div>}
       </div>
-      <div className="text-xs text-slate-700 font-semibold text-right">{value}</div>
+      <div className="text-right text-xs font-semibold text-[var(--on-surface)]">{value}</div>
     </div>
   );
 }
@@ -49,40 +50,37 @@ export default function Settings() {
 
   return (
     <div className="p-4 px-5 min-h-full">
-      <div className="mb-5 border-b border-slate-200 pb-4">
-        <h1 className="text-[#0F172A] text-xl font-bold">Settings</h1>
-        <p className="text-slate-400 text-xs mt-0.5">{settingsSubtitle}</p>
-      </div>
+      <OfficialPageHeader title="Settings" subtitle={settingsSubtitle} />
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">
-        <div className="w-[220px] shrink-0 bg-white overflow-hidden max-md:w-full">
-          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+        <div className="w-[220px] shrink-0 overflow-hidden rounded-xl bg-[var(--surface-container-lowest)] max-md:w-full">
+          <div className="flex items-center gap-2.5 border-b border-[var(--outline-variant)]/25 px-4 py-3.5">
             <User size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">Account</span>
           </div>
-          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+          <div className="flex items-center gap-2.5 border-b border-[var(--outline-variant)]/25 px-4 py-3.5">
             <Shield size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">Access Status</span>
           </div>
-          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-50">
+          <div className="flex items-center gap-2.5 border-b border-[var(--outline-variant)]/25 px-4 py-3.5">
             <Globe size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">{t('settings.language')}</span>
           </div>
         </div>
 
-        <div className="flex-1 min-w-[280px] bg-white px-6 py-5 max-md:min-w-0 max-md:w-full">
-          <div className="text-[15px] font-bold text-slate-800 mb-4">User Profile</div>
-          <div className="mb-3.5 text-[11px] text-slate-500">
+        <div className="max-md:min-w-0 max-md:w-full flex-1 min-w-[280px] rounded-xl bg-[var(--surface-container-lowest)] px-6 py-5">
+          <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">User Profile</div>
+          <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">
             This page only shows account details backed by your authenticated session.
           </div>
 
-          <div className="flex items-center gap-4 mb-5 p-3.5 px-4 bg-slate-50">
-            <div className="size-14 flex shrink-0 items-center justify-center bg-[#0F172A] font-bold text-white text-xl">
+          <div className="mb-5 flex items-center gap-4 bg-[var(--surface-container-low)] p-3.5 px-4">
+            <div className="flex size-14 shrink-0 items-center justify-center bg-[var(--primary)] text-xl font-bold text-white">
               {initials}
             </div>
             <div>
-              <div className="font-bold text-[#0F172A] text-[15px]">{fullName}</div>
-              <div className="text-slate-500 text-xs">{roleLabel} · {areaLabel}</div>
+              <div className="text-[15px] font-bold text-[var(--on-surface)]">{fullName}</div>
+              <div className="text-xs text-[var(--on-surface-variant)]">{roleLabel} · {areaLabel}</div>
               <div className="mt-1">
                 <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-[#2563EB]">
                   {role}
@@ -96,19 +94,19 @@ export default function Settings() {
           <SettingRow label="Contact Number" value={phoneLabel} />
           <SettingRow label="Assigned Area" value={areaLabel} />
 
-          <div className="mt-[18px] mb-2 text-xs font-bold text-slate-500 uppercase tracking-[0.06em]">
+          <div className="mt-[18px] mb-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">
             Access Status
           </div>
           <SettingRow label="Phone Verification" description="Verification requirement for account security" value={phoneVerifiedLabel} />
           <SettingRow label="ID Verification" description="Current identity verification workflow state" value={verificationLabel} />
           <SettingRow label="Account" description="Enforcement state from access control" value={accountStatusLabel} />
 
-          <div className="mt-[18px] mb-2 text-xs font-bold text-slate-500 uppercase tracking-[0.06em]">
+          <div className="mt-[18px] mb-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">
             {t('settings.language')}
           </div>
-          <div className="py-3.5 border-b border-slate-100">
-            <div className="text-[13px] font-semibold text-slate-800 mb-1">{t('settings.language')}</div>
-            <div className="text-[11px] text-slate-400 mb-3">{t('settings.languageDesc')}</div>
+          <div className="border-b border-[var(--outline-variant)]/35 py-3.5">
+            <div className="mb-1 text-[13px] font-semibold text-[var(--on-surface)]">{t('settings.language')}</div>
+            <div className="mb-3 text-[11px] text-[var(--on-surface-variant)]">{t('settings.languageDesc')}</div>
             <div className="flex gap-2">
               {SUPPORTED_LOCALES.map((loc: Locale) => (
                 <button
@@ -117,7 +115,7 @@ export default function Settings() {
                   className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                     locale === loc
                       ? 'bg-primary text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                   }`}
                 >
                   <Globe size={12} className="mr-1.5 inline-block" />

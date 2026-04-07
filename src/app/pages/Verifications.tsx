@@ -9,6 +9,7 @@ import {
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import { Button } from '../components/ui/button';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 
 const REJECTION_REASONS = [
   'Blurry / unreadable image',
@@ -98,23 +99,21 @@ export default function Verifications() {
 
   return (
     <div className="min-h-full bg-background px-4 py-4 md:px-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="mb-0.5 text-xl font-bold text-foreground">{t('official.verifications.pageTitle')}</h1>
-          <p className="text-xs text-muted-foreground">
-            {t('official.verifications.pageSubtitle')}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void load()}
-          disabled={loading}
-          className="gap-1.5 text-xs font-bold"
-        >
-          <RefreshCw size={14} /> {t('common.refresh')}
-        </Button>
-      </div>
+      <OfficialPageHeader
+        title={t('official.verifications.pageTitle')}
+        subtitle={t('official.verifications.pageSubtitle')}
+        actions={(
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void load()}
+            disabled={loading}
+            className="gap-1.5 text-xs font-bold"
+          >
+            <RefreshCw size={14} /> {t('common.refresh')}
+          </Button>
+        )}
+      />
 
       {error && (
         <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-xs font-semibold text-[#DC2626]">
@@ -137,7 +136,7 @@ export default function Verifications() {
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <div key={row.citizenUserId} className="overflow-hidden border border-slate-200" style={{ borderTop: '2px solid #D97706' }}>
+              <div key={row.citizenUserId} className="overflow-hidden border border-t-2 border-t-[#D97706] border-slate-200">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
                   <div>
                     <div className="font-extrabold text-foreground text-sm">{row.fullName}</div>
@@ -257,11 +256,7 @@ export default function Verifications() {
           aria-modal="true"
           aria-label={previewTitle}
           onClick={() => setPreviewUrl(null)}
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(13,28,46,0.58)] p-4 backdrop-blur-[2px]"
-          style={{
-            top: 'var(--app-vv-top, 0px)',
-            bottom: 'var(--app-vv-bottom-gap, 0px)',
-          }}
+          className="fixed inset-x-0 z-[1000] flex items-center justify-center bg-[rgba(13,28,46,0.58)] p-4 backdrop-blur-[2px] top-[var(--app-vv-top,0px)] bottom-[var(--app-vv-bottom-gap,0px)]"
         >
           <div
             onClick={(event) => event.stopPropagation()}

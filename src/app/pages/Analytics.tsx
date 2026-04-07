@@ -10,6 +10,7 @@ import TextSkeleton from '../components/ui/TextSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import type { Incident } from '../data/incidents';
@@ -27,6 +28,37 @@ import {
 } from '../data/analyticsConfig';
 
 const PERIODS = [...ANALYTICS_PERIODS];
+
+function trendLegendDotClass(seriesKey: string): string {
+  if (seriesKey === 'flood') return 'bg-teal-700';
+  if (seriesKey === 'accident') return 'bg-amber-600';
+  if (seriesKey === 'medical') return 'bg-violet-600';
+  if (seriesKey === 'crime') return 'bg-primary';
+  return 'bg-slate-600';
+}
+
+function severityDotClass(name: string): string {
+  if (name.toLowerCase().includes('critical')) return 'bg-destructive';
+  if (name.toLowerCase().includes('high')) return 'bg-orange-600';
+  if (name.toLowerCase().includes('medium')) return 'bg-amber-500';
+  return 'bg-emerald-600';
+}
+
+function utilizationColorClass(pct: number): string {
+  if (pct >= ANALYTICS_UTILIZATION_BANDS.high) return 'text-destructive';
+  if (pct >= ANALYTICS_UTILIZATION_BANDS.medium) return 'text-amber-600';
+  return 'text-emerald-600';
+}
+
+function utilizationProgressClass(pct: number): string {
+  if (pct >= ANALYTICS_UTILIZATION_BANDS.high) {
+    return '[&::-webkit-progress-value]:bg-destructive [&::-moz-progress-bar]:bg-destructive';
+  }
+  if (pct >= ANALYTICS_UTILIZATION_BANDS.medium) {
+    return '[&::-webkit-progress-value]:bg-amber-600 [&::-moz-progress-bar]:bg-amber-600';
+  }
+  return '[&::-webkit-progress-value]:bg-emerald-600 [&::-moz-progress-bar]:bg-emerald-600';
+}
 
 function toSeriesLegendName(seriesKey: string): string {
   if (seriesKey === 'flood') return 'Pollution';
@@ -296,31 +328,30 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="analytics-header mb-4 flex flex-wrap items-start justify-between gap-2.5 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="mb-0.5 text-xl font-bold text-[#0F172A]">{t('official.analytics.pageTitle')}</h1>
-          <p className="text-xs text-slate-400">{t('official.analytics.pageSubtitle')}</p>
-        </div>
-        <div className="analytics-header-controls flex gap-2 items-center flex-wrap">
-          <div className="analytics-period-tabs flex overflow-hidden bg-white">
-            {PERIODS.map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`analytics-period-tab-btn cursor-pointer border-none px-[13px] py-[7px] text-[11px] transition-all duration-150 ${
-                  period === p ? 'bg-[#2563EB] text-white font-bold' : 'bg-transparent text-slate-500'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+      <OfficialPageHeader
+        title={t('official.analytics.pageTitle')}
+        subtitle={t('official.analytics.pageSubtitle')}
+        actions={(
+          <div className="analytics-header-controls flex flex-wrap items-center gap-2">
+            <div className="analytics-period-tabs flex overflow-hidden rounded-lg bg-[var(--surface-container-lowest)]">
+              {PERIODS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`analytics-period-tab-btn cursor-pointer border-none px-[13px] py-[7px] text-[11px] transition-all duration-150 ${
+                    period === p ? 'bg-[#2563EB] text-white font-bold' : 'bg-transparent text-slate-500'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button className="flex cursor-pointer items-center gap-[5px] rounded bg-[var(--surface-container-lowest)] px-3.5 py-[7px] text-xs font-semibold text-slate-600">
+              <Download size={13} /> {t('official.analytics.export')}
+            </button>
           </div>
-          <button className="flex cursor-pointer items-center gap-[5px] rounded bg-white px-3.5 py-[7px] text-xs font-semibold text-slate-600">
-            <Download size={13} /> {t('official.analytics.export')}
-          </button>
-        </div>
-      </div>
+        )}
+      />
 
       {/* Metric Cards */}
       <div className="analytics-metrics grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3 md:gap-3 mb-5 md:mb-[18px]">
@@ -393,7 +424,7 @@ export default function Analytics() {
         <div className="analytics-trend-legend flex flex-wrap gap-1.5 gap-x-2.5 mt-2.5">
           {TREND_SERIES_FOR_CHART.map((series) => (
             <span key={`legend-${series.key}`} className="inline-flex items-center gap-1.5 text-[var(--on-surface-variant)] text-[10px] leading-tight">
-              <span className="size-2 rounded-full inline-block shrink-0" style={{ background: series.color }} />
+              <span className={`inline-block size-2 shrink-0 rounded-full ${trendLegendDotClass(series.key)}`} />
               {series.chartName}
             </span>
           ))}
@@ -450,7 +481,7 @@ export default function Analytics() {
           {SEVERITY_DATA.map(s => (
             <div key={s.name} className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full inline-block shrink-0" style={{ background: s.color }} />
+                <span className={`inline-block size-2.5 shrink-0 rounded-full ${severityDotClass(s.name)}`} />
                 <span className="text-xs text-[var(--on-surface-variant)]">{s.name}</span>
               </div>
               <div className="flex gap-2 items-center">
@@ -516,25 +547,23 @@ export default function Analytics() {
           <div className="mb-3.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
-            const color = pct >= ANALYTICS_UTILIZATION_BANDS.high
-              ? ANALYTICS_UTILIZATION_BANDS.highColor
-              : pct >= ANALYTICS_UTILIZATION_BANDS.medium
-                ? ANALYTICS_UTILIZATION_BANDS.mediumColor
-                : ANALYTICS_UTILIZATION_BANDS.baseColor;
+            const colorClass = utilizationColorClass(pct);
             return (
               <div key={r.type} className="mb-3">
                 <div className="flex justify-between mb-1">
                   <span className="text-xs md:text-xs text-[var(--on-surface-variant)] font-medium">{isMobile ? r.mobileName : r.name}</span>
                   <div className="flex gap-2 text-[11px] text-[var(--outline)]">
-                    <span style={{ color }} className="font-bold">{r.deployed}</span>
+                    <span className={`font-bold ${colorClass}`}>{r.deployed}</span>
                     <span>/</span>
                     <span>{r.total}</span>
-                    <span style={{ color }} className="font-bold">{pct}%</span>
+                    <span className={`font-bold ${colorClass}`}>{pct}%</span>
                   </div>
                 </div>
-                <div className="h-2 bg-[var(--surface-container-high)] rounded overflow-hidden">
-                  <div className="h-full rounded transition-[width] duration-500" style={{ width: `${pct}%`, background: color }} />
-                </div>
+                <progress
+                  value={pct}
+                  max={100}
+                  className={`h-2 w-full overflow-hidden rounded [&::-webkit-progress-bar]:bg-[var(--surface-container-high)] ${utilizationProgressClass(pct)}`}
+                />
               </div>
             );
           })}

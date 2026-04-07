@@ -14,6 +14,7 @@ import {
 import { StatusBadge, SeverityBadge, TypeBadge } from '../components/StatusBadge';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 import type { ApiCitizenReport, ApiTicketStatus } from '../services/citizenReportsApi';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
@@ -165,19 +166,14 @@ function IncidentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[2600] flex items-center justify-center p-3.5 backdrop-blur-[4px]"
-      style={{
-        top: 'var(--app-vv-top, 0px)',
-        bottom: 'var(--app-vv-bottom-gap, 0px)',
-        background: 'rgba(15,23,42,0.68)',
-      }}
+      className="fixed inset-x-0 z-[2600] flex items-center justify-center bg-[rgba(15,23,42,0.68)] p-3.5 backdrop-blur-[4px] top-[var(--app-vv-top,0px)] bottom-[var(--app-vv-bottom-gap,0px)]"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="max-h-[92vh] w-full max-w-[760px] overflow-auto rounded-2xl bg-[var(--surface-container-low)] shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 bg-white px-5 py-4" style={{ borderTop: '3px solid #2563EB' }}>
+        <div className="flex items-start justify-between border-t-[3px] border-t-[#2563EB] border-b border-slate-200 bg-white px-5 py-4">
           <div>
             <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('official.incidents.details')}</div>
             <div className="font-mono text-base font-extrabold text-[#2563EB]">{incident.id}</div>
@@ -359,8 +355,7 @@ function IncidentDetailModal({
           ) : null}
 
           <button
-            className="flex min-w-[100px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-low)] px-4 py-[9px] text-xs font-semibold text-[var(--on-surface-variant)]"
-            style={{ flex: canUpdateStatus ? 1 : '1 1 100%' }}
+            className={`flex min-w-[100px] items-center justify-center gap-1.5 rounded-lg border-none bg-[var(--surface-container-low)] px-4 py-[9px] text-xs font-semibold text-[var(--on-surface-variant)] ${canUpdateStatus ? 'flex-1' : 'basis-full flex-auto'}`}
           >
             <Printer size={13} /> {t('official.incidents.printReport')}
           </button>
@@ -373,11 +368,7 @@ function IncidentDetailModal({
             aria-modal="true"
             aria-label={t('official.incidents.evidencePhotoPreview')}
             onClick={() => setPreviewPhotoUrl(null)}
-            className="fixed inset-0 z-[2700] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px]"
-            style={{
-              top: 'var(--app-vv-top, 0px)',
-              bottom: 'var(--app-vv-bottom-gap, 0px)',
-            }}
+            className="fixed inset-x-0 z-[2700] flex items-center justify-center bg-[rgba(13,28,46,0.76)] p-[18px] backdrop-blur-[2px] top-[var(--app-vv-top,0px)] bottom-[var(--app-vv-bottom-gap,0px)]"
           >
             <button
               type="button"
@@ -391,11 +382,7 @@ function IncidentDetailModal({
               <img
                 src={previewPhotoUrl}
                 alt={previewPhotoName}
-                className="rounded-xl shadow-[0_20px_44px_rgba(13,28,46,0.36)]"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: 'calc(100dvh - 92px - var(--app-vv-top, 0px) - var(--app-vv-bottom-gap, 0px))',
-                }}
+                className="max-w-full max-h-[calc(100dvh-92px-var(--app-vv-top,0px)-var(--app-vv-bottom-gap,0px))] rounded-xl shadow-[0_20px_44px_rgba(13,28,46,0.36)]"
               />
               <div className="text-center text-xs font-semibold text-white/90">
                 {previewPhotoName}
@@ -727,23 +714,20 @@ export default function Incidents() {
 
   return (
     <div className="min-h-full bg-[var(--surface)] px-4 py-4">
-      {/* Page header */}
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-2.5">
-        <div>
-          <h1 className="mb-0.5 text-xl font-bold text-[var(--on-surface)]">{t('official.incidents.pageTitle')}</h1>
-          <p className="text-xs text-[var(--on-surface-variant)]">
-            {loading
-              ? t('official.incidents.loadingReports')
-              : listView === 'open'
-                ? (filtered.length === 1
-                  ? (hasFilter ? t('official.incidents.activeReportsFound', { count: filtered.length }) : t('official.incidents.activeReportsFoundUnfiltered', { count: filtered.length }))
-                  : (hasFilter ? t('official.incidents.activeReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.activeReportsFoundPlural', { count: filtered.length })))
-                : (filtered.length === 1
-                  ? (hasFilter ? t('official.incidents.archivedReportsFound', { count: filtered.length }) : t('official.incidents.archivedReportsFoundUnfiltered', { count: filtered.length }))
-                  : (hasFilter ? t('official.incidents.archivedReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.archivedReportsFoundPlural', { count: filtered.length })))}
-          </p>
-        </div>
-      </div>
+      <OfficialPageHeader
+        title={t('official.incidents.pageTitle')}
+        subtitle={
+          loading
+            ? t('official.incidents.loadingReports')
+            : listView === 'open'
+              ? (filtered.length === 1
+                ? (hasFilter ? t('official.incidents.activeReportsFound', { count: filtered.length }) : t('official.incidents.activeReportsFoundUnfiltered', { count: filtered.length }))
+                : (hasFilter ? t('official.incidents.activeReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.activeReportsFoundPlural', { count: filtered.length })))
+              : (filtered.length === 1
+                ? (hasFilter ? t('official.incidents.archivedReportsFound', { count: filtered.length }) : t('official.incidents.archivedReportsFoundUnfiltered', { count: filtered.length }))
+                : (hasFilter ? t('official.incidents.archivedReportsFoundPluralFiltered', { count: filtered.length }) : t('official.incidents.archivedReportsFoundPlural', { count: filtered.length })))
+        }
+      />
 
       {/* List view toggle */}
       <div className="mb-3 flex w-fit max-w-full flex-wrap border-b border-slate-200">
@@ -755,10 +739,9 @@ export default function Incidents() {
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'open'
-              ? 'border-b-2 border-[#2563EB] text-[#2563EB]'
+              ? '-mb-px border-b-2 border-[#2563EB] text-[#2563EB]'
               : 'text-[var(--on-surface-variant)]'
           }`}
-          style={listView === 'open' ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : {}}
         >
           {t('official.incidents.openIncidents', { count: openCount })}
         </button>
@@ -770,10 +753,9 @@ export default function Incidents() {
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'archived'
-              ? 'text-[#2563EB]'
+              ? '-mb-px border-b-2 border-[#2563EB] text-[#2563EB]'
               : 'text-[var(--on-surface-variant)]'
           }`}
-          style={listView === 'archived' ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : {}}
         >
           {t('official.incidents.archived', { count: archivedCount })}
         </button>
@@ -832,6 +814,8 @@ export default function Incidents() {
         ].map((f) => (
           <div key={f.label} className="relative w-full min-w-0 flex-[1_1_130px]">
             <select
+              aria-label={f.label}
+              title={f.label}
               value={f.value}
               onChange={(e) => f.setter(e.target.value)}
               className={`w-full cursor-pointer appearance-none rounded-lg border-none bg-[var(--surface-container-low)] py-2.5 pr-[34px] pl-2.5 text-[13px] outline-none shadow-[inset_0_0_0_1px_rgba(197,197,211,0.24)] ${
@@ -878,7 +862,7 @@ export default function Incidents() {
       </div>
 
       {/* Desktop table */}
-      <div className="incidents-table-wrapper mb-3.5 overflow-hidden border border-slate-200 bg-white" style={{ borderTop: '2px solid #0F172A' }}>
+      <div className="incidents-table-wrapper mb-3.5 overflow-hidden border border-t-2 border-t-[#0F172A] border-slate-200 bg-white">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
@@ -928,6 +912,9 @@ export default function Incidents() {
                     if (!canShowContextMenu) {
                       return;
                     }
+
+                    document.documentElement.style.setProperty('--context-menu-top', `${event.clientY}px`);
+                    document.documentElement.style.setProperty('--context-menu-left', `${event.clientX}px`);
 
                     setContextMenu({
                       incident: inc,
@@ -979,11 +966,11 @@ export default function Incidents() {
           role="menu"
           aria-label={`Actions for ${contextMenu.incident.id}`}
           onClick={(event) => event.stopPropagation()}
-          className="fixed z-[2800] min-w-[180px] rounded-[10px] bg-[var(--surface-container-lowest)] p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)]"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
+          className="fixed z-[2800] min-w-[180px] rounded-[10px] bg-[var(--surface-container-lowest)] p-1.5 shadow-[0_16px_30px_rgba(15,23,42,0.22)] top-[var(--context-menu-top,0px)] left-[var(--context-menu-left,0px)]"
         >
           <button
             type="button"
+            role="menuitem"
             onClick={() => {
               setSelectedIncident(contextMenu.incident);
               setContextMenu(null);
@@ -995,6 +982,7 @@ export default function Incidents() {
 
           <button
             type="button"
+            role="menuitem"
             disabled={!getArchiveTargetStatus(contextMenu.incident) || updatingIncidentId === contextMenu.incident.id}
             onClick={() => {
               const archiveStatus = getArchiveTargetStatus(contextMenu.incident);

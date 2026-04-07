@@ -13,6 +13,7 @@ import TableSkeleton from '../components/ui/TableSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { OfficialPageHeader } from '../components/OfficialPageHeader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
@@ -349,6 +350,47 @@ const priorityStyle = {
   info: { color: '#065F46', bg: '#D1FAE5', label: 'INSIGHT' },
 };
 
+function priorityTextClass(priority: DSSRecommendation['priority']): string {
+  if (priority === 'critical') return 'text-severity-critical';
+  if (priority === 'high') return 'text-orange-700';
+  if (priority === 'medium') return 'text-amber-700';
+  return 'text-emerald-700';
+}
+
+function priorityPanelClass(priority: DSSRecommendation['priority']): string {
+  if (priority === 'critical') return 'border-t border-t-[#FEE2E2] bg-[#FEE2E2]/25';
+  if (priority === 'high') return 'border-t border-t-[#FFEDD5] bg-[#FFEDD5]/30';
+  if (priority === 'medium') return 'border-t border-t-[#FEF3C7] bg-[#FEF3C7]/35';
+  return 'border-t border-t-[#D1FAE5] bg-[#D1FAE5]/25';
+}
+
+function priorityBadgeClass(priority: DSSRecommendation['priority']): string {
+  if (priority === 'critical') return 'bg-severity-critical';
+  if (priority === 'high') return 'bg-orange-700';
+  if (priority === 'medium') return 'bg-amber-700';
+  return 'bg-emerald-700';
+}
+
+function templateAccentClass(templateId: string): string {
+  if (templateId === 'daily-ops') return 'text-primary';
+  if (templateId === 'incident-summary') return 'text-severity-medium';
+  if (templateId === 'resource-deployment') return 'text-emerald-600';
+  if (templateId === 'critical-incidents') return 'text-severity-critical';
+  if (templateId === 'barangay-profile') return 'text-sky-700';
+  if (templateId === 'trend-analysis') return 'text-violet-600';
+  return 'text-primary';
+}
+
+function templateGenerateBtnClass(templateId: string): string {
+  if (templateId === 'daily-ops') return 'bg-primary';
+  if (templateId === 'incident-summary') return 'bg-severity-medium';
+  if (templateId === 'resource-deployment') return 'bg-emerald-600';
+  if (templateId === 'critical-incidents') return 'bg-severity-critical';
+  if (templateId === 'barangay-profile') return 'bg-sky-700';
+  if (templateId === 'trend-analysis') return 'bg-violet-600';
+  return 'bg-primary';
+}
+
 function DSSCard({
   rec,
   onDismiss,
@@ -372,8 +414,7 @@ function DSSCard({
           <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2.5">
             <div>
               <span
-                className="mr-2 font-mono text-[9px] font-bold uppercase tracking-[0.1em]"
-                style={{ color: pStyle.color }}
+                className={`mr-2 font-mono text-[9px] font-bold uppercase tracking-[0.1em] ${priorityTextClass(rec.priority)}`}
               >
                 {pStyle.label}
               </span>
@@ -382,10 +423,8 @@ function DSSCard({
             {/* Confidence meter */}
             <div className="flex shrink-0 items-center gap-1.5">
               <span className="text-[10px] text-[var(--outline)]">{t('official.reports.confidence')}</span>
-              <div className="h-1.5 w-[50px] overflow-hidden rounded-sm bg-[var(--surface-container-high)]">
-                <div className="h-full rounded-sm" style={{ width: `${rec.confidence}%`, background: rec.color }} />
-              </div>
-              <span className="text-[11px] font-bold" style={{ color: rec.color }}>{rec.confidence}%</span>
+              <progress value={rec.confidence} max={100} className="h-1.5 w-[50px] overflow-hidden rounded-sm [&::-webkit-progress-bar]:bg-[var(--surface-container-high)] [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary" />
+              <span className={`text-[11px] font-bold ${priorityTextClass(rec.priority)}`}>{rec.confidence}%</span>
             </div>
           </div>
           <p className="mb-2 text-xs leading-[1.6] text-[var(--on-surface-variant)]">{rec.description}</p>
@@ -395,8 +434,7 @@ function DSSCard({
             </span>
             <button
               onClick={() => setExpanded(v => !v)}
-              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer"
-              style={{ color: rec.color }}
+              className={`flex items-center gap-1 border-none bg-transparent text-xs font-semibold cursor-pointer ${priorityTextClass(rec.priority)}`}
             >
               {expanded ? t('official.reports.hideActions') : t('official.reports.viewActions')} <ChevronDown size={13} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
@@ -405,14 +443,13 @@ function DSSCard({
       </div>
 
       {expanded && (
-        <div className="px-4 py-3" style={{ borderTop: `1px solid ${rec.bg}`, background: rec.bg + '40' }}>
+        <div className={`px-4 py-3 ${priorityPanelClass(rec.priority)}`}>
           <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--on-surface-variant)]">{t('official.reports.recommendedActions')}</div>
           <div className="flex flex-col gap-1.5">
             {rec.actions.map((action, i) => (
               <div key={i} className="flex items-start gap-2">
                 <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                  style={{ background: rec.color }}
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${priorityBadgeClass(rec.priority)}`}
                 >
                   {i + 1}
                 </div>
@@ -762,11 +799,10 @@ export default function Reports() {
 
   return (
     <div className="min-h-full bg-[var(--surface)] px-5 py-4">
-      {/* Header */}
-      <div className="mb-4 border-b border-slate-200 pb-4">
-        <h1 className="mb-0.5 text-xl font-bold text-[#0F172A]">{t('official.reports.pageTitle')}</h1>
-        <p className="text-xs text-slate-400">{t('official.reports.pageSubtitle')}</p>
-      </div>
+      <OfficialPageHeader
+        title={t('official.reports.pageTitle')}
+        subtitle={t('official.reports.pageSubtitle')}
+      />
 
       {/* Status messages */}
       {actionError ? (
@@ -792,10 +828,9 @@ export default function Reports() {
             onClick={() => setActiveTab(tab.key as ReportsTabKey)}
             className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-none bg-transparent px-4 py-2.5 text-xs font-semibold transition-all duration-150 ${
               activeTab === tab.key
-                ? 'border-b-2 border-[#2563EB] text-[#2563EB]'
+                ? '-mb-px border-b-2 border-[#2563EB] text-[#2563EB]'
                 : 'text-slate-500 hover:text-[#0F172A]'
             }`}
-            style={activeTab === tab.key ? { borderBottom: '2px solid #2563EB', marginBottom: '-1px' } : undefined}
           >
             {tab.icon} {tab.label}
           </button>
@@ -895,7 +930,7 @@ export default function Reports() {
               <div key={tmpl.id} className="overflow-hidden border border-slate-200 bg-white">
                 <div className="px-4 py-3.5">
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: tmpl.color }}>{tmpl.category}</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${templateAccentClass(tmpl.id)}`}>{tmpl.category}</span>
                   </div>
                   <div className="mb-1 text-[13px] font-bold text-[#0F172A]">{tmpl.title}</div>
                   <p className="text-xs leading-[1.5] text-slate-400">{tmpl.description}</p>
@@ -926,9 +961,8 @@ export default function Reports() {
                       className={`flex flex-1 items-center justify-center gap-[5px] rounded-lg border-none p-2 text-xs font-semibold ${
                         generating === tmpl.id
                           ? 'cursor-not-allowed bg-[var(--surface-container-high)] text-[var(--outline)]'
-                          : 'cursor-pointer text-white'
+                          : `cursor-pointer text-white ${templateGenerateBtnClass(tmpl.id)}`
                       }`}
-                      style={generating !== tmpl.id ? { background: tmpl.color } : undefined}
                     >
                       {generating === tmpl.id ? (
                         <><RefreshCw size={12} className="animate-spin" /> {t('official.reports.generating')}</>
@@ -950,7 +984,7 @@ export default function Reports() {
             </div>
 
             <div className="report-history-table-wrapper overflow-x-auto">
-              <table className="w-full border-collapse text-xs" style={{ minWidth: 680 }}>
+              <table className="w-full min-w-[680px] border-collapse text-xs">
                 <thead>
                   <tr className="bg-[var(--surface-container-low)]">
                     {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
@@ -1025,7 +1059,7 @@ export default function Reports() {
             </button>
           </div>
           <div className="report-history-table-wrapper overflow-x-auto">
-          <table className="w-full border-collapse text-xs" style={{ minWidth: 760 }}>
+          <table className="w-full min-w-[760px] border-collapse text-xs">
             <thead>
               <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
