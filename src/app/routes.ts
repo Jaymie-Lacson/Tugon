@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
+import AppRouteErrorPage from './components/AppRouteErrorPage';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
 import { resolveDefaultAppPath } from './utils/navigationGuards';
@@ -90,20 +91,21 @@ function OfficialAppGuard() {
 
 export const router = createBrowserRouter([
   // Public landing
-  { path: '/', Component: Landing },
-  { path: '/community-map', Component: MapView },
-  { path: '/skeleton-demo', Component: SkeletonDemo },
+  { path: '/', Component: Landing, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/community-map', Component: MapView, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/skeleton-demo', Component: SkeletonDemo, errorElement: React.createElement(AppRouteErrorPage) },
 
   // Auth screens
-  { path: '/auth/login', Component: Login },
-  { path: '/auth/register', Component: Register },
-  { path: '/auth/verify', Component: Verify },
-  { path: '/auth/create-password', Component: CreatePassword },
-  { path: '/auth/forgot-password', Component: ForgotPassword },
+  { path: '/auth/login', Component: Login, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/auth/register', Component: Register, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/auth/verify', Component: Verify, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/auth/create-password', Component: CreatePassword, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/auth/forgot-password', Component: ForgotPassword, errorElement: React.createElement(AppRouteErrorPage) },
 
   // Citizen portal
   {
     path: '/citizen',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -113,6 +115,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/report',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -122,6 +125,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/my-reports',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -131,6 +135,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/verification',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -146,6 +151,7 @@ export const router = createBrowserRouter([
   // Super Admin Console
   {
     path: '/superadmin',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -165,6 +171,7 @@ export const router = createBrowserRouter([
   // Protected app (dashboard + sub-pages)
   {
     path: '/app',
+    errorElement: React.createElement(AppRouteErrorPage),
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -191,5 +198,5 @@ export const router = createBrowserRouter([
   },
 
   // Catch-all: redirect any unmatched URL to /app
-  { path: '*', Component: RedirectToApp },
+  { path: '*', Component: RedirectToApp, errorElement: React.createElement(AppRouteErrorPage) },
 ]);
