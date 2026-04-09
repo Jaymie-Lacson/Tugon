@@ -14,6 +14,8 @@
     "deploy:render:check": "node scripts/render-preflight.cjs",
     "db:dump:online": "node scripts/db-dump-online.cjs",
     "db:restore:local": "node scripts/db-restore-local.cjs",
+    "id-image:migrate": "node scripts/migrate-legacy-id-image-paths.cjs",
+    "id-image:rollback": "node scripts/rollback-legacy-id-image-paths.cjs",
     "seed": "tsx prisma/seed.ts",
     "seed:screenshots": "tsx prisma/seed-screenshots.ts",
     "prisma:generate": "prisma generate",
@@ -27,8 +29,8 @@
   },
   "dependencies": {
     "@figma/my-make-file": "file:..",
+    "@imagekit/nodejs": "^7.4.0",
     "@prisma/client": "^6.12.0",
-    "@supabase/supabase-js": "^2.57.4",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

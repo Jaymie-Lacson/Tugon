@@ -6,10 +6,13 @@ import { citizenReportsRouter, officialReportsRouter } from "../modules/reports/
 import { adminRouter } from "../modules/admin/admin.routes.js";
 import { citizenVerificationRouter, officialVerificationRouter } from "../modules/verification/verification.routes.js";
 import { getIpRateLimiterDiagnostics } from "../middleware/rateLimit.js";
+import { getImageKitReadiness } from "../modules/storage/imagekit.service.js";
 
 export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => {
+  const storage = getImageKitReadiness();
+
   res.status(200).json({
     ok: true,
     service: "tugon-server",
@@ -17,6 +20,17 @@ apiRouter.get("/health", (_req, res) => {
     reliability: {
       ipRateLimiter: getIpRateLimiterDiagnostics(),
     },
+    storage,
+  });
+});
+
+apiRouter.get("/health/storage", (_req, res) => {
+  const storage = getImageKitReadiness();
+  const statusCode = storage.configured ? 200 : 503;
+
+  res.status(statusCode).json({
+    ok: storage.configured,
+    storage,
   });
 });
 

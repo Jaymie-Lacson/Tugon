@@ -95,9 +95,11 @@ This fails on high-severity production dependency vulnerabilities in both root a
    - `DIRECT_URL=<your-supabase-direct-postgres-url>`
    - `RUN_DB_MIGRATIONS=0` (default; avoids failing deploys when direct DB access is unavailable)
    - Set `RUN_DB_MIGRATIONS=1` only when you intentionally want Render to run `prisma migrate deploy` using `DIRECT_URL`.
-   - `SUPABASE_URL=<your-supabase-project-url>`
-   - `SUPABASE_SERVICE_ROLE_KEY=<service-role-key-for-storage-upload>`
-   - `SUPABASE_STORAGE_BUCKET=incident-evidence`
+   - `IMAGEKIT_PUBLIC_KEY=<your-imagekit-public-key>`
+   - `IMAGEKIT_PRIVATE_KEY=<your-imagekit-private-key>`
+   - `IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/<your-imagekit-id>`
+   - `IMAGEKIT_EVIDENCE_FOLDER=/incident-evidence`
+   - `IMAGEKIT_ID_FOLDER=/resident-ids`
    - `REQUIRE_EVIDENCE_STORAGE_UPLOAD=1` (recommended for production; rejects report submit when storage upload is unavailable)
    - `DSS_AI_ENABLED=1` (set to `1` to enable real AI-backed decision support generation)
    - `DSS_AI_PROVIDER_URL=https://openrouter.ai/api/v1/chat/completions` (OpenRouter OpenAI-compatible endpoint)

@@ -78,6 +78,10 @@ before(async () => {
   process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
   process.env.EVIDENCE_MAX_PHOTO_BYTES = "32";
   process.env.EVIDENCE_MAX_AUDIO_BYTES = "64";
+  process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD = "0";
+  process.env.IMAGEKIT_PUBLIC_KEY = "";
+  process.env.IMAGEKIT_PRIVATE_KEY = "";
+  process.env.IMAGEKIT_URL_ENDPOINT = "";
 
   const [{ createApp }, prismaConfig, geoConfig] = await Promise.all([
     import("../src/app.js"),

@@ -178,6 +178,11 @@ export const env = {
     (process.env.SUPABASE_ID_STORAGE_BUCKET || "").trim() ||
     process.env.SUPABASE_STORAGE_BUCKET ||
     "resident-ids",
+  imagekitPublicKey: (process.env.IMAGEKIT_PUBLIC_KEY ?? "").trim(),
+  imagekitPrivateKey: (process.env.IMAGEKIT_PRIVATE_KEY ?? "").trim(),
+  imagekitUrlEndpoint: (process.env.IMAGEKIT_URL_ENDPOINT ?? "").trim(),
+  imagekitEvidenceFolder: (process.env.IMAGEKIT_EVIDENCE_FOLDER ?? "/incident-evidence").trim(),
+  imagekitIdFolder: (process.env.IMAGEKIT_ID_FOLDER ?? "/resident-ids").trim(),
   requireEvidenceStorageUpload: process.env.REQUIRE_EVIDENCE_STORAGE_UPLOAD === "1",
   requireVerificationIdStorageUpload: process.env.REQUIRE_VERIFICATION_ID_STORAGE_UPLOAD === "1",
   authCookieName: authCookieNameFromEnv,

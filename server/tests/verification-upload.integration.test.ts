@@ -46,8 +46,9 @@ before(async () => {
   process.env.AUTH_ALLOW_BEARER_TOKENS = "1";
   process.env.VERIFICATION_ID_MAX_BYTES = "32";
   process.env.REQUIRE_VERIFICATION_ID_STORAGE_UPLOAD = "0";
-  process.env.SUPABASE_URL = "";
-  process.env.SUPABASE_SERVICE_ROLE_KEY = "";
+  process.env.IMAGEKIT_PUBLIC_KEY = "";
+  process.env.IMAGEKIT_PRIVATE_KEY = "";
+  process.env.IMAGEKIT_URL_ENDPOINT = "";
 
   const [{ createApp }, prismaConfig] = await Promise.all([
     import("../src/app.js"),

@@ -38,11 +38,13 @@ services:
         sync: false
       - key: CORS_ALLOWED_ORIGINS
         sync: false
-      - key: SUPABASE_URL
+      - key: IMAGEKIT_PUBLIC_KEY
         sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
+      - key: IMAGEKIT_PRIVATE_KEY
         sync: false
-      - key: SUPABASE_STORAGE_BUCKET
-        value: incident-evidence
-      - key: SUPABASE_ID_STORAGE_BUCKET
-        value: resident-ids
+      - key: IMAGEKIT_URL_ENDPOINT
+        sync: false
+      - key: IMAGEKIT_EVIDENCE_FOLDER
+        value: /incident-evidence
+      - key: IMAGEKIT_ID_FOLDER
+        value: /resident-ids

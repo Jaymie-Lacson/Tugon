@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { env } from "../../config/env.js";
+import { hasImageKitConfig, uploadBufferToImageKit } from "../storage/imagekit.service.js";
 
 export type PreparedEvidence = {
   kind: "photo" | "audio";
@@ -8,7 +8,7 @@ export type PreparedEvidence = {
   sizeBytes: number;
   storagePath: string | null;
   publicUrl: string | null;
-  storageProvider: "supabase" | "none";
+  storageProvider: "imagekit" | "none";
 };
 
 type EvidencePayload = {
@@ -171,13 +171,9 @@ function validateEvidencePayload(kind: "photo" | "audio", mimeType: string, byte
   ensureAllowedSignature(kind, mimeType, bytes);
 }
 
-function hasSupabaseStorageConfig(): boolean {
-  return Boolean(env.supabaseUrl && env.supabaseServiceRoleKey && env.supabaseStorageBucket);
-}
-
-async function uploadToSupabase(
+async function uploadToImageKit(
   reportId: string,
-  citizenUserId: string,
+  _citizenUserId: string,
   payload: EvidencePayload,
   kind: "photo" | "audio",
   index: number,
@@ -188,34 +184,22 @@ async function uploadToSupabase(
 
   const extension = mimeType.split("/")[1] ?? "bin";
   const fileName = sanitizeFileName(payload.fileName, `${kind}-${index + 1}.${extension}`);
-  const storagePath = `${reportId}/${kind}/${Date.now()}-${fileName}`;
-
-  const supabase = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
-    auth: { persistSession: false },
+  const prefixedFileName = `${Date.now()}-${fileName}`;
+  const upload = await uploadBufferToImageKit({
+    bytes,
+    fileName: prefixedFileName,
+    folder: `${env.imagekitEvidenceFolder}/${reportId}/${kind}`,
+    tags: ["tugon", "incident-evidence", kind],
   });
-
-  const upload = await supabase.storage
-    .from(env.supabaseStorageBucket)
-    .upload(storagePath, bytes, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: mimeType,
-    });
-
-  if (upload.error) {
-    throw new Error(`Failed to upload ${kind}: ${upload.error.message}`);
-  }
-
-  const { data } = supabase.storage.from(env.supabaseStorageBucket).getPublicUrl(storagePath);
 
   return {
     kind,
     fileName,
     mimeType,
     sizeBytes: bytes.length,
-    storagePath,
-    publicUrl: data.publicUrl ?? null,
-    storageProvider: "supabase",
+    storagePath: upload.filePath,
+    publicUrl: upload.url,
+    storageProvider: "imagekit",
   };
 }
 
@@ -262,9 +246,9 @@ export const evidenceStorageService = {
       return [];
     }
 
-    const canUpload = hasSupabaseStorageConfig();
+    const canUpload = hasImageKitConfig();
     if (!canUpload && env.requireEvidenceStorageUpload) {
-      throw new Error("Evidence storage is required but Supabase storage environment variables are missing.");
+      throw new Error("Evidence storage is required but ImageKit environment variables are missing.");
     }
 
     if (!canUpload) {
@@ -273,7 +257,7 @@ export const evidenceStorageService = {
 
     const uploaded: PreparedEvidence[] = [];
     for (const item of items) {
-      const result = await uploadToSupabase(
+      const result = await uploadToImageKit(
         input.reportId,
         input.citizenUserId,
         item.payload,

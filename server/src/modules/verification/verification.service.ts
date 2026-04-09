@@ -1,8 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import { Prisma, Role } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { env } from "../../config/env.js";
 import { prisma } from "../../config/prisma.js";
+import { createImageKitSignedUrl, hasImageKitConfig, uploadBufferToImageKit } from "../storage/imagekit.service.js";
 
 const ALLOWED_REJECTION_REASONS = new Set([
   "Blurry / unreadable image",
@@ -167,7 +167,7 @@ async function uploadCitizenIdImage(input: {
   const shouldFailClosed = env.requireVerificationIdStorageUpload || env.nodeEnv === "production";
 
   // Storage fallback: keep verification usable even if object storage is not ready.
-  if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
+  if (!hasImageKitConfig()) {
     if (shouldFailClosed) {
       throw new VerificationError("ID storage is unavailable. Please try again later.", 503);
     }
@@ -176,33 +176,30 @@ async function uploadCitizenIdImage(input: {
 
   const extension = mimeType.split("/")[1] ?? "jpg";
   const fileName = sanitizeFileName(input.fileName, `id-${Date.now()}.${extension}`);
-  const storagePath = `${input.citizenUserId}/${Date.now()}-${randomUUID()}-${fileName}`;
+  const prefixedFileName = `${Date.now()}-${randomUUID()}-${fileName}`;
 
-  const supabase = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
-    auth: { persistSession: false },
-  });
-
-  const upload = await supabase.storage
-    .from(env.supabaseIdStorageBucket)
-    .upload(storagePath, bytes, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: mimeType,
+  try {
+    const upload = await uploadBufferToImageKit({
+      bytes,
+      fileName: prefixedFileName,
+      folder: `${env.imagekitIdFolder}/${input.citizenUserId}`,
+      isPrivateFile: true,
+      tags: ["tugon", "verification-id"],
     });
 
-  if (upload.error) {
+    // Return only the storage path; an authenticated endpoint should later
+    // resolve this path to a short-lived signed URL or stream the object
+    // with proper role and jurisdiction checks.
+    return upload.filePath;
+  } catch (error) {
     if (shouldFailClosed) {
       throw new VerificationError("ID upload failed in secure mode. Please try again later.", 503);
     }
 
-    console.warn(`[verification] Storage upload failed; using inline ID fallback. Reason: ${upload.error.message}`);
+    const reason = error instanceof Error ? error.message : "unknown error";
+    console.warn(`[verification] Storage upload failed; using inline ID fallback. Reason: ${reason}`);
     return typeof input.dataUrl === "string" ? input.dataUrl : toDataUrl(bytes, mimeType);
   }
-
-  // Return only the storage path; an authenticated endpoint should later
-  // resolve this path to a short-lived signed URL or stream the object
-  // with proper role and jurisdiction checks.
-  return storagePath;
 }
 
 async function getOfficialContext(actorUserId: string) {
@@ -283,24 +280,13 @@ async function resolveCitizenIdPreviewUrl(idImageUrl: string | null): Promise<st
     return idImageUrl;
   }
 
-  if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
+  const signedUrl = createImageKitSignedUrl(idImageUrl, 60 * 10);
+  if (!signedUrl) {
+    console.warn("[verification] Failed to sign ID preview URL.");
     return null;
   }
 
-  const supabase = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
-    auth: { persistSession: false },
-  });
-
-  const signed = await supabase.storage
-    .from(env.supabaseIdStorageBucket)
-    .createSignedUrl(idImageUrl, 60 * 10);
-
-  if (signed.error) {
-    console.warn(`[verification] Failed to sign ID preview URL: ${signed.error.message}`);
-    return null;
-  }
-
-  return signed.data?.signedUrl ?? null;
+  return signedUrl;
 }
 
 export const verificationService = {
