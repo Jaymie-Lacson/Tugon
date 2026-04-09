@@ -32,13 +32,8 @@ const csrfCookieNameFromEnv = (process.env.CSRF_COOKIE_NAME ?? "tugon.csrf").tri
 const csrfHeaderNameFromEnv = (process.env.CSRF_HEADER_NAME ?? "x-csrf-token").trim().toLowerCase();
 const otpSmsFailoverToMockFromEnv = process.env.OTP_SMS_FAILOVER_TO_MOCK === "1";
 const otpReturnMockCodeInResponseFromEnv = !isProductionEnv && process.env.OTP_RETURN_MOCK_CODE_IN_RESPONSE === "1";
-const otpSmsProviderFromEnv = (process.env.OTP_SMS_PROVIDER ?? "semaphore").trim().toLowerCase();
-const semaphoreApiKeyFromEnv = (process.env.SEMAPHORE_API_KEY ?? "").trim();
-const semaphoreSenderNameFromEnv = (process.env.SEMAPHORE_SENDER_NAME ?? "").trim();
-const semaphoreApiUrlFromEnv = (process.env.SEMAPHORE_API_URL ?? "https://semaphore.co/api/v4/messages").trim();
-const infobipBaseUrlFromEnv = (process.env.INFOBIP_BASE_URL ?? "").trim();
-const infobipApiKeyFromEnv = (process.env.INFOBIP_API_KEY ?? "").trim();
-const infobipSenderIdFromEnv = (process.env.INFOBIP_SENDER_ID ?? "").trim();
+const philSmsApiTokenFromEnv = (process.env.PHILSMS_API_TOKEN ?? "").trim();
+const philSmsSenderIdFromEnv = (process.env.PHILSMS_SENDER_ID ?? "").trim();
 
 if (Number.isNaN(portFromEnv) || portFromEnv <= 0) {
   throw new Error("Invalid PORT environment variable.");
@@ -104,27 +99,12 @@ if (otpDeliveryModeFromEnv !== "mock" && otpDeliveryModeFromEnv !== "sms") {
   throw new Error("Invalid OTP_DELIVERY_MODE environment variable. Use 'mock' or 'sms'.");
 }
 
-if (otpSmsProviderFromEnv !== "semaphore" && otpSmsProviderFromEnv !== "infobip") {
-  throw new Error("Invalid OTP_SMS_PROVIDER environment variable. Use 'semaphore' or 'infobip'.");
-}
-
 if (otpDeliveryModeFromEnv === "sms") {
-  if (otpSmsProviderFromEnv === "semaphore" && !semaphoreApiKeyFromEnv) {
-    throw new Error("SEMAPHORE_API_KEY must be set when OTP_DELIVERY_MODE is 'sms' and OTP_SMS_PROVIDER is 'semaphore'.");
+  if (!philSmsApiTokenFromEnv) {
+    throw new Error("PHILSMS_API_TOKEN must be set when OTP_DELIVERY_MODE is 'sms'.");
   }
-
-  if (otpSmsProviderFromEnv === "infobip") {
-    if (!infobipBaseUrlFromEnv) {
-      throw new Error("INFOBIP_BASE_URL must be set when OTP_SMS_PROVIDER is 'infobip'.");
-    }
-
-    if (!infobipApiKeyFromEnv) {
-      throw new Error("INFOBIP_API_KEY must be set when OTP_SMS_PROVIDER is 'infobip'.");
-    }
-
-    if (!infobipSenderIdFromEnv) {
-      throw new Error("INFOBIP_SENDER_ID must be set when OTP_SMS_PROVIDER is 'infobip'.");
-    }
+  if (!philSmsSenderIdFromEnv) {
+    throw new Error("PHILSMS_SENDER_ID must be set when OTP_DELIVERY_MODE is 'sms'.");
   }
 }
 
@@ -211,13 +191,8 @@ export const env = {
   csrfHeaderName: csrfHeaderNameFromEnv,
   otpSmsFailoverToMock: otpSmsFailoverToMockFromEnv,
   otpReturnMockCodeInResponse: otpReturnMockCodeInResponseFromEnv,
-  otpSmsProvider: otpSmsProviderFromEnv as "semaphore" | "infobip",
-  semaphoreApiKey: semaphoreApiKeyFromEnv,
-  semaphoreSenderName: semaphoreSenderNameFromEnv,
-  semaphoreApiUrl: semaphoreApiUrlFromEnv,
-  infobipBaseUrl: infobipBaseUrlFromEnv,
-  infobipApiKey: infobipApiKeyFromEnv,
-  infobipSenderId: infobipSenderIdFromEnv,
+  philSmsApiToken: philSmsApiTokenFromEnv,
+  philSmsSenderId: philSmsSenderIdFromEnv,
   dssAiEnabled: process.env.DSS_AI_ENABLED === "1",
   dssAiProviderUrl: (process.env.DSS_AI_PROVIDER_URL || "https://openrouter.ai/api/v1/chat/completions").trim(),
   dssAiApiKey: (process.env.DSS_AI_API_KEY || "").trim(),

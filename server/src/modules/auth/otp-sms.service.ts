@@ -1,6 +1,6 @@
 import { env } from "../../config/env.js";
 
-const DEFAULT_SEMAPHORE_API_URL = "https://semaphore.co/api/v4/messages";
+const PHILSMS_SEND_URL = "https://dashboard.philsms.com/api/v3/sms/send";
 
 export class OtpSmsDeliveryError extends Error {
 	status: number;
@@ -15,116 +15,103 @@ function buildOtpMessage(otpCode: string) {
 	return `TUGON OTP: ${otpCode}. It expires in ${env.otpExpiryMinutes} minutes. Do not share this code.`;
 }
 
-function normalizeSmsApiUrl(url: string) {
-	return (url || DEFAULT_SEMAPHORE_API_URL).trim() || DEFAULT_SEMAPHORE_API_URL;
-}
-
 function compactBodyPreview(body: string) {
 	return body.replace(/\s+/g, " ").trim().slice(0, 220);
 }
 
-function normalizePhoneForInfobip(phoneNumber: string) {
+/**
+ * Normalizes a Philippine phone number to the format required by PhilSMS: 639XXXXXXXXX
+ * (no leading +, no leading 0).
+ */
+function normalizePhoneForPhilSms(phoneNumber: string) {
 	const digitsOnly = phoneNumber.replace(/\D/g, "");
 
+	// Already in 63XXXXXXXXXX format (12 digits)
 	if (digitsOnly.startsWith("63") && digitsOnly.length === 12) {
-		return `+${digitsOnly}`;
+		return digitsOnly;
 	}
 
+	// 0XXXXXXXXX format (11 digits)
 	if (digitsOnly.startsWith("0") && digitsOnly.length === 11) {
-		return `+63${digitsOnly.slice(1)}`;
+		return `63${digitsOnly.slice(1)}`;
 	}
 
+	// 9XXXXXXXXX format (10 digits)
 	if (digitsOnly.startsWith("9") && digitsOnly.length === 10) {
-		return `+63${digitsOnly}`;
+		return `63${digitsOnly}`;
 	}
 
-	if (phoneNumber.trim().startsWith("+")) {
-		return phoneNumber.trim();
+	// Already has +63 prefix
+	if (phoneNumber.trim().startsWith("+63")) {
+		return digitsOnly;
 	}
 
-	return `+${digitsOnly}`;
+	return digitsOnly;
 }
 
-async function sendViaSemaphore(phoneNumber: string, message: string) {
-	if (!env.semaphoreApiKey) {
+async function sendViaPhilSms(phoneNumber: string, message: string) {
+	if (!env.philSmsApiToken) {
 		throw new OtpSmsDeliveryError(
-			"OTP SMS delivery is not configured. Set SEMAPHORE_API_KEY in the server environment.",
+			"OTP SMS delivery is not configured. Set PHILSMS_API_TOKEN in the server environment.",
 			503,
 		);
 	}
 
-	const form = new URLSearchParams();
-	form.set("apikey", env.semaphoreApiKey);
-	form.set("number", phoneNumber);
-	form.set("message", message);
-
-	if (env.semaphoreSenderName) {
-		form.set("sendername", env.semaphoreSenderName);
-	}
-
-	let response: Response;
-	try {
-		response = await fetch(normalizeSmsApiUrl(env.semaphoreApiUrl), {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-			body: form.toString(),
-		});
-	} catch (error) {
-		console.error("[OTP-SMS] Failed to reach Semaphore API:", error);
-		throw new OtpSmsDeliveryError("Failed to reach SMS provider. Please try again.", 502);
-	}
-
-	const responseBody = await response.text();
-	if (!response.ok) {
-		console.error("[OTP-SMS] Semaphore error response:", response.status, responseBody);
+	if (!env.philSmsSenderId) {
 		throw new OtpSmsDeliveryError(
-			`SMS provider rejected OTP request (${response.status}): ${compactBodyPreview(responseBody)}`,
-			502,
+			"OTP SMS delivery is not configured. Set PHILSMS_SENDER_ID in the server environment.",
+			503,
 		);
 	}
-}
 
-async function sendViaInfobip(phoneNumber: string, message: string) {
-	const baseUrl = env.infobipBaseUrl.replace(/\/+$/, "");
-	const requestBody = {
-		messages: [
-			{
-				from: env.infobipSenderId,
-				destinations: [
-					{
-						to: normalizePhoneForInfobip(phoneNumber),
-					},
-				],
-				text: message,
-			},
-		],
-	};
+	const recipient = normalizePhoneForPhilSms(phoneNumber);
 
+	console.log(`[OTP-SMS] PhilSMS send → recipient=${recipient} sender_id=${env.philSmsSenderId} token_len=${env.philSmsApiToken.length} token_preview=${env.philSmsApiToken.slice(0, 6)}...`);
 	let response: Response;
 	try {
-		response = await fetch(`${baseUrl}/sms/2/text/advanced`, {
+		response = await fetch(PHILSMS_SEND_URL, {
 			method: "POST",
 			headers: {
+				"Authorization": `Bearer ${env.philSmsApiToken}`,
 				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: `App ${env.infobipApiKey}`,
+				"Accept": "application/json",
 			},
-			body: JSON.stringify(requestBody),
+			body: JSON.stringify({
+				recipient,
+				sender_id: env.philSmsSenderId,
+				type: "plain",
+				message,
+			}),
 		});
 	} catch (error) {
-		console.error("[OTP-SMS] Failed to reach Infobip API:", error);
+		console.error("[OTP-SMS] Failed to reach PhilSMS API:", error);
 		throw new OtpSmsDeliveryError("Failed to reach SMS provider. Please try again.", 502);
 	}
 
 	const responseBody = await response.text();
 	if (!response.ok) {
-		console.error("[OTP-SMS] Infobip error response:", response.status, responseBody);
+		console.error("[OTP-SMS] PhilSMS error response:", response.status, responseBody);
 		throw new OtpSmsDeliveryError(
 			`SMS provider rejected OTP request (${response.status}): ${compactBodyPreview(responseBody)}`,
 			502,
 		);
+	}
+
+	// PhilSMS returns status:"success" or status:"error" in the body even on 200
+	try {
+		const parsed = JSON.parse(responseBody) as { status?: string; message?: string };
+		if (parsed.status === "error") {
+			console.error("[OTP-SMS] PhilSMS rejected message:", parsed.message);
+			throw new OtpSmsDeliveryError(
+				`PhilSMS rejected OTP request: ${parsed.message ?? "Unknown error"}`,
+				502,
+			);
+		}
+	} catch (parseError) {
+		if (parseError instanceof OtpSmsDeliveryError) {
+			throw parseError;
+		}
+		// Non-JSON body on a 2xx — treat as success
 	}
 }
 
@@ -134,11 +121,5 @@ export async function sendOtpSms(input: { phoneNumber: string; otpCode: string }
 	}
 
 	const message = buildOtpMessage(input.otpCode);
-
-	if (env.otpSmsProvider === "infobip") {
-		await sendViaInfobip(input.phoneNumber, message);
-		return;
-	}
-
-	await sendViaSemaphore(input.phoneNumber, message);
+	await sendViaPhilSms(input.phoneNumber, message);
 }
