@@ -7,8 +7,7 @@ import {
   FileBarChart, FilePieChart, FileClock, RefreshCw,
   Lightbulb, ChevronDown,
 } from 'lucide-react';
-import CardSkeleton from '../components/ui/CardSkeleton';
-import TextSkeleton from '../components/ui/TextSkeleton';
+import { ReportsSkeleton } from '../components/ui/PageSkeletons';
 import TableSkeleton from '../components/ui/TableSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -779,22 +778,7 @@ export default function Reports() {
   }, [incidentData, t]);
 
   if (initialLoadPending) {
-    return (
-      <div className="min-h-full bg-[var(--surface)] px-5 py-4">
-        <CardSkeleton
-          count={3}
-          lines={2}
-          showImage={false}
-          gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-        />
-        <div className="mt-4">
-          <TextSkeleton rows={3} title={false} />
-        </div>
-        <div className="mt-4">
-          <TableSkeleton rows={7} columns={4} showHeader={false} />
-        </div>
-      </div>
-    );
+    return <ReportsSkeleton />;
   }
 
   return (

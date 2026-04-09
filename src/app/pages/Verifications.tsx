@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../i18n';
 import { CheckCircle2, XCircle, RefreshCw, ShieldAlert, Upload, Ban, Clock3 } from 'lucide-react';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../services/officialReportsApi';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
+import { VerificationsSkeleton } from '../components/ui/PageSkeletons';
 import { Button } from '../components/ui/button';
 import { OfficialPageHeader } from '../components/OfficialPageHeader';
 
@@ -90,11 +91,7 @@ export default function Verifications() {
   };
 
   if (initialLoadPending) {
-    return (
-      <div className="min-h-full bg-[var(--surface)] px-4 py-4 md:px-5">
-        <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
-      </div>
-    );
+    return <VerificationsSkeleton />;
   }
 
   return (

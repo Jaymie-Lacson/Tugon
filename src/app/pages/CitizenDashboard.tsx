@@ -1629,41 +1629,6 @@ function ProfileTab({
   const criticalCount = activeIncidents.filter((item) => item.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
 
-  const _handleSettingAction = (action: 'personal' | 'notifications' | 'verification' | 'barangay' | 'contact') => {
-    if (action === 'personal') {
-      setEditOpen(true);
-      setSettingMessage('');
-      return;
-    }
-
-    if (action === 'notifications') {
-      setSettingMessage('Use the bell icon on the top-right to view recent report updates and alerts.');
-      return;
-    }
-
-    if (action === 'verification') {
-      if (verificationPreview.isVerified) {
-        setSettingMessage('Your account is already ID-verified. No further action is required.');
-      } else {
-        navigate('/citizen/verification');
-      }
-      return;
-    }
-
-    if (action === 'barangay') {
-      navigate('/citizen?tab=map');
-      return;
-    }
-
-    if (action === 'contact') {
-      if (!phoneDigits) {
-        setSettingMessage('No valid contact number is available for this account.');
-        return;
-      }
-      window.location.href = `tel:${phoneDigits}`;
-    }
-  };
-
   return (
     <div className="citizen-content-shell pt-4 pb-4">
       {/* Page header */}

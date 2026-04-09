@@ -3,28 +3,136 @@
 
 @import 'tw-animate-css';
 
-@keyframes skeleton-shimmer {
+/* ══════════════════════════════════════════════════════════════════════
+   PRODUCTION-GRADE SKELETON CSS
+   ─────────────────────────────
+   Provides shimmer wave animations, staggered delays via child selectors,
+   and smooth crossfade transitions.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@keyframes skeleton-shimmer-wave {
 	0% {
-		background-position: 180% 0;
+		background-position: 250% 0;
 	}
 	100% {
-		background-position: -180% 0;
+		background-position: -250% 0;
 	}
 }
 
-.skeleton-subtle-shimmer {
+.skeleton-shimmer {
+	background-color: #f3f4f6; /* Gray-100 fallback */
 	background-image: linear-gradient(
 		90deg,
-		rgba(229, 231, 235, 0.58) 0%,
-		rgba(243, 244, 246, 0.95) 48%,
-		rgba(229, 231, 235, 0.58) 100%
+		rgba(243, 244, 246, 0) 0%,
+		rgba(255, 255, 255, 0.4) 20%,
+		rgba(255, 255, 255, 0.8) 50%,
+		rgba(255, 255, 255, 0.4) 80%,
+		rgba(243, 244, 246, 0) 100%
 	);
-	background-size: 220% 100%;
-	animation: skeleton-shimmer 2.8s ease-in-out infinite;
+	background-size: 250% 100%;
+	animation: skeleton-shimmer-wave 1.8s ease-in-out infinite;
+	background-repeat: no-repeat;
+}
+
+.skeleton-delay-10 { animation-delay: 10ms; }
+.skeleton-delay-20 { animation-delay: 20ms; }
+.skeleton-delay-30 { animation-delay: 30ms; }
+.skeleton-delay-40 { animation-delay: 40ms; }
+.skeleton-delay-50 { animation-delay: 50ms; }
+.skeleton-delay-60 { animation-delay: 60ms; }
+.skeleton-delay-70 { animation-delay: 70ms; }
+.skeleton-delay-80 { animation-delay: 80ms; }
+.skeleton-delay-90 { animation-delay: 90ms; }
+.skeleton-delay-100 { animation-delay: 100ms; }
+.skeleton-delay-110 { animation-delay: 110ms; }
+.skeleton-delay-120 { animation-delay: 120ms; }
+.skeleton-delay-130 { animation-delay: 130ms; }
+.skeleton-delay-140 { animation-delay: 140ms; }
+.skeleton-delay-150 { animation-delay: 150ms; }
+.skeleton-delay-160 { animation-delay: 160ms; }
+.skeleton-delay-170 { animation-delay: 170ms; }
+.skeleton-delay-180 { animation-delay: 180ms; }
+.skeleton-delay-190 { animation-delay: 190ms; }
+.skeleton-delay-200 { animation-delay: 200ms; }
+.skeleton-delay-210 { animation-delay: 210ms; }
+.skeleton-delay-220 { animation-delay: 220ms; }
+.skeleton-delay-230 { animation-delay: 230ms; }
+.skeleton-delay-240 { animation-delay: 240ms; }
+.skeleton-delay-250 { animation-delay: 250ms; }
+.skeleton-delay-260 { animation-delay: 260ms; }
+.skeleton-delay-270 { animation-delay: 270ms; }
+.skeleton-delay-280 { animation-delay: 280ms; }
+.skeleton-delay-290 { animation-delay: 290ms; }
+.skeleton-delay-300 { animation-delay: 300ms; }
+.skeleton-delay-310 { animation-delay: 310ms; }
+.skeleton-delay-320 { animation-delay: 320ms; }
+.skeleton-delay-330 { animation-delay: 330ms; }
+.skeleton-delay-340 { animation-delay: 340ms; }
+.skeleton-delay-350 { animation-delay: 350ms; }
+.skeleton-delay-360 { animation-delay: 360ms; }
+.skeleton-delay-370 { animation-delay: 370ms; }
+.skeleton-delay-380 { animation-delay: 380ms; }
+.skeleton-delay-390 { animation-delay: 390ms; }
+.skeleton-delay-400 { animation-delay: 400ms; }
+
+/* 
+	SkeletonGroup uses attribute selectors to automatically stagger the 
+	animation delay of its children, giving an organic "cascading" load feel.
+*/
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(2) { animation-delay: 80ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(3) { animation-delay: 160ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(4) { animation-delay: 240ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(5) { animation-delay: 320ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(6) { animation-delay: 400ms; }
+
+/* 
+	Skeleton crossfade enables a smooth swap from skeleton loading state
+	to the real content (Stripe pattern).
+*/
+.skeleton-crossfade-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skeleton-crossfade-layer:last-child {
+	position: relative; /* Real content dictates the height */
+}
+
+.skeleton-crossfade-visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.skeleton-crossfade-hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.skeleton-crossfade-duration-fast {
+	transition-duration: 160ms;
+}
+
+.skeleton-crossfade-duration-default {
+	transition-duration: 220ms;
+}
+
+.skeleton-crossfade-duration-slow {
+	transition-duration: 300ms;
+}
+
+/* Accessibility: Fall back to gentle pulse if user prefers reduced motion */
+@keyframes skeleton-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: .7; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.skeleton-subtle-shimmer {
-		animation: none !important;
+	.skeleton-shimmer {
+		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+		background-image: none !important;
 	}
 }
