@@ -182,7 +182,7 @@ function IncidentDetailModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label={t('official.incidents.closeDetails')}
+            aria-label="Close incident details"
             className="icon-btn-square cursor-pointer rounded-lg border border-slate-200 bg-white text-slate-600"
           >
             <X size={16} />

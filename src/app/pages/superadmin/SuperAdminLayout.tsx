@@ -702,7 +702,7 @@ export default function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={() => { setMobileDrawerOpen((v) => !v); setMobileSearchOpen(false); setProfileMenuOpen(false); setNotificationsOpen(false); }}
-                aria-label={t('superadmin.layout.ariaCloseNav')}
+                aria-label="Close navigation drawer"
                 aria-expanded="true"
                 aria-controls="superadmin-mobile-drawer"
                 className="order-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[var(--outline-variant)]/60 bg-[var(--surface-container-high)] text-[var(--on-surface)] transition-[background,transform] duration-150 ease-out scale-[0.97] lg:hidden"
