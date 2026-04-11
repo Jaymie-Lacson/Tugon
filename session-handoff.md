@@ -1,162 +1,140 @@
-# Session Handoff — 2026-04-05
+# Session Handoff — Dark Mode Rollout (Phases 1 & 2 complete)
+_Date: 2026-04-11_
+
+---
 
 ## What was accomplished this session
 
-Full UI/UX redesign pass on the officials' dashboard — replacing AI-generated visual patterns (gradient heroes, colored icon blobs, pill badges, rounded card shadows) with a utilitarian government-tool aesthetic (GOV.UK / Linear / Stripe anchors).
+### Planning
+- Explored full codebase theming system: Tailwind v4 + CSS custom properties, no `tailwind.config.js`
+- Confirmed `next-themes` v0.4.6 and `lucide-react` are already installed
+- Confirmed `.dark` class overrides are complete in `src/styles/theme.css` (lines 162–210) — infrastructure was 90% ready
+- Confirmed ~284 hardcoded color utility instances bypassing the token system
+- Produced a 7-phase plan at `.claude/plans/hazy-puzzling-nest.md`
+- User confirmed: scope = all surfaces except `/`, toggle in header + Settings, system-preference default
 
-### fonts.css
-- Added IBM Plex Mono + IBM Plex Sans to Google Fonts `@import`
-- Added `--font-mono` CSS variable
-- Added `.font-mono` override rule to force IBM Plex Mono
+### Phase 1 — Foundation (COMPLETE, build passes)
+- **Created** `src/app/providers/ThemeProvider.tsx` — wraps next-themes `ThemeProvider` with `attribute="class"`, `defaultTheme="system"`, `enableSystem`, `storageKey="tugon-theme"`, `disableTransitionOnChange`
+- **Created** `src/app/components/ThemeToggle.tsx` — sun/moon icon button using `useTheme()`, mounted guard to prevent hydration flicker, fully semantic token classes
+- **Modified** `src/main.tsx` — wrapped `<App />` in `<TugonThemeProvider>`
+- **Modified** `src/app/routes.ts` — added `LandingLightOnly` component wrapping Landing in a nested `ThemeProvider` with `forcedTheme="light"` so `/` is always light regardless of OS or user preference
 
-### StatusBadge.tsx — full rewrite
-- `SeverityBadge`: Removed pill bg/border. Now plain bold monospace uppercase text in severity color (`#DC2626` / `#D97706` / `#16A34A`). No dot, no icon.
-- `StatusBadge`: Removed pill background. Now small colored dot + colored uppercase text label.
-- `TypeBadge`: Removed pill background. Now plain uppercase text in category color.
-- New explicit color constants used: critical=`#DC2626`, high/medium=`#D97706`, low=`#16A34A`, active=`#DC2626`, responding=`#2563EB`
+### Phase 2 — Shared UI primitive token migration (COMPLETE, build passes)
+Migrated all hardcoded Tailwind color utilities → semantic tokens in skeleton components:
+- `CardSkeleton.tsx` — 3x `border-gray-* bg-white` → `border-border bg-card`
+- `TextSkeleton.tsx` — 1x `border-gray-200 bg-white` → `border-border bg-card`
+- `TableSkeleton.tsx` — wrapper, thead, and row borders migrated
+- `PageSkeletons.tsx` — ~18 hardcoded `bg-white`, `border-slate-*`, `border-gray-*` → semantic tokens
 
-### Dashboard.tsx
-- **KPICard component**: Removed icon blob (42×42 colored rounded div). Left-border `3px solid {accent}` card, monospace number. "Live total"/"Live metric" trend labels suppressed.
-- **District Focus Hero**: Dark gradient removed → flat `border-b border-slate-200 pb-4`, large title + inline monospace stats, ghost/outlined buttons only.
-- **Geofencing Warning**: Amber gradient removed → flat `border border-slate-200` + `border-left: 3px solid #D97706`.
-- **Cross-Border Alerts section**: `rounded-2xl shadow-ambient` removed → flat `border border-slate-200 border-top: 2px solid #D97706`. Added "● Live" dot to heading.
-- **Alert rows**: `bg-amber-50` tint removed → `border-left: 3px solid #D97706` (unread) or `3px solid #E2E8F0` (read).
-- **Heatmap Hotspots section**: Flat `border-top: 2px solid #2563EB`.
-- **KPI cards grid**: Added "Operations Overview ● Live" heading. Grid uses `gap-0 border border-slate-200`. Updated accent colors: active=`#DC2626`, unresolved=`#2563EB`, resolved=`#16A34A`, avg=`#D97706`.
-- **Map Preview section**: Flat `border-top: 2px solid #2563EB`.
-- **Live Incident Feed**: Removed per-item icon blobs. Flat list with horizontal dividers. IDs use `font-mono`. "● Live" dot in heading.
-- **Charts row**: `rounded-2xl shadow-ambient` → `border border-slate-200 bg-white`.
-- **Incident Queue table**: Flat with `border-top: 2px solid #0F172A`. ID cells: `font-mono text-[#2563EB]`.
-
-### Analytics.tsx
-- `MetricCard`: Removed colored circular dot. Left-border card, monospace number. `change`/`up` props kept in interface but not rendered.
-- Page header: `rounded-xl border bg-card shadow-sm` → flat `border-b border-slate-200 pb-4`.
-- All chart section cards: `rounded-xl border bg-card shadow-sm` → `border border-slate-200 bg-white`.
-- Period tabs: Rounded pill → flat border tabs with `bg-[#2563EB]` active state.
-- MetricCard colors: total=`#DC2626`, rate=`#16A34A`, response=`#D97706`, units=`#2563EB`.
-
-### Reports.tsx
-- Page header: Flat `border-b border-slate-200 pb-4`.
-- Tab bar: Rounded pill tabs → underline tabs (`border-bottom: 2px solid #2563EB` active).
-- **DSS Intelligence Engine header**: Dark gradient removed → flat `border border-slate-200 border-left: 3px solid #2563EB`. Ghost outlined refresh button.
-- **DSS Stats row**: 4 individual shadow cards → single `grid grid-cols-4 border border-slate-200` ruled table with left-border per cell.
-- **Report Templates**: Icon blobs (40×40 colored rounded div) removed → `border-top: 2px solid {color}` on card.
-- **DSSCard**: Icon blob (38×38 colored rounded-[10px]) removed → `border-left: 3px solid {rec.color}`. Priority label is monospace text only.
-
-### Settings.tsx
-- Page heading: Flat `border-b border-slate-200 pb-4`.
-- Sidebar + main cards: `shadow-card rounded-xl` → `border border-slate-200`.
-- User avatar: `bg-gradient-to-br from-primary to-blue-500 rounded-full` → `bg-[#0F172A]` square.
-- Role badge: `bg-blue-100 text-primary rounded` pill → `font-mono font-bold uppercase text-[#2563EB]`.
-
-### Layout.tsx
-- Sidebar user avatar: `bg-gradient-to-br from-[#B4730A] to-[#F59E0B] rounded-full` → `bg-[#0F172A]` square.
-
-### map-view.css
-- Icon blob classes (`.map-incident-type-icon` + all type variants): Set `display: none`.
-- `.map-incident-card`: Removed `border-radius`, added `border-left: 3px solid #e2e8f0`, bottom rule separator.
-- `.map-incident-card.is-selected`: `border-left-color: #2563EB`, `background: #f0f7ff`.
-- `.map-stat-item`: Removed `background: #f0f4ff; border-radius`. Now white with `border-right` separator.
-- `.map-osm-badge`: Removed green tinted bg. Now transparent with muted text.
-- `.map-incident-id`: Added IBM Plex Mono font-family.
+Intentionally left unchanged: `bg-black/50` overlays in `dialog.tsx`, `alert-dialog.tsx`, `sheet.tsx`, `drawer.tsx` — modal backdrops should be dark in both themes.
 
 ---
 
 ## Current state
 
 ### Working
-- All modified files have only className/style changes — TypeScript types unchanged, data/routing untouched
-- IBM Plex Mono + Sans fonts will load on next browser reload
-- StatusBadge renders flat text labels throughout (tables, feeds, modals, map panel)
-- Dashboard fully redesigned: no gradients, no icon blobs, flat ruled cards
-- Analytics, Reports, Settings redesigned
-- Layout sidebar avatar updated
+- `TugonThemeProvider` mounted at app root — `.dark` class applied to `<html>` on toggle
+- `ThemeToggle` component exists and ready to be placed (NOT yet placed in any shell header — Phase 3)
+- `LandingLightOnly` ensures `/` is always light
+- All skeleton components (`CardSkeleton`, `TextSkeleton`, `TableSkeleton`, `PageSkeletons`) use semantic tokens and flip correctly with `.dark`
+- Frontend and backend builds pass cleanly
 
-### Incomplete / not yet touched
-1. **Verifications.tsx** — Uses shadcn `Card`/`Badge`/`Button` primitives. Still has `Badge variant="secondary"` pill for status labels. Page header still in `Card` wrapper.
-2. **Incidents.tsx** — List view toggle still uses `rounded-2xl shadow-ambient` pill style. Filter bar still `rounded-2xl shadow-ambient`. Table wrapper still `rounded-2xl shadow-ambient`. `IncidentDetailModal` header still uses `bg-primary` with type icon blob inside.
-3. **MapView.tsx `IncidentCard` JSX** — Icon blob `<div className={iconClass}>` still in JSX at lines 29–31, just hidden via CSS `display: none`. The card row flex gap wastes 8px of space.
-4. **Dashboard `AlertBanner`** — Still uses `bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1]`. Acceptable as a functional alert but inconsistent with new flat pattern.
-5. **map-view.css `.map-panel`** — Background still `#f8f9ff` (light blue tint). Should be white.
+### Not yet done (hardcoded colors still remain in)
+- All shell/layout components: `Layout.tsx`, `CitizenPageLayout.tsx`, `SuperAdminLayout.tsx`, `AuthLayout.tsx`
+- All page files: Citizen, Official, SuperAdmin, Auth
+- Navigation: `CitizenDesktopNav`, `CitizenMobileMenu`, `BottomNav`, `OfficialPageHeader`, `AdminNotifications`, `CitizenNotifications`
+- `src/styles/mobile.css` has hardcoded `#fff` (lines 106, 118, 141, 234) and `#1e293b` (line 203)
+- `ThemeToggle` not yet placed in any header
+
+### To test Phase 1+2 right now
+Open DevTools console and run: `document.documentElement.classList.toggle('dark')`
+Skeleton components and token-based UI primitives flip. Page backgrounds and nav will not (expected).
 
 ---
 
-## Files modified
+## Files modified this session
 
-| File | Change summary |
-|------|---------------|
-| `src/styles/fonts.css` | Added IBM Plex Mono + Sans import; `--font-mono` variable |
-| `src/app/components/StatusBadge.tsx` | Full rewrite — flat text labels, no pill backgrounds |
-| `src/app/pages/Dashboard.tsx` | Gradient hero removed, icon blobs removed, flat ruled card system, ● Live dots |
-| `src/app/pages/Analytics.tsx` | MetricCard redesigned, all chart cards flat, period tabs underline style |
-| `src/app/pages/Reports.tsx` | DSS gradient removed, template/DSS icon blobs removed, ruled stats grid, underline tabs |
-| `src/app/pages/Settings.tsx` | Avatar gradient removed, role badge removed, cards flattened |
-| `src/app/components/Layout.tsx` | Sidebar avatar: gradient removed, square monospace |
-| `src/styles/map-view.css` | Icon blobs hidden, incident card left-border style, stat items flat |
+| File | Change |
+|---|---|
+| `src/app/providers/ThemeProvider.tsx` | CREATED — next-themes wrapper with TUGON config |
+| `src/app/components/ThemeToggle.tsx` | CREATED — sun/moon toggle button |
+| `src/main.tsx` | Added `TugonThemeProvider` import + wrap around `<App />` |
+| `src/app/routes.ts` | Added `ThemeProvider` import + `LandingLightOnly` wrapper; `/` route uses `LandingLightOnly` |
+| `src/app/components/ui/CardSkeleton.tsx` | `border-gray-* bg-white` to `border-border bg-card` (3 instances) |
+| `src/app/components/ui/TextSkeleton.tsx` | `border-gray-200 bg-white` to `border-border bg-card` |
+| `src/app/components/ui/TableSkeleton.tsx` | `bg-white`, `border-gray-*`, `bg-gray-50` to semantic tokens |
+| `src/app/components/ui/PageSkeletons.tsx` | ~18 hardcoded bg/border to semantic tokens |
 
 ---
 
 ## Open decisions
 
-1. **MapView IncidentCard JSX icon blob**: CSS hides it (`display: none`) but the node is still in the DOM. Should the `<div className={iconClass}>` (lines 29–31 of MapView.tsx) be removed from JSX to clean the layout gap?
-
-2. **Dashboard AlertBanner**: Retains `bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1]`. It is a functional critical-incident alert, so a subtle red tint is defensible — but the `border-left: 3px solid #DC2626` pattern would be fully consistent with the redesign.
-
-3. **KPI grid column dividers**: Grid uses `gap-0 border border-slate-200`. On mobile (2-col), the outer border shows but there are no internal `border-right`/`border-bottom` dividers between cells. Adding `border-r border-b border-slate-200` to each `KPICard` div would complete the ruled-table effect.
-
-4. **`font-mono` class conflict**: `fonts.css` adds `font-family: var(--font-mono) !important` for `.font-mono`. Tailwind's `font-mono` class uses `ui-monospace, SFMono-Regular…`. The CSS override in fonts.css wins and applies IBM Plex Mono — confirm this is correct behavior.
+- **Auth page gradient**: `AuthLayout.tsx` has a hardcoded blue gradient (`#00194f` to `#1e3a8a`) on the brand panel. Plan: keep the gradient as a brand element, only migrate the form panel to semantic tokens. Implement in Phase 6.
+- **Leaflet dark tiles**: Phase 4 will need a CARTO dark tile URL. Standard free option: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`. Not yet committed.
+- **Settings Appearance section**: Phase 4 adds System / Light / Dark radio to `Settings.tsx`. Layout within the existing settings page is undesigned.
 
 ---
 
 ## Traps to avoid
 
-- **Do not use `replace_all: true`** on broad Tailwind class patterns in Dashboard.tsx — the file is 1024 lines with many similar combos. Use exact multi-line context strings.
-- **`rounded-2xl shadow-ambient` combo** appears across Dashboard.tsx in multiple sections including skeleton loaders — replaced individually per section. A global replace would break skeleton containers.
-- **Analytics.tsx `MetricCard` `change`/`up` props**: Still in interface + call sites but not rendered. Don't remove from interface without removing all 4 call sites too.
-- **Reports.tsx DSSCard structure**: After removing icon blob div, the `min-w-0 flex-1` content div became the sole child of the outer `flex items-start gap-3`. The `gap-3` now has no effect. Can clean up by removing `flex items-start gap-3` outer wrapper, but verify JSX nesting first.
-- **shadcn components in Verifications.tsx**: `Card`, `Badge`, `Button` primitives pull styling from shadcn tokens. Don't try to override with raw Tailwind on the component itself — replace the component wrapper with plain divs instead.
+- **Prisma generate EPERM on Windows**: Fails when dev server is running (DLL locked). Not a code error — kill dev server before running `prisma:generate`.
+- **`routes.ts` is `.ts` not `.tsx`**: No JSX. Everything must use `React.createElement`. Any future additions must also use `createElement`.
+- **`bg-black/50` overlays are intentional**: Do NOT migrate `bg-black/50` in `dialog.tsx`, `alert-dialog.tsx`, `sheet.tsx`, `drawer.tsx`.
+- **Prefer CSS variable gaps over `dark:` Tailwind variants**: The `.dark` block in `theme.css` already handles all token flips globally. Fill gaps there first.
+- **ThemeToggle mounted guard**: Component renders a placeholder `<div>` until mounted to prevent hydration mismatch. Do not remove the `mounted` check.
+- **`border-gray-50` was mapped to `border-border/30`**: Near-invisible dividers in PageSkeletons intentionally use `/30` opacity — do not change to full `border-border`.
+- **Previous session redesign is still in place**: Prior session redesigned Dashboard, Analytics, Reports, Settings, StatusBadge, Layout with flat civic aesthetic (no gradients, no icon blobs). Those changes must be preserved. Dark mode migrates tokens only — it does not undo the redesign.
 
 ---
 
-## Next steps (priority order)
+## Next steps (in order)
 
-1. **Incidents.tsx — list page**:
-   - List view toggle: Replace `rounded-2xl bg-[var(--surface-container-lowest)] p-2 shadow-ambient` → flat `border-b border-slate-200 pb-1` underline tabs (matching Reports.tsx tab style)
-   - Filter bar: Replace `rounded-2xl bg-[var(--surface-container-lowest)] px-3.5 py-3 shadow-ambient` → `border border-slate-200 bg-white px-3.5 py-3`
-   - Table card container: Replace `rounded-2xl bg-[var(--surface-container-lowest)] shadow-ambient` → flat `border border-slate-200 bg-white border-top: 2px solid #0F172A`
-   - `IncidentDetailModal` header icon blob (34×34 white rounded div, lines ~179): Remove the icon blob div; keep the incident ID text and type label in the header
+### Phase 3 — Citizen portal
+1. Read then edit `src/app/components/CitizenPageLayout.tsx`:
+   - Migrate `bg-white`, `border-gray-*`, `text-gray-*` to semantic tokens
+   - Add `<ThemeToggle />` to the top bar
+2. `src/app/components/CitizenDesktopNav.tsx` — token migration
+3. `src/app/components/CitizenMobileMenu.tsx` — token migration
+4. `src/app/components/BottomNav.tsx` — token migration (check active indicator contrast)
+5. `src/app/components/CitizenNotifications.tsx` — token migration
+6. `src/app/components/CitizenOnboardingModal.tsx` — token migration
+7. `src/app/pages/CitizenDashboard.tsx` — token migration
+8. `src/app/pages/IncidentReport.tsx` — token migration (each step of the multi-step form)
+9. `src/app/pages/CitizenMyReports.tsx` — token migration
+10. `src/app/pages/CitizenVerification.tsx` — token migration
+11. `src/app/components/VerificationProgressCard.tsx` — token migration
+12. `src/app/components/StatusBadge.tsx` — verify severity colors survive (red/ochre must not change)
+13. Run `npm run build` — must pass
 
-2. **Verifications.tsx — page**:
-   - Page header `Card` wrapper → flat `border-b border-slate-200 pb-4` div
-   - `Badge variant="secondary"` pending count → `<span className="font-mono font-bold text-[#2563EB]">`
-   - Each verification row `Card` → flat `border border-slate-200 border-top: 2px solid ...` div
-   - `Badge variant="secondary"` verification status → plain text label
+### Phase 4 — Official portal
+- `Layout.tsx`, `OfficialPageHeader.tsx`, `AdminNotifications.tsx` — add `<ThemeToggle />` to header + token migration
+- `Dashboard.tsx`, `Incidents.tsx`, `Analytics.tsx`, `Reports.tsx`, `Verifications.tsx` — token migration
+- `Settings.tsx` — add Appearance section (radio: System / Light / Dark via `useTheme()`)
+- `MapView.tsx` + `IncidentMap.tsx` — swap Leaflet tile layer on `resolvedTheme`
 
-3. **MapView.tsx IncidentCard JSX** (lines 22–51): Remove `<div className={iconClass}>` block from the `IncidentCard` component render. The icon variable `typeIcons` can remain but remove its render.
+### Phase 5 — Super Admin
+- `SuperAdminLayout.tsx` (add ThemeToggle), `SAOverview.tsx`, `SABarangayMap.tsx`, `SAAnalytics.tsx`, `SAUsers.tsx`, `SAAuditLogs.tsx`
 
-4. **Dashboard AlertBanner** (lines ~108–150): Replace `bg-gradient-to-b from-[#FFF7F7] to-[#FFF1F1] border border-[#F2C8C8]` → `bg-white border-l-[3px] border-[#DC2626] border border-slate-100`
+### Phase 6 — Auth pages
+- `AuthLayout.tsx` form panel only (keep brand gradient), then all `/auth/*` page files
 
-5. **map-view.css `.map-panel`**: Change `background: #f8f9ff` → `background: #ffffff`
-
-6. **KPI card dividers**: Each `KPICard` div needs `border-r border-b border-slate-200` (and `border-r-0` on last in row) for proper ruled-table grid on all screen sizes.
-
-7. **Run `/check`** after Incidents + Verifications changes to confirm TypeScript compiles clean.
+### Phase 7 — Edge cases
+- `src/styles/mobile.css` — replace `#fff` and `#1e293b` with CSS variables
+- `AppRouteErrorPage.tsx` — token migration
+- `useImmersiveThemeColor` hook — write `resolvedTheme`-aware `theme-color` meta tag
+- Run `/audit` skill for a11y contrast check
 
 ---
 
 ## Relevant file paths
 
-```
-src/styles/fonts.css                        — Font imports + --font-mono variable
-src/styles/theme.css                        — CSS custom properties (do not change)
-src/styles/map-view.css                     — Map panel and incident card CSS
-src/app/components/StatusBadge.tsx          — SeverityBadge, StatusBadge, TypeBadge (rewritten)
-src/app/components/Layout.tsx               — Sidebar (avatar updated)
-src/app/pages/Dashboard.tsx                 — Main dashboard (fully redesigned)
-src/app/pages/Incidents.tsx                 — Incident list page (NOT YET redesigned — next priority)
-src/app/pages/MapView.tsx                   — Map + sidebar (CSS done, JSX icon blob remains)
-src/app/pages/Analytics.tsx                 — Analytics page (redesigned)
-src/app/pages/Reports.tsx                   — Reports page (redesigned)
-src/app/pages/Verifications.tsx             — Verifications page (NOT YET redesigned)
-src/app/pages/Settings.tsx                  — Settings page (redesigned)
-```
+| Purpose | Path |
+|---|---|
+| Implementation plan (7 phases) | `.claude/plans/hazy-puzzling-nest.md` |
+| Theme tokens (light + .dark overrides) | `src/styles/theme.css` |
+| ThemeProvider (root wrapper) | `src/app/providers/ThemeProvider.tsx` |
+| ThemeToggle (ready to place in headers) | `src/app/components/ThemeToggle.tsx` |
+| App root mount | `src/main.tsx` |
+| Router (Landing guard lives here) | `src/app/routes.ts` |
+| Mobile CSS hardcodes (Phase 7) | `src/styles/mobile.css` |
+| Toast already theme-aware (reference impl) | `src/app/components/ui/sonner.tsx` |
