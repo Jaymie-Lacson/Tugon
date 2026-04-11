@@ -30,10 +30,10 @@ function getVerificationConfig(): VerificationConfig | null {
       title: 'Verification in progress',
       description: 'Your resident ID is under review. You can track your status anytime.',
       ctaLabel: 'View status',
-      bgClass: 'bg-amber-50',
-      borderClass: 'border-amber-200',
-      textClass: 'text-amber-800',
-      iconBgClass: 'bg-amber-100',
+      bgClass: 'bg-[var(--severity-medium-bg)]',
+      borderClass: 'border-[var(--secondary-fixed-dim)]',
+      textClass: 'text-[var(--severity-medium)]',
+      iconBgClass: 'bg-[var(--severity-medium-bg)]',
     };
   }
 
@@ -47,10 +47,10 @@ function getVerificationConfig(): VerificationConfig | null {
       title: 'Action needed: re-upload your ID',
       description: `Your verification requires an updated ID image.${reason}`,
       ctaLabel: 'Re-upload ID',
-      bgClass: 'bg-red-50',
-      borderClass: 'border-red-200',
-      textClass: 'text-red-800',
-      iconBgClass: 'bg-red-100',
+      bgClass: 'bg-[var(--error-container)]',
+      borderClass: 'border-[var(--error)]',
+      textClass: 'text-[var(--error)]',
+      iconBgClass: 'bg-[var(--error-container)]',
     };
   }
 
@@ -60,10 +60,10 @@ function getVerificationConfig(): VerificationConfig | null {
     title: 'Verify your account',
     description: 'Submit one valid ID photo so officials can verify your account.',
     ctaLabel: 'Start verification',
-    bgClass: 'bg-blue-50',
-    borderClass: 'border-blue-200',
+    bgClass: 'bg-[var(--primary-fixed)]',
+    borderClass: 'border-[var(--primary-fixed-dim)]',
     textClass: 'text-primary',
-    iconBgClass: 'bg-blue-100',
+    iconBgClass: 'bg-[var(--primary-fixed)]',
   };
 }
 
@@ -94,16 +94,16 @@ export function VerificationProgressCard({ className = '' }: VerificationProgres
         </div>
         <div className="min-w-0 flex-1">
           <div className={`text-sm font-bold ${config.textClass}`}>{config.title}</div>
-          <div className="mt-0.5 text-xs text-slate-600">{config.description}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">{config.description}</div>
 
           {/* Progress bar */}
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/60">
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-card/60">
             <div
               className="h-full rounded-full bg-current transition-all duration-500"
               style={{ width: `${progress}%`, color: 'currentColor' }}
             />
           </div>
-          <div className="mt-1.5 flex justify-between text-[10px] font-medium text-slate-500">
+          <div className="mt-1.5 flex justify-between text-[10px] font-medium text-muted-foreground">
             {steps.map((step) => (
               <span key={step.label} className={step.done ? config.textClass : ''}>
                 {step.done ? <ShieldCheck size={10} className="mr-0.5 inline" /> : null}
@@ -114,7 +114,7 @@ export function VerificationProgressCard({ className = '' }: VerificationProgres
         </div>
         <a
           href="/citizen/verification"
-          className={`shrink-0 rounded-lg border ${config.borderClass} bg-white/70 px-3 py-1.5 text-xs font-bold no-underline transition-colors hover:bg-white ${config.textClass}`}
+          className={`shrink-0 rounded-lg border ${config.borderClass} bg-card/70 px-3 py-1.5 text-xs font-bold no-underline transition-colors hover:bg-card ${config.textClass}`}
         >
           {config.ctaLabel}
         </a>

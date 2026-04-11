@@ -20,7 +20,7 @@ export function BottomNav({ items, activePath }: BottomNavProps) {
   const currentPath = activePath ?? location.pathname;
 
   return (
-    <nav className="fixed z-50 flex border-t border-border bg-white left-[var(--app-vv-left,0px)] w-[var(--app-vv-width,100%)] bottom-[var(--app-vv-bottom-gap,0px)] lg:hidden">
+    <nav className="fixed z-50 flex border-t border-border bg-card left-[var(--app-vv-left,0px)] w-[var(--app-vv-width,100%)] bottom-[var(--app-vv-bottom-gap,0px)] lg:hidden">
       {items.map((item) => {
         const isActive = item.exact
           ? currentPath === item.path

@@ -22,6 +22,7 @@ import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { profileVerificationApi, type CitizenVerificationState } from '../services/profileVerificationApi';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const MAX_FILE_SIZE_MB = 8;
@@ -50,7 +51,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusNotSubmitted'),
       color: '#475569',
       bg: '#F8FAFC',
-      badgeClass: 'border-slate-300 bg-slate-50 text-slate-600',
+      badgeClass: 'border-border bg-muted text-muted-foreground',
       icon: <Clock3 size={14} />,
       helper: t('citizen.verification.helperNotSubmitted'),
     };
@@ -61,7 +62,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusRestricted'),
       color: '#991B1B',
       bg: '#FEE2E2',
-      badgeClass: 'border-red-300 bg-red-100 text-red-800',
+      badgeClass: 'border-[var(--error)] bg-[var(--error-container)] text-[var(--error)]',
       icon: <ShieldAlert size={14} />,
       helper: t('citizen.verification.helperRestricted'),
     };
@@ -72,7 +73,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.approved'),
       color: '#065F46',
       bg: '#DCFCE7',
-      badgeClass: 'border-emerald-300 bg-emerald-100 text-emerald-800',
+      badgeClass: 'border-[var(--severity-low)] bg-[var(--severity-low-bg)] text-[var(--severity-low)]',
       icon: <CheckCircle2 size={14} />,
       helper: t('citizen.verification.helperApproved'),
     };
@@ -83,7 +84,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusPending'),
       color: '#92400E',
       bg: '#FEF3C7',
-      badgeClass: 'border-amber-300 bg-amber-100 text-amber-800',
+      badgeClass: 'border-[var(--secondary-fixed-dim)] bg-[var(--severity-medium-bg)] text-[var(--severity-medium)]',
       icon: <Clock3 size={14} />,
       helper: t('citizen.verification.helperPending'),
     };
@@ -94,7 +95,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
       label: t('citizen.verification.statusReupload'),
       color: '#9A3412',
       bg: '#FFEDD5',
-      badgeClass: 'border-orange-300 bg-orange-100 text-orange-800',
+      badgeClass: 'border-[var(--secondary-fixed-dim)] bg-[var(--severity-medium-bg)] text-[var(--severity-medium)]',
       icon: <XCircle size={14} />,
       helper: t('citizen.verification.helperReupload'),
     };
@@ -104,7 +105,7 @@ function statusMeta(state: CitizenVerificationState | null, t: (key: string) => 
     label: t('citizen.verification.statusNotSubmitted'),
     color: '#475569',
     bg: '#F8FAFC',
-    badgeClass: 'border-slate-300 bg-slate-50 text-slate-600',
+    badgeClass: 'border-border bg-muted text-muted-foreground',
     icon: <Clock3 size={14} />,
     helper: t('citizen.verification.helperNotSubmitted'),
   };
@@ -399,7 +400,7 @@ export default function CitizenVerification() {
       hideVerificationPrompt
       header={
         <header
-          className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
+          className="citizen-web-header bg-[var(--citizen-header-bg)] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
         >
           <div
             className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
@@ -409,6 +410,7 @@ export default function CitizenVerification() {
             </div>
 
             <div className="flex items-center gap-[10px]">
+              <ThemeToggle className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50" />
               <CitizenMobileMenu
                 activeKey="profile"
                 onNavigate={(key) => {
@@ -470,7 +472,7 @@ export default function CitizenVerification() {
                         setProfileMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-[var(--error-container)] focus-visible:bg-[var(--error-container)] focus-visible:outline-none active:bg-[var(--error-container)]/70"
                     >
                       {t('common.signOut')}
                     </button>
@@ -507,27 +509,27 @@ export default function CitizenVerification() {
       <div className="citizen-content-shell pt-4 pb-6">
         <div className="max-w-[960px] mx-auto grid gap-3">
           {/* Page header — official style */}
-          <section className="mb-3 border-b border-slate-200 pb-4">
+          <section className="mb-3 border-b border-border pb-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                   {t('citizen.verification.pageSubtitle')}
                 </div>
-                <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
+                <h1 className="text-[24px] font-black leading-tight tracking-tight text-foreground">
                   {t('citizen.verification.pageTitle')}
                 </h1>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/citizen?tab=profile')}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-slate-300 bg-transparent px-4 py-2.5 text-[13px] font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-border bg-transparent px-4 py-2.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:bg-muted/50"
               >
                 {t('citizen.verification.backToProfile')} <ChevronRight size={11} />
               </button>
             </div>
           </section>
 
-          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
+          <section className="bg-card rounded-lg border border-[var(--outline-variant)] p-4">
             <div
               className={`inline-flex items-center gap-2 rounded-lg border px-[10px] py-[6px] text-xs font-semibold ${meta.badgeClass}`}
             >
@@ -546,7 +548,7 @@ export default function CitizenVerification() {
               </div>
             ) : (
               <div className="mt-3 grid gap-[10px]">
-                <div className="text-xs text-slate-500">{meta.helper}</div>
+                <div className="text-xs text-muted-foreground">{meta.helper}</div>
 
                 {status?.rejectionReason ? (
                   <div className="bg-[#FFEDD5] border border-[#FDBA74] rounded-md px-[11px] py-[9px] text-[#9A3412] text-xs">
@@ -586,11 +588,11 @@ export default function CitizenVerification() {
             )}
           </section>
 
-          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
+          <section className="bg-card rounded-lg border border-[var(--outline-variant)] p-4">
             <div className="text-sm font-semibold text-[var(--on-surface)] mb-[10px]">
               {t('citizen.verification.acceptedIdsTitle')}
             </div>
-            <div className="text-xs text-slate-500 mb-[10px] leading-[1.55]">
+            <div className="text-xs text-muted-foreground mb-[10px] leading-[1.55]">
               {t('citizen.verification.acceptedIdsDesc')}
             </div>
             <div
@@ -614,7 +616,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      className="border border-[#DCFCE7] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-white flex items-center gap-[7px]"
+                      className="border border-[#DCFCE7] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-card flex items-center gap-[7px]"
                     >
                       <CheckCircle2 size={14} color="#16A34A" /> {idLabel}
                     </div>
@@ -637,7 +639,7 @@ export default function CitizenVerification() {
                   ].map((idLabel) => (
                     <div
                       key={idLabel}
-                      className="border border-[#FEE2E2] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-white flex items-center gap-[7px]"
+                      className="border border-[#FEE2E2] rounded-md px-[9px] py-[7px] text-xs font-semibold text-[var(--on-surface)] bg-card flex items-center gap-[7px]"
                     >
                       <XCircle size={14} color="#DC2626" /> {idLabel}
                     </div>
@@ -645,12 +647,12 @@ export default function CitizenVerification() {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-slate-500 leading-[1.55]">
+            <div className="text-xs text-muted-foreground leading-[1.55]">
               {t('citizen.verification.uploadWarning')}
             </div>
           </section>
 
-          <section className="bg-white rounded-lg border border-[var(--outline-variant)] p-4">
+          <section className="bg-card rounded-lg border border-[var(--outline-variant)] p-4">
             <div className="grid gap-3">
               <label className="text-xs font-semibold text-[var(--on-surface)]">
                 {t('citizen.verification.uploadLabel')}
@@ -699,7 +701,7 @@ export default function CitizenVerification() {
                         <Paperclip size={14} /> {t('citizen.verification.selectFront')}
                       </button>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-white px-[10px] py-2">
+                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-card px-[10px] py-2">
                         <div className="text-xs text-[var(--on-surface)] font-semibold">
                           {t('citizen.verification.frontFile').replace('{{name}}', shortFileName(frontIdFile.name))}
                         </div>
@@ -711,7 +713,7 @@ export default function CitizenVerification() {
                               frontFileInputRef.current.value = '';
                             }
                           }}
-                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-slate-200 text-slate-700"
+                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-muted text-muted-foreground"
                           aria-label="Clear front ID file"
                         >
                           <X size={13} />
@@ -720,7 +722,7 @@ export default function CitizenVerification() {
                     )}
 
                     {!frontIdFile ? (
-                      <div className="text-xs text-slate-500 font-medium">
+                      <div className="text-xs text-muted-foreground font-medium">
                         {t('citizen.verification.frontNotSelected')}
                       </div>
                     ) : null}
@@ -737,7 +739,7 @@ export default function CitizenVerification() {
                         <Paperclip size={14} /> {t('citizen.verification.selectBack')}
                       </button>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-white px-[10px] py-2">
+                      <div className="flex items-center justify-between gap-2 border border-[var(--outline-variant)] rounded-md bg-card px-[10px] py-2">
                         <div className="text-xs text-[var(--on-surface)] font-semibold">
                           {t('citizen.verification.backFile').replace('{{name}}', shortFileName(backIdFile.name))}
                         </div>
@@ -749,7 +751,7 @@ export default function CitizenVerification() {
                               backFileInputRef.current.value = '';
                             }
                           }}
-                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-slate-200 text-slate-700"
+                          className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-muted text-muted-foreground"
                           aria-label="Clear back ID file"
                         >
                           <X size={13} />
@@ -758,14 +760,14 @@ export default function CitizenVerification() {
                     )}
 
                     {!backIdFile ? (
-                      <div className="text-xs text-slate-500 font-medium">
+                      <div className="text-xs text-muted-foreground font-medium">
                         {t('citizen.verification.backNotSelected')}
                       </div>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted-foreground">
                   {t('citizen.verification.fileConstraints').replace('{{maxSize}}', String(MAX_FILE_SIZE_MB))}
                 </div>
 
@@ -776,7 +778,7 @@ export default function CitizenVerification() {
                 ) : null}
 
                 {frontIdPreviewUrl || backIdPreviewUrl ? (
-                  <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-white grid gap-2">
+                  <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-card grid gap-2">
                     <div className="text-xs font-semibold text-[var(--on-surface)]">{t('citizen.verification.selectedPreviews')}</div>
                     <div
                       className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[10px]"
@@ -787,7 +789,7 @@ export default function CitizenVerification() {
                           <img
                             src={frontIdPreviewUrl}
                             alt="Selected front ID image preview"
-                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-white"
+                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-card"
                           />
                         </div>
                       ) : null}
@@ -797,7 +799,7 @@ export default function CitizenVerification() {
                           <img
                             src={backIdPreviewUrl}
                             alt="Selected back ID image preview"
-                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-white"
+                            className="w-full rounded-md border border-[var(--outline-variant)] object-cover bg-card"
                           />
                         </div>
                       ) : null}

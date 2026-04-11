@@ -62,7 +62,7 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
 
       <div
         id="citizen-mobile-nav-panel"
-        className={`citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 z-[95] overflow-hidden border-t border-white/[0.12] bg-primary transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] ${
+        className={`citizen-mobile-nav-panel nav-mobile-panel fixed inset-x-0 z-[95] overflow-hidden border-t border-white/[0.12] bg-[var(--citizen-header-bg)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] ${
           open
             ? 'is-open pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-2 pb-0 opacity-100'
             : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'

@@ -59,7 +59,7 @@ export function CitizenOnboardingModal() {
             <div
               key={i}
               className={`h-1 flex-1 rounded-full transition-colors ${
-                i <= step ? 'bg-primary' : 'bg-slate-200'
+                i <= step ? 'bg-primary' : 'bg-muted'
               }`}
             />
           ))}
@@ -75,7 +75,7 @@ export function CitizenOnboardingModal() {
 
         {/* Content */}
         <div className="flex flex-col items-center px-6 pb-2 pt-6 text-center">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-blue-50">
+          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-accent">
             {current.icon}
           </div>
           <h3 className="text-lg font-bold text-foreground">{current.title}</h3>

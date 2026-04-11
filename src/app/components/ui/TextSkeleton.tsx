@@ -25,7 +25,7 @@ export default function TextSkeleton({
 }: TextSkeletonProps) {
   return (
     <SkeletonGroup className={cn(
-      'rounded-xl border border-gray-200 bg-white p-5 space-y-4',
+      'rounded-xl border border-border bg-card p-5 space-y-4',
       variant === 'hero' && 'flex flex-col items-center text-center p-8',
       className
     )}>

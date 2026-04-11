@@ -52,7 +52,7 @@ export default function CardSkeleton({
           return (
             <div
               key={`stat-skeleton-${index}`}
-              className={cn('rounded-xl border border-gray-200 bg-white p-5', cardClassName)}
+              className={cn('rounded-xl border border-border bg-card p-5', cardClassName)}
             >
               <div className="flex items-center gap-3 mb-3">
                 <Skeleton variant="circular" className="h-10 w-10 shrink-0" delay={baseDelay} />
@@ -68,7 +68,7 @@ export default function CardSkeleton({
           return (
             <div
               key={`compact-skeleton-${index}`}
-              className={cn('flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-4', cardClassName)}
+              className={cn('flex items-center gap-4 rounded-lg border border-border bg-card p-4', cardClassName)}
             >
               {showAvatar && (
                 <Skeleton variant="circular" className="h-12 w-12 shrink-0" delay={baseDelay} />
@@ -85,7 +85,7 @@ export default function CardSkeleton({
         return (
           <div
             key={`card-skeleton-${index}`}
-            className={cn('rounded-xl border border-gray-200 bg-white p-4 flex flex-col', cardClassName)}
+            className={cn('rounded-xl border border-border bg-card p-4 flex flex-col', cardClassName)}
           >
             {showImage && (
               <Skeleton 

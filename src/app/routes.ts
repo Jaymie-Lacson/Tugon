@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
+import { ThemeProvider } from 'next-themes';
 import AppRouteErrorPage from './components/AppRouteErrorPage';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
@@ -43,6 +44,15 @@ const SAAnalytics = lazyRoute(() => import('./pages/superadmin/SAAnalytics'));
 const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
 const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
 const SASettings = lazyRoute(() => import('./pages/Settings'));
+
+// Landing is always light-mode regardless of user preference or OS theme.
+function LandingLightOnly() {
+  return React.createElement(
+    ThemeProvider,
+    { forcedTheme: 'light', attribute: 'class' },
+    React.createElement(Landing),
+  );
+}
 
 function RedirectToApp() {
   const session = getAuthSession();
@@ -90,8 +100,8 @@ function OfficialAppGuard() {
 }
 
 export const router = createBrowserRouter([
-  // Public landing
-  { path: '/', Component: Landing, errorElement: React.createElement(AppRouteErrorPage) },
+  // Public landing — always light-mode (LandingLightOnly forces theme)
+  { path: '/', Component: LandingLightOnly, errorElement: React.createElement(AppRouteErrorPage) },
   { path: '/community-map', Component: MapView, errorElement: React.createElement(AppRouteErrorPage) },
   { path: '/skeleton-demo', Component: SkeletonDemo, errorElement: React.createElement(AppRouteErrorPage) },
 

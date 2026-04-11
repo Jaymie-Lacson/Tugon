@@ -29,11 +29,11 @@ export default function TableSkeleton({
 
   return (
     <SkeletonGroup 
-      className={cn('overflow-x-auto rounded-xl border border-gray-200 bg-white w-full', className)}
+      className={cn('overflow-x-auto rounded-xl border border-border bg-card w-full', className)}
     >
       <table className="min-w-full border-collapse">
         {showHeader && (
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-border bg-muted">
             <tr>
               {showCheckbox && (
                 <th className="px-4 py-3 w-10">
@@ -67,7 +67,7 @@ export default function TableSkeleton({
             return (
               <tr 
                 key={`tr-${rowIndex}`} 
-                className="border-b border-gray-100 last:border-b-0"
+                className="border-b border-border/50 last:border-b-0"
               >
                 {showCheckbox && (
                   <td className="px-4 py-3 text-left">

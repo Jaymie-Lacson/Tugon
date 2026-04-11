@@ -17,6 +17,7 @@ import { RoleHomeLogo } from '../components/RoleHomeLogo';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { ThemeToggle } from '../components/ThemeToggle';
 import {
   getCategoryTaxonomy,
   MEDIATION_WARNING,
@@ -294,7 +295,7 @@ function StepIndicator({ current }: { current: number }) {
   const { t } = useTranslation();
   return (
     <div
-      className="citizen-web-strip z-40 bg-white border-b border-slate-200 pt-3 pb-0"
+      className="citizen-web-strip z-40 bg-card border-b border-border pt-3 pb-0"
     >
       <div className="citizen-web-strip-inner flex items-start">
         {STEP_LABEL_KEYS.map((labelKey, i) => {
@@ -312,7 +313,7 @@ function StepIndicator({ current }: { current: number }) {
                       ? 'bg-primary text-white border-[2.5px] border-primary'
                       : active
                         ? 'bg-primary text-white border-[2.5px] border-[#60A5FA]'
-                        : 'bg-[#F1F5F9] text-[#94A3B8] border-2 border-[#E2E8F0]',
+                        : 'bg-muted text-muted-foreground border-2 border-border',
                   ].join(' ')}
                 >
                   {done ? <Check size={14} strokeWidth={3} /> : s}
@@ -320,14 +321,14 @@ function StepIndicator({ current }: { current: number }) {
                 <span
                   className={[
                     'text-[9px] whitespace-nowrap tracking-[0.02em]',
-                    active ? 'font-bold text-primary' : done ? 'font-medium text-[#64748B]' : 'font-medium text-[#CBD5E1]',
+                    active ? 'font-bold text-primary' : done ? 'font-medium text-muted-foreground' : 'font-medium text-muted-foreground/50',
                   ].join(' ')}
                 >
                   {label}
                 </span>
               </div>
               {i < STEP_LABEL_KEYS.length - 1 && (
-                <div className="flex-1 h-[2.5px] mt-[14px] mx-[3px] rounded overflow-hidden bg-slate-200">
+                <div className="flex-1 h-[2.5px] mt-[14px] mx-[3px] rounded overflow-hidden bg-muted">
                   <div className={[`h-full bg-primary transition-[width] duration-300 ease-out`, done ? 'w-full' : 'w-0'].join(' ')} />
                 </div>
               )}
@@ -370,8 +371,8 @@ function getCategoryThemeClasses(type: IncidentCategory) {
   }
   return {
     selectedCard: 'bg-[#475569] border-[#475569]',
-    unselectedHalo: 'bg-[#F1F5F9]',
-    unselectedIcon: 'bg-[#F1F5F9] text-[#475569]',
+    unselectedHalo: 'bg-muted',
+    unselectedIcon: 'bg-muted text-muted-foreground',
   };
 }
 
@@ -383,7 +384,7 @@ function getSeverityButtonClasses(level: Severity, selected: boolean) {
       base,
       selected
         ? 'border-[#059669] bg-[#D1FAE5] text-[#059669] shadow-[0_2px_10px_rgba(5,150,105,0.19)]'
-        : 'border-[#6EE7B7] bg-white text-[#059669]',
+        : 'border-[#6EE7B7] bg-card text-[#059669]',
     ].join(' ');
   }
   if (level === 'medium') {
@@ -391,7 +392,7 @@ function getSeverityButtonClasses(level: Severity, selected: boolean) {
       base,
       selected
         ? 'border-[var(--severity-medium)] bg-[#FEF3C7] text-[var(--severity-medium)] shadow-[0_2px_10px_rgba(180,115,10,0.19)]'
-        : 'border-[#FCD34D] bg-white text-[var(--severity-medium)]',
+        : 'border-[#FCD34D] bg-card text-[var(--severity-medium)]',
     ].join(' ');
   }
   if (level === 'high') {
@@ -399,7 +400,7 @@ function getSeverityButtonClasses(level: Severity, selected: boolean) {
       base,
       selected
         ? 'border-[#C2410C] bg-[#FFEDD5] text-[#C2410C] shadow-[0_2px_10px_rgba(194,65,12,0.19)]'
-        : 'border-[#FB923C] bg-white text-[#C2410C]',
+        : 'border-[#FB923C] bg-card text-[#C2410C]',
     ].join(' ');
   }
 
@@ -407,7 +408,7 @@ function getSeverityButtonClasses(level: Severity, selected: boolean) {
     base,
     selected
       ? 'border-[var(--severity-critical)] bg-[#FEE2E2] text-[var(--severity-critical)] shadow-[0_2px_10px_rgba(185,28,28,0.19)]'
-      : 'border-[#FCA5A5] bg-white text-[var(--severity-critical)]',
+      : 'border-[#FCA5A5] bg-card text-[var(--severity-critical)]',
   ].join(' ');
 }
 
@@ -431,10 +432,10 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
           {t('citizen.report.step1.badge')}
         </div>
-        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
+        <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
           {t('citizen.report.step1.heading')}
         </h2>
-        <p className="text-[13px] text-[#64748B] leading-relaxed">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
           {t('citizen.report.step1.desc')}
         </p>
       </div>
@@ -462,7 +463,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
                 'relative overflow-hidden min-h-[124px] rounded-xl border-2 pt-3.5 px-3 pb-3 text-left flex flex-col items-start gap-2.5 transition-all duration-200 ease-out',
                 sel
                   ? `${theme.selectedCard} text-white shadow-[0_8px_16px_rgba(15,23,42,0.14)]`
-                  : 'bg-white border-[#E8EEF4] text-[#1E293B] shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
+                  : 'bg-card border-border text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
               ].join(' ')}
             >
               {/* Subtle bg pattern for unselected */}
@@ -486,10 +487,10 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
               </div>
               {/* Label & desc */}
               <div className="relative z-[1]">
-                <div className={['mb-[3px] text-sm font-extrabold leading-[1.2]', sel ? 'text-white' : 'text-[#1E293B]'].join(' ')}>
+                <div className={['mb-[3px] text-sm font-extrabold leading-[1.2]', sel ? 'text-white' : 'text-foreground'].join(' ')}>
                   {label}
                 </div>
-                <div className={['text-[10px] leading-[1.45]', sel ? 'text-white/80' : 'text-[#94A3B8]'].join(' ')}>
+                <div className={['text-[10px] leading-[1.45]', sel ? 'text-white/80' : 'text-muted-foreground'].join(' ')}>
                   {t(descKey)}
                 </div>
               </div>
@@ -506,8 +507,8 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
           form.category ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0',
         ].join(' ')}
       >
-        <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#E2E8F0]">
-          <div className="font-bold text-[13px] text-[#1E293B] mb-3 flex items-center gap-1.5">
+        <div className="bg-muted/50 rounded-2xl p-4 border border-border">
+          <div className="font-bold text-[13px] text-foreground mb-3 flex items-center gap-1.5">
             <AlertTriangle size={14} color="var(--severity-medium)" /> {t('citizen.report.step1.severityPrompt')}
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -536,8 +537,8 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
       </div>
 
       {form.category ? (
-        <div ref={subcategorySectionRef} className="mt-3 bg-white border border-[#E2E8F0] rounded-[14px] p-3.5">
-          <label htmlFor="incident-subcategory-select" className="block font-bold text-xs text-[#1E293B] mb-2">
+        <div ref={subcategorySectionRef} className="mt-3 bg-card border border-border rounded-[14px] p-3.5">
+          <label htmlFor="incident-subcategory-select" className="block font-bold text-xs text-foreground mb-2">
             {t('citizen.report.step1.subcategoryLabel')}
           </label>
           <select
@@ -545,7 +546,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
             title="Select incident subcategory"
             value={form.subcategory ?? ''}
             onChange={(event) => setForm((p) => ({ ...p, subcategory: event.target.value as ReportSubcategory }))}
-            className="w-full rounded-[10px] border border-[#CBD5E1] p-[10px_12px] text-xs text-[#1E293B]"
+            className="w-full rounded-[10px] border border-border p-[10px_12px] text-xs text-foreground"
           >
             {(REPORT_TAXONOMY.find((item) => item.category === form.category)?.subcategories ?? []).map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -720,10 +721,10 @@ function Step2({
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-4">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step2.badge')}</div>
-        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
+        <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
           {t('citizen.report.step2.heading')}
         </h2>
-        <p className="text-[13px] text-[#64748B] leading-relaxed">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
           {t('citizen.report.step2.desc')}
         </p>
       </div>
@@ -733,7 +734,7 @@ function Step2({
           'incident-step2-map-shell relative overflow-hidden rounded-xl mb-3 border-2 transition-all duration-300',
           form.pin
             ? 'border-[#3B82F6] shadow-[0_8px_16px_rgba(15,23,42,0.14)]'
-            : 'border-[#E2E8F0] shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+            : 'border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
         ].join(' ')}
       >
         <button
@@ -780,7 +781,7 @@ function Step2({
             <MapPin size={17} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-[13px] text-[#1E293B]">{form.pin.barangay}</div>
+            <div className="font-bold text-[13px] text-foreground">{form.pin.barangay}</div>
             <div className="text-[11px] text-[#3B82F6] mt-px font-medium">
               {t('citizen.report.step2.pinCoords', { district: form.pin.district, lat: form.pin.lat.toFixed(6), lng: form.pin.lng.toFixed(6) })}
             </div>
@@ -788,7 +789,7 @@ function Step2({
           <button
             onClick={() => setForm(p => ({ ...p, pin: null }))}
             aria-label="Remove selected incident pin"
-            className="icon-btn-square icon-btn-sm incident-step2-pin-clear bg-black/5 text-[#64748B] rounded-lg inline-flex items-center justify-center shrink-0"
+            className="icon-btn-square icon-btn-sm incident-step2-pin-clear bg-black/5 text-muted-foreground rounded-lg inline-flex items-center justify-center shrink-0"
           >
             <X size={14} />
           </button>
@@ -832,14 +833,14 @@ function Step2({
       ) : null}
 
       {form.pin && hasBarangayProfile && pinInSupportedArea && form.pin.isCrossBarangay ? (
-        <div className="mb-3 rounded-[10px] border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] text-xs p-[9px_11px]">
+        <div className="mb-3 rounded-[10px] border border-[var(--secondary-fixed-dim)] bg-[var(--severity-medium-bg)] text-[var(--severity-medium)] text-xs p-[9px_11px]">
           {t('citizen.report.step2.crossBarangayNotice', { barangay: form.pin.barangay })}
         </div>
       ) : null}
 
       {/* Address text input */}
       <div>
-        <label className="text-[11px] font-bold text-[#475569] block mb-[7px] uppercase tracking-[0.07em]">
+        <label className="text-[11px] font-bold text-muted-foreground block mb-[7px] uppercase tracking-[0.07em]">
           {t('citizen.report.step2.addressLabel')}
         </label>
         <input
@@ -909,18 +910,18 @@ function Step3({
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-[18px]">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step3.badge')}</div>
-        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
+        <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
           {t('citizen.report.step3.heading')}
         </h2>
-        <p className="text-[13px] text-[#64748B] leading-relaxed">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
           {t('citizen.report.step3.desc')}
         </p>
       </div>
 
       {/* Tip box */}
-      <div className="bg-[#FFFBEB] rounded-xl p-[12px_14px] border border-[#FDE68A] mb-[18px] flex gap-2.5 items-start">
+      <div className="bg-[var(--severity-medium-bg)] rounded-xl p-[12px_14px] border border-[var(--secondary-fixed-dim)] mb-[18px] flex gap-2.5 items-start">
         <Info size={14} color="var(--severity-medium)" className="shrink-0 mt-px" />
-        <div className="text-xs text-[#92400E] leading-relaxed">
+        <div className="text-xs text-[var(--severity-medium)] leading-relaxed">
           <strong>{t('citizen.report.step3.tipLabel')}</strong> {t('citizen.report.step3.tipBody')}
         </div>
       </div>
@@ -928,7 +929,7 @@ function Step3({
       {/* Main textarea */}
       <div className="mb-[18px]">
         <div className="flex justify-between mb-[7px]">
-          <label className="text-[11px] font-bold text-[#475569] uppercase tracking-[0.07em]">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.07em]">
             {t('citizen.report.step3.fieldLabel')}
           </label>
           <span
@@ -938,7 +939,7 @@ function Step3({
                 ? 'text-[var(--severity-critical)]'
                 : form.description.length >= MAX * 0.7
                   ? 'text-[var(--severity-medium)]'
-                  : 'text-[#94A3B8]',
+                  : 'text-muted-foreground',
             ].join(' ')}
           >
             {form.description.length}/{MAX}
@@ -950,15 +951,15 @@ function Step3({
           placeholder={t('citizen.report.step3.textareaPlaceholder')}
           rows={6}
           className={[
-            'w-full p-[13px_14px] rounded-[14px] border-[1.5px] text-[13px] font-roboto outline-none resize-none box-border text-[#1E293B] leading-[1.65] transition-colors bg-white focus:border-[#3B82F6]',
-            form.description.length >= MAX * 0.9 ? 'border-[#FCA5A5]' : 'border-[#E2E8F0]',
+            'w-full p-[13px_14px] rounded-[14px] border-[1.5px] text-[13px] font-roboto outline-none resize-none box-border text-foreground leading-[1.65] transition-colors bg-card focus:border-primary',
+            form.description.length >= MAX * 0.9 ? 'border-[#FCA5A5]' : 'border-border',
           ].join(' ')}
         />
       </div>
 
       {/* Quick tags */}
       <div className="mb-5">
-        <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
+        <div className="text-[11px] font-bold text-muted-foreground mb-2 uppercase tracking-[0.07em]">
           {t('citizen.report.step3.quickTagsLabel')}
         </div>
         <div className="flex flex-wrap gap-[7px]">
@@ -972,7 +973,7 @@ function Step3({
                   'py-1.5 px-[11px] rounded-[20px] border-[1.5px] text-[11px] font-semibold transition-all duration-200',
                   added
                     ? 'border-primary bg-[#EFF6FF] text-primary shadow-[0_1px_4px_rgba(30,58,138,0.12)]'
-                    : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]',
+                    : 'border-border bg-muted/50 text-muted-foreground',
                 ].join(' ')}
               >
                 {added ? 'Selected ' : '+ '}{t(tag.key)}
@@ -996,7 +997,7 @@ function Step3({
 
       {/* Affected persons */}
       <div>
-        <label className="text-[11px] font-bold text-[#475569] block mb-2 uppercase tracking-[0.07em]">
+        <label className="text-[11px] font-bold text-muted-foreground block mb-2 uppercase tracking-[0.07em]">
           {t('citizen.report.step3.affectedLabel')}
         </label>
         <div className="incident-affected-grid grid grid-cols-4 gap-2">
@@ -1015,11 +1016,11 @@ function Step3({
                   'py-3 px-1 rounded-xl border-2 text-center transition-all duration-200',
                   sel
                     ? 'border-primary bg-[#EFF6FF] shadow-[0_2px_8px_rgba(30,58,138,0.15)]'
-                    : 'border-[#E2E8F0] bg-white',
+                    : 'border-border bg-card',
                 ].join(' ')}
               >
-                <div className={['text-sm font-extrabold', sel ? 'text-primary' : 'text-[#1E293B]'].join(' ')}>{opt.label}</div>
-                <div className={['mt-0.5 text-[9px] font-semibold', sel ? 'text-[#3B82F6]' : 'text-[#94A3B8]'].join(' ')}>{t(opt.sublabelKey)}</div>
+                <div className={['text-sm font-extrabold', sel ? 'text-primary' : 'text-foreground'].join(' ')}>{opt.label}</div>
+                <div className={['mt-0.5 text-[9px] font-semibold', sel ? 'text-[#3B82F6]' : 'text-muted-foreground'].join(' ')}>{t(opt.sublabelKey)}</div>
               </button>
             );
           })}
@@ -1136,10 +1137,10 @@ function Step4({
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-[18px]">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step4.badge')}</div>
-        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
+        <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
           {t('citizen.report.step4.heading')}
         </h2>
-        <p className="text-[13px] text-[#64748B] leading-relaxed">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
           {t('citizen.report.step4.desc')}
         </p>
       </div>
@@ -1151,14 +1152,14 @@ function Step4({
       ) : null}
 
       {/* â"€ Photo Upload â"€ */}
-      <div className="bg-white rounded-[18px] border border-[#E2E8F0] p-[18px] mb-4 shadow-sm">
+      <div className="bg-card rounded-[18px] border border-border p-[18px] mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3.5">
           <div className="w-[34px] h-[34px] rounded-[10px] bg-[#EFF6FF] flex items-center justify-center text-primary">
             <Camera size={17} />
           </div>
           <div>
-            <div className="font-bold text-[14px] text-[#1E293B]">{t('citizen.report.step4.photoTitle')}</div>
-            <div className="text-[11px] text-[#94A3B8]">{t('citizen.report.step4.photoSubtitle')}</div>
+            <div className="font-bold text-[14px] text-foreground">{t('citizen.report.step4.photoTitle')}</div>
+            <div className="text-[11px] text-muted-foreground">{t('citizen.report.step4.photoSubtitle')}</div>
           </div>
         </div>
 
@@ -1176,7 +1177,7 @@ function Step4({
 
         <div className="flex flex-wrap gap-2.5">
           {form.photoPreviews.map((src, i) => (
-            <div key={i} className="w-[84px] h-[84px] rounded-[14px] overflow-hidden relative border-2 border-[#E2E8F0] shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.10)]">
+            <div key={i} className="w-[84px] h-[84px] rounded-[14px] overflow-hidden relative border-2 border-border shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.10)]">
               <button
                 type="button"
                 onClick={() => setPreviewIndex(i)}
@@ -1212,7 +1213,7 @@ function Step4({
         </div>
 
         {form.photoPreviews.length > 0 && (
-          <div className="mt-2.5 text-[11px] text-[#64748B] flex items-center gap-[5px]">
+          <div className="mt-2.5 text-[11px] text-muted-foreground flex items-center gap-[5px]">
             <CheckCircle2 size={12} color="#059669" />
             {form.photoPreviews.length > 1
               ? t('citizen.report.step4.photosAttachedPlural', { count: form.photoPreviews.length })
@@ -1225,14 +1226,14 @@ function Step4({
 
         {/* â"€ Voice Recording â"€ */}
         {showVoiceRecorder ? (
-        <div className="bg-white rounded-[18px] border border-[#E2E8F0] p-[18px] shadow-sm">
+        <div className="bg-card rounded-[18px] border border-border p-[18px] shadow-sm">
         <div className="flex items-center gap-2 mb-3.5">
           <div className="w-[34px] h-[34px] rounded-[10px] bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED]">
             <Mic size={17} />
           </div>
           <div>
-            <div className="font-bold text-[14px] text-[#1E293B]">{t('citizen.report.step4.voiceTitle')}</div>
-            <div className="text-[11px] text-[#94A3B8]">{t('citizen.report.step4.voiceSubtitle')}</div>
+            <div className="font-bold text-[14px] text-foreground">{t('citizen.report.step4.voiceTitle')}</div>
+            <div className="text-[11px] text-muted-foreground">{t('citizen.report.step4.voiceSubtitle')}</div>
           </div>
         </div>
 
@@ -1259,7 +1260,7 @@ function Step4({
                   <div className="text-[28px] font-black text-severity-critical tabular-nums tracking-[0.04em] font-mono">
                     {fmt(recTime)}
                   </div>
-                  <div className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-[5px]">
+                  <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-[5px]">
                     <span className="incident-step4-recording-dot" />
                     {t('citizen.report.step4.recordingInProgress')}
                   </div>
@@ -1274,12 +1275,12 @@ function Step4({
               </>
             ) : (
               <>
-                <div className="w-[60px] h-[60px] rounded-full bg-[#F1F5F9] flex items-center justify-center">
+                <div className="w-[60px] h-[60px] rounded-full bg-muted flex items-center justify-center">
                   <Mic size={26} color="#94A3B8" />
                 </div>
                 <div className="text-center">
-                  <div className="text-[14px] font-bold text-[#1E293B]">{t('citizen.report.step4.recordVoiceNote')}</div>
-                  <div className="text-xs text-[#94A3B8] mt-[3px]">{t('citizen.report.step4.tapToRecord')}</div>
+                  <div className="text-[14px] font-bold text-foreground">{t('citizen.report.step4.recordVoiceNote')}</div>
+                  <div className="text-xs text-muted-foreground mt-[3px]">{t('citizen.report.step4.tapToRecord')}</div>
                 </div>
                 <button
                   onClick={startRecording}
@@ -1297,7 +1298,7 @@ function Step4({
               <Mic size={20} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-[13px] text-[#1E293B] mb-1.5">
+              <div className="font-bold text-[13px] text-foreground mb-1.5">
                 {t('citizen.report.step4.voiceAttached')}
               </div>
               <audio
@@ -1319,7 +1320,7 @@ function Step4({
         )}
       </div>
       ) : (
-        <div className="bg-[#F8FAFC] rounded-[14px] border border-[#E2E8F0] p-[12px_14px] text-[#475569] text-xs leading-relaxed">
+        <div className="bg-muted/50 rounded-[14px] border border-border p-[12px_14px] text-muted-foreground text-xs leading-relaxed">
           {t('citizen.report.step4.voiceUnavailable')}
         </div>
       )}
@@ -1464,27 +1465,27 @@ function Step5({
   return (
     <div className="pt-[22px] px-4 pb-2">
       <div className="mb-5">
-        <div className="inline-flex items-center gap-1.5 bg-[#FEF3C7] rounded-[20px] px-3 py-1 text-[#92400E] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step5.badge')}</div>
-        <h2 className="text-[20px] font-extrabold text-[#1E293B] mb-1.5 leading-tight">
+        <div className="inline-flex items-center gap-1.5 bg-[var(--secondary-fixed)] rounded-[20px] px-3 py-1 text-[var(--severity-medium)] text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step5.badge')}</div>
+        <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
           {t('citizen.report.step5.heading')}
         </h2>
-        <p className="text-[13px] text-[#64748B] leading-relaxed">
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
           {t('citizen.report.step5.desc')}
         </p>
       </div>
 
       {/* Summary Card */}
-      <div className="bg-white rounded-[20px] border-[1.5px] border-[#E2E8F0] overflow-hidden mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+      <div className="bg-card rounded-[20px] border-[1.5px] border-border overflow-hidden mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
         {/* Card header with type color accent */}
         <div className={`incident-step5-card-head ${categoryClass}`}>
           <div className={`incident-step5-card-icon ${categoryClass}`}>
             <Icon size={24} />
           </div>
           <div>
-            <div className="font-extrabold text-[17px] text-[#1E293B] leading-tight">
+            <div className="font-extrabold text-[17px] text-foreground leading-tight">
               {(cat?.label ?? t('citizen.report.step5.categoryNotSet'))} {t('citizen.report.step5.reportSuffix')}
             </div>
-            <div className="text-xs text-[#64748B] mt-0.5">
+            <div className="text-xs text-muted-foreground mt-0.5">
               {t('citizen.report.step5.submittedBy', { name: reporterName, date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) })}
             </div>
           </div>
@@ -1514,10 +1515,10 @@ function Step5({
               {icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-[0.07em] mb-[3px]">
+              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.07em] mb-[3px]">
                 {label}
               </div>
-              <div className="text-[13px] text-[#1E293B] font-medium leading-[1.5] break-words">
+              <div className="text-[13px] text-foreground font-medium leading-[1.5] break-words">
                 {value}
               </div>
             </div>
@@ -1528,12 +1529,12 @@ function Step5({
       {/* Photo thumbnails */}
       {form.photoPreviews.length > 0 && (
         <div className="mb-4">
-          <div className="text-[11px] font-bold text-[#475569] mb-2 uppercase tracking-[0.07em]">
+          <div className="text-[11px] font-bold text-muted-foreground mb-2 uppercase tracking-[0.07em]">
             {t('citizen.report.step5.attachedPhotos')}
           </div>
           <div className="flex gap-2">
             {form.photoPreviews.map((src, i) => (
-              <div key={i} className="w-[68px] h-[68px] rounded-xl overflow-hidden border-2 border-[#E2E8F0] shrink-0 relative">
+              <div key={i} className="w-[68px] h-[68px] rounded-xl overflow-hidden border-2 border-border shrink-0 relative">
                 <button
                   type="button"
                   onClick={() => setPreviewIndex(i)}
@@ -1554,9 +1555,9 @@ function Step5({
       )}
 
       {/* Legal disclaimer */}
-      <div className="bg-[#FFFBEB] rounded-[14px] p-3.5 border border-[#FDE68A] mb-1 flex gap-2.5 items-start">
+      <div className="bg-[var(--severity-medium-bg)] rounded-[14px] p-3.5 border border-[var(--secondary-fixed-dim)] mb-1 flex gap-2.5 items-start">
         <Info size={15} color="var(--severity-medium)" className="incident-step5-disclaimer-icon" />
-        <p className="text-xs text-[#78350F] leading-[1.65] m-0">
+        <p className="text-xs text-[var(--severity-medium)] leading-[1.65] m-0">
           {t('citizen.report.step5.disclaimer')}
         </p>
       </div>
@@ -2015,6 +2016,7 @@ export default function IncidentReport() {
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
               <div className="flex items-center gap-2.5">
+                <ThemeToggle className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50" />
                 <CitizenMobileMenu
                   activeKey="report"
                   onNavigate={(key) => {
@@ -2076,7 +2078,7 @@ export default function IncidentReport() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-[var(--error-container)] focus-visible:bg-[var(--error-container)] focus-visible:outline-none active:bg-[var(--error-container)]/70"
                       >
                         {t('common.signOut')}
                       </button>

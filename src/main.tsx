@@ -1,6 +1,7 @@
 
 import { createRoot } from 'react-dom/client';
 import App from './app/App.tsx';
+import { TugonThemeProvider } from './app/providers/ThemeProvider.tsx';
 import { authApi } from './app/services/authApi';
 import { clearAuthSession, saveAuthSession } from './app/utils/authSession';
 import './styles/index.css';
@@ -69,7 +70,11 @@ async function bootstrapAndRender() {
     }
   });
 
-  createRoot(document.getElementById('root')!).render(<App />);
+  createRoot(document.getElementById('root')!).render(
+    <TugonThemeProvider>
+      <App />
+    </TugonThemeProvider>,
+  );
 }
 
 void bootstrapAndRender();

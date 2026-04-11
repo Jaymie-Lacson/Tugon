@@ -23,6 +23,7 @@ import {
 } from '../services/citizenReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export type CitizenReportStatus =
   | 'submitted'
@@ -474,7 +475,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
 
   return (
     <button
-      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-lg border border-[var(--outline-variant)] bg-white p-0 text-left transition-[border-color] duration-200 ease-in-out"
+      className="citizen-report-card citizen-report-card-modern relative mb-3 w-full cursor-pointer overflow-hidden rounded-lg border border-[var(--outline-variant)] bg-card p-0 text-left transition-[border-color] duration-200 ease-in-out"
       onClick={onClick}
     >
       <div className="p-[14px] pb-0">
@@ -488,7 +489,7 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
               <div className="font-semibold text-[13px] text-[var(--on-surface)] leading-[1.1]">
                 {report.id}
               </div>
-              <div className="mt-[1px] text-[11px] font-medium text-slate-500">
+              <div className="mt-[1px] text-[11px] font-medium text-muted-foreground">
                 {tc.label}
               </div>
             </div>
@@ -499,13 +500,13 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         {/* Location */}
         <div className="flex items-start gap-[5px] mb-[7px]">
           <MapPin size={11} className="shrink-0 mt-[1px] text-[var(--outline)]" />
-          <span className="text-xs text-slate-600 leading-[1.45] flex-1">
+          <span className="text-xs text-muted-foreground leading-[1.45] flex-1">
             {report.location}, {report.barangay}
           </span>
         </div>
 
         {/* Description excerpt */}
-        <div className="mb-[10px] overflow-hidden text-xs leading-[1.5] text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+        <div className="mb-[10px] overflow-hidden text-xs leading-[1.5] text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
           {report.description}
         </div>
 
@@ -513,25 +514,25 @@ function ReportCard({ report, onClick }: { report: CitizenReport; onClick: () =>
         <div className="flex items-center gap-2 flex-wrap mb-3">
           <div className="flex items-center gap-1">
             <Calendar size={10} className="text-[var(--outline)]" />
-            <span className="text-[11px] text-slate-400">{formatDate(report.submittedAt)}</span>
+            <span className="text-[11px] text-muted-foreground">{formatDate(report.submittedAt)}</span>
           </div>
-          <span className="text-[11px] text-slate-300"> - </span>
-          <span className="text-[11px] text-slate-400">{timeAgo(report.submittedAt)}</span>
+          <span className="text-[11px] text-border"> - </span>
+          <span className="text-[11px] text-muted-foreground">{timeAgo(report.submittedAt)}</span>
           {report.hasPhotos && (
             <span className="contents">
-              <span className="text-[11px] text-slate-300"> - </span>
+              <span className="text-[11px] text-border"> - </span>
               <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
                 <Camera size={9} className="text-[var(--outline)]" />
-                <span className="text-[9px] text-slate-500 font-semibold">{report.photoCount}</span>
+                <span className="text-[9px] text-muted-foreground font-semibold">{report.photoCount}</span>
               </div>
             </span>
           )}
           {report.hasAudio && (
             <span className="contents">
-              <span className="text-[11px] text-slate-300"> - </span>
+              <span className="text-[11px] text-border"> - </span>
               <div className="flex items-center gap-[3px] rounded-[6px] bg-surface-container-high px-[6px] py-[2px]">
                 <Mic size={9} className="text-[var(--outline)]" />
-                <span className="text-[9px] text-slate-500 font-semibold">{t('citizen.myReports.audioSection')}</span>
+                <span className="text-[9px] text-muted-foreground font-semibold">{t('citizen.myReports.audioSection')}</span>
               </div>
             </span>
           )}
@@ -635,8 +636,8 @@ function DetailView({
       />
 
       <article className="citizen-report-modal-sheet absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[#F8FAFC] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
-        <header className="bg-white pt-[10px] pb-0 flex flex-col items-center border-b border-slate-100 shrink-0">
-          <div className="w-[38px] h-1 rounded-[2px] bg-slate-200 mb-3" />
+        <header className="bg-card pt-[10px] pb-0 flex flex-col items-center border-b border-border/60 shrink-0">
+          <div className="w-[38px] h-1 rounded-[2px] bg-muted mb-3" />
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
             <div>
               <div className="font-semibold text-base text-[var(--on-surface)]">{t('citizen.myReports.detailsTitle')}</div>
@@ -646,7 +647,7 @@ function DetailView({
               type="button"
               onClick={onClose}
               aria-label="Close details"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-[var(--outline-variant)] bg-slate-100 text-[var(--on-surface-variant)]"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-[var(--outline-variant)] bg-muted text-[var(--on-surface-variant)]"
             >
               <X size={16} />
             </button>
@@ -693,7 +694,7 @@ function DetailView({
             </dl>
           </section>
 
-          <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-white p-4">
+          <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-card p-4">
             <div className="flex items-center gap-[6px] mb-[10px]">
               <MessageSquare size={14} color={tc.color} />
               <span className="font-semibold text-[13px] text-[var(--on-surface)]">{t('citizen.myReports.description')}</span>
@@ -730,7 +731,7 @@ function DetailView({
           )}
 
           {(report.hasPhotos || report.hasAudio) && (
-            <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-white p-4">
+            <section className="mb-4 rounded-lg border border-[var(--outline-variant)] bg-card p-4">
               <div className="font-semibold text-[13px] text-[var(--on-surface)] mb-3">
                 {t('citizen.myReports.evidenceAttached')}
               </div>
@@ -751,7 +752,7 @@ function DetailView({
 
               {photoEvidence.length > 0 && (
                 <section className={audioEvidence.length > 0 ? 'mb-3' : ''}>
-                  <div className="mb-2 text-[12px] font-bold text-slate-500">{t('citizen.myReports.photosSection')}</div>
+                  <div className="mb-2 text-[12px] font-bold text-muted-foreground">{t('citizen.myReports.photosSection')}</div>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-2">
                     {photoEvidence.map((item, index) => (
                       <button
@@ -773,11 +774,11 @@ function DetailView({
 
               {audioEvidence.length > 0 && (
                 <section>
-                  <div className="mb-2 text-[12px] font-bold text-slate-500">{t('citizen.myReports.audioSection')}</div>
+                  <div className="mb-2 text-[12px] font-bold text-muted-foreground">{t('citizen.myReports.audioSection')}</div>
                   <div className="grid gap-2">
                     {audioEvidence.map((item) => (
                       <article key={item.id} className="border border-[var(--outline-variant)] rounded-md px-3 py-[10px] bg-[var(--surface-container-low)]">
-                        <div className="mb-[6px] text-[12px] font-semibold text-slate-600">{item.fileName}</div>
+                        <div className="mb-[6px] text-[12px] font-semibold text-muted-foreground">{item.fileName}</div>
                         <audio controls preload="metadata" src={item.publicUrl} className="w-full" />
                       </article>
                     ))}
@@ -786,7 +787,7 @@ function DetailView({
               )}
 
               {!hasPreviewableEvidence && (
-                <p className="m-0 text-xs text-slate-400 leading-[1.6]">
+                <p className="m-0 text-xs text-muted-foreground leading-[1.6]">
                   {t('citizen.myReports.evidenceUnavailable')}
                 </p>
               )}
@@ -829,7 +830,7 @@ function DetailView({
             </section>
           )}
 
-          <section className="mb-2 rounded-lg border border-[var(--outline-variant)] bg-white p-[18px]">
+          <section className="mb-2 rounded-lg border border-[var(--outline-variant)] bg-card p-[18px]">
             <div className="font-semibold text-[13px] text-[var(--on-surface)] mb-4 flex items-center gap-[7px]">
               <Clock size={14} color="var(--primary)" /> {t('citizen.myReports.timeline')}
             </div>
@@ -841,7 +842,7 @@ function DetailView({
               return (
                 <li key={`${event.timestamp}-${idx}`} className="flex gap-3 relative">
                   {!isLast && (
-                    <div className="absolute bottom-[-4px] left-[15px] top-[30px] z-0 w-[2px] bg-slate-200" />
+                    <div className="absolute bottom-[-4px] left-[15px] top-[30px] z-0 w-[2px] bg-muted" />
                   )}
 
                   <div className={`w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center z-[1] relative ${timelineTone.iconShell}`}>
@@ -859,7 +860,7 @@ function DetailView({
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500 mb-1 leading-[1.5]">
+                    <div className="text-[11px] text-muted-foreground mb-1 leading-[1.5]">
                       {event.description}
                     </div>
                     {event.note && event.note !== event.description && (
@@ -868,10 +869,10 @@ function DetailView({
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <time className="text-[10px] text-slate-400 [font-variant-numeric:tabular-nums]">
+                      <time className="text-[10px] text-muted-foreground [font-variant-numeric:tabular-nums]">
                         {formatDateTime(event.timestamp)}
                       </time>
-                      <span className="text-[11px] text-slate-200"> - </span>
+                      <span className="text-[11px] text-border/60"> - </span>
                       <span className={`rounded-[4px] px-[6px] py-[1px] text-[11px] font-semibold ${timelineTone.actorBadge}`}>
                         {event.actor} - {event.actorRole}
                       </span>
@@ -909,9 +910,9 @@ function DetailView({
           />
 
           <article
-            className="relative w-[min(460px,100%)] overflow-hidden rounded-lg bg-white shadow-md"
+            className="relative w-[min(460px,100%)] overflow-hidden rounded-lg bg-card shadow-md"
           >
-            <header className="bg-primary text-white px-4 py-3 flex items-center justify-between gap-2">
+            <header className="bg-[var(--citizen-header-bg)] text-white px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <AlertTriangle size={16} color="#FDE68A" />
                 <span className="text-sm font-bold">{t('citizen.myReports.confirmCancelTitle')}</span>
@@ -985,11 +986,11 @@ function DetailView({
             className="citizen-photo-preview-stage flex max-h-full w-full max-w-[980px] flex-col gap-2"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex justify-between items-center text-slate-200 text-xs">
+            <div className="flex justify-between items-center text-[var(--inverse-on-surface)] text-xs">
               <strong>{selectedPhoto.fileName}</strong>
               <button
                 type="button"
-                className="citizen-photo-preview-close bg-[#0F172A] border border-[#334155] text-slate-200 rounded-lg px-[10px] py-1 cursor-pointer"
+                className="citizen-photo-preview-close bg-[var(--inverse-surface)] border border-[var(--on-surface-variant)]/30 text-[var(--inverse-on-surface)] rounded-lg px-[10px] py-1 cursor-pointer"
                 onClick={() => setPreviewPhotoIndex(null)}
               >
                 {t('citizen.myReports.photoPreviewClose')}
@@ -1055,13 +1056,13 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
         : t('citizen.myReports.emptyDefaultDesc');
   return (
     <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[320px] px-8 py-[60px] text-center">
-      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-[18px] text-slate-300">
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-[18px] text-border">
         <FileText size={36} />
       </div>
       <div className="font-semibold text-[17px] text-[var(--on-surface)] mb-2">
         {headingText}
       </div>
-      <div className="text-[13px] text-slate-400 leading-[1.7] max-w-[260px]">
+      <div className="text-[13px] text-muted-foreground leading-[1.7] max-w-[260px]">
         {bodyText}
       </div>
     </div>
@@ -1073,13 +1074,13 @@ function TicketPageLoadingState() {
   return (
     <div className="citizen-content-shell pt-7 pb-7">
       <section
-        className="grid min-h-[320px] place-items-center rounded-lg border border-[var(--outline-variant)] bg-white px-5 py-6 text-center"
+        className="grid min-h-[320px] place-items-center rounded-lg border border-[var(--outline-variant)] bg-card px-5 py-6 text-center"
       >
         <div className="grid justify-items-center gap-3">
           <div
             role="status"
             aria-label="Loading my reports"
-            className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full bg-white border border-[var(--outline-variant)]"
+            className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full bg-card border border-[var(--outline-variant)]"
           >
             <span
               aria-hidden="true"
@@ -1094,7 +1095,7 @@ function TicketPageLoadingState() {
           <p className="m-0 text-primary text-sm font-semibold">
             {t('citizen.myReports.loadingTitle')}
           </p>
-          <p className="m-0 text-slate-500 text-xs leading-[1.55]">
+          <p className="m-0 text-muted-foreground text-xs leading-[1.55]">
             {t('citizen.myReports.loadingSubtitle')}
           </p>
         </div>
@@ -1324,7 +1325,7 @@ export default function CitizenMyReports() {
       <CitizenPageLayout
         header={
           <header
-            className="citizen-web-header bg-primary flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
+            className="citizen-web-header bg-[var(--citizen-header-bg)] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]"
           >
             <div
               className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative"
@@ -1332,6 +1333,7 @@ export default function CitizenMyReports() {
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
               <div className="flex items-center gap-[10px]">
+                <ThemeToggle className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50" />
                 <CitizenMobileMenu
                   activeKey="myreports"
                   onNavigate={(key) => {
@@ -1395,7 +1397,7 @@ export default function CitizenMyReports() {
                           setProfileMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none active:bg-red-100/70"
+                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-[var(--error-container)] focus-visible:bg-[var(--error-container)] focus-visible:outline-none active:bg-[var(--error-container)]/70"
                       >
                         {t('common.signOut')}
                       </button>
@@ -1441,29 +1443,29 @@ export default function CitizenMyReports() {
           <>
             <div className="citizen-content-shell pt-4 pb-0">
               {/* Page header — official style */}
-              <section className="mb-3 border-b border-slate-200 pb-4">
+              <section className="mb-3 border-b border-border pb-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                    <div className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       {t('citizen.myReports.headerLabel')}
                     </div>
-                    <h1 className="text-[24px] font-black leading-tight tracking-tight text-[#0F172A]">
+                    <h1 className="text-[24px] font-black leading-tight tracking-tight text-foreground">
                       {t('citizen.myReports.headerTitle')}
                     </h1>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {t('citizen.myReports.headerSubtitle')}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      <span className="text-[#0F172A] text-[20px] font-black">{allCount}</span> total
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      <span className="text-foreground text-[20px] font-black">{allCount}</span> total
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">·</span>
-                    <span className="text-[11px] font-semibold text-slate-500">
+                    <span className="text-[11px] font-semibold text-muted-foreground">·</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
                       <span className="text-[var(--secondary)] text-[20px] font-black">{activeCount}</span> active
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">·</span>
-                    <span className="text-[11px] font-semibold text-slate-500">
+                    <span className="text-[11px] font-semibold text-muted-foreground">·</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
                       <span className="text-[var(--severity-low)] text-[20px] font-black">{resolvedCount}</span> resolved
                     </span>
                   </div>
@@ -1471,7 +1473,7 @@ export default function CitizenMyReports() {
               </section>
 
               <section
-                className="rounded-lg border border-[var(--outline-variant)] bg-white p-3"
+                className="rounded-lg border border-[var(--outline-variant)] bg-card p-3"
               >
               <div className="flex gap-2 flex-wrap">
                 <div className="flex-1 flex min-w-0 items-center gap-2 rounded-md border border-[var(--outline-variant)] bg-[var(--surface-container-low)] px-3 py-[10px] transition-colors duration-200">
@@ -1505,7 +1507,7 @@ export default function CitizenMyReports() {
                     <ChevronDown size={12} />
                   </button>
                   {sortOpen && (
-                    <div className="citizen-sort-panel absolute right-0 top-[calc(100%+4px)] z-[60] min-w-[130px] overflow-hidden rounded-md border border-[var(--outline-variant)] bg-white shadow-sm">
+                    <div className="citizen-sort-panel absolute right-0 top-[calc(100%+4px)] z-[60] min-w-[130px] overflow-hidden rounded-md border border-[var(--outline-variant)] bg-card shadow-sm">
                       {(['newest', 'oldest'] as const).map(opt => (
                         <button
                           key={opt}
@@ -1514,7 +1516,7 @@ export default function CitizenMyReports() {
                           className={`block w-full cursor-pointer border-none px-[14px] py-[10px] text-left text-[13px] ${
                             sortBy === opt
                               ? 'bg-[#EFF6FF] font-bold text-primary'
-                              : 'bg-white font-normal text-slate-600'
+                              : 'bg-card font-normal text-muted-foreground'
                           }`}
                         >
                           {opt === 'newest' ? t('citizen.myReports.sortNewestFull') : t('citizen.myReports.sortOldestFull')}
@@ -1537,13 +1539,13 @@ export default function CitizenMyReports() {
                     >
                       <span
                         className={`flex items-center gap-[5px] text-[13px] ${
-                          isActive ? 'font-semibold text-primary' : 'font-medium text-slate-400'
+                          isActive ? 'font-semibold text-primary' : 'font-medium text-muted-foreground'
                         }`}
                       >
                         {tab.label}
                         <span
                           className={`rounded-[20px] px-[7px] py-[1px] text-[11px] font-bold ${
-                            isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'
+                            isActive ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {tab.count}
@@ -1561,12 +1563,12 @@ export default function CitizenMyReports() {
 
             <div onClick={() => sortOpen && setSortOpen(false)}>
               <div className="citizen-content-shell citizen-reports-summary-row pt-[10px] pb-2 flex items-center justify-between">
-                <span className="citizen-reports-summary-text text-xs text-slate-400 font-medium">
-                  {t('citizen.myReports.showing')} <strong className="text-slate-900">{filtered.length}</strong> {filtered.length !== 1 ? t('citizen.myReports.reports') : t('citizen.myReports.report')}
+                <span className="citizen-reports-summary-text text-xs text-muted-foreground font-medium">
+                  {t('citizen.myReports.showing')} <strong className="text-foreground">{filtered.length}</strong> {filtered.length !== 1 ? t('citizen.myReports.reports') : t('citizen.myReports.report')}
                   {query && ` ${t('citizen.myReports.showingFor', { query })}`}
                 </span>
                 {filtered.length > 0 && (
-                  <span className="citizen-reports-summary-hint text-[11px] text-slate-400">
+                  <span className="citizen-reports-summary-hint text-[11px] text-muted-foreground">
                     {t('citizen.myReports.openCardHint')}
                   </span>
                 )}
@@ -1589,7 +1591,7 @@ export default function CitizenMyReports() {
               {filtered.length > 0 && (
                 <div className="citizen-content-shell citizen-reports-footnote-wrap pt-0 pb-8 flex items-start gap-2">
                   <Info size={13} color="#94A3B8" className="shrink-0 mt-[1px]" />
-                  <p className="citizen-reports-footnote text-[11px] text-slate-400 leading-[1.6] m-0">
+                  <p className="citizen-reports-footnote text-[11px] text-muted-foreground leading-[1.6] m-0">
                     {t('citizen.myReports.footnote')}
                   </p>
                 </div>

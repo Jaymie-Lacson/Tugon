@@ -37,7 +37,7 @@
 }
 
 .citizen-report-header {
-  background: var(--primary);
+  background: var(--citizen-header-bg);
   display: flex;
   align-items: center;
   height: 60px;
