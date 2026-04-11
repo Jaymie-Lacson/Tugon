@@ -87,12 +87,12 @@ function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
   const isLiveLabel = trend?.val?.includes('Live') || trend?.val?.includes('live');
   return (
     <div
-      className="flex min-w-0 flex-1 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200"
+      className="flex min-w-0 flex-1 flex-col gap-1.5 bg-card px-4 py-4 border-r border-b border-border"
     >
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
-      <div className="font-mono text-[28px] font-black leading-none text-[#0F172A]">{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</div>
+      <div className="font-mono text-[28px] font-black leading-none text-foreground">{value}</div>
       <div className="flex items-center justify-between gap-2 mt-0.5">
-        <span className="text-[11px] text-slate-400">{subtitle}</span>
+        <span className="text-[11px] text-muted-foreground">{subtitle}</span>
         {trend && !isLiveLabel && (
           <span className={`flex items-center gap-[3px] font-mono text-[10px] font-semibold ${trendColorClass(accent)}`}>
             <TrendIcon size={11} />
@@ -115,10 +115,10 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div className="mb-3 grid gap-2 border-l-[3px] border-l-[#DC2626] bg-white px-3.5 py-3">
+    <div className="mb-3 grid gap-2 border-l-[3px] border-l-[#DC2626] bg-card px-3.5 py-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-md border border-[#E8B4B4] bg-[#FDE8E8] flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-md border border-[var(--error)]/30 bg-[var(--error-container)] flex items-center justify-center shrink-0">
             <Radio size={13} color="var(--severity-critical)" />
           </div>
           <div className="text-severity-critical font-bold text-xs tracking-wide">
@@ -134,21 +134,21 @@ const AlertBanner = ({
         </button>
       </div>
 
-      <div className="text-[#7F1D1D] text-xs leading-[1.45]">
+      <div className="text-[var(--error)] text-xs leading-[1.45]">
         {critical.length > 1
           ? t('official.dashboard.criticalMessagePlural', { count: critical.length })
           : t('official.dashboard.criticalMessage', { count: critical.length })}
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-[#991B1B] text-[11px] font-bold">{t('official.dashboard.criticalIncidentsLabel')}</span>
+        <span className="text-[var(--error)] text-[11px] font-bold">{t('official.dashboard.criticalIncidentsLabel')}</span>
         <div className="flex flex-wrap gap-1.5 w-full">
           {critical.map((incident) => (
             <button
               key={incident.id}
               type="button"
               onClick={() => onOpenIncident(incident.id)}
-              className="border border-[#E8B4B4] rounded-md px-2 py-1.5 m-0 bg-white text-[#7F1D1D] text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
+              className="border border-[var(--error)]/30 rounded-md px-2 py-1.5 m-0 bg-card text-[var(--error)] text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
             >
               {incident.id}
             </button>
@@ -439,7 +439,7 @@ export default function Dashboard() {
       />
 
       {incidentsError ? (
-        <div className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2 text-xs text-[var(--error)]">
           {incidentsError}
         </div>
       ) : null}
@@ -461,14 +461,14 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => navigate('/app/incidents')}
-              className="cursor-pointer rounded border border-[#2563EB] bg-transparent px-4 py-2 text-xs font-bold text-[#2563EB] transition-colors hover:bg-blue-50"
+              className="cursor-pointer rounded border border-primary bg-transparent px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
             >
               Dispatch Responder
             </button>
             <button
               type="button"
               onClick={() => navigate('/app/reports')}
-              className="cursor-pointer rounded border border-slate-300 bg-transparent px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50"
+              className="cursor-pointer rounded border border-border bg-transparent px-4 py-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/50"
             >
               Request Support
             </button>
@@ -478,7 +478,7 @@ export default function Dashboard() {
 
       {strongestHeatCluster ? (
         <section
-          className="mb-4 bg-white px-4 py-3 border border-slate-200"
+          className="mb-4 bg-card px-4 py-3 border border-border"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#D97706]">Geofencing Warning</div>
@@ -490,18 +490,18 @@ export default function Dashboard() {
               Open Map
             </button>
           </div>
-          <div className="mt-1 text-xs font-semibold text-[#0F172A]">
+          <div className="mt-1 text-xs font-semibold text-foreground">
             Elevated {strongestHeatCluster.category} activity detected near cluster center ({strongestHeatCluster.incidentCount} incidents).
           </div>
         </section>
       ) : null}
 
       {/* Cross-Border Alerts */}
-      <div className="mb-4 overflow-hidden bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+      <div className="mb-4 overflow-hidden bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3">
           <div className="flex items-center gap-2">
             <Bell size={14} color="#D97706" />
-            <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.crossBorderAlerts')}</span>
+            <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.crossBorderAlerts')}</span>
             <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
               <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
               Live
@@ -513,7 +513,7 @@ export default function Dashboard() {
               onClick={() => {
                 void loadAlerts(true);
               }}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-2 py-1.5 text-[11px] font-bold ${unreadAlerts > 0 ? 'bg-red-50 text-red-700' : 'bg-[var(--surface-container-low)] text-[var(--outline)]'}`}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-2 py-1.5 text-[11px] font-bold ${unreadAlerts > 0 ? 'bg-[var(--error-container)] text-[var(--error)]' : 'bg-[var(--surface-container-low)] text-[var(--outline)]'}`}
               aria-label={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
               title={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
             >
@@ -537,7 +537,7 @@ export default function Dashboard() {
         </div>
 
         {alertsError ? (
-          <div className="mx-4 my-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
+          <div className="mx-4 my-3 rounded-lg border border-[var(--error)]/30 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--error)]">
             {alertsError}
           </div>
         ) : null}
@@ -556,7 +556,7 @@ export default function Dashboard() {
               {alerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className="flex items-center justify-between gap-2.5 bg-white py-[9px] pl-3 pr-2.5 border-b border-slate-50 last:border-b-0"
+                  className="flex items-center justify-between gap-2.5 bg-card py-[9px] pl-3 pr-2.5 border-b border-border/30 last:border-b-0"
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[var(--on-surface)]">
@@ -573,7 +573,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       disabled
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border-none bg-emerald-50 text-emerald-600 shadow-[inset_0_0_0_1px_rgba(5,150,105,0.22)] leading-none"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border-none bg-[var(--severity-low-bg)] text-[var(--severity-low)] shadow-[inset_0_0_0_1px_rgba(5,150,105,0.22)] leading-none"
                       aria-label={t('official.dashboard.read')}
                       title={t('official.dashboard.read')}
                     >
@@ -601,11 +601,11 @@ export default function Dashboard() {
       </div>
 
       {/* Heatmap Hotspots */}
-      <div className="mb-4 overflow-hidden bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-3">
+      <div className="mb-4 overflow-hidden bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3">
           <div className="flex items-center gap-2">
             <TrendingUp size={14} color="#2563EB" />
-            <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.heatmapHotspots')}</span>
+            <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.heatmapHotspots')}</span>
           </div>
           <button
             onClick={() => {
@@ -618,7 +618,7 @@ export default function Dashboard() {
         </div>
         <div className="px-4 py-2.5 pb-3.5">
           {heatmapError ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-700">
+            <div className="rounded-lg border border-[var(--error)]/30 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--error)]">
               {heatmapError}
             </div>
           ) : heatmapLoading ? (
@@ -655,13 +655,13 @@ export default function Dashboard() {
 
       {/* KPI Stats — 4-col ruled table */}
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Operations Overview</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Operations Overview</span>
         <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
           <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
           Live
         </span>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-l border-t border-slate-200 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-l border-t border-border mb-4">
         <KPICard
           title={t('official.dashboard.activeIncidents')}
           value={activeIncidents.length}
@@ -703,19 +703,19 @@ export default function Dashboard() {
       {/* Map + Live Feed Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Map Preview */}
-        <div className="flex flex-[3_1_340px] flex-col overflow-hidden bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-[3_1_340px] flex-col overflow-hidden bg-card">
+          <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
               <MapPin size={14} color="#2563EB" />
-              <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.incidentOverviewMap')}</span>
+              <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.incidentOverviewMap')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
+              <div className="inline-flex items-center overflow-hidden rounded-lg border border-border bg-muted">
                 <button
                   onClick={() => setMapRenderMode('hotspot')}
                   disabled={hotspotDisabled}
-                  className={`border-none border-r border-slate-300 text-[10px] font-bold px-[9px] py-[5px] ${
-                    mapRenderMode === 'hotspot' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-700'
+                  className={`border-none border-r border-border text-[10px] font-bold px-[9px] py-[5px] ${
+                    mapRenderMode === 'hotspot' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
                   } ${hotspotDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                   title={heatmapClusters.length === 0 ? t('official.dashboard.noHotspotThreshold') : t('official.dashboard.showHotspotAnalytics')}
                 >
@@ -724,7 +724,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => setMapRenderMode('standard')}
                   className={`border-none text-[10px] font-bold px-[9px] py-[5px] cursor-pointer ${
-                    mapRenderMode === 'standard' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-700'
+                    mapRenderMode === 'standard' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
                   }`}
                   title={t('official.dashboard.showIncidentPins')}
                 >
@@ -757,7 +757,7 @@ export default function Dashboard() {
           <div className="relative flex-1">
             {showHeatmapTuning ? (
               <div
-                className="absolute top-2 right-2 z-[1200] w-[220px] rounded-xl border border-blue-100 bg-white/[0.98] p-2.5 shadow-[0_6px_24px_rgba(15,23,42,.16)]"
+                className="absolute top-2 right-2 z-[1200] w-[220px] rounded-xl border border-blue-100 bg-card/[0.98] p-2.5 shadow-[0_6px_24px_rgba(15,23,42,.16)]"
                 onMouseDown={(event) => event.stopPropagation()}
                 onMouseMove={(event) => event.stopPropagation()}
                 onTouchStart={(event) => event.stopPropagation()}
@@ -767,10 +767,10 @@ export default function Dashboard() {
                 onWheel={(event) => event.stopPropagation()}
               >
                 <div className="mb-[7px] flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-800">{t('official.dashboard.heatmapSettings')}</span>
+                  <span className="text-[11px] font-bold text-foreground">{t('official.dashboard.heatmapSettings')}</span>
                   <button
                     onClick={handleResetHeatmapTuning}
-                    className="rounded-md border border-slate-300 bg-white px-1.5 py-[3px] text-[9px] font-bold text-slate-600 cursor-pointer"
+                    className="rounded-md border border-border bg-card px-1.5 py-[3px] text-[9px] font-bold text-muted-foreground cursor-pointer"
                   >
                     Reset
                   </button>
@@ -778,8 +778,8 @@ export default function Dashboard() {
 
                 <div className="mb-2">
                   <div className="mb-[3px] flex justify-between">
-                    <span className="text-[9px] font-semibold text-slate-500">{t('official.dashboard.radius')}</span>
-                    <span className="text-[9px] font-bold text-slate-800">{heatRadiusPercent}%</span>
+                    <span className="text-[9px] font-semibold text-muted-foreground">{t('official.dashboard.radius')}</span>
+                    <span className="text-[9px] font-bold text-foreground">{heatRadiusPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -801,8 +801,8 @@ export default function Dashboard() {
 
                 <div>
                   <div className="mb-[3px] flex justify-between">
-                    <span className="text-[9px] font-semibold text-slate-500">{t('official.dashboard.opacity')}</span>
-                    <span className="text-[9px] font-bold text-slate-800">{heatOpacityPercent}%</span>
+                    <span className="text-[9px] font-semibold text-muted-foreground">{t('official.dashboard.opacity')}</span>
+                    <span className="text-[9px] font-bold text-foreground">{heatOpacityPercent}%</span>
                   </div>
                   <input
                     type="range"
@@ -839,11 +839,11 @@ export default function Dashboard() {
             />
           </div>
           {selectedIncident && (
-            <div className="flex flex-wrap items-center gap-2.5 border-t border-slate-100 bg-slate-50 px-3.5 py-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 border-t border-border/60 bg-muted/50 px-3.5 py-2.5">
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-bold text-slate-800">{selectedIncident.id} — {selectedIncident.barangay}</div>
-                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-500">{selectedIncident.description}</div>
-                <div className="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-slate-400">
+                <div className="text-[11px] font-bold text-foreground">{selectedIncident.id} — {selectedIncident.barangay}</div>
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-muted-foreground">{selectedIncident.description}</div>
+                <div className="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-muted-foreground">
                   <Navigation2 size={9} color="#9CA3AF" />
                   {selectedIncident.lat.toFixed(5)}°N, {selectedIncident.lng.toFixed(5)}°E
                 </div>
@@ -857,16 +857,16 @@ export default function Dashboard() {
         </div>
 
         {/* Live Feed */}
-        <div className="flex flex-[2_1_260px] flex-col overflow-hidden bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-[2_1_260px] flex-col overflow-hidden bg-card">
+          <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.liveIncidentFeed')}</span>
+              <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.liveIncidentFeed')}</span>
               <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
                 <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
                 Live
               </span>
             </div>
-            <RefreshCw size={12} className="text-slate-400 cursor-pointer" />
+            <RefreshCw size={12} className="text-muted-foreground cursor-pointer" />
           </div>
           <div className="flex-1">
             {incidentsLoading ? (
@@ -878,18 +878,18 @@ export default function Dashboard() {
                 <div
                   key={inc.id}
                   onClick={() => navigate('/app/incidents')}
-                  className="flex items-center gap-3 border-b border-slate-100 px-4 py-2.5 cursor-pointer transition-colors hover:bg-slate-50 last:border-b-0"
+                  className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5 cursor-pointer transition-colors hover:bg-muted/50 last:border-b-0"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="mb-0.5 flex items-center gap-2">
-                      <span className="font-mono text-[11px] font-bold text-[#0F172A]">{inc.id}</span>
+                      <span className="font-mono text-[11px] font-bold text-foreground">{inc.id}</span>
                       <StatusBadge status={inc.status} size="sm" pulse={inc.status === 'active'} />
                     </div>
-                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-500">{inc.barangay}</div>
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-muted-foreground">{inc.barangay}</div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <SeverityBadge severity={inc.severity} size="sm" />
-                    <span className="font-mono text-[10px] text-slate-400">
+                    <span className="font-mono text-[10px] text-muted-foreground">
                       {new Date(inc.reportedAt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </span>
                   </div>
@@ -897,10 +897,10 @@ export default function Dashboard() {
               ))
             )}
           </div>
-          <div className="border-t border-slate-100 px-4 py-2.5">
+          <div className="border-t border-border/60 px-4 py-2.5">
             <button
               onClick={() => navigate('/app/incidents')}
-              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold text-[#2563EB] cursor-pointer"
+              className="flex items-center gap-1 border-none bg-transparent text-xs font-semibold text-primary cursor-pointer"
             >
               {t('official.dashboard.viewAllIncidents')} <ArrowRight size={12} />
             </button>
@@ -911,20 +911,20 @@ export default function Dashboard() {
       {/* Charts Row — stacks on mobile */}
       <div className="mb-[18px] flex flex-wrap gap-3.5">
         {/* Trend Chart */}
-        <div className="flex-[3_1_300px] bg-white px-4 py-3.5">
+        <div className="flex-[3_1_300px] bg-card px-4 py-3.5">
           <div className="mb-3.5 flex items-center justify-between">
             <div>
-              <div className="text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
-              <div className="text-[11px] text-slate-400">{trendWindowLabel}</div>
+              <div className="text-[13px] font-bold text-foreground">{t('official.dashboard.dayTrend', { count: trendData.length })}</div>
+              <div className="text-[11px] text-muted-foreground">{trendWindowLabel}</div>
             </div>
             <div className="flex gap-3 text-[11px]">
               <span className="flex items-center gap-1">
                 <span className="inline-block h-[3px] w-2.5 rounded-sm bg-primary" />
-                <span className="text-slate-500">{t('official.dashboard.reported')}</span>
+                <span className="text-muted-foreground">{t('official.dashboard.reported')}</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="inline-block h-[3px] w-2.5 rounded-sm bg-emerald-600" />
-                <span className="text-slate-500">{t('official.dashboard.resolved')}</span>
+                <span className="text-muted-foreground">{t('official.dashboard.resolved')}</span>
               </span>
             </div>
           </div>
@@ -943,9 +943,9 @@ export default function Dashboard() {
         </div>
 
         {/* Type Distribution */}
-        <div className="flex-[2_1_220px] bg-white px-4 py-3.5">
-          <div className="mb-1 text-[13px] font-bold text-[#0F172A]">{t('official.dashboard.incidentByCategory')}</div>
-          <div className="mb-2.5 text-[11px] text-slate-400">{t('official.dashboard.categoryDistribution')}</div>
+        <div className="flex-[2_1_220px] bg-card px-4 py-3.5">
+          <div className="mb-1 text-[13px] font-bold text-foreground">{t('official.dashboard.incidentByCategory')}</div>
+          <div className="mb-2.5 text-[11px] text-muted-foreground">{t('official.dashboard.categoryDistribution')}</div>
           <div className="flex items-center gap-3">
             <PieChart className="shrink-0" width={156} height={156}>
               <Pie data={typeDist} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
@@ -959,9 +959,9 @@ export default function Dashboard() {
                 <div key={item.name} className="mb-1.5 flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${legendDotClass(item.color)}`} />
-                    <span className="truncate text-[13px] text-slate-600">{item.name}</span>
+                    <span className="truncate text-[13px] text-muted-foreground">{item.name}</span>
                   </div>
-                  <span className="text-[13px] font-bold text-slate-800">{item.value}</span>
+                  <span className="text-[13px] font-bold text-foreground">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -970,9 +970,9 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Incidents Table */}
-      <div className="mb-2 overflow-hidden bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-          <span className="text-[13px] font-bold text-[#0F172A]">Incident Queue</span>
+      <div className="mb-2 overflow-hidden bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-4 py-3">
+          <span className="text-[13px] font-bold text-foreground">Incident Queue</span>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -1010,7 +1010,7 @@ export default function Dashboard() {
                   className="cursor-pointer border-b border-[var(--outline-variant)]/20 transition-colors odd:bg-[var(--surface-container-lowest)] even:bg-[var(--surface-container-low)]/45 hover:bg-[var(--surface-container-low)]"
                   onClick={() => navigate('/app/incidents')}
                 >
-                  <td className="whitespace-nowrap px-3.5 py-2.5 font-mono font-semibold text-[#2563EB]">{inc.id}</td>
+                  <td className="whitespace-nowrap px-3.5 py-2.5 font-mono font-semibold text-primary">{inc.id}</td>
                   <td className="px-3.5 py-2.5"><TypeBadge type={inc.type} size="sm" /></td>
                   <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap px-3.5 py-2.5 text-[var(--on-surface-variant)]">{inc.barangay}</td>
                   <td className="px-3.5 py-2.5"><SeverityBadge severity={inc.severity} size="sm" /></td>

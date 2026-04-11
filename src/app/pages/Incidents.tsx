@@ -173,17 +173,17 @@ function IncidentDetailModal({
     >
       <div className="max-h-[92vh] w-full max-w-[760px] overflow-auto rounded-2xl bg-[var(--surface-container-low)] shadow-[0_24px_70px_rgba(15,23,42,0.33)]">
         {/* Header */}
-        <div className="flex items-start justify-between border-t-[3px] border-t-[#2563EB] border-b border-slate-200 bg-white px-5 py-4">
+        <div className="flex items-start justify-between border-t-[3px] border-t-[#2563EB] border-b border-border bg-card px-5 py-4">
           <div>
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('official.incidents.details')}</div>
-            <div className="font-mono text-base font-extrabold text-[#2563EB]">{incident.id}</div>
-            <div className="mt-0.5 text-xs text-slate-500">{incident.location}</div>
+            <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('official.incidents.details')}</div>
+            <div className="font-mono text-base font-extrabold text-primary">{incident.id}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{incident.location}</div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close incident details"
-            className="icon-btn-square cursor-pointer rounded-lg border border-slate-200 bg-white text-slate-600"
+            className="icon-btn-square cursor-pointer rounded-lg border border-border bg-card text-muted-foreground"
           >
             <X size={16} />
           </button>
@@ -199,7 +199,7 @@ function IncidentDetailModal({
         {/* Body */}
         <div className="px-5 pt-[18px] pb-5">
           {/* Description */}
-          <div className="mb-4 border border-slate-200 bg-white px-3.5 py-3">
+          <div className="mb-4 border border-border bg-card px-3.5 py-3">
             <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.descriptionLabel')}</div>
             <div className="text-[13px] leading-[1.65] text-[var(--on-surface-variant)]">
               {incident.description}
@@ -207,7 +207,7 @@ function IncidentDetailModal({
           </div>
 
           {/* Evidence */}
-          <div className="mb-4 border border-slate-200 bg-white px-3.5 py-3">
+          <div className="mb-4 border border-border bg-card px-3.5 py-3">
             <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">
               {t('official.incidents.evidenceAttachments')}
             </div>
@@ -276,7 +276,7 @@ function IncidentDetailModal({
               { label: t('official.incidents.affectedPersons'), value: incident.affectedPersons !== undefined ? t('official.incidents.affectedValue', { count: incident.affectedPersons }) : t('official.incidents.underAssessment'), icon: <Info size={13} /> },
               { label: t('official.incidents.responseTime'), value: responseTime ? t('official.incidents.responseTimeValue', { minutes: responseTime }) : t('official.incidents.notYetResponded'), icon: <Clock size={13} /> },
             ].map((item) => (
-              <div key={item.label} className="border border-slate-200 bg-white px-3 py-2.5">
+              <div key={item.label} className="border border-border bg-card px-3 py-2.5">
                 <div className="mb-[5px] flex items-center gap-[5px] text-[10px] font-bold uppercase tracking-wide text-[var(--outline)]">
                   {item.icon} {item.label}
                 </div>
@@ -286,7 +286,7 @@ function IncidentDetailModal({
           </div>
 
           {/* Timeline */}
-          <div className="border border-slate-200 bg-white px-3.5 py-3">
+          <div className="border border-border bg-card px-3.5 py-3">
             <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.incidents.ticketTimeline')}</div>
             <div className="flex flex-col gap-2.5">
               {incident.source.timeline.map((entry) => (
@@ -316,7 +316,7 @@ function IncidentDetailModal({
                         setStatusSelectorOpen(false);
                       }}
                       className={`w-full border-none px-3 py-[9px] text-left text-xs font-semibold cursor-pointer ${
-                        nextStatus === status ? 'bg-[var(--surface-container-high)] text-primary' : 'bg-white text-[var(--on-surface-variant)]'
+                        nextStatus === status ? 'bg-[var(--surface-container-high)] text-primary' : 'bg-card text-[var(--on-surface-variant)]'
                       }`}
                     >
                       {status}
@@ -730,7 +730,7 @@ export default function Incidents() {
       />
 
       {/* List view toggle */}
-      <div className="mb-3 flex w-fit max-w-full flex-wrap border-b border-slate-200">
+      <div className="mb-3 flex w-fit max-w-full flex-wrap border-b border-border">
         <button
           type="button"
           onClick={() => {
@@ -739,7 +739,7 @@ export default function Incidents() {
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'open'
-              ? '-mb-px border-b-2 border-[#2563EB] text-[#2563EB]'
+              ? '-mb-px border-b-2 border-primary text-primary'
               : 'text-[var(--on-surface-variant)]'
           }`}
         >
@@ -753,7 +753,7 @@ export default function Incidents() {
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
             listView === 'archived'
-              ? '-mb-px border-b-2 border-[#2563EB] text-[#2563EB]'
+              ? '-mb-px border-b-2 border-primary text-primary'
               : 'text-[var(--on-surface-variant)]'
           }`}
         >
@@ -762,13 +762,13 @@ export default function Incidents() {
       </div>
 
       {error ? (
-        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-[13px] font-semibold text-[#DC2626]">
+        <div className="mb-3 border-l-4 border-[var(--severity-critical)] bg-[var(--error-container)] px-3 py-2.5 text-[13px] font-semibold text-[var(--severity-critical)]">
           {error}
         </div>
       ) : null}
 
       {/* Filter bar */}
-      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 border border-slate-200 bg-white px-3.5 py-3">
+      <div className="mb-3.5 flex flex-wrap items-center gap-2.5 border border-border bg-card px-3.5 py-3">
         <div className="flex-[2_1_200px]">
           <SearchInput
             value={search}
@@ -862,7 +862,7 @@ export default function Incidents() {
       </div>
 
       {/* Desktop table */}
-      <div className="incidents-table-wrapper mb-3.5 overflow-hidden border border-t-2 border-t-[#0F172A] border-slate-200 bg-white">
+      <div className="incidents-table-wrapper mb-3.5 overflow-hidden border border-t-2 border-t-foreground border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
@@ -1008,7 +1008,7 @@ export default function Incidents() {
         {loading ? (
           <CardSkeleton count={3} lines={3} showImage={false} gridClassName="grid grid-cols-1 gap-3" />
         ) : paginated.length === 0 ? (
-          <div className="border border-slate-200 bg-white px-4 py-[22px] text-center text-[13px] text-[var(--on-surface-variant)]">
+          <div className="border border-border bg-card px-4 py-[22px] text-center text-[13px] text-[var(--on-surface-variant)]">
             {t('official.incidents.noMatchFilters')}
           </div>
         ) : (
@@ -1016,7 +1016,7 @@ export default function Incidents() {
             <article
               key={inc.id}
               onClick={() => setSelectedIncident(inc)}
-              className="cursor-pointer border border-slate-200 bg-white px-3 pb-2.5 pt-3"
+              className="cursor-pointer border border-border bg-card px-3 pb-2.5 pt-3"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="grid gap-[5px]">
@@ -1075,7 +1075,7 @@ export default function Incidents() {
 
       {/* Pagination */}
       {!loading && filtered.length > 0 ? (
-        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 border border-slate-200 bg-white px-3 py-2.5">
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 border border-border bg-card px-3 py-2.5">
           <div className="text-xs text-[var(--on-surface-variant)]">
             {t('official.incidents.showingRange', { from: (page - 1) * perPage + 1, to: Math.min(page * perPage, filtered.length), total: filtered.length })}
           </div>

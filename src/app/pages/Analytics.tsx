@@ -109,11 +109,11 @@ interface MetricCardProps { title: string; value: string; change: string; up: bo
 function MetricCard({ title, value, sub, color }: MetricCardProps) {
   return (
     <div
-      className="bg-white px-4 py-4"
+      className="bg-card px-4 py-4"
     >
-      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{title}</div>
-      <div className="font-mono text-[28px] font-black text-[#0F172A]">{value}</div>
-      <div className="mt-1 text-[11px] text-slate-400">{sub}</div>
+      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</div>
+      <div className="font-mono text-[28px] font-black text-foreground">{value}</div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{sub}</div>
     </div>
   );
 }
@@ -387,7 +387,7 @@ export default function Analytics() {
                   key={p}
                   onClick={() => setPeriod(p)}
                   className={`analytics-period-tab-btn cursor-pointer border-none px-[13px] py-[7px] text-[11px] transition-all duration-150 ${
-                    period === p ? 'bg-[#2563EB] text-white font-bold' : 'bg-transparent text-slate-500'
+                    period === p ? 'bg-[#2563EB] text-white font-bold' : 'bg-transparent text-muted-foreground'
                   }`}
                 >
                   {p}
@@ -397,7 +397,7 @@ export default function Analytics() {
             <button
               onClick={() => { void handleExportCsv(); }}
               disabled={exportingCsv}
-              className="flex cursor-pointer items-center gap-[5px] rounded bg-[var(--surface-container-lowest)] px-3.5 py-[7px] text-xs font-semibold text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex cursor-pointer items-center gap-[5px] rounded bg-[var(--surface-container-lowest)] px-3.5 py-[7px] text-xs font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Download size={13} /> {exportingCsv ? 'Exporting...' : t('official.analytics.export')}
             </button>
@@ -420,11 +420,11 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-      <div className="analytics-card analytics-trend-card mb-3.5 bg-white p-3.5 px-4">
+      <div className="analytics-card analytics-trend-card mb-3.5 bg-card p-3.5 px-4">
         <div className="analytics-trend-header flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div>
-            <div className="text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
-            <div className="mt-0.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.dailyCount', { period })}</div>
+            <div className="text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.incidentTrendByCategory')}</div>
+            <div className="mt-0.5 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.dailyCount', { period })}</div>
           </div>
           <div className="analytics-chart-toggle flex gap-1.5">
             {(['area', 'bar'] as const).map(chartTypeBtn => (
@@ -521,9 +521,9 @@ export default function Analytics() {
       {/* Middle row charts */}
       <div className="analytics-middle-row mb-3.5 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Response time */}
-        <div className="analytics-card flex-[2_1_280px] bg-white p-3.5 px-4">
-          <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.avgResponseByCategory')}</div>
-          <div className="mb-3 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.responseFromReport')}</div>
+        <div className="analytics-card flex-[2_1_280px] bg-card p-3.5 px-4">
+          <div className="mb-1 text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.avgResponseByCategory')}</div>
+          <div className="mb-3 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.responseFromReport')}</div>
           {RESPONSE_TIME_VISIBLE.length === 0 ? (
             <div className="text-[var(--outline)] text-xs px-0.5 py-2.5">
               {t('official.analytics.noRespondedPeriod')}
@@ -554,9 +554,9 @@ export default function Analytics() {
         </div>
 
         {/* Severity Distribution */}
-        <div className="analytics-card flex-[1_1_200px] bg-white p-3.5 px-4">
-          <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.severityDistribution')}</div>
-          <div className="mb-2.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
+        <div className="analytics-card flex-[1_1_200px] bg-card p-3.5 px-4">
+          <div className="mb-1 text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.severityDistribution')}</div>
+          <div className="mb-2.5 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
@@ -580,9 +580,9 @@ export default function Analytics() {
         </div>
 
         {/* Hourly pattern */}
-        <div className="analytics-card flex-[2_1_260px] bg-white p-3.5 px-4">
-          <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.hourlyPattern')}</div>
-          <div className="mb-3 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
+        <div className="analytics-card flex-[2_1_260px] bg-card p-3.5 px-4">
+          <div className="mb-1 text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.hourlyPattern')}</div>
+          <div className="mb-3 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.avgIncidentsPerHour', { period })}</div>
           <ResponsiveContainer width="100%" height={hourlyChartHeight}>
             <BarChart data={HOUR_DATA} margin={{ top: 0, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -611,9 +611,9 @@ export default function Analytics() {
       {/* Barangay Performance & Resource */}
       <div className="analytics-bottom-row mb-2 flex flex-col gap-3 md:flex-row md:gap-3.5">
         {/* Barangay comparison */}
-        <div className="analytics-card flex-[3_1_300px] bg-white p-3.5 px-4">
-          <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.barangayComparison')}</div>
-          <div className="mb-3.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
+        <div className="analytics-card flex-[3_1_300px] bg-card p-3.5 px-4">
+          <div className="mb-1 text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.barangayComparison')}</div>
+          <div className="mb-3.5 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.barangayReportedVsResolved', { period })}</div>
           <ResponsiveContainer width="100%" height={barangayChartHeight}>
             <BarChart data={BARANGAY_DATA} margin={{ top: 0, right: 5, left: -15, bottom: isMobile ? 42 : 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -629,9 +629,9 @@ export default function Analytics() {
         </div>
 
         {/* Resource utilization */}
-        <div className="analytics-card flex-[2_1_240px] bg-white p-3.5 px-4">
-          <div className="mb-1 text-lg font-bold text-[#0F172A] md:text-[13px]">{t('official.analytics.resourceUtilization')}</div>
-          <div className="mb-3.5 text-sm text-slate-400 md:text-[11px]">{t('official.analytics.respondersByType')}</div>
+        <div className="analytics-card flex-[2_1_240px] bg-card p-3.5 px-4">
+          <div className="mb-1 text-lg font-bold text-foreground md:text-[13px]">{t('official.analytics.resourceUtilization')}</div>
+          <div className="mb-3.5 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.respondersByType')}</div>
           {RESOURCE_DATA.map(r => {
             const pct = Math.round((r.deployed / r.total) * 100);
             const colorClass = utilizationColorClass(pct);

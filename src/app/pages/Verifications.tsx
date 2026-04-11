@@ -113,19 +113,19 @@ export default function Verifications() {
       />
 
       {error && (
-        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-xs font-semibold text-[#DC2626]">
+        <div className="mb-3 border-l-4 border-[var(--severity-critical)] bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--severity-critical)]">
           {error}
         </div>
       )}
 
-      <span className="mb-3 flex w-fit items-center gap-2 font-mono text-[11px] font-bold text-[#2563EB]">
+      <span className="mb-3 flex w-fit items-center gap-2 font-mono text-[11px] font-bold text-primary">
         <Clock3 size={12} /> {t('official.verifications.pendingCount', { count: rows.length })}
       </span>
 
       {loading ? (
         <TextSkeleton rows={3} title={false} />
       ) : rows.length === 0 ? (
-        <div className="border border-slate-200 bg-white p-4 text-[13px] text-[var(--on-surface-variant)]">
+        <div className="border border-border bg-card p-4 text-[13px] text-[var(--on-surface-variant)]">
           {t('official.verifications.noPending')}
         </div>
       ) : (
@@ -133,8 +133,8 @@ export default function Verifications() {
           {rows.map((row) => {
             const isBusy = submittingId === row.citizenUserId;
             return (
-              <div key={row.citizenUserId} className="overflow-hidden border border-t-2 border-t-[#D97706] border-slate-200">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <div key={row.citizenUserId} className="overflow-hidden border border-t-2 border-t-[#D97706] border-border">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-3">
                   <div>
                     <div className="font-extrabold text-foreground text-sm">{row.fullName}</div>
                     <div className="text-[11px] text-muted-foreground">
@@ -159,7 +159,7 @@ export default function Verifications() {
                           setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);
                           setPreviewUrl(row.idImageUrl);
                         }}
-                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-[#2563EB]"
+                        className="inline-flex w-fit cursor-pointer items-center gap-1.5 border border-border bg-card px-3 py-2 text-xs font-bold text-primary"
                       >
                         <Upload size={13} /> {t('official.verifications.previewUploadedId')}
                       </button>
@@ -167,7 +167,7 @@ export default function Verifications() {
                         href={row.idImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex w-fit items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline"
+                        className="inline-flex w-fit items-center gap-1.5 border border-border bg-card px-3 py-2 text-xs font-bold text-[var(--on-surface)] no-underline"
                       >
                         {t('official.verifications.openInNewTab')}
                       </a>
@@ -176,13 +176,13 @@ export default function Verifications() {
                     <div className="text-xs font-bold text-[var(--secondary)]">{t('official.verifications.noIdImage')}</div>
                   )}
 
-                  <div className="grid gap-2.5 border border-slate-200 bg-white p-3">
+                  <div className="grid gap-2.5 border border-border bg-card p-3">
                     <label className="text-[11px] font-bold uppercase tracking-wide text-[var(--outline)]">{t('official.verifications.reasonLabel')}</label>
                     <select
                       aria-label="Verification decision reason"
                       value={reasonByUser[row.citizenUserId] ?? ''}
                       onChange={(event) => setReasonByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
-                      className="w-full border border-slate-200 bg-white px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
+                      className="w-full border border-border bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
                     >
                       <option value="">{t('official.verifications.selectReason')}</option>
                       {REJECTION_REASONS.map((reason) => (
@@ -195,7 +195,7 @@ export default function Verifications() {
                       onChange={(event) => setNotesByUser((prev) => ({ ...prev, [row.citizenUserId]: event.target.value }))}
                       placeholder={t('official.verifications.optionalNotes')}
                       rows={2}
-                      className="box-border w-full resize-y border border-slate-200 bg-white px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
+                      className="box-border w-full resize-y border border-border bg-card px-2.5 py-2 text-xs text-[var(--on-surface)] outline-none"
                     />
                   </div>
 
@@ -236,7 +236,7 @@ export default function Verifications() {
                     </Button>
                   </div>
 
-                  <div className="flex items-start gap-1.5 border-l-[3px] border-slate-400 bg-slate-50 px-2.5 py-2 text-[11px] text-slate-600">
+                  <div className="flex items-start gap-1.5 border-l-[3px] border-border bg-muted/50 px-2.5 py-2 text-[11px] text-muted-foreground">
                     <ShieldAlert size={14} className="shrink-0 mt-px" />
                     {t('official.verifications.banWarning')}
                   </div>
@@ -277,11 +277,11 @@ export default function Verifications() {
                 </div>
 
                 <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
-                  <div className="overflow-hidden border border-slate-200 bg-white">
-                    <div className="border-b border-slate-200 bg-slate-50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
+                  <div className="overflow-hidden border border-border bg-card">
+                    <div className="border-b border-border bg-muted/50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
                       {t('official.verifications.frontId')}
                     </div>
-                    <div className="relative h-[300px] overflow-hidden bg-white">
+                    <div className="relative h-[300px] overflow-hidden bg-card">
                       <img
                         src={previewUrl}
                         alt={`${previewTitle} - Front`}
@@ -290,11 +290,11 @@ export default function Verifications() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden border border-slate-200 bg-white">
-                    <div className="border-b border-slate-200 bg-slate-50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
+                  <div className="overflow-hidden border border-border bg-card">
+                    <div className="border-b border-border bg-muted/50 px-2.5 py-2 text-[11px] font-extrabold text-[var(--on-surface)]">
                       {t('official.verifications.backId')}
                     </div>
-                    <div className="relative h-[300px] overflow-hidden bg-white">
+                    <div className="relative h-[300px] overflow-hidden bg-card">
                       <img
                         src={previewUrl}
                         alt={`${previewTitle} - Back`}
@@ -312,7 +312,7 @@ export default function Verifications() {
                     <img
                       src={previewUrl}
                       alt={previewTitle}
-                      className="block w-full max-h-[40vh] object-contain rounded-lg bg-white"
+                      className="block w-full max-h-[40vh] object-contain rounded-lg bg-card"
                     />
                   </div>
                 </div>

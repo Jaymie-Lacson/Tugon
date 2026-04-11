@@ -181,21 +181,21 @@ export function AdminNotifications({
           ref={panelRef}
           role="region"
           aria-label={panelLabel}
-          className={`max-h-[360px] overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.2)] ${
+          className={`max-h-[360px] overflow-y-auto rounded-xl border border-border bg-card shadow-[0_8px_24px_rgba(15,23,42,0.2)] ${
             isMobileViewport
               ? 'fixed left-1/2 z-[2300] box-border max-w-[calc(100%-16px)] w-[min(360px,calc(100%-16px))] -translate-x-1/2 overflow-x-hidden'
               : 'absolute z-[2300] w-80'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] px-3 py-2.5">
-            <span className="text-xs font-bold text-[#1E293B]">Notifications</span>
+          <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
+            <span className="text-xs font-bold text-foreground">Notifications</span>
             <button
               type="button"
               onClick={onMarkAllRead}
               disabled={unreadCount === 0}
               className={`border-none bg-transparent text-[11px] font-bold ${
                 unreadCount === 0
-                  ? 'cursor-default text-[#94A3B8]'
+                  ? 'cursor-default text-muted-foreground'
                   : 'cursor-pointer text-[var(--primary)]'
               }`}
             >
@@ -204,11 +204,11 @@ export function AdminNotifications({
           </div>
 
           {loading ? (
-            <div className="p-3 text-xs text-[#64748B]">Loading notifications...</div>
+            <div className="p-3 text-xs text-muted-foreground">Loading notifications...</div>
           ) : null}
 
           {!loading && items.length === 0 ? (
-            <div className="p-3 text-xs text-[#64748B]">No notifications yet.</div>
+            <div className="p-3 text-xs text-muted-foreground">No notifications yet.</div>
           ) : null}
 
           {!loading
@@ -221,18 +221,18 @@ export function AdminNotifications({
                     onClick={() => {
                       onItemClick(item);
                     }}
-                    className={`w-full cursor-pointer border-none border-b border-[#F1F5F9] px-3 py-2.5 text-left ${
-                      isUnread ? 'bg-[#EFF6FF]' : 'bg-white'
+                    className={`w-full cursor-pointer border-none border-b border-border/60 px-3 py-2.5 text-left ${
+                      isUnread ? 'bg-primary/5' : 'bg-card'
                     }`}
                   >
                     <div className="mb-1 flex items-center gap-2">
-                      <span className="flex-1 text-xs font-bold text-[#1E293B]">{item.title}</span>
+                      <span className="flex-1 text-xs font-bold text-foreground">{item.title}</span>
                       {isUnread ? (
                         <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--severity-critical)]" />
                       ) : null}
                     </div>
-                    <div className="text-xs leading-[1.35] text-[#334155]">{item.message}</div>
-                    <div className="mt-1 text-[11px] text-[#64748B]">
+                    <div className="text-xs leading-[1.35] text-muted-foreground">{item.message}</div>
+                    <div className="mt-1 text-[11px] text-muted-foreground">
                       {formatNotificationTimestamp(item.createdAt)}
                     </div>
                   </button>
