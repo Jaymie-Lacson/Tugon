@@ -1,5 +1,6 @@
 import React from 'react';
-import { User, Shield, Globe } from 'lucide-react';
+import { User, Shield, Globe, Monitor } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation, SUPPORTED_LOCALES, LOCALE_LABELS } from '../i18n';
 import type { Locale } from '../i18n';
@@ -19,6 +20,7 @@ function SettingRow({ label, description, value }: { label: string; description?
 
 export default function Settings() {
   const { locale, setLocale, t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const session = getAuthSession();
   const currentUser = session?.user;
 
@@ -66,6 +68,10 @@ export default function Settings() {
             <Globe size={15} className="text-primary" />
             <span className="text-[13px] font-bold text-primary">{t('settings.language')}</span>
           </div>
+          <div className="flex items-center gap-2.5 border-b border-[var(--outline-variant)]/25 px-4 py-3.5">
+            <Monitor size={15} className="text-primary" />
+            <span className="text-[13px] font-bold text-primary">Appearance</span>
+          </div>
         </div>
 
         <div className="max-md:min-w-0 max-md:w-full flex-1 min-w-[280px] rounded-xl bg-[var(--surface-container-lowest)] px-6 py-5">
@@ -82,7 +88,7 @@ export default function Settings() {
               <div className="text-[15px] font-bold text-[var(--on-surface)]">{fullName}</div>
               <div className="text-xs text-[var(--on-surface-variant)]">{roleLabel} · {areaLabel}</div>
               <div className="mt-1">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-[#2563EB]">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-primary">
                   {role}
                 </span>
               </div>

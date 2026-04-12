@@ -180,7 +180,7 @@ export function InputField({
       <div
         className={`flex min-h-12 items-center gap-2 rounded-xl px-3.5 py-2.5 transition-all duration-200 ${
           error
-            ? 'bg-red-50 shadow-[inset_0_-2px_0_#dc2626]'
+            ? 'bg-[var(--error-container)] shadow-[inset_0_-2px_0_var(--severity-critical)]'
             : focused
               ? 'bg-[var(--surface-container-low)] shadow-[inset_0_-2px_0_var(--primary),0_0_0_2px_rgba(0,35,111,0.12)]'
               : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_rgba(68,70,81,0.22)]'
@@ -207,7 +207,7 @@ export function InputField({
         />
         {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
-      {error && <div className="mt-1.5 text-[11px] font-semibold text-red-700">! {error}</div>}
+      {error && <div className="mt-1.5 text-[11px] font-semibold text-[var(--error)]">! {error}</div>}
       {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
     </div>
   );
