@@ -130,6 +130,30 @@ export default function Settings() {
               ))}
             </div>
           </div>
+
+          <div className="mt-[18px] mb-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">
+            Appearance
+          </div>
+          <div className="border-b border-[var(--outline-variant)]/35 py-3.5">
+            <div className="mb-1 text-[13px] font-semibold text-[var(--on-surface)]">Theme</div>
+            <div className="mb-3 text-[11px] text-[var(--on-surface-variant)]">Choose how TUGON looks on your device.</div>
+            <div className="flex gap-2 flex-wrap">
+              {(['system', 'light', 'dark'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTheme(t)}
+                  className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors capitalize ${
+                    theme === t
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                  }`}
+                >
+                  {t === 'system' ? 'System' : t === 'light' ? 'Light' : 'Dark'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
