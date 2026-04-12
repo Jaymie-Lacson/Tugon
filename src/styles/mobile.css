@@ -957,3 +957,112 @@
 @media (min-width: 769px) {
   .incidents-mobile-cards { display: none !important; }
 }
+
+/* ── Dark mode overrides ───────────────────────────────────────────────── */
+
+.dark .citizen-report-profile-menu {
+  background: var(--surface-container);
+  border-color: var(--outline-variant);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+}
+
+.dark .citizen-report-profile-menu-item {
+  background: var(--surface-container);
+  border-bottom-color: var(--outline-variant);
+  color: var(--on-surface);
+}
+
+.dark .citizen-report-footer {
+  background: var(--surface-container-lowest);
+  border-top-color: var(--outline-variant);
+}
+
+.dark .citizen-report-back-btn {
+  border-color: var(--outline-variant);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+
+.dark .citizen-report-next-btn.is-disabled {
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+}
+
+.dark .citizen-report-submit-error {
+  background: var(--error-container);
+  border-color: var(--error);
+}
+
+.dark .incident-step2-address-input {
+  border-color: var(--outline-variant);
+  color: var(--on-surface);
+  background: var(--surface-container-low);
+}
+
+.dark .incident-step4-photo-add-btn {
+  border-color: var(--outline-variant);
+  background: var(--surface-container-low);
+}
+
+.dark .incident-step4-photo-add-btn:hover {
+  border-color: var(--primary);
+  background: rgba(182, 196, 255, 0.08);
+}
+
+.dark .incident-step4-photo-add-text {
+  color: var(--on-surface-variant);
+}
+
+.dark .incident-step4-recorder-shell {
+  border-color: var(--outline-variant);
+  background: var(--surface-container-low);
+}
+
+.dark .incident-step4-recorder-shell.is-recording {
+  border-color: var(--error);
+  background: var(--error-container);
+}
+
+.dark .incident-step5-card-head {
+  background: var(--surface-container-low);
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .incident-step5-severity-pill.is-critical {
+  background: var(--error-container);
+}
+
+.dark .incident-step5-severity-pill.is-high {
+  background: rgba(194, 65, 12, 0.18);
+  color: #fca985;
+}
+
+.dark .incident-step5-severity-pill.is-medium {
+  background: var(--severity-medium-bg);
+}
+
+.dark .incident-step5-severity-pill.is-low {
+  background: var(--severity-low-bg);
+}
+
+.dark .incident-step5-detail-row.has-divider {
+  border-bottom-color: var(--outline-variant);
+}
+
+@media (max-width: 768px) {
+  .dark .citizen-map-filter-bar {
+    border-bottom-color: var(--outline-variant) !important;
+  }
+  .dark .citizen-report-card {
+    border-color: var(--outline-variant) !important;
+  }
+  .dark .citizen-reports-summary-text {
+    color: var(--on-surface-variant) !important;
+  }
+  .dark .citizen-reports-summary-hint {
+    color: var(--on-surface-variant) !important;
+  }
+  .dark .citizen-reports-footnote {
+    color: var(--on-surface-variant) !important;
+  }
+}

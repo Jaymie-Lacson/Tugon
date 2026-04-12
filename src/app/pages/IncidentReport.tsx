@@ -18,6 +18,7 @@ import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifica
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useTheme } from 'next-themes';
 import {
   getCategoryTaxonomy,
   MEDIATION_WARNING,
@@ -680,8 +681,12 @@ function Step2({
       style={{ height }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+        attribution={resolvedTheme === 'dark'
+          ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+        url={resolvedTheme === 'dark'
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+          : 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'}
         maxNativeZoom={20}
         maxZoom={22}
       />
@@ -1763,6 +1768,7 @@ const STEP_REQUIREMENTS: Record<number, (f: ReportForm) => string | null> = {
 };
 
 export default function IncidentReport() {
+  const { resolvedTheme } = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const session = getAuthSession();
