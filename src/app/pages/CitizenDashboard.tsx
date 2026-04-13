@@ -632,7 +632,6 @@ export default function CitizenDashboard() {
                   else setActiveTab('home');
                 }}
               />
-              <ThemeToggle className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50" />
               <CitizenNotificationBellTrigger
                 unreadCount={unreadNotificationCount}
                 open={notifOpen}
@@ -676,6 +675,10 @@ export default function CitizenDashboard() {
                     <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
                       <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
                       <LanguageToggle compact />
+                    </div>
+                    <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                      <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
+                      <ThemeToggle compact />
                     </div>
                     <button
                       type="button"

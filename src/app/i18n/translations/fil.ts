@@ -38,6 +38,7 @@ export const fil: TranslationDictionary = {
   'common.markAllRead': 'Markahang nabasa lahat',
   'common.noNotifications': 'Walang abiso',
   'common.language': 'Wika',
+  'common.theme': 'Tema',
 
   // ── Roles ──
   'role.citizen': 'Mamamayan',

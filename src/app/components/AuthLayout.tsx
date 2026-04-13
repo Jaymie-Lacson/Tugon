@@ -18,6 +18,10 @@ export interface AuthProgressStep {
   status: 'done' | 'active' | 'upcoming';
 }
 
+// Free stock image from Pexels (https://www.pexels.com/photo/buildings-near-body-of-water-325185/)
+const AUTH_BRAND_IMAGE =
+  'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1400&w=1800';
+
 export function AuthLayout({
   children,
   title,
@@ -43,9 +47,17 @@ export function AuthLayout({
     <div className="app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
+        <img
+          src={AUTH_BRAND_IMAGE}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#0f245e]/78" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a1a49]/48 via-transparent to-[#183d92]/36" />
         <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-16 right-[-80px] h-72 w-72 rounded-full bg-[#90a8ff]/25 blur-3xl" />
-        <div className="absolute inset-0 bg-white/5" />
+        <div className="absolute inset-0 bg-white/6" />
 
         <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 py-8 text-white">
           <button onClick={() => navigate('/')} className="w-fit border-none bg-transparent p-0">

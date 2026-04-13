@@ -1333,7 +1333,6 @@ export default function CitizenMyReports() {
               <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
 
               <div className="flex items-center gap-[10px]">
-                <ThemeToggle className="rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50" />
                 <CitizenMobileMenu
                   activeKey="myreports"
                   onNavigate={(key) => {
@@ -1389,6 +1388,10 @@ export default function CitizenMyReports() {
                       <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
                         <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
                         <LanguageToggle compact />
+                      </div>
+                      <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                        <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
+                        <ThemeToggle compact />
                       </div>
                       <button
                         type="button"

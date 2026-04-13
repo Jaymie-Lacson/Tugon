@@ -38,6 +38,7 @@ export const en: TranslationDictionary = {
   'common.markAllRead': 'Mark all as read',
   'common.noNotifications': 'No notifications',
   'common.language': 'Language',
+  'common.theme': 'Theme',
 
   // ── Roles ──
   'role.citizen': 'Citizen',

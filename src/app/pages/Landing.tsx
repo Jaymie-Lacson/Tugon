@@ -24,8 +24,9 @@ import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 // Card/Badge primitives intentionally not used — landing sections use bespoke layouts
 
 
+// Free stock image from Pexels (https://www.pexels.com/photo/city-skyline-photo-290595/)
 const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1736117705462-34145ac33bdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBjaXR5JTIwZ3JpZCUyMHVyYmFuJTIwbWFwJTIwc3RyZWV0c3xlbnwxfHx8fDE3NzI3ODE2MDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
+  'https://images.pexels.com/photos/290595/pexels-photo-290595.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1600&w=2400';
 
 function SectionHeading({
   label,
@@ -417,8 +418,9 @@ function Hero() {
       >
         <div className="absolute inset-0">
           <img src={HERO_IMAGE} alt="City aerial" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-[#00236f]/[0.92]" />
-          <div className="absolute inset-0 opacity-[0.08] bg-white/5" />
+          <div className="absolute inset-0 bg-[#00236f]/[0.88]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#001a57]/50 via-transparent to-[#001a57]/28" />
+          <div className="absolute inset-0 opacity-[0.06] bg-white/5" />
         </div>
 
         <div
