@@ -825,7 +825,7 @@ export default function SuperAdminLayout() {
                         onClick={() => handleSearchResultClick('/superadmin/users')}
                         className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)]"
                       >
-                        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-[11px] font-bold text-white">
+                        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#B4730A] text-[11px] font-bold text-white">
                           {user.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">

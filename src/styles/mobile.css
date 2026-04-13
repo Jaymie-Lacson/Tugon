@@ -440,12 +440,12 @@
 }
 
 .incident-step4-rec-stop-btn {
-  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  background: #b91c1c;
   box-shadow: 0 4px 14px rgba(185, 28, 28, 0.4);
 }
 
 .incident-step4-rec-start-btn {
-  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  background: #1e3a8a;
   box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35);
 }
 
@@ -467,27 +467,27 @@
 }
 
 .incident-step5-card-head.is-pollution {
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.03));
+  background: rgba(15, 118, 110, 0.06);
   border-bottom-color: #0f766e;
 }
 
 .incident-step5-card-head.is-noise {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.03));
+  background: rgba(124, 58, 237, 0.06);
   border-bottom-color: #7c3aed;
 }
 
 .incident-step5-card-head.is-crime {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.08), rgba(30, 58, 138, 0.03));
+  background: rgba(30, 58, 138, 0.06);
   border-bottom-color: var(--primary);
 }
 
 .incident-step5-card-head.is-road-hazard {
-  background: linear-gradient(135deg, rgba(180, 115, 10, 0.12), rgba(180, 115, 10, 0.04));
+  background: rgba(180, 115, 10, 0.08);
   border-bottom-color: var(--severity-medium);
 }
 
 .incident-step5-card-head.is-other {
-  background: linear-gradient(135deg, rgba(71, 85, 105, 0.08), rgba(71, 85, 105, 0.03));
+  background: rgba(71, 85, 105, 0.06);
   border-bottom-color: #475569;
 }
 
@@ -617,7 +617,7 @@
 .incident-step5-photo-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.4));
+  background: rgba(0, 0, 0, 0.15);
   pointer-events: none;
 }
 
@@ -643,7 +643,7 @@
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 55%, #1e40af 100%);
+  background: #1e3a8a;
   display: flex;
   flex-direction: column;
   align-items: center;

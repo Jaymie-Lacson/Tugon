@@ -1293,7 +1293,7 @@ function Step4({
           </div>
         ) : (
           /* Playback UI */
-          <div className="bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-[14px] p-[14px_16px] border-[1.5px] border-[#93C5FD] flex items-center gap-3">
+          <div className="bg-[#EFF6FF] rounded-[14px] p-[14px_16px] border-[1.5px] border-[#93C5FD] flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-[#DBEAFE] flex items-center justify-center text-primary shrink-0">
               <Mic size={20} />
             </div>
@@ -2044,7 +2044,7 @@ export default function IncidentReport() {
                     }}
                     aria-label="Open profile actions"
                     aria-haspopup="menu"
-                    className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-none"
+                    className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#B4730A] text-xs font-bold text-white border-none"
                   >
                     {initials}
                   </button>

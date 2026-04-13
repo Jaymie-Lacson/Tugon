@@ -111,7 +111,7 @@ export default function AppRouteErrorPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-10 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-primary/5" />
       <Card className="relative z-10 w-full max-w-xl border-outline/20 bg-surface-container-lowest shadow-elevated">
         <CardHeader className="space-y-4 pb-0">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary-fixed text-primary">

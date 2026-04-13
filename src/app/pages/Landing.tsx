@@ -418,16 +418,7 @@ function Hero() {
         <div className="absolute inset-0">
           <img src={HERO_IMAGE} alt="City aerial" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-[#00236f]/[0.92]" />
-          <div
-            className="absolute inset-0 opacity-[0.35]"
-            style={{
-              backgroundImage:
-                'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-              backgroundSize: '56px 56px',
-              maskImage: 'radial-gradient(ellipse at 30% 40%, black 40%, transparent 80%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at 30% 40%, black 40%, transparent 80%)',
-            }}
-          />
+          <div className="absolute inset-0 opacity-[0.08] bg-white/5" />
         </div>
 
         <div
@@ -645,14 +636,7 @@ function MapTeaser() {
             {/* Right: map preview — muted, no glow */}
             <div className="relative">
               <div className="relative aspect-[5/4] overflow-hidden rounded-lg border border-white/10 bg-[#0a1a3e]">
-                <div
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-                    backgroundSize: '32px 32px',
-                  }}
-                />
+                <div className="pointer-events-none absolute inset-0 bg-white/[0.02]" />
 
                 {/* Pins — flat, no glow */}
                 {pins.map((pin) => (

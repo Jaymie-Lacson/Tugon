@@ -650,7 +650,7 @@ export default function CitizenDashboard() {
                     setProfileMenuOpen((prev) => !prev);
                     setNotifOpen(false);
                   }}
-                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-0"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#B4730A] text-xs font-bold text-white border-0"
                 >
                   {initials}
                 </button>
@@ -1152,7 +1152,7 @@ function _ReportTab() {
     <div className="citizen-content-shell pt-5 pb-5">
       {/* Header */}
       <div
-        className="mb-5 rounded-2xl bg-[linear-gradient(135deg,#B91C1C_0%,#991B1B_100%)] p-4 text-white"
+        className="mb-5 rounded-2xl bg-[#B91C1C] p-4 text-white"
       >
         <div className="font-extrabold text-lg mb-1">Submit Incident Report</div>
         <div className="text-xs text-white/75">
@@ -1321,7 +1321,7 @@ function _ReportTab() {
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-[2] cursor-pointer rounded-xl border-0 bg-[linear-gradient(135deg,#B91C1C_0%,#991B1B_100%)] py-3.5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(185,28,28,0.4)]"
+              className="flex-[2] cursor-pointer rounded-xl border-0 bg-[#B91C1C] py-3.5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(185,28,28,0.4)]"
             >
               Submit Report
             </button>

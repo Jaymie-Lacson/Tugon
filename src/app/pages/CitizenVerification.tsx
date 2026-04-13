@@ -438,7 +438,7 @@ export default function CitizenVerification() {
                   }}
                   aria-label="Open profile actions"
                   aria-haspopup="menu"
-                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-[#B4730A] to-[#F59E0B] text-xs font-bold text-white border-0"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#B4730A] text-xs font-bold text-white border-0"
                 >
                   {initials}
                 </button>

@@ -42,10 +42,10 @@ export function AuthLayout({
   return (
     <div className="app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
-      <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[linear-gradient(150deg,#00194f_0%,#00236f_40%,#1e3a8a_100%)] lg:flex">
+      <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-16 right-[-80px] h-72 w-72 rounded-full bg-[#90a8ff]/25 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_40%)]" />
+        <div className="absolute inset-0 bg-white/5" />
 
         <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 py-8 text-white">
           <button onClick={() => navigate('/')} className="w-fit border-none bg-transparent p-0">
@@ -214,7 +214,7 @@ export function InputField({
 }
 
 const BUTTON_COLORS: Record<string, string> = {
-  '#1e3a8a': 'btn-gradient-primary shadow-ambient',
+  '#1e3a8a': 'btn-primary-solid shadow-ambient',
   '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_16px_rgba(5,150,105,0.24)]',
   '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_4px_16px_rgba(180,115,10,0.24)]',
   '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_4px_16px_rgba(185,28,28,0.24)]',

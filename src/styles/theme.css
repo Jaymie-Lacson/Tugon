@@ -352,12 +352,12 @@
     border-radius: 999px;
   }
   *::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--scrollbar-thumb) 0%, var(--scrollbar-thumb-hover) 100%);
+    background: var(--scrollbar-thumb);
     border-radius: 999px;
     border: 2px solid var(--scrollbar-track);
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--scrollbar-thumb-hover) 0%, var(--scrollbar-thumb) 100%);
+    background: var(--scrollbar-thumb-hover);
   }
   *::-webkit-scrollbar-thumb:active { background: var(--scrollbar-thumb-active); }
   *::-webkit-scrollbar-corner       { background: var(--scrollbar-track); }
@@ -488,13 +488,13 @@
     backdrop-filter: blur(12px);
   }
 
-  /* Gradient CTA — primary action buttons */
-  .btn-gradient-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  /* Primary action buttons */
+  .btn-primary-solid {
+    background: var(--primary);
     color: var(--on-primary);
   }
-  .btn-gradient-primary:hover {
-    background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+  .btn-primary-solid:hover {
+    background: var(--primary-container);
   }
 
   /* Ambient shadow — floating elements */
