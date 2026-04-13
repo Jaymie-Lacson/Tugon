@@ -56,19 +56,19 @@ function KPICard({ label, value, sub, color, trend, trendLabel }: KPIProps) {
   const accent = KPI_ACCENT[color] ?? '#2563EB';
   return (
     <div
-      className="flex min-w-0 flex-col gap-1.5 bg-white px-4 py-4 border-r border-b border-slate-200"
+      className="flex min-w-0 flex-col gap-1.5 bg-card px-4 py-4 border-r border-b border-[var(--outline-variant)]"
     >
       {trend !== undefined && (
-        <div className={`flex items-center gap-[3px] font-mono text-[10px] font-bold ${isUp ? 'text-[#DC2626]' : 'text-[#16A34A]'}`}>
+        <div className={`flex items-center gap-[3px] font-mono text-[10px] font-bold ${isUp ? 'text-[var(--error)]' : 'text-[var(--severity-low)]'}`}>
           {isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
           {Math.abs(trend)}%
         </div>
       )}
-      <div className="text-[#0F172A] text-[26px] font-bold font-mono leading-[1.1] mb-[3px]">{value}</div>
-      <div className="text-[#6B7280] text-xs">{label}</div>
-      {sub && <div className="text-[#9CA3AF] text-[10px]">{sub}</div>}
+      <div className="text-[var(--on-surface)] text-[26px] font-bold font-mono leading-[1.1] mb-[3px]">{value}</div>
+      <div className="text-[var(--on-surface-variant)] text-xs">{label}</div>
+      {sub && <div className="text-[var(--on-surface-variant)] text-[10px]">{sub}</div>}
       {trendLabel && (
-        <div className="font-mono text-[10px] text-[#9CA3AF]">{trendLabel}</div>
+        <div className="font-mono text-[10px] text-[var(--on-surface-variant)]">{trendLabel}</div>
       )}
     </div>
   );
@@ -83,32 +83,32 @@ const alertLevelConfig: Record<string, { label: string; color: string; bg: strin
 function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
   switch (level) {
     case 'normal':
-      return 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]';
+      return 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]';
     case 'elevated':
-      return 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]';
+      return 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]';
     case 'critical':
-      return 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]';
+      return 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]';
     default:
-      return 'border border-[var(--outline-variant)] bg-white text-[var(--outline)]';
+      return 'border border-[var(--outline-variant)] bg-card text-[var(--outline)]';
   }
 }
 
 function getBarangayAccentClass(code: string) {
-  if (code === '251') return 'text-[#2563EB]';
-  if (code === '252') return 'text-[#16A34A]';
-  return 'text-[#D97706]';
+  if (code === '251') return 'text-primary';
+  if (code === '252') return 'text-[var(--severity-low)]';
+  return 'text-[var(--severity-medium)]';
 }
 
 function getStatValueClass(color: string) {
-  if (color === 'var(--severity-critical)') return 'text-[#DC2626]';
-  if (color === 'var(--severity-medium)') return 'text-[#D97706]';
-  if (color === 'var(--primary)') return 'text-[#2563EB]';
-  return 'text-[#16A34A]';
+  if (color === 'var(--severity-critical)') return 'text-[var(--error)]';
+  if (color === 'var(--severity-medium)') return 'text-[var(--severity-medium)]';
+  if (color === 'var(--primary)') return 'text-primary';
+  return 'text-[var(--severity-low)]';
 }
 
 function getQuickNavAccentClass(path: string) {
-  if (path === '/superadmin/users') return 'text-[#16A34A]';
-  return 'text-[#2563EB]';
+  if (path === '/superadmin/users') return 'text-[var(--severity-low)]';
+  return 'text-primary';
 }
 
 function formatLogTime(ts: string) {
@@ -412,17 +412,17 @@ export default function SAOverview() {
   return (
     <div className="p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
-      <div className="border-b border-slate-200 pb-4 mb-5">
+      <div className="border-b border-[var(--outline-variant)] pb-4 mb-5">
       <div className="flex items-center justify-between gap-[10px] max-md:flex-col max-md:items-start">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[10px] font-bold uppercase text-[#2563EB]">
+            <span className="font-mono text-[10px] font-bold uppercase text-primary">
               {t('role.superAdmin')}
             </span>
-            <div className="text-[#6B7280] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
+            <div className="text-[var(--on-surface-variant)] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
           </div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
-          <p className="text-[#6B7280] text-xs m-0 mt-[2px]">
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
+          <p className="text-[var(--on-surface-variant)] text-xs m-0 mt-[2px]">
             {t('superadmin.overview.monitoringSubtitle')}
           </p>
         </div>
@@ -434,7 +434,7 @@ export default function SAOverview() {
               void loadBarangays();
               void loadAuditLogs();
             }}
-            className="flex min-h-11 items-center gap-[6px] bg-white border border-[#E5E7EB] rounded-lg px-[14px] py-2 cursor-pointer text-[#374151] text-xs font-semibold max-md:flex-1 max-md:justify-center"
+            className="flex min-h-11 items-center gap-[6px] bg-card border border-[var(--outline-variant)] rounded-lg px-[14px] py-2 cursor-pointer text-[var(--on-surface)] text-xs font-semibold max-md:flex-1 max-md:justify-center"
           >
             <RefreshCw size={13} className="text-[var(--outline)]" />
             {summaryLoading ? t('common.refreshing') : t('common.refresh')}
@@ -451,13 +451,13 @@ export default function SAOverview() {
       </div>
 
       {summaryError ? (
-        <div className="mb-3 border-l-4 border-[#DC2626] bg-white px-3 py-2.5 text-[#DC2626] text-xs font-semibold">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
           {summaryError}
         </div>
       ) : null}
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 border-l border-t border-slate-200 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 border-l border-t border-[var(--outline-variant)] mb-4">
         <KPICard
           label={t('superadmin.overview.kpiActiveIncidents')}
           value={total}
@@ -506,16 +506,16 @@ export default function SAOverview() {
         {barangayCards.map((b) => {
           const al = alertLevelConfig[b.alertLevel];
           return (
-            <div key={b.id} className="flex-1 min-w-[260px] bg-white overflow-hidden border border-slate-200">
+            <div key={b.id} className="flex-1 min-w-[260px] bg-card overflow-hidden border border-[var(--outline-variant)]">
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-[3px]">
-                      <span className="text-[#0F172A] text-base font-bold">{b.name}</span>
+                      <span className="text-[var(--on-surface)] text-base font-bold">{b.name}</span>
                       <span className={`font-mono text-[9px] font-bold uppercase rounded px-1.5 py-0.5 ${getAlertLevelClass(b.alertLevel)}`}>{al.label}</span>
                     </div>
-                    <div className="text-[#6B7280] text-[11px]">{b.district}</div>
-                    <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{b.captain}</div>
+                    <div className="text-[var(--on-surface-variant)] text-[11px]">{b.district}</div>
+                    <div className="text-[var(--on-surface-variant)] text-[10px] mt-[2px]">{b.captain}</div>
                   </div>
                   <MapPin size={16} className={`shrink-0 mt-1 ${getBarangayAccentClass(b.code)}`} />
                 </div>
@@ -528,9 +528,9 @@ export default function SAOverview() {
                     { label: t('superadmin.overview.statResolved'),   value: b.resolvedThisMonth, color: 'var(--severity-low)' },
                     { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
                   ].map(s => (
-                    <div key={s.label} className="border border-slate-100 bg-white px-[10px] py-2">
+                    <div key={s.label} className="border border-[var(--outline-variant)] bg-card px-[10px] py-2">
                       <div className={`text-[17px] font-bold font-mono leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
-                      <div className="text-[#9CA3AF] text-[10px] mt-[2px]">{s.label}</div>
+                      <div className="text-[var(--on-surface-variant)] text-[10px] mt-[2px]">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -538,10 +538,10 @@ export default function SAOverview() {
                 {/* Response time bar */}
                 <div className="mb-3">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[#6B7280] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
+                    <span className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
                     <span className={`text-[11px] font-semibold ${b.responseRate < 90 ? 'text-severity-medium' : 'text-[var(--severity-low)]'}`}>{b.responseRate}%</span>
                   </div>
-                  <div className="h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden">
+                  <div className="h-[5px] bg-muted rounded-[3px] overflow-hidden">
                     <progress
                       value={b.responseRate}
                       max={100}
@@ -549,25 +549,25 @@ export default function SAOverview() {
                         b.responseRate < 90
                           ? '[&::-webkit-progress-value]:bg-[var(--severity-medium)] [&::-moz-progress-bar]:bg-[var(--severity-medium)]'
                           : '[&::-webkit-progress-value]:bg-[var(--severity-low)] [&::-moz-progress-bar]:bg-[var(--severity-low)]'
-                      } [&::-webkit-progress-bar]:bg-[#F3F4F6]`}
+                      } [&::-webkit-progress-bar]:bg-muted`}
                     />
                   </div>
-                  <div className="text-[#9CA3AF] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
+                  <div className="text-[var(--on-surface-variant)] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-start justify-between gap-2 flex-wrap">
                   <div className="flex gap-3 flex-wrap">
-                    <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
+                    <div className="text-[var(--on-surface-variant)] text-[10px]">
+                      <span className="text-[var(--on-surface)] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
                     </div>
-                    <div className="text-[#6B7280] text-[10px]">
-                      <span className="text-[#374151] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
+                    <div className="text-[var(--on-surface-variant)] text-[10px]">
+                      <span className="text-[var(--on-surface)] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
                     </div>
                   </div>
                   <button
                     onClick={() => navigate('/superadmin/map')}
-                    className="flex items-center gap-1 border border-slate-200 bg-white px-[10px] py-1 cursor-pointer text-[11px] font-semibold shrink-0 text-[#2563EB]"
+                    className="flex items-center gap-1 border border-[var(--outline-variant)] bg-card px-[10px] py-1 cursor-pointer text-[11px] font-semibold shrink-0 text-primary"
                   >
                     {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
                   </button>
@@ -581,11 +581,11 @@ export default function SAOverview() {
       {/* Charts + Logs row */}
       <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Incident type distribution */}
-        <div ref={incidentTypesCardRef} className="bg-white p-5 border border-slate-200">
+        <div ref={incidentTypesCardRef} className="bg-card p-5 border border-[var(--outline-variant)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
-              <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -607,32 +607,32 @@ export default function SAOverview() {
         </div>
 
         {/* System activity log */}
-        <div ref={activityLogCardRef} className="bg-white p-5 border border-slate-200 flex flex-col overflow-hidden">
+        <div ref={activityLogCardRef} className="bg-card p-5 border border-[var(--outline-variant)] flex flex-col overflow-hidden">
           <div ref={activityLogHeaderRef} className="flex items-center justify-between mb-[14px]">
             <div>
-              <div className="text-[#0F172A] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
-              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => navigate('/superadmin/audit-logs')}
-                className="flex items-center gap-1 border border-slate-200 bg-white px-[10px] py-1 cursor-pointer text-[11px] font-semibold text-[#2563EB]"
+                className="flex items-center gap-1 border border-[var(--outline-variant)] bg-card px-[10px] py-1 cursor-pointer text-[11px] font-semibold text-primary"
               >
                 {t('nav.auditLogs')} <ArrowRight size={11} />
               </button>
-              <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
+              <div className="w-2 h-2 rounded-full bg-[var(--severity-low)]" />
             </div>
           </div>
           <div ref={activityLogListRef} className="flex-1 overflow-hidden flex flex-col gap-2">
             {visibleSystemLogs.map((log) => {
               return (
-                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 border-b border-slate-100 last:border-b-0">
+                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 border-b border-[var(--outline-variant)] last:border-b-0">
                   <div className="flex-1 min-w-0">
-                    <div className="text-[#1E293B] text-[11px] leading-[1.4]">{log.message}</div>
+                    <div className="text-[var(--on-surface)] text-[11px] leading-[1.4]">{log.message}</div>
                     <div className="flex items-center gap-[6px] mt-[3px]">
-                      <span className="text-[#9CA3AF] text-[10px]">{formatLogTime(log.timestamp)}</span>
+                      <span className="text-[var(--on-surface-variant)] text-[10px]">{formatLogTime(log.timestamp)}</span>
                       {log.barangay && (
-                        <span className="font-mono text-[#2563EB] text-[9px] font-bold">{log.barangay}</span>
+                        <span className="font-mono text-primary text-[9px] font-bold">{log.barangay}</span>
                       )}
                     </div>
                   </div>
@@ -644,23 +644,23 @@ export default function SAOverview() {
       </div>
 
       {/* Live OSM Map preview */}
-      <div className="sa-overview-map-preview bg-white overflow-hidden mb-5 border border-slate-200">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
+      <div className="sa-overview-map-preview bg-card overflow-hidden mb-5 border border-[var(--outline-variant)]">
+        <div className="px-4 py-3 border-b border-[var(--outline-variant)] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
           <div className="flex items-center gap-[10px]">
-            <MapPin size={15} className="text-[#2563EB]" />
+            <MapPin size={15} className="text-primary" />
             <div>
-              <div className="text-[#0F172A] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
-              <div className="text-[#9CA3AF] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
+              <div className="text-[var(--on-surface)] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
             <div className="flex items-center gap-1">
-              <span className="w-[6px] h-[6px] rounded-full bg-[#22C55E] inline-block" />
-              <span className="font-mono text-[#16A34A] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
+              <span className="w-[6px] h-[6px] rounded-full bg-[var(--severity-low)] inline-block" />
+              <span className="font-mono text-[var(--severity-low)] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
-              className="flex items-center gap-[5px] bg-[#2563EB] text-white border-0 px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
+              className="flex items-center gap-[5px] bg-primary text-white border-0 px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
               {t('superadmin.overview.fullMap')} <ArrowRight size={11} />
             </button>
@@ -684,13 +684,13 @@ export default function SAOverview() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="w-full bg-white border border-slate-200 px-3.5 py-3.5 sm:px-4 sm:py-[14px] cursor-pointer text-left flex items-start gap-3 min-h-[84px]"
+            className="w-full bg-card border border-[var(--outline-variant)] px-3.5 py-3.5 sm:px-4 sm:py-[14px] cursor-pointer text-left flex items-start gap-3 min-h-[84px]"
           >
             <div className="min-w-0 flex-1">
               <div className={`text-[13px] leading-[1.35] font-semibold sm:leading-normal ${getQuickNavAccentClass(item.path)}`}>{item.label}</div>
-              <div className="text-[#9CA3AF] text-[11px] leading-[1.45] mt-[3px]">{item.desc}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px] leading-[1.45] mt-[3px]">{item.desc}</div>
             </div>
-            <ChevronRight size={16} className="ml-auto mt-0.5 shrink-0 text-slate-400" />
+            <ChevronRight size={16} className="ml-auto mt-0.5 shrink-0 text-[var(--on-surface-variant)]" />
           </button>
         ))}
       </div>

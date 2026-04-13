@@ -96,7 +96,7 @@ function ZoomController() {
           onClick={btn.action}
           aria-label={btn.title}
           title={btn.title}
-          className="w-8 h-8 border border-[#E5E7EB] rounded-md bg-white cursor-pointer text-[15px] font-bold text-[#374151] shadow-[0_1px_4px_rgba(0,0,0,.12)] flex items-center justify-center"
+          className="w-8 h-8 border border-[var(--outline-variant)] rounded-md bg-card cursor-pointer text-[15px] font-bold text-[var(--on-surface)] shadow-[0_1px_4px_rgba(0,0,0,.12)] flex items-center justify-center"
         >{btn.label}</button>
       ))}
     </div>
@@ -160,9 +160,9 @@ const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
 const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
 
 const alertLevelConfig: Record<string, { label: string; badgeClass: string }> = {
-  normal: { label: 'NORMAL', badgeClass: 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]' },
-  elevated: { label: 'ELEVATED', badgeClass: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]' },
-  critical: { label: 'CRITICAL', badgeClass: 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]' },
+  normal: { label: 'NORMAL', badgeClass: 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]' },
+  elevated: { label: 'ELEVATED', badgeClass: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]' },
+  critical: { label: 'CRITICAL', badgeClass: 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]' },
 };
 
 const SEVERITY_TEXT_CLASS: Record<string, string> = {
@@ -173,10 +173,10 @@ const SEVERITY_TEXT_CLASS: Record<string, string> = {
 };
 
 const SEVERITY_BADGE_CLASS: Record<string, string> = {
-  critical: 'border border-[rgba(186,26,26,0.28)] bg-white text-[var(--error)]',
-  high: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]',
-  medium: 'border border-[var(--secondary-fixed-dim)] bg-white text-[var(--secondary)]',
-  low: 'border border-[rgba(5,150,105,0.28)] bg-white text-[var(--severity-low)]',
+  critical: 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]',
+  high: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]',
+  medium: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]',
+  low: 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]',
 };
 
 const INCIDENT_BUTTON_CLASS: Record<string, { active: string; inactive: string }> = {
@@ -738,13 +738,13 @@ export default function SABarangayMap() {
             onClick={() => {
               void loadBarangays();
             }}
-            className="flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 bg-white text-[var(--on-surface-variant)] border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
+            className="flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 bg-card text-[var(--on-surface-variant)] border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >
             <RefreshCw size={13} /> {loadingBarangays ? t('superadmin.barangayMap.syncing') : t('superadmin.barangayMap.syncBoundaries')}
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
-            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-white text-[var(--on-surface-variant)]'}`}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
           >
             <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
           </button>
@@ -753,7 +753,7 @@ export default function SABarangayMap() {
               setShowHeatmapSettings((open) => !open);
               setShowHeatmap(true);
             }}
-            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-white text-[var(--on-surface-variant)]'}`}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
           >
             <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
           </button>
@@ -761,20 +761,20 @@ export default function SABarangayMap() {
       </div>
 
       {barangaysError ? (
-        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-severity-critical text-xs font-semibold">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-severity-critical text-xs font-semibold">
           {barangaysError}
         </div>
       ) : null}
 
       {incidentsError ? (
-        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-severity-critical text-xs font-semibold">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-severity-critical text-xs font-semibold">
           {incidentsError}
         </div>
       ) : null}
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_296px] gap-3.5">
         {/* ── OSM Map ── */}
-        <div className="bg-white overflow-hidden border border-[var(--outline-variant)] flex flex-col">
+        <div className="bg-card overflow-hidden border border-[var(--outline-variant)] flex flex-col">
           {/* Toolbar */}
           <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[var(--outline-variant)] bg-surface-container-low flex-wrap">
             <Filter size={13} className="text-[var(--outline)]" />
@@ -785,7 +785,7 @@ export default function SABarangayMap() {
                   value={filterType}
                   onChange={(event) => setFilterType(event.target.value)}
                   title="Filter by category"
-                  className="min-h-10 border border-[var(--outline-variant)] rounded-lg bg-white text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
+                  className="min-h-10 border border-[var(--outline-variant)] rounded-lg bg-card text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
                 >
                   <option value="all">{t('superadmin.barangayMap.allCategories')}</option>
                   <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
@@ -798,7 +798,7 @@ export default function SABarangayMap() {
                   value={selectedBarangayCodes}
                   onChange={handleCompactBarangaySelect}
                   title={t('superadmin.barangayMap.selectBarangays')}
-                  className="border border-[var(--outline-variant)] rounded-lg bg-white text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[88px]"
+                  className="border border-[var(--outline-variant)] rounded-lg bg-card text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[88px]"
                 >
                   {BARANGAY_FILTER_CODES.map((code) => (
                     <option key={code} value={code}>Barangay {code}</option>
@@ -820,14 +820,14 @@ export default function SABarangayMap() {
                 <span className="text-[11px] text-[var(--outline)] ml-1">{t('superadmin.barangayMap.barangayLabel')}</span>
                 <button
                   onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
-                  className="min-h-8 px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)]"
+                  className="min-h-8 px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)]"
                 >
                   {t('common.all')}
                 </button>
                 {BARANGAY_FILTER_CODES.map((code) => (
                   <label
                     key={code}
-                    className={`inline-flex min-h-8 items-center gap-1 px-2 py-1 border border-[#CBD5E1] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[var(--primary-fixed)] text-[var(--primary-container)]' : 'bg-white text-[var(--on-surface-variant)]'}`}
+                    className={`inline-flex min-h-8 items-center gap-1 px-2 py-1 border border-[var(--outline-variant)] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[var(--primary-fixed)] text-[var(--primary-container)]' : 'bg-card text-[var(--on-surface-variant)]'}`}
                   >
                     <input
                       type="checkbox"
@@ -867,7 +867,7 @@ export default function SABarangayMap() {
                   <span className="text-xs font-bold text-[var(--on-surface)]">{t('superadmin.barangayMap.heatmapSettings')}</span>
                   <button
                     onClick={handleResetHeatmapSettings}
-                    className="min-h-7 border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
+                    className="min-h-7 border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
                   >
                     {t('superadmin.barangayMap.reset')}
                   </button>
@@ -1030,8 +1030,8 @@ export default function SABarangayMap() {
                 >
                   <Tooltip direction="top" offset={[0, -32]} opacity={1}>
                     <div className="text-[11px] min-w-[140px]">
-                      <div className="font-bold text-[#1E293B] mb-0.5">{inc.label}</div>
-                      <div className="text-[#475569]">{inc.barangay}</div>
+                      <div className="font-bold text-[var(--on-surface)] mb-0.5">{inc.label}</div>
+                      <div className="text-[var(--on-surface-variant)]">{inc.barangay}</div>
                       <div
                         className={`font-semibold capitalize mt-0.5 ${SEVERITY_TEXT_CLASS[inc.severity] ?? 'text-[var(--on-surface-variant)]'}`}
                       >
@@ -1104,7 +1104,7 @@ export default function SABarangayMap() {
 
           {/* Barangay detail card */}
           {selectedBrgy ? (
-            <div className="bg-white overflow-hidden border border-[var(--outline-variant)]">
+            <div className="bg-card overflow-hidden border border-[var(--outline-variant)]">
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -1119,14 +1119,14 @@ export default function SABarangayMap() {
                         );
                       })()}
                     </div>
-                    <div className="text-[11px] text-[#6B7280]">{selectedBrgy.district}</div>
-                    <div className="text-[10px] text-[#9CA3AF] mt-0.5">Capt. {selectedBrgy.captain}</div>
+                    <div className="text-[11px] text-[var(--on-surface-variant)]">{selectedBrgy.district}</div>
+                    <div className="text-[10px] text-[var(--on-surface-variant)] mt-0.5">Capt. {selectedBrgy.captain}</div>
                   </div>
                   <button
                     onClick={() => setSelectedBarangay(null)}
                     aria-label={t('common.close')}
                     title={t('common.close')}
-                    className="bg-[#F3F4F6] border-none rounded-md px-2 py-1 cursor-pointer text-[#6B7280] text-[11px]"
+                    className="bg-muted border-none rounded-md px-2 py-1 cursor-pointer text-[var(--on-surface-variant)] text-[11px]"
                   >✕</button>
                 </div>
 
@@ -1138,32 +1138,32 @@ export default function SABarangayMap() {
                     { label: t('superadmin.barangayMap.statRespRate'), value: `${selectedBrgy.responseRate}%` },
                     { label: t('superadmin.barangayMap.statAvgResponse'), value: `${selectedBrgy.avgResponseMin}m` },
                   ].map(s => (
-                    <div key={s.label} className="bg-[#F9FAFB] rounded-lg px-2.5 py-2">
-                      <div className="text-[15px] font-bold text-[#0F172A]">{s.value}</div>
-                      <div className="text-[10px] text-[#9CA3AF] mt-px">{s.label}</div>
+                    <div key={s.label} className="bg-[var(--surface-container-low)] rounded-lg px-2.5 py-2">
+                      <div className="text-[15px] font-bold text-[var(--on-surface)]">{s.value}</div>
+                      <div className="text-[10px] text-[var(--on-surface-variant)] mt-px">{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Coord info */}
-                <div className="bg-[#F0F4FF] rounded-lg px-2.5 py-2 border border-[#DBEAFE]">
-                  <div className="text-[10px] font-semibold text-[#374151] mb-1 flex items-center gap-[5px]">
+                <div className="bg-[var(--primary-fixed)] rounded-lg px-2.5 py-2 border border-[var(--primary-fixed)]">
+                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-1 flex items-center gap-[5px]">
                     <Navigation size={10} color="#1D4ED8" /> {t('superadmin.barangayMap.osmCoordinates')}
                   </div>
-                  <div className="text-[9px] text-[#6B7280] font-mono">
+                  <div className="text-[9px] text-[var(--on-surface-variant)] font-mono">
                     {t('superadmin.barangayMap.centerCoords', { lat: selectedBrgy.center[0].toFixed(4), lng: selectedBrgy.center[1].toFixed(4) })}
                   </div>
-                  <div className="text-[9px] text-[#9CA3AF] mt-0.5">
+                  <div className="text-[9px] text-[var(--on-surface-variant)] mt-0.5">
                     {t('superadmin.barangayMap.polygonBoundary', { count: selectedBrgy.boundary.length })}
                   </div>
                 </div>
 
                 <div className="mt-2.5">
-                  <div className="text-[10px] font-semibold text-[#374151] mb-[5px]">
+                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-[5px]">
                     {t('superadmin.barangayMap.boundaryGeojson')}
                   </div>
                   {!BOUNDARY_EDIT_ENABLED ? (
-                    <div className="text-[9px] text-[#64748B] mb-1.5">
+                    <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
                       {t('superadmin.barangayMap.editingLocked')}
                     </div>
                   ) : null}
@@ -1177,33 +1177,33 @@ export default function SABarangayMap() {
                             }
                           }}
                           disabled={!BOUNDARY_EDIT_ENABLED}
-                          className={`border border-[#BFDBFE] rounded-md px-2 py-[5px] text-[10px] font-bold text-[#1D4ED8] ${boundaryEditMode ? 'bg-[#DBEAFE]' : 'bg-[#EFF6FF]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                          className={`border border-[var(--primary-fixed-dim)] rounded-md px-2 py-[5px] text-[10px] font-bold text-primary ${boundaryEditMode ? 'bg-[var(--primary-fixed)]' : 'bg-[var(--primary-fixed)]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
                         </button>
                         <button
                           onClick={handleUndoBoundaryPoint}
                           disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
-                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Undo Point
                         </button>
                         <button
                           onClick={handleResetBoundaryPoints}
                           disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
-                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Reset Points
                         </button>
                         <button
                           onClick={handleApplyPointsToDraft}
                           disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
-                          className={`border border-[#E5E7EB] rounded-md px-2 py-[5px] bg-white text-[#475569] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
                         >
                           Apply Points to JSON
                         </button>
                       </div>
-                      <div className="text-[9px] text-[#64748B] mb-1.5">
+                      <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
                         {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
                       </div>
                     </>
@@ -1218,13 +1218,13 @@ export default function SABarangayMap() {
                       }
                     }}
                     readOnly={!BOUNDARY_EDIT_ENABLED}
-                    className="w-full min-h-[120px] border border-[#DBEAFE] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[#334155] box-border bg-[#F8FAFF]"
+                    className="w-full min-h-[120px] border border-[var(--primary-fixed)] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[var(--on-surface-variant)] box-border bg-[var(--surface-container-low)]"
                   />
                   {boundaryError ? (
-                    <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-white px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
+                    <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-card px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
                   ) : null}
                   {boundaryMessage ? (
-                    <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
+                    <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-card px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
                   ) : null}
                   {BOUNDARY_EDIT_ENABLED ? (
                     <button
@@ -1241,16 +1241,16 @@ export default function SABarangayMap() {
               </div>
             </div>
           ) : (
-            <div className="bg-white p-5 border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
+            <div className="bg-card p-5 border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
               <MapPin size={28} className="text-[var(--outline-variant)]" />
-              <div className="text-xs text-[#9CA3AF] text-center">
+              <div className="text-xs text-[var(--on-surface-variant)] text-center">
                 {t('superadmin.barangayMap.clickBoundaryHint')}
               </div>
             </div>
           )}
 
           {/* Active incidents list */}
-          <div className="bg-white p-4 border border-[var(--outline-variant)] flex-1 flex flex-col">
+          <div className="bg-card p-4 border border-[var(--outline-variant)] flex-1 flex flex-col">
             <div className="text-sm font-bold text-[var(--on-surface)] mb-2.5">
               {selectedBrgy ? t('superadmin.barangayMap.barangayIncidents', { name: selectedBrgy.name }) : t('superadmin.barangayMap.allActiveIncidents')}
             </div>
@@ -1271,11 +1271,11 @@ export default function SABarangayMap() {
                         {getIncidentTypeIcon(inc.type, 12, '#FFFFFF')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-semibold text-[#1E293B]">{inc.label}</div>
-                        <div className="text-[10px] text-[#9CA3AF]">{inc.barangay}</div>
+                        <div className="text-[11px] font-semibold text-[var(--on-surface)]">{inc.label}</div>
+                        <div className="text-[10px] text-[var(--on-surface-variant)]">{inc.barangay}</div>
                       </div>
                       <div
-                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'border border-[var(--outline-variant)] bg-white text-[var(--on-surface-variant)]'}`}
+                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)]'}`}
                       >{inc.severity}</div>
                     </div>
                   );
@@ -1292,12 +1292,12 @@ export default function SABarangayMap() {
                 <button
                   key={b.id}
                   onClick={() => setSelectedBarangay(isSel ? null : b.id)}
-                  className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none border ${isSel ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high border-[var(--outline-variant)]') : 'bg-white border-[var(--outline-variant)]'}`}
+                  className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none border ${isSel ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high border-[var(--outline-variant)]') : 'bg-card border-[var(--outline-variant)]'}`}
                 >
                   <div className={`w-2.5 h-2.5 rounded-[3px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'} border`} />
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-[var(--on-surface)]">{b.name}</div>
-                    <div className="text-[10px] text-[#9CA3AF]">
+                    <div className="text-[10px] text-[var(--on-surface-variant)]">
                       {b.center[0].toFixed(4)}°N, {b.center[1].toFixed(4)}°E
                     </div>
                   </div>
@@ -1316,14 +1316,14 @@ export default function SABarangayMap() {
       </div>
 
       {/* Comparison table */}
-      <div className="bg-white px-5 py-[18px] mt-3.5 border border-[var(--outline-variant)]">
+      <div className="bg-card px-5 py-[18px] mt-3.5 border border-[var(--outline-variant)]">
         <div className="text-[15px] font-bold text-[var(--on-surface)] mb-3.5">{t('superadmin.barangayMap.comparisonTitle')}</div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="border-b-2 border-[#F3F4F6]">
+              <tr className="border-b-2 border-[var(--outline-variant)]">
                 {[t('superadmin.barangayMap.colBarangay'), t('superadmin.barangayMap.colDistrict'), t('superadmin.barangayMap.colPopulation'), t('superadmin.barangayMap.colArea'), t('superadmin.barangayMap.colCaptain'), t('superadmin.barangayMap.colAlertLevel'), t('superadmin.barangayMap.colActive'), t('superadmin.barangayMap.colResponseRate'), t('superadmin.barangayMap.colAvgResponse'), t('superadmin.barangayMap.colOsmCenter')].map(h => (
-                  <th key={h} className="px-3 py-2 text-left text-[#9CA3AF] font-semibold text-[10px] whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-3 py-2 text-left text-[var(--on-surface-variant)] font-semibold text-[10px] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1333,43 +1333,43 @@ export default function SABarangayMap() {
                 return (
                   <tr
                     key={b.id}
-                    className={`cursor-pointer ${i < barangaysData.length - 1 ? 'border-b border-[#F9FAFB]' : ''} ${selectedBarangay === b.id ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high') : 'bg-transparent'}`}
+                    className={`cursor-pointer ${i < barangaysData.length - 1 ? 'border-b border-[var(--outline-variant)]' : ''} ${selectedBarangay === b.id ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high') : 'bg-transparent'}`}
                     onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
                   >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
                         <div className={`w-2.5 h-2.5 rounded-[2px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'} border`} />
-                        <span className="text-[#0F172A] font-semibold">{b.name}</span>
+                        <span className="text-[var(--on-surface)] font-semibold">{b.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-[#6B7280]">{b.district}</td>
-                    <td className="px-3 py-2.5 text-[#374151] font-semibold">{b.population.toLocaleString()}</td>
-                    <td className="px-3 py-2.5 text-[#6B7280]">{b.area}</td>
-                    <td className="px-3 py-2.5 text-[#374151]">{b.captain}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{b.district}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface)] font-semibold">{b.population.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{b.area}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface)]">{b.captain}</td>
                     <td className="px-3 py-2.5">
                       <span className={`text-[10px] font-bold px-[7px] py-0.5 rounded ${al.badgeClass}`}>{al.label}</span>
                     </td>
-                    <td className={`px-3 py-2.5 font-bold ${b.activeIncidents > 8 ? 'text-[var(--error)]' : 'text-[#374151]'}`}>{b.activeIncidents}</td>
+                    <td className={`px-3 py-2.5 font-bold ${b.activeIncidents > 8 ? 'text-[var(--error)]' : 'text-[var(--on-surface)]'}`}>{b.activeIncidents}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-[60px] h-[5px] bg-[#F3F4F6] rounded-[3px] overflow-hidden grid grid-cols-[repeat(20,minmax(0,1fr))] gap-px">
+                        <div className="w-[60px] h-[5px] bg-muted rounded-[3px] overflow-hidden grid grid-cols-[repeat(20,minmax(0,1fr))] gap-px">
                           {Array.from({ length: 20 }).map((_, segmentIndex) => {
                             const isActive = segmentIndex < Math.round(b.responseRate / 5);
                             return (
                               <div
                                 key={`${b.id}-response-${segmentIndex}`}
-                                className={`${isActive ? (b.responseRate >= 90 ? 'bg-severity-low' : 'bg-secondary') : 'bg-[#F3F4F6]'}`}
+                                className={`${isActive ? (b.responseRate >= 90 ? 'bg-severity-low' : 'bg-secondary') : 'bg-muted'}`}
                               />
                             );
                           })}
                         </div>
-                        <span className="text-[#374151] font-semibold">{b.responseRate}%</span>
+                        <span className="text-[var(--on-surface)] font-semibold">{b.responseRate}%</span>
                       </div>
                     </td>
                     <td className={`px-3 py-2.5 font-semibold ${b.avgResponseMin > 10 ? 'text-[var(--error)]' : 'text-[var(--severity-low)]'}`}>
                       {b.avgResponseMin} min
                     </td>
-                    <td className="px-3 py-2.5 text-[#6B7280] text-[10px] font-mono">
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)] text-[10px] font-mono">
                       {b.center[0].toFixed(4)}°N<br />{b.center[1].toFixed(4)}°E
                     </td>
                   </tr>

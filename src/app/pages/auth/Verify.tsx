@@ -175,7 +175,7 @@ export default function Verify() {
     <AuthLayout
       title={t('auth.verify.title')}
       subtitle={t('auth.verify.subtitle', { phone: displayPhone })}
-      logoSrc="/tugon-wordmark-blue.svg"
+      logoSrc="/tugon-header-logo.svg"
       topAction={(
         <Button
           variant="ghost"

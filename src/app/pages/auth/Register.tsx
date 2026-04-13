@@ -74,7 +74,7 @@ export default function Register() {
     <AuthLayout
       title={t('auth.register.title')}
       subtitle={t('auth.register.subtitle')}
-      logoSrc="/tugon-wordmark-blue.svg"
+      logoSrc="/tugon-header-logo.svg"
       topAction={
         <Button
           variant="ghost"

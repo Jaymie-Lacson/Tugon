@@ -807,3 +807,198 @@
     display: block;
   }
 }
+
+/* ── Dark mode overrides ───────────────────────────────────────────────── */
+.dark .map-panel {
+  background: var(--surface-container-lowest);
+  border-right-color: var(--outline-variant);
+}
+
+.dark .map-panel-header {
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .map-panel-title {
+  color: var(--on-surface);
+}
+
+.dark .map-filter-button {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-filter-button.is-active {
+  background: var(--primary-fixed);
+  border-color: var(--primary-fixed-dim);
+}
+
+.dark .map-filter-button-text {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-panel-close-btn {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-panel-close-text {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-search-input {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+  color: var(--on-surface);
+}
+
+.dark .map-filter-select {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+  color: var(--on-surface-variant);
+}
+
+.dark .map-stats-bar {
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .map-stat-item {
+  background: var(--surface-container-lowest);
+  border-right-color: var(--outline-variant);
+}
+
+.dark .map-stat-neutral {
+  color: var(--on-surface);
+}
+
+.dark .map-stat-label {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-osm-wrap {
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .map-osm-badge-text {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-list-state {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-incident-card {
+  background: var(--surface-container-lowest);
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .map-incident-card.is-selected {
+  background: var(--primary-fixed);
+}
+
+.dark .map-incident-id {
+  color: var(--on-surface);
+}
+
+.dark .map-incident-barangay {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-incident-time {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-incident-coords {
+  color: var(--outline);
+}
+
+.dark .map-header-bar {
+  background: rgba(9, 23, 40, 0.95);
+  border-bottom-color: var(--outline-variant);
+}
+
+.dark .map-back-button {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-back-button-text {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-panel-toggle {
+  background: var(--primary-fixed);
+}
+
+.dark .map-mode-toggle {
+  background: var(--surface-container-low);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-mode-button {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+}
+
+.dark .map-mode-button + .map-mode-button {
+  border-left-color: var(--outline-variant);
+}
+
+.dark .map-mode-button.is-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.dark .map-header-title-main {
+  color: var(--on-surface);
+}
+
+.dark .map-header-title-sub {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-mobile-title-text {
+  color: var(--on-surface);
+}
+
+.dark .map-heatmap-error-banner {
+  background: var(--error-container);
+  border-color: var(--error);
+}
+
+.dark .map-public-login-modal {
+  background: rgba(9, 23, 40, 0.98);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-public-login-modal-copy {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-public-login-modal-secondary {
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border-color: var(--outline-variant);
+}
+
+.dark .map-selected-card {
+  background: var(--surface-container-lowest);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark .map-selected-description {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-selected-coords-copy {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-selected-responders {
+  color: var(--on-surface-variant);
+}
+
+.dark .map-selected-action-secondary {
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  border-color: var(--outline-variant);
+}

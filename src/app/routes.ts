@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
-import { ThemeProvider } from 'next-themes';
 import AppRouteErrorPage from './components/AppRouteErrorPage';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
 import { getAuthSession } from './utils/authSession';
@@ -45,13 +44,9 @@ const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
 const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
 const SASettings = lazyRoute(() => import('./pages/Settings'));
 
-// Landing is always light-mode regardless of user preference or OS theme.
+// Landing uses CSS isolation (.dark .landing-root overrides) instead of a nested ThemeProvider.
 function LandingLightOnly() {
-  return React.createElement(
-    ThemeProvider,
-    { forcedTheme: 'light', attribute: 'class' },
-    React.createElement(Landing),
-  );
+  return React.createElement(Landing);
 }
 
 function RedirectToApp() {

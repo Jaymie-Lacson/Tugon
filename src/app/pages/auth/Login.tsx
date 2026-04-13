@@ -70,7 +70,7 @@ export default function Login() {
     <AuthLayout
       title={t('auth.login.title')}
       subtitle={t('auth.login.subtitle')}
-      logoSrc="/tugon-wordmark-blue.svg"
+      logoSrc="/tugon-header-logo.svg"
       topAction={
         <Button
           variant="ghost"

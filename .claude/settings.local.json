@@ -45,7 +45,13 @@
       "Read(//usr/local/**)",
       "Bash(sed -i 's/rounded-lg //' src/app/pages/superadmin/SAAuditLogs.tsx)",
       "Bash(sed -i 's/ rounded-lg//' src/app/pages/superadmin/SAAuditLogs.tsx)",
-      "Bash(ls *.json)"
+      "Bash(ls *.json)",
+      "Bash(npm --prefix server run prisma:validate)",
+      "Bash(npm --prefix server run prisma:generate)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe\")",
+      "Bash(cmd:*)",
+      "Skill(review)"
     ]
   }
 }

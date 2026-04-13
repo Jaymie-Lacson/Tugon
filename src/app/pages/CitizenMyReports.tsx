@@ -635,7 +635,7 @@ function DetailView({
         className="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[3px]"
       />
 
-      <article className="citizen-report-modal-sheet absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[#F8FAFC] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
+      <article className="citizen-report-modal-sheet absolute bottom-0 left-0 right-0 mx-auto flex max-h-[92vh] max-w-[960px] flex-col overflow-hidden rounded-t-[14px] bg-[var(--surface-container-low)] [animation:slideUp_0.32s_cubic-bezier(0.4,0,0.2,1)]">
         <header className="bg-card pt-[10px] pb-0 flex flex-col items-center border-b border-border/60 shrink-0">
           <div className="w-[38px] h-1 rounded-[2px] bg-muted mb-3" />
           <div className="flex items-center justify-between w-full px-4 pb-[14px]">
@@ -703,8 +703,8 @@ function DetailView({
           </section>
 
           {canCancel && (
-            <section className="mb-4 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-[14px] py-3">
-              <p className="m-0 text-xs text-[#78350F] leading-[1.6]">
+            <section className="mb-4 rounded-lg border border-[var(--severity-medium)]/40 bg-[var(--severity-medium-bg)] px-[14px] py-3">
+              <p className="m-0 text-xs text-[var(--severity-medium)] leading-[1.6]">
                 {t('citizen.myReports.cancelNotice')}
               </p>
               <button
@@ -725,7 +725,7 @@ function DetailView({
                 {cancelling ? t('citizen.myReports.cancelling') : t('citizen.myReports.cancelBtn')}
               </button>
               {cancelError && (
-                <p className="mb-0 mt-2 text-[12px] leading-[1.5] text-red-700">{cancelError}</p>
+                <p className="mb-0 mt-2 text-[12px] leading-[1.5] text-[var(--error)]">{cancelError}</p>
               )}
             </section>
           )}
@@ -935,7 +935,7 @@ function DetailView({
             </header>
 
             <div className="px-4 pt-[14px] pb-[10px]">
-              <p className="m-0 text-[13px] text-[#334155] leading-[1.65]">
+              <p className="m-0 text-[13px] text-[var(--on-surface-variant)] leading-[1.65]">
                 {t('citizen.myReports.confirmCancelBody')}
               </p>
             </div>

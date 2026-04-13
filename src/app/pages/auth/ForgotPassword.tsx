@@ -44,7 +44,7 @@ export default function ForgotPassword() {
     <AuthLayout
       title={t('auth.forgotPassword.title')}
       subtitle={t('auth.forgotPassword.subtitle')}
-      logoSrc="/tugon-wordmark-blue.svg"
+      logoSrc="/tugon-header-logo.svg"
     >
       <AuthProgressStepper
         steps={[

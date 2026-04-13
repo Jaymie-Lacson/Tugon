@@ -1139,7 +1139,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
+    <div className="landing-root w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>

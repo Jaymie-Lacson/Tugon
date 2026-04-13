@@ -280,24 +280,24 @@ function QuickActionCard({
       onClick={onClick}
       className={`group w-full cursor-pointer rounded-lg px-4 py-4 text-left transition-colors duration-150 flex items-start gap-3.5 ${
         featured
-          ? 'border-0 bg-primary text-white hover:bg-primary/90'
+          ? 'border-0 bg-primary hover:bg-primary/90'
           : `${tone.card} hover:bg-[var(--surface-container-low)]`
       }`}
     >
-      <div className={`size-10 rounded-md flex items-center justify-center shrink-0 ${featured ? 'bg-white/15 text-white' : tone.icon}`}>
+      <div className={`size-10 rounded-md flex items-center justify-center shrink-0 ${featured ? 'bg-[var(--primary-foreground)]/15 text-[var(--primary-foreground)]' : tone.icon}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0 pt-[2px]">
-        <div className={`text-[14px] font-semibold tracking-[-0.005em] ${featured ? 'text-white' : 'text-[var(--on-surface)]'}`}>
+        <div className={`text-[14px] font-semibold tracking-[-0.005em] ${featured ? 'text-[var(--primary-foreground)]' : 'text-[var(--on-surface)]'}`}>
           {label}
         </div>
-        <div className={`text-[12px] leading-[1.5] mt-0.5 ${featured ? 'text-white/70' : 'text-[var(--on-surface-variant)]'}`}>
+        <div className={`text-[12px] leading-[1.5] mt-0.5 ${featured ? 'text-[var(--primary-foreground)]/70' : 'text-[var(--on-surface-variant)]'}`}>
           {sublabel}
         </div>
       </div>
       <ArrowRight
         size={15}
-        className={`mt-1 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5 ${featured ? 'text-white/70' : 'text-[var(--outline)]'}`}
+        className={`mt-1 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5 ${featured ? 'text-[var(--primary-foreground)]/70' : 'text-[var(--outline)]'}`}
       />
     </button>
   );

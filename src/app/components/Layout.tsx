@@ -339,7 +339,12 @@ function Layout() {
                   <img
                     src="/tugon-wordmark-blue.svg"
                     alt="TUGON"
-                    className="h-9 w-auto max-w-full object-contain"
+                    className="h-9 w-auto max-w-full object-contain dark:hidden"
+                  />
+                  <img
+                    src="/tugon-header-logo.svg"
+                    alt="TUGON"
+                    className="hidden h-9 w-auto max-w-full object-contain dark:block"
                   />
                 </div>
               </NavLink>

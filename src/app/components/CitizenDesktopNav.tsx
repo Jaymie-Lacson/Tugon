@@ -59,7 +59,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
           <div className="flex items-start justify-between gap-2 overflow-x-hidden">
             <div className="flex min-w-0 items-center">
               <img
-                src="/tugon-wordmark-blue.svg"
+                src="/tugon-header-logo.svg"
                 alt="TUGON"
                 className="h-9 w-auto max-w-full object-contain"
               />

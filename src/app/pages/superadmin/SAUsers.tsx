@@ -43,7 +43,7 @@ function getAvatarBackgroundClass(color: string) {
     case '#6B7280':
       return 'bg-[#6B7280]';
     default:
-      return 'bg-slate-500';
+      return 'bg-[var(--surface-container-low)]0';
   }
 }
 
@@ -180,18 +180,18 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
   return (
     <div className="fixed inset-0 z-[100] bg-[rgba(0,0,0,0.5)] flex items-center justify-center p-5">
       <div
-        className="bg-white rounded-2xl w-full max-w-[500px] max-h-[calc(100vh-2.5rem)] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease] flex flex-col"
+        className="bg-card rounded-2xl w-full max-w-[500px] max-h-[calc(100vh-2.5rem)] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-[modal-in_0.2s_ease] flex flex-col"
       >
         {/* Modal header */}
-        <div className="px-5 py-[18px] border-b border-[#F3F4F6] flex items-center justify-between bg-primary rounded-t-2xl">
+        <div className="px-5 py-[18px] border-b border-[var(--outline-variant)] flex items-center justify-between bg-primary rounded-t-2xl">
           <div className="flex items-center gap-[10px]">
             <div className="w-8 h-8 rounded-lg bg-[rgba(255,255,255,0.15)] flex items-center justify-center">
               <Users size={16} className="text-[var(--primary-fixed-dim)]" />
             </div>
             <div>
-              <div className="text-[#E2E8F0] text-[15px] font-bold">{title}</div>
+              <div className="text-[var(--on-primary)] text-[15px] font-bold">{title}</div>
               {user && (
-                <div className="text-[#64748B] text-[11px]">ID: USR-{String(user.id).padStart(4, '0')}</div>
+                <div className="text-[var(--on-primary-container)] text-[11px]">ID: USR-{String(user.id).padStart(4, '0')}</div>
               )}
             </div>
           </div>
@@ -208,20 +208,20 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         <div className="p-5 overflow-y-auto">
           {/* Avatar */}
           {user && (
-            <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[#F9FAFB] rounded-[10px]">
+            <div className="flex items-center gap-[14px] mb-5 px-[14px] py-3 bg-[var(--surface-container-low)] rounded-[10px]">
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
               >{user.initials}</div>
               <div>
-                <div className="text-[#0F172A] text-base font-bold">{user.name}</div>
-                <div className="text-[#6B7280] text-xs">{user.email}</div>
-                <div className="text-[#9CA3AF] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
+                <div className="text-[var(--on-surface)] text-base font-bold">{user.name}</div>
+                <div className="text-[var(--on-surface-variant)] text-xs">{user.email}</div>
+                <div className="text-[var(--on-surface-variant)] text-[11px] mt-[2px]">{t('superadmin.users.lastActive', { time: formatLastActive(user.lastActive) })}</div>
               </div>
             </div>
           )}
 
           {error ? (
-            <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-[10px] py-2 text-severity-critical text-xs font-semibold">
+            <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-[10px] py-2 text-severity-critical text-xs font-semibold">
               {error}
             </div>
           ) : null}
@@ -230,45 +230,45 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
             {!isReadOnlyMode ? (
               <>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.fullName')}</label>
+                  <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.fullName')}</label>
                   <input
                     value={formData.fullName}
                     onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                     disabled={mode === 'edit'}
-                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
+                    className={`w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[var(--surface-container-low)]' : 'bg-card'}`}
                     placeholder={t('superadmin.users.fullNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.phoneNumber')}</label>
+                  <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.phoneNumber')}</label>
                   <input
                     value={formData.phoneNumber}
                     onChange={e => setFormData(f => ({ ...f, phoneNumber: e.target.value }))}
                     disabled={mode === 'edit'}
-                    className={`w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[#F9FAFB]' : 'bg-white'}`}
+                    className={`w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none box-border ${mode === 'edit' ? 'bg-[var(--surface-container-low)]' : 'bg-card'}`}
                     placeholder="09xxxxxxxxx"
                   />
                 </div>
                 {isCreateMode ? (
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.initialPassword')}</label>
+                    <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.initialPassword')}</label>
                     <input
                       type="password"
                       value={formData.password}
                       onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
-                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none box-border bg-white"
+                      className="w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none box-border bg-card"
                       placeholder={t('superadmin.users.passwordPlaceholder')}
                     />
                   </div>
                 ) : null}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.roleLabel')}</label>
+                    <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.roleLabel')}</label>
                     <select
                       value={formData.role}
                       onChange={e => setFormData(f => ({ ...f, role: e.target.value as SupportedUiRole }))}
                       title={t('superadmin.users.roleLabel')}
-                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
+                      className="w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none bg-card cursor-pointer"
                     >
                       {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
                         <option key={r} value={r}>{r}</option>
@@ -276,13 +276,13 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     </select>
                   </div>
                   <div>
-                    <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.barangay')}</label>
+                    <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.barangay')}</label>
                     <select
                       value={formData.barangay}
                       onChange={e => setFormData(f => ({ ...f, barangay: e.target.value }))}
                       disabled={formData.role === 'Super Admin'}
                       title={t('superadmin.users.barangay')}
-                      className="w-full px-3 py-[9px] border border-[#E5E7EB] rounded-lg text-[13px] outline-none bg-white cursor-pointer"
+                      className="w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none bg-card cursor-pointer"
                     >
                       {['Brgy. 251', 'Brgy. 252', 'Brgy. 256'].map(b => (
                         <option key={b} value={b}>{b}</option>
@@ -291,7 +291,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#374151] text-xs font-semibold block mb-[6px]">{t('superadmin.users.status')}</label>
+                  <label className="text-[var(--on-surface)] text-xs font-semibold block mb-[6px]">{t('superadmin.users.status')}</label>
                   <div className="flex gap-2">
                     {(['active', 'inactive'] as const).map(s => {
                       const sc = STATUS_CONFIG[s];
@@ -302,7 +302,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                           className={`flex-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-semibold capitalize flex items-center justify-center gap-[5px] border-2 ${
                             formData.status === s
                               ? `${getStatusBadgeClass(s)} ${s === 'active' ? 'border-[var(--severity-low)]' : 'border-[var(--outline)]'}`
-                              : 'border-[#E5E7EB] bg-transparent text-[var(--outline)]'
+                              : 'border-[var(--outline-variant)] bg-transparent text-[var(--outline)]'
                           }`}
                         >
                           {sc.icon} {sc.label}
@@ -312,7 +312,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                   </div>
                 </div>
                 {mode === 'edit' ? (
-                  <div className="text-[#6B7280] text-[11px]">
+                  <div className="text-[var(--on-surface-variant)] text-[11px]">
                     {t('superadmin.users.editDisabledHint')}
                   </div>
                 ) : null}
@@ -326,9 +326,9 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                     { label: t('superadmin.users.status'), value: user.status },
                     { label: t('superadmin.users.lastActiveLabel'), value: formatLastActive(user.lastActive) },
                   ].map(f => (
-                    <div key={f.label} className="bg-[#F9FAFB] rounded-lg px-3 py-[10px]">
-                      <div className="text-[#9CA3AF] text-[10px] mb-[3px]">{f.label}</div>
-                      <div className="text-[#0F172A] text-[13px] font-semibold capitalize">{f.value}</div>
+                    <div key={f.label} className="bg-[var(--surface-container-low)] rounded-lg px-3 py-[10px]">
+                      <div className="text-[var(--on-surface-variant)] text-[10px] mb-[3px]">{f.label}</div>
+                      <div className="text-[var(--on-surface)] text-[13px] font-semibold capitalize">{f.value}</div>
                     </div>
                   ))}
                 </div>
@@ -338,10 +338,10 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-[14px] border-t border-[#F3F4F6] flex justify-end gap-[10px]">
+        <div className="px-5 py-[14px] border-t border-[var(--outline-variant)] flex justify-end gap-[10px]">
           <button
             onClick={onClose}
-            className="px-[18px] py-[9px] border border-[#E5E7EB] rounded-lg bg-white cursor-pointer text-[13px] font-semibold text-[#374151]"
+            className="px-[18px] py-[9px] border border-[var(--outline-variant)] rounded-lg bg-card cursor-pointer text-[13px] font-semibold text-[var(--on-surface)]"
           >
             {mode === 'view' ? t('common.close') : t('common.cancel')}
           </button>
@@ -609,17 +609,17 @@ export default function SAUsers() {
   return (
     <div className="p-5 bg-background min-h-full">
       {/* Header */}
-      <div className="sa-users-header flex items-center justify-between border-b border-slate-200 pb-4 mb-4 gap-[10px]">
+      <div className="sa-users-header flex items-center justify-between border-b border-[var(--outline-variant)] pb-4 mb-4 gap-[10px]">
         <div>
-          <h1 className="text-[#0F172A] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
-          <p className="text-slate-500 text-xs m-0 mt-[2px]">
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.users.title')}</h1>
+          <p className="text-[var(--on-surface-variant)] text-xs m-0 mt-[2px]">
             {t('superadmin.users.subtitle')}
           </p>
         </div>
         <div className="sa-users-header-actions flex gap-[10px]">
           <button
             onClick={() => { void loadUsers(); }}
-            className="flex min-h-11 items-center gap-[6px] rounded-lg border border-slate-200 bg-white px-3 py-2 cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex min-h-11 items-center gap-[6px] rounded-lg border border-[var(--outline-variant)] bg-card px-3 py-2 cursor-pointer text-xs font-semibold text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]"
           >
             <Download size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
           </button>
@@ -630,7 +630,7 @@ export default function SAUsers() {
               setModalSaving(false);
               setModal({ user: null, mode: 'create' });
             }}
-            className="flex min-h-11 items-center gap-[6px] rounded-lg bg-[#2563EB] border-0 px-3 py-2 cursor-pointer text-xs font-semibold text-white hover:bg-[#1D4ED8]"
+            className="flex min-h-11 items-center gap-[6px] rounded-lg bg-primary border-0 px-3 py-2 cursor-pointer text-xs font-semibold text-white hover:bg-primary/90"
           >
             <Plus size={14} /> {t('superadmin.users.addUser')}
           </button>
@@ -638,27 +638,27 @@ export default function SAUsers() {
       </div>
 
       {apiError ? (
-        <div className="mb-3 border-l-4 border-[var(--error)] bg-white px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
           {apiError}
         </div>
       ) : null}
 
       {/* Stats chips */}
-      <div className="grid grid-cols-3 gap-0 border-l border-t border-slate-200 mb-4">
+      <div className="grid grid-cols-3 gap-0 border-l border-t border-[var(--outline-variant)] mb-4">
         {[
           { label: t('superadmin.users.totalUsers'), value: counts.total, accent: '#2563EB' },
           { label: t('superadmin.users.active'), value: counts.active, accent: '#16A34A' },
           { label: t('superadmin.users.inactive'), value: counts.inactive, accent: '#6B7280' },
         ].map(stat => (
-          <div key={stat.label} className="bg-white px-4 py-3 border-r border-b border-slate-200">
-            <div className="text-[#0F172A] text-[20px] font-bold font-mono">{stat.value}</div>
-            <div className="text-[#6B7280] text-xs">{stat.label}</div>
+          <div key={stat.label} className="bg-card px-4 py-3 border-r border-b border-[var(--outline-variant)]">
+            <div className="text-[var(--on-surface)] text-[20px] font-bold font-mono">{stat.value}</div>
+            <div className="text-[var(--on-surface-variant)] text-xs">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Filters bar */}
-      <div className="sa-users-filter-bar mb-[14px] border border-slate-200 bg-white px-3.5 py-3 flex items-center gap-[10px] flex-wrap">
+      <div className="sa-users-filter-bar mb-[14px] border border-[var(--outline-variant)] bg-card px-3.5 py-3 flex items-center gap-[10px] flex-wrap">
         {/* Search */}
         <div className="flex-1 min-w-[200px]">
           <SearchInput
@@ -677,7 +677,7 @@ export default function SAUsers() {
           value={roleFilter}
           onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.role')}
-          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
+          className="px-3 py-2 border border-[var(--outline-variant)] rounded-lg text-xs outline-none bg-card cursor-pointer text-[var(--on-surface)]"
         >
           {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -686,7 +686,7 @@ export default function SAUsers() {
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.status')}
-          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
+          className="px-3 py-2 border border-[var(--outline-variant)] rounded-lg text-xs outline-none bg-card cursor-pointer text-[var(--on-surface)]"
         >
           {STATUSES.map(s => <option key={s} value={s}>{s === 'All Status' ? 'All Status' : STATUS_CONFIG[s as SupportedUiStatus].label}</option>)}
         </select>
@@ -695,7 +695,7 @@ export default function SAUsers() {
           value={barangayFilter}
           onChange={e => { setBarangayFilter(e.target.value); setPage(1); }}
           title={t('superadmin.users.barangay')}
-          className="px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs outline-none bg-white cursor-pointer text-[#374151]"
+          className="px-3 py-2 border border-[var(--outline-variant)] rounded-lg text-xs outline-none bg-card cursor-pointer text-[var(--on-surface)]"
         >
           {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
         </select>
@@ -707,11 +707,11 @@ export default function SAUsers() {
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
-        <div className="bg-[#0F172A] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3 flex-wrap">
-          <span className="text-[#E2E8F0] text-[13px] font-semibold">{t('superadmin.users.selectedCount', { count: selectedIds.size })}</span>
+        <div className="bg-[var(--inverse-surface)] rounded-[10px] px-4 py-[10px] mb-3 flex items-center gap-3 flex-wrap">
+          <span className="text-[var(--inverse-on-surface)] text-[13px] font-semibold">{t('superadmin.users.selectedCount', { count: selectedIds.size })}</span>
           <button
             onClick={() => { void handleBulkStatusUpdate('active'); }}
-            className="px-3 py-[5px] bg-[#0F766E] border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
+            className="px-3 py-[5px] bg-[var(--severity-low)] border-0 rounded-[6px] text-white text-xs font-semibold cursor-pointer flex items-center gap-[5px]"
           >
             <UserCheck size={12} /> {t('superadmin.users.activate')}
           </button>
@@ -733,11 +733,11 @@ export default function SAUsers() {
       )}
 
       {/* Table */}
-      <div className="mb-[14px] overflow-hidden border border-slate-200 bg-white">
+      <div className="mb-[14px] overflow-hidden border border-[var(--outline-variant)] bg-card">
         <div className="overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-100">
+            <tr className="border-b border-[var(--outline-variant)]">
               <th className="px-3 py-2.5 text-left w-8">
                 <input
                   ref={selectAllRef}
@@ -756,18 +756,18 @@ export default function SAUsers() {
                   }}
                   title="Select all users"
                   aria-label="Select all users"
-                  className="cursor-pointer accent-[#2563EB]"
+                  className="cursor-pointer accent-primary"
                 />
               </th>
               {[t('superadmin.users.tableUser'), t('superadmin.users.role'), t('superadmin.users.barangay'), t('superadmin.users.status'), t('superadmin.users.lastActiveLabel'), t('superadmin.users.actions')].map(h => (
-                <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold text-[var(--on-surface-variant)] uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-[40px] text-center text-slate-500 text-[13px]">
+                  <td colSpan={7} className="p-[40px] text-center text-[var(--on-surface-variant)] text-[13px]">
                     {t('superadmin.users.noUsersFound')}
                   </td>
                 </tr>
@@ -778,7 +778,7 @@ export default function SAUsers() {
                 return (
                   <tr
                     key={user.id}
-                    className={`border-b border-slate-100 last:border-b-0 ${isSelected ? 'bg-slate-50' : ''}`}
+                    className={`border-b border-[var(--outline-variant)] last:border-b-0 ${isSelected ? 'bg-[var(--surface-container-low)]' : ''}`}
                   >
                     <td className="px-3 py-2.5">
                       <input
@@ -787,7 +787,7 @@ export default function SAUsers() {
                         onChange={() => toggleSelect(user.id)}
                         title={`Select ${user.name}`}
                         aria-label={`Select ${user.name}`}
-                        className="cursor-pointer accent-[#2563EB]"
+                        className="cursor-pointer accent-primary"
                       />
                     </td>
 
@@ -798,8 +798,8 @@ export default function SAUsers() {
                           className={`w-9 h-9 flex items-center justify-center font-bold text-white text-xs shrink-0 ${getAvatarBackgroundClass(user.avatarColor)}`}
                         >{user.initials}</div>
                         <div>
-                          <div className="text-[#0F172A] font-semibold text-[13px]">{user.name}</div>
-                          <div className="text-slate-500 text-[11px]">{user.email}</div>
+                          <div className="text-[var(--on-surface)] font-semibold text-[13px]">{user.name}</div>
+                          <div className="text-[var(--on-surface-variant)] text-[11px]">{user.email}</div>
                         </div>
                       </div>
                     </td>
@@ -812,7 +812,7 @@ export default function SAUsers() {
                     </td>
 
                     {/* Barangay */}
-                    <td className="px-3 py-2.5 text-[#0F172A] text-xs font-medium">{user.barangay}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface)] text-xs font-medium">{user.barangay}</td>
 
                     {/* Status */}
                     <td className="px-3 py-2.5">
@@ -822,9 +822,9 @@ export default function SAUsers() {
                     </td>
 
                     {/* Last active */}
-                    <td className="px-3 py-2.5 text-slate-500 text-xs">
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)] text-xs">
                       <div className="flex items-center gap-[5px]">
-                        <Clock size={11} className="text-slate-400" />
+                        <Clock size={11} className="text-[var(--on-surface-variant)]" />
                         {formatLastActive(user.lastActive)}
                       </div>
                     </td>
@@ -839,7 +839,7 @@ export default function SAUsers() {
                             setModal({ user, mode: 'view' });
                           }}
                           title="View"
-                          className="size-7 border border-slate-200 bg-white cursor-pointer flex items-center justify-center text-slate-600 hover:bg-slate-50"
+                          className="size-7 border border-[var(--outline-variant)] bg-card cursor-pointer flex items-center justify-center text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-low)]"
                         >
                           <Eye size={13} />
                         </button>
@@ -850,7 +850,7 @@ export default function SAUsers() {
                             setModal({ user, mode: 'edit' });
                           }}
                           title="Edit"
-                          className="size-7 border border-slate-200 bg-white cursor-pointer flex items-center justify-center text-slate-600 hover:bg-slate-50"
+                          className="size-7 border border-[var(--outline-variant)] bg-card cursor-pointer flex items-center justify-center text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-low)]"
                         >
                           <Edit2 size={13} />
                         </button>
@@ -864,8 +864,8 @@ export default function SAUsers() {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col gap-2 px-4 py-3 border-t border-slate-100 bg-white sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-slate-500 text-xs">
+        <div className="flex flex-col gap-2 px-4 py-3 border-t border-[var(--outline-variant)] bg-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-[var(--on-surface-variant)] text-xs">
             {t('superadmin.users.showingRange', { from: Math.min((page - 1) * PAGE_SIZE + 1, filtered.length), to: Math.min(page * PAGE_SIZE, filtered.length), total: filtered.length })}
           </div>
           <div className="flex items-center gap-[6px] self-end sm:self-auto">
@@ -874,7 +874,7 @@ export default function SAUsers() {
               disabled={page === 1}
               title="Previous page"
               aria-label="Previous page"
-              className={`size-[30px] border border-slate-200 bg-white flex items-center justify-center text-slate-600 ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'}`}
+              className={`size-[30px] border border-[var(--outline-variant)] bg-card flex items-center justify-center text-[var(--on-surface-variant)] ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--surface-container-low)]'}`}
             >
               <ChevronLeft size={14} />
             </button>
@@ -882,7 +882,7 @@ export default function SAUsers() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`size-[30px] border text-xs font-semibold flex items-center justify-center cursor-pointer ${page === p ? 'bg-[#2563EB] text-white border-[#2563EB]' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+                className={`size-[30px] border text-xs font-semibold flex items-center justify-center cursor-pointer ${page === p ? 'bg-primary text-white border-primary' : 'border-[var(--outline-variant)] bg-card text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]'}`}
               >{p}</button>
             ))}
             <button
@@ -890,7 +890,7 @@ export default function SAUsers() {
               disabled={page === totalPages}
               title="Next page"
               aria-label="Next page"
-              className={`size-[30px] border border-slate-200 bg-white flex items-center justify-center text-slate-600 ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'}`}
+              className={`size-[30px] border border-[var(--outline-variant)] bg-card flex items-center justify-center text-[var(--on-surface-variant)] ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--surface-container-low)]'}`}
             >
               <ChevronRight size={14} />
             </button>

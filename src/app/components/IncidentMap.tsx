@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useTheme } from 'next-themes';
 import { Incident, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
@@ -342,14 +341,6 @@ export function IncidentMap({
   viewportKey = 'default',
   showMarkerTooltip = true,
 }: IncidentMapProps) {
-  const { resolvedTheme } = useTheme();
-  const tileUrl = resolvedTheme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-    : 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
-  const tileAttribution = resolvedTheme === 'dark'
-    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -386,10 +377,9 @@ export function IncidentMap({
         minZoom={16}
         maxZoom={INCIDENT_MAP_MAX_ZOOM}
       >
-        {/* Map tiles — swaps to CARTO dark in dark mode */}
         <TileLayer
-          attribution={tileAttribution}
-          url={tileUrl}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxNativeZoom={20}
           maxZoom={INCIDENT_MAP_MAX_ZOOM}
         />

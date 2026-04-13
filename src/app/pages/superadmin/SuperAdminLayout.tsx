@@ -378,11 +378,11 @@ export default function SuperAdminLayout() {
         title={t('nav.openPage', { page: item.label })}
         className={`mb-1.5 flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2.5 no-underline transition-colors ${
           isActive
-            ? 'border-l-2 border-[#2563EB] bg-slate-50 text-[#2563EB]'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+            ? 'border-l-2 border-primary bg-[var(--surface-container-low)] text-primary'
+            : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-low)] hover:text-[var(--on-surface)]'
         }`}
       >
-        <item.icon size={16} className={`shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-slate-400'}`} />
+        <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary' : 'text-[var(--on-surface-variant)]'}`} />
         {!collapsed ? (
           <span className={`text-[13px] whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
             {item.label}
@@ -393,14 +393,14 @@ export default function SuperAdminLayout() {
   });
 
   const renderMonitoringStrip = () => (
-    <div className="mb-3 border border-slate-200 bg-white p-2.5">
-      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+    <div className="mb-3 border border-[var(--outline-variant)] bg-card p-2.5">
+      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--on-surface-variant)]">
         {t('nav.monitoring')}
       </div>
       {monitoringItems.map((barangay) => (
-        <div key={barangay.code} className="mb-0 flex items-center gap-2 border-b border-slate-100 px-2 py-1.5 last:border-b-0">
+        <div key={barangay.code} className="mb-0 flex items-center gap-2 border-b border-[var(--outline-variant)] px-2 py-1.5 last:border-b-0">
           <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: barangay.color }} />
-          <span className="flex-1 text-[11px] font-medium text-[#0F172A]">{barangay.name}</span>
+          <span className="flex-1 text-[11px] font-medium text-[var(--on-surface)]">{barangay.name}</span>
           <span
             className="font-mono text-[9px] font-bold"
             style={{ color: barangay.color }}
@@ -425,7 +425,12 @@ export default function SuperAdminLayout() {
                   <img
                     src="/tugon-wordmark-blue.svg"
                     alt="TUGON"
-                    className="h-9 w-auto max-w-full object-contain"
+                    className="h-9 w-auto max-w-full object-contain dark:hidden"
+                  />
+                  <img
+                    src="/tugon-header-logo.svg"
+                    alt="TUGON"
+                    className="hidden h-9 w-auto max-w-full object-contain dark:block"
                   />
                 </div>
               </NavLink>
@@ -474,7 +479,7 @@ export default function SuperAdminLayout() {
         <div className={`overflow-x-hidden border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${desktopSidebarOpen ? 'px-4' : 'px-2'} py-3`}>
           <div className={`flex min-w-0 items-center ${desktopSidebarOpen ? 'gap-2.5' : 'justify-center'}`}>
             <div
-              className="flex size-[34px] shrink-0 items-center justify-center bg-[#0F172A] text-[13px] font-bold text-white"
+              className="flex size-[34px] shrink-0 items-center justify-center bg-[var(--inverse-surface)] text-[13px] font-bold text-white"
             >
               {userInitials}
             </div>
@@ -594,7 +599,7 @@ export default function SuperAdminLayout() {
                             onClick={() => handleSearchResultClick('/superadmin/users')}
                             className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
                           >
-                            <div className="flex size-6 shrink-0 items-center justify-center bg-[#0F172A] text-[10px] font-bold text-white">
+                            <div className="flex size-6 shrink-0 items-center justify-center bg-[var(--inverse-surface)] text-[10px] font-bold text-white">
                               {user.fullName.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -616,7 +621,7 @@ export default function SuperAdminLayout() {
 
           <div className="ml-auto flex items-center gap-2.5">
             <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--severity-low)]" />
               Monitoring Online
             </div>
             <div className="hidden text-right lg:block">
@@ -647,7 +652,7 @@ export default function SuperAdminLayout() {
                   aria-label={t('superadmin.layout.ariaProfileActions')}
                   aria-haspopup="menu"
                   aria-expanded="true"
-                  className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
+                  className="flex size-9 cursor-pointer items-center justify-center bg-[var(--inverse-surface)] text-xs font-bold text-white"
                 >
                   {userInitials}
                 </button>
@@ -661,7 +666,7 @@ export default function SuperAdminLayout() {
                   aria-label={t('superadmin.layout.ariaProfileActions')}
                   aria-haspopup="menu"
                   aria-expanded="false"
-                  className="flex size-9 cursor-pointer items-center justify-center bg-[#0F172A] text-xs font-bold text-white"
+                  className="flex size-9 cursor-pointer items-center justify-center bg-[var(--inverse-surface)] text-xs font-bold text-white"
                 >
                   {userInitials}
                 </button>
