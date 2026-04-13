@@ -1,163 +1,96 @@
-# Session Handoff — Dark Mode Phase 4 Complete, Phase 5 In Progress
-_Date: 2026-04-12_
-
----
+# Session Handoff — 2026-04-13
 
 ## What was accomplished this session
 
-### Build verification (pre-work)
-- Ran `/check` skill: Prisma schema valid, backend build ✅, frontend build ✅
-- Prisma generate EPERM (DLL locked by another process) — skipped safely, existing client current
-
-### Phase 3 commit (from prior session)
-- Committed all citizen portal dark mode changes: ThemeProvider, ThemeToggle, 4 citizen pages, 6 small components
-- Commit: `f956bb3 feat(theme): implement dark mode for citizen portal — Phase 3`
-
-### Phase 4 — Official portal dark mode (COMPLETE, committed)
-All 6 files migrated + committed: `04b2f66 feat(theme): implement dark mode for official portal — Phase 4`
-
-- **Dashboard.tsx**: KPICard, AlertBanner, cross-border alerts, heatmap section, map preview (mode toggle, tuning panel, selected incident footer), live feed, charts row, incident queue — full migration. Error banners → error-container. Unread alerts conditional → error-container. Critical chip borders → `var(--error)/30`.
-- **Incidents.tsx**: All slate tokens. `border-t-[#0F172A]` → `border-t-foreground`. Error banner → severity-critical/error-container.
-- **Reports.tsx**: All slate tokens. Template card footer `bg-slate-50` → `bg-muted/50`. `text-red-700` → `var(--error)`.
-- **Analytics.tsx**: All `bg-white` and slate text tokens. `bg-slate-600` chart legend dot intentionally preserved (categorical color).
-- **Verifications.tsx**: All bg-white/border-slate-*. Card headers `bg-slate-50` → `bg-muted/50`. Error banner → severity-critical. Preview modal ID card headers migrated.
-- **AdminNotifications.tsx**: `border-[#E2E8F0]`, `text-[#1E293B]`, `text-[#64748B]`, `text-[#94A3B8]`, `text-[#334155]` all replaced. `border-[#F1F5F9]` → `border-border/60`. Unread `bg-[#EFF6FF]` → `bg-primary/5`.
-
-**Settings.tsx and MapView.tsx were already clean (0 hardcoded color hits) — no changes needed.**
-
-### Phase 5 — Auth + Settings (STARTED, NOT committed)
-
-#### AuthLayout.tsx — COMPLETE (not committed)
-- `bg-red-50 shadow-[inset_0_-2px_0_#dc2626]` → `bg-[var(--error-container)] shadow-[inset_0_-2px_0_var(--severity-critical)]` (InputField error state)
-- `text-red-700` → `text-[var(--error)]` (InputField error message)
-- Left branding panel gradient intentionally preserved (`#00194f` → `#1e3a8a`), as decided in prior session
-
-#### Settings.tsx — PARTIALLY COMPLETE (not committed)
-Done:
-- Added `import { Monitor } from 'lucide-react'`
-- Added `import { useTheme } from 'next-themes'`
-- Added `const { theme, setTheme } = useTheme()` in component body
-- Fixed `text-[#2563EB]` → `text-primary` (role badge)
-- Added "Appearance" nav item in left sidebar (with Monitor icon)
-
-**NOT YET DONE — the Appearance section content block in the main panel has not been added.**
-
----
+1. **Verified dark mode implementation across all portals (except Landing)** via the `review` and `check` skills:
+   - Citizen shell (`CitizenDashboard`, `CitizenMyReports`, `IncidentReport`) — hardcoded hex values replaced with semantic tokens.
+   - Official/Super Admin shell (all `SA*` pages + `SuperAdminLayout`) — slate/hex values tokenized to `bg-card`, `text-[var(--on-surface)]`, `border-[var(--outline-variant)]`.
+   - Auth shell (`Login`, `Register`, `Verify`, `ForgotPassword`) — swapped logo to `/tugon-header-logo.svg`.
+   - `map-view.css` — 195 new lines of `.dark` overrides for map panel, header, filters, cards, modals.
+2. **Landing page isolation refactor**: replaced the nested `ThemeProvider forcedTheme='light'` wrapper in `routes.ts` with a `.landing-root` CSS class + `.dark .landing-root` token override block in `theme.css` (lines 229–260). Applied class at `Landing.tsx:1142`.
+3. **Logo dark-mode swap** in `Layout.tsx` and `SuperAdminLayout.tsx` using the `dark:hidden` / `dark:block` pair. Auth pages + `CitizenDesktopNav` switched unconditionally to `/tugon-header-logo.svg`.
+4. **Reverted Leaflet dark-tile swap** in `IncidentMap.tsx` and `IncidentReport.tsx` (was added in `f76ef71`). Now uses the standard `tile.openstreetmap.org` URL in both themes. Removed stale `useTheme` imports.
+5. **Ran pre-commit review skill** — all hard rules, design tokens, and service contracts pass. Two flags raised (map tile regression, unconditional logo swap in auth) — documented but non-blocking.
+6. **Ran check skill** — backend `tsc` clean, frontend `vite build` clean in 54.21s. Prisma validate passed. Prisma generate EPERM on Windows (DLL locked by running dev server) but client was already generated.
+7. **Committed as `8665b81`** — `feat(theme): finalize dark mode — landing CSS isolation + SA token sweep` — 21 files, 509+/286− lines.
 
 ## Current state
 
-### Working
-- All token infrastructure complete (`theme.css`, `--citizen-header-bg`, 16 dark tokens)
-- ThemeToggle placed in all 4 citizen page headers
-- Phase 3: All citizen pages/components fully migrated
-- Phase 4: All official portal pages/components fully migrated — committed, build verified
-- AuthLayout.tsx error states migrated
+**Working:**
+- All SA, Citizen, Auth, and Map pages render correctly in both light and dark modes via CSS variable cascade.
+- Build pipeline green (backend `tsc`, frontend `vite build`).
+- Landing-root isolation block exists in both source and built CSS with correct token overrides.
+- `landing-root` class is applied to the outer wrapper in `Landing.tsx:1142`.
+- Landing.tsx contains zero `dark:` Tailwind classes (verified via grep).
 
-### Incomplete / not verified
-- **Settings.tsx Appearance section content not written** — `useTheme` is imported and the sidebar nav item is added, but the System/Light/Dark radio buttons in the main content panel are missing
-- **Phase 5 build NOT verified** — AuthLayout.tsx and Settings.tsx changes are uncommitted and unbuilt
-- **Phase 6 (mobile.css deeper polish)** — not started
-- **Phase 7 (Leaflet dark tiles)** — not started
+**Broken / incomplete:**
+- **User reports that `HowToUse` ("three simple steps") and `SafetyTips` ("community safety tips") sections on Landing are still darkened in dark mode.** Expected behavior: Landing should always render in light mode regardless of `.dark` on `<html>`.
+- Investigation so far (see "Traps" below) shows the `.dark .landing-root` rule IS in the built CSS with correct specificity (0,0,2,0 > 0,0,1,0 for `.dark`), and `bg-card`/`bg-muted/50` both compile to `var(--card)`/`color-mix(... var(--muted) ...)`. The cascade SHOULD work but the user still sees darkened cards. Root cause not yet confirmed.
 
----
+## Files modified
 
-## Files modified (this session, uncommitted)
-
-| File | Change |
-|---|---|
-| `src/app/components/AuthLayout.tsx` | InputField error state: `bg-red-50` → error-container; `text-red-700` → `var(--error)` |
-| `src/app/pages/Settings.tsx` | Added `useTheme` import + `Monitor` icon; `const { theme, setTheme }` hook; "Appearance" sidebar nav item; `text-[#2563EB]` → `text-primary`; **Appearance content section still missing** |
-
----
+- `src/styles/theme.css` — added `.dark .landing-root` isolation block (lines 229–260) redefining `--background`, `--foreground`, `--card`, `--muted`, `--primary`, severity tokens, etc.
+- `src/styles/map-view.css` — +195 lines of `.dark` overrides for all map UI chrome.
+- `src/app/routes.ts` — removed nested `ThemeProvider forcedTheme='light'` wrapper; `LandingLightOnly` now returns `Landing` directly.
+- `src/app/pages/Landing.tsx` — added `landing-root` class to outer wrapper (line 1142). One-line change.
+- `src/app/components/Layout.tsx` — two `<img>` tags with `dark:hidden` / `dark:block` for light/dark logo swap.
+- `src/app/pages/superadmin/SuperAdminLayout.tsx` — same logo swap pattern + slate hex → tokens in sidebar nav and monitoring strip.
+- `src/app/components/CitizenDesktopNav.tsx` — unconditional logo swap to `/tugon-header-logo.svg`.
+- `src/app/components/IncidentMap.tsx` — removed `useTheme` import + CARTO dark tile ternary; reverted to `tile.openstreetmap.org` URL.
+- `src/app/pages/IncidentReport.tsx` — same tile revert.
+- `src/app/pages/CitizenDashboard.tsx` — tokenized QuickActionCard hardcoded `text-white`/`bg-white/15`.
+- `src/app/pages/CitizenMyReports.tsx` — tokenized DetailView cancel banner and confirm modal.
+- `src/app/pages/superadmin/SAAnalytics.tsx` — StatCard and headers tokenized.
+- `src/app/pages/superadmin/SAAuditLogs.tsx` — all `bg-white` / `border-slate-*` → `bg-card` / `border-[var(--outline-variant)]`.
+- `src/app/pages/superadmin/SABarangayMap.tsx` — zoom controller and layout tokenized.
+- `src/app/pages/superadmin/SAOverview.tsx` — KPICard and barangay accent classes tokenized.
+- `src/app/pages/superadmin/SAUsers.tsx` — UserModal, table, filters, pagination tokenized.
+- `src/app/pages/auth/Login.tsx`, `Register.tsx`, `Verify.tsx`, `ForgotPassword.tsx` — `logoSrc` prop swapped to `/tugon-header-logo.svg`.
+- `.claude/settings.local.json` — added permissions for `Skill(review)`, `prisma:validate`, `prisma:generate`, `taskkill`.
 
 ## Open decisions
 
-- **Auth page gradient**: `AuthLayout.tsx` hardcoded blue gradient (`#00194f` to `#1e3a8a`) on brand panel — confirmed to keep as brand element. Only form panel gets token migration.
-- **Leaflet dark tiles**: Phase 6 will need CARTO dark tile URL: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`. Not yet committed.
-- **Settings Appearance layout**: Use the same button-group pattern as the Language section. Three buttons: System / Light / Dark. Active = `bg-primary text-white shadow-sm`. Inactive = `bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]`.
-- **`incidentTypeChipClass` in MapTab** (CitizenDashboard): categorical label chips use non-semantic Tailwind colors (`bg-blue-100 text-blue-700` etc.) — intentionally deferred.
-
----
+1. **Why is the `.dark .landing-root` override not visually applying on the Landing page cards?** User reports dark cards; source + built CSS both show the override is emitted correctly with adequate specificity. Needs browser devtools inspection to see which rule actually wins at runtime.
+2. **Should we reinstate the Leaflet CARTO dark tile swap** that was removed in this session's commit? The map UI chrome is dark-styled but the map tiles themselves stay light. Intentional revert, or regression to fix? Leaving as-is until the user weighs in.
+3. **Should `CitizenDesktopNav` and auth pages** also use the `dark:hidden` / `dark:block` logo pattern instead of the unconditional `/tugon-header-logo.svg` swap? Verify how the new logo reads in both themes before deciding.
+4. **`useImmersiveThemeColor('#ffffff')` in `SuperAdminLayout`** is hardcoded light. This only affects iOS Safari browser chrome color, not the page. Not a regression from this PR but worth revisiting if full iOS dark-mode polish is desired.
 
 ## Traps to avoid
 
-- **`bg-white/[n]` opacity variants**: NOT the same string as `bg-white` — replace_all for `bg-white` is safe and won't touch `bg-white/[0.08]` etc.
-- **`legendDotClass` / `trendLegendDotClass`**: `bg-slate-600` / `bg-slate-400` in chart legend dot functions are intentional categorical colors — do not migrate.
-- **`bg-red-500` / `bg-emerald-500`** in Incidents.tsx table status dots — intentional status indicators, do not migrate.
-- **Analytics.tsx `bg-slate-600`** (line 37, `trendLegendDotClass`) — intentional chart categorical dot, left as-is.
-- **Prisma generate EPERM on Windows**: Kill dev server before running `prisma:generate`.
-- **Routes.ts is `.ts` not `.tsx`**: No JSX.
-- **`theme` from `useTheme` can be `undefined` initially** — the Appearance section should handle this gracefully. Use `theme === 'system'` etc., which works fine even if `theme` is undefined (will just show none active).
+1. **Don't assume the `.dark .landing-root` cascade "just works" without verifying in the browser.** This session spent time tracing the source → built CSS → Tailwind emission path (`.bg-card` → `var(--card)`, `.bg-muted/50` → `color-mix(... var(--muted) ...)`, `.bg-background` → `var(--background)`) and confirmed specificity `(0,0,2,0) > (0,0,1,0)`. On paper it should work. In practice the user still sees dark cards. **The next session MUST open devtools on the Landing page in dark mode and inspect the computed `--card` / `--muted` / `--background` values on one of the affected cards to find the real culprit.**
+2. **Don't try to fix with `!important`.** It's a hack that'll mask the real issue and fight the design system. Diagnose first.
+3. **Don't accidentally re-add a nested `ThemeProvider` to Landing.** The isolation refactor removed it intentionally. A nested provider is the wrong pattern because next-themes still applies `.dark` to `<html>` regardless, and the nested provider just adds duplicate state.
+4. **Prisma generate fails with EPERM on Windows** when the dev server is running — the `.prisma/client/query_engine-windows.dll.node` is locked. Kill node processes before running `prisma:generate`. Not a real error; the client is already generated from a previous run.
+5. **`@theme inline` in Tailwind v4 does NOT mean "inline at build time as literal values".** It means "inline the `var(--x)` reference directly into utility classes without creating an intermediate `--color-x` variable". The runtime cascade is unaffected. Don't waste time on this hypothesis.
+6. **Don't re-attempt the Leaflet CARTO dark tile swap** without first asking the user whether `f76ef71`'s implementation had a concrete issue (broken CARTO URL, rate limits, rendering glitches). It was reverted this session for a reason we should uncover.
+7. **`mobile.css` and `map-view.css` don't set `--card`/`--muted`/`--background`** — grep already confirmed. No collision there.
 
----
+## Next steps (in priority order)
 
-## Next steps (in order)
-
-### 1. Complete Settings.tsx Appearance section content
-Add the following block **after the Language section's closing `</div>` (line 132)** and **before the outer `</div>` (line 133)**:
-
-```tsx
-          <div className="mt-[18px] mb-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--on-surface-variant)]">
-            Appearance
-          </div>
-          <div className="border-b border-[var(--outline-variant)]/35 py-3.5">
-            <div className="mb-1 text-[13px] font-semibold text-[var(--on-surface)]">Theme</div>
-            <div className="mb-3 text-[11px] text-[var(--on-surface-variant)]">Choose how TUGON looks on your device.</div>
-            <div className="flex gap-2 flex-wrap">
-              {(['system', 'light', 'dark'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTheme(t)}
-                  className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors capitalize ${
-                    theme === t
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
-                  }`}
-                >
-                  {t === 'system' ? 'System' : t === 'light' ? 'Light' : 'Dark'}
-                </button>
-              ))}
-            </div>
-          </div>
-```
-
-### 2. Run build and verify
-```bash
-npm run build:server
-npm run build
-```
-
-### 3. Commit Phase 5
-```bash
-git add src/app/components/AuthLayout.tsx src/app/pages/Settings.tsx
-git commit -m "feat(theme): implement dark mode for auth + settings — Phase 5"
-```
-
-### 4. Phase 6 — mobile.css deeper polish
-- Review `src/styles/mobile.css` for any remaining hardcoded light-mode colors
-- Add Leaflet dark tile swap when `.dark` class is present (in `IncidentMap.tsx` or via CSS)
-
----
+1. **Diagnose the Landing dark-mode leak** (user's current complaint). Open the dev server, toggle dark mode, open devtools on one of the affected cards in `HowToUse` (line 717–771, `bg-muted/50` + `bg-background`) or `SafetyTips` (line 889–923, `bg-muted/50` + `bg-card`). Inspect the Computed styles panel for `background-color` and the "Styles" panel for the `--card`, `--muted`, `--background` custom properties. Determine which rule is actually winning. Candidate hypotheses to rule in/out:
+   - **(a)** Is `.dark` actually on `<html>`? (next-themes default is yes — verify).
+   - **(b)** Is `landing-root` actually on the wrapper element? (source says yes — verify at runtime).
+   - **(c)** Is there a rule with *higher* specificity than `(0,0,2,0)` setting `--card` on an intermediate element? Unlikely but possible from a shadcn component.
+   - **(d)** Is there a `@layer` ordering issue that de-prioritizes the `.dark .landing-root` rule? It's currently outside any `@layer`, so it's in the "unlayered" bucket which has the highest priority. Shouldn't be an issue — verify.
+   - **(e)** Hard cache — ask the user to hard-reload (Ctrl+Shift+R) and retry. Easy first-check.
+2. **Once the root cause is found, apply the minimal fix.** Likely options:
+   - Move the `.dark .landing-root` rule into `@layer base` so it's in the same layer as Tailwind's utility emissions (if layering is the issue).
+   - Use `:where(.dark) .landing-root` or `.landing-root` alone (without `.dark` prefix) to assert light tokens unconditionally.
+   - Promote the isolation to `html.dark .landing-root` if there's an element in between.
+3. **Revisit the 2 flags from the review:**
+   - Leaflet dark tiles: ask user if reverting was intentional.
+   - Auth + CitizenDesktopNav logo swap: verify new logo reads correctly in both themes, or apply `dark:hidden`/`dark:block` pattern.
+4. **Push the 9 pending commits** to `origin/main` once the Landing fix lands and the user approves.
 
 ## Relevant file paths
 
-| Purpose | Path |
-|---|---|
-| Implementation plan (7 phases) | `.claude/plans/hazy-puzzling-nest.md` |
-| Theme tokens (complete) | `src/styles/theme.css` |
-| ThemeProvider | `src/app/providers/ThemeProvider.tsx` |
-| ThemeToggle (className prop) | `src/app/components/ThemeToggle.tsx` |
-| Mobile CSS | `src/styles/mobile.css` |
-| AuthLayout (**Phase 5, DONE, uncommitted**) | `src/app/components/AuthLayout.tsx` |
-| Settings (**Phase 5, PARTIAL, uncommitted**) | `src/app/pages/Settings.tsx` |
-| Dashboard (**DONE**) | `src/app/pages/Dashboard.tsx` |
-| Incidents (**DONE**) | `src/app/pages/Incidents.tsx` |
-| Reports (**DONE**) | `src/app/pages/Reports.tsx` |
-| Analytics (**DONE**) | `src/app/pages/Analytics.tsx` |
-| Verifications (**DONE**) | `src/app/pages/Verifications.tsx` |
-| AdminNotifications (**DONE**) | `src/app/components/AdminNotifications.tsx` |
-| CitizenDashboard (**DONE**) | `src/app/pages/CitizenDashboard.tsx` |
-| IncidentReport (**DONE**) | `src/app/pages/IncidentReport.tsx` |
-| CitizenMyReports (**DONE**) | `src/app/pages/CitizenMyReports.tsx` |
-| CitizenVerification (**DONE**) | `src/app/pages/CitizenVerification.tsx` |
+- `src/styles/theme.css:229-260` — `.dark .landing-root` isolation block (the focus of the current bug).
+- `src/app/pages/Landing.tsx:1142` — `landing-root` class application.
+- `src/app/pages/Landing.tsx:686-773` — `HowToUse` component (three simple steps) — user reports darkened in dark mode.
+- `src/app/pages/Landing.tsx:868-924` — `SafetyTips` component (community safety tips) — user reports darkened in dark mode.
+- `src/app/routes.ts:47-50` — `LandingLightOnly` wrapper (now just returns `Landing` — no more nested `ThemeProvider`).
+- `src/app/providers/ThemeProvider.tsx` — root next-themes provider, `attribute="class"` → `.dark` on `<html>`.
+- `dist/assets/index-*.css` — built CSS for reference (grep-verified that `.dark .landing-root{...}` and `.bg-card{background-color:var(--card)}` are present).
+- `CLAUDE.md` — project rules and design tokens.
+- Latest commit: `8665b81 feat(theme): finalize dark mode — landing CSS isolation + SA token sweep`.
+- Branch is 9 commits ahead of `origin/main`.
