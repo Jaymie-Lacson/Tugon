@@ -1,8 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle, Polygon, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useTheme } from 'next-themes';
 import { Incident, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
+
+// ── Tile layer URLs ───────────────────────────────────────────────────────────
+const TILE_URLS = {
+  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
+
+const TILE_ATTRIBUTIONS = {
+  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+};
 
 // ── Leaflet default-icon fix for Vite bundler ──────────────────────────────
 // Vite mangles asset paths, so we use DivIcon for all markers instead.
@@ -341,6 +353,11 @@ export function IncidentMap({
   viewportKey = 'default',
   showMarkerTooltip = true,
 }: IncidentMapProps) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
+  const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
+
   // Sort: critical first so they render on top
   const sorted = [...incidents].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -378,8 +395,9 @@ export function IncidentMap({
         maxZoom={INCIDENT_MAP_MAX_ZOOM}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={isDark ? 'dark-tiles' : 'light-tiles'}
+          attribution={tileAttribution}
+          url={tileUrl}
           maxNativeZoom={20}
           maxZoom={INCIDENT_MAP_MAX_ZOOM}
         />
@@ -459,10 +477,10 @@ export function IncidentMap({
             >
               <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent={false}>
                 <div style={{ fontSize: 11, minWidth: 140 }}>
-                  <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 2 }}>
                     {cluster.incidentType} hotspot
                   </div>
-                  <div style={{ color: '#475569', marginBottom: 2 }}>
+                  <div style={{ marginBottom: 2 }}>
                     {cluster.incidentCount} incidents (intensity {cluster.intensity.toFixed(2)})
                   </div>
                 </div>
@@ -526,8 +544,8 @@ export function IncidentMap({
                   permanent={false}
                 >
                   <div style={{ fontSize: 12, minWidth: 160 }}>
-                    <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 2 }}>{inc.id}</div>
-                    <div style={{ color: '#475569', marginBottom: 2 }}>{inc.barangay}</div>
+                    <div style={{ fontWeight: 700, marginBottom: 2 }}>{inc.id}</div>
+                    <div style={{ marginBottom: 2 }}>{inc.barangay}</div>
                     <div style={{ color: TYPE_COLORS[inc.type], fontWeight: 600, textTransform: 'capitalize' }}>
                       {getCategoryLabelForIncidentType(inc.type)} · {inc.severity}
                     </div>
@@ -546,29 +564,29 @@ export function IncidentMap({
           bottom: 28,
           right: 10,
           zIndex: 1000,
-          background: 'rgba(255,255,255,0.97)',
+          background: isDark ? 'rgba(9, 23, 40, 0.95)' : 'rgba(255,255,255,0.97)',
           borderRadius: 8,
           padding: '8px 10px',
           fontSize: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.18)',
           minWidth: 115,
-          border: '1px solid #E2E8F0',
+          border: isDark ? '1px solid var(--outline-variant)' : '1px solid #E2E8F0',
         }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <div style={{ fontWeight: 700, color: 'var(--on-surface)', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             {isHotspotMode ? 'Hotspot Intensity' : 'Incident Categories'}
           </div>
           {isHotspotMode ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--severity-critical)', opacity: 0.72, display: 'inline-block' }} />
-                <span style={{ color: '#475569', fontSize: 9 }}>Hotspot cluster zone</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Hotspot cluster zone</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', opacity: 0.55, display: 'inline-block' }} />
-                <span style={{ color: '#475569', fontSize: 9 }}>Barangay boundary (reference)</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Barangay boundary (reference)</span>
               </div>
-              <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
-                <span style={{ color: '#64748B', fontSize: 9 }}>Only selected incident pin is shown to reduce clutter.</span>
+              <div style={{ marginTop: 5, borderTop: '1px solid var(--outline-variant)', paddingTop: 4 }}>
+                <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Only selected incident pin is shown to reduce clutter.</span>
               </div>
             </>
           ) : Object.entries(incidentTypeConfig).map(([key]) => (
@@ -586,14 +604,14 @@ export function IncidentMap({
                 }}
                 dangerouslySetInnerHTML={{ __html: getTypeIconMarkup(key, 13, 'currentColor') }}
               />
-              <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
+              <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}
           {!isHotspotMode && (
-            <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
+            <div style={{ marginTop: 5, borderTop: '1px solid var(--outline-variant)', paddingTop: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', display: 'inline-block' }} />
-                <span style={{ color: '#94A3B8', fontSize: 9 }}>Resolved</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Resolved</span>
               </div>
             </div>
           )}
@@ -605,14 +623,14 @@ export function IncidentMap({
         <div className="incident-map-legend-mobile" style={{
           display: 'none',
           marginTop: 10,
-          background: 'rgba(255,255,255,0.97)',
+          background: isDark ? 'rgba(9, 23, 40, 0.95)' : 'rgba(255,255,255,0.97)',
           borderRadius: 8,
           padding: '8px 10px',
           fontSize: 10,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
-          border: '1px solid #E2E8F0',
+          boxShadow: isDark ? '0 1px 4px rgba(0,0,0,0.3)' : '0 1px 4px rgba(0,0,0,0.12)',
+          border: isDark ? '1px solid var(--outline-variant)' : '1px solid #E2E8F0',
         }}>
-          <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
+          <div style={{ fontWeight: 700, color: 'var(--on-surface)', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
           {Object.entries(incidentTypeConfig).map(([key]) => (
             <div key={`mobile-${key}`} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
               <span
@@ -628,13 +646,13 @@ export function IncidentMap({
                 }}
                 dangerouslySetInnerHTML={{ __html: getTypeIconMarkup(key, 13, 'currentColor') }}
               />
-              <span style={{ color: '#475569', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
+              <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>{getCategoryLabelForIncidentType(key as Incident['type'])}</span>
             </div>
           ))}
-          <div style={{ marginTop: 5, borderTop: '1px solid #E2E8F0', paddingTop: 4 }}>
+          <div style={{ marginTop: 5, borderTop: '1px solid var(--outline-variant)', paddingTop: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', display: 'inline-block' }} />
-              <span style={{ color: '#94A3B8', fontSize: 9 }}>Resolved</span>
+              <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Resolved</span>
             </div>
           </div>
         </div>

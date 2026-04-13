@@ -1,7 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
 import { useTranslation } from '../../i18n';
+import { useTheme } from 'next-themes';
 import L from 'leaflet';
+
+// ── Tile layer URLs ───────────────────────────────────────────────────────────
+const TILE_URLS = {
+  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
+
+const TILE_ATTRIBUTIONS = {
+  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+};
 import {
   MapPin, Layers, AlertTriangle, Navigation, RefreshCw, Save,
   Filter, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
@@ -443,6 +455,10 @@ function extractBarangayCode(label: string): string | null {
 
 export default function SABarangayMap() {
   const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
+  const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
   const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>([]);
   const [loadingBarangays, setLoadingBarangays] = useState(true);
   const [loadingIncidents, setLoadingIncidents] = useState(true);
@@ -936,10 +952,11 @@ export default function SABarangayMap() {
               minZoom={MAP_MIN_ZOOM}
               maxZoom={MAP_MAX_ZOOM}
             >
-              {/* OSM tiles */}
+              {/* Map tiles (theme-aware) */}
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                key={isDark ? 'dark-tiles' : 'light-tiles'}
+                attribution={tileAttribution}
+                url={tileUrl}
                 maxNativeZoom={19}
                 maxZoom={MAP_MAX_ZOOM}
               />

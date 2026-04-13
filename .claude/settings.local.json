@@ -61,7 +61,8 @@
       "Bash(git commit:*)",
       "Bash(grep -oE '\\\\.bg-muted\\\\\\\\/50\\\\{[^}]*\\\\}|\\\\.bg-card\\\\{[^}]*\\\\}|\\\\.bg-background\\\\{[^}]*\\\\}' \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon/dist/assets/index-CMEyk4fq.css\")",
       "Bash(code-review-graph --help)",
-      "mcp__code-review-graph__build_or_update_graph_tool"
+      "mcp__code-review-graph__build_or_update_graph_tool",
+      "Bash(python3 skills/ui-ux-pro-max/scripts/search.py \"dark mode government civic dashboard professional\" --design-system -p \"TUGON\")"
     ]
   }
 }

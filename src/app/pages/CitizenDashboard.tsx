@@ -1136,7 +1136,7 @@ function _ReportTab() {
         <div className="w-20 h-20 rounded-full bg-[var(--severity-low-bg)] flex items-center justify-center text-[var(--severity-low)]">
           <CheckCircle2 size={40} />
         </div>
-        <div className="font-extrabold text-xl text-slate-900">Report Submitted!</div>
+        <div className="font-extrabold text-xl text-[var(--on-surface)]">Report Submitted!</div>
         <div className="text-[13px] text-muted-foreground leading-relaxed">
           Your incident report has been received. Our responders have been notified and will act accordingly. Track your report under "My Reports".
         </div>
@@ -1174,7 +1174,7 @@ function _ReportTab() {
       {/* Step 1: type */}
       {step === 1 && (
         <div>
-          <div className="font-bold text-sm text-slate-900 mb-3">
+          <div className="font-bold text-sm text-[var(--on-surface)] mb-3">
             What type of incident?
           </div>
           <div className="grid grid-cols-2 gap-2.5">
@@ -1194,7 +1194,7 @@ function _ReportTab() {
                   <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${isSelected ? tone.selectedIcon : tone.unselectedIcon}`}>
                     {icon}
                   </div>
-                  <span className={`font-semibold text-[13px] ${isSelected ? tone.selectedLabel : 'text-slate-800'}`}>
+                  <span className={`font-semibold text-[13px] ${isSelected ? tone.selectedLabel : 'text-[var(--on-surface)]'}`}>
                     {label}
                   </span>
                 </button>
@@ -1207,7 +1207,7 @@ function _ReportTab() {
             className={`mt-5 w-full rounded-xl border-0 py-3.5 text-sm font-bold transition-colors duration-200 ${
               selectedType
                 ? 'cursor-pointer bg-primary text-white'
-                : 'cursor-not-allowed bg-slate-200 text-muted-foreground'
+                : 'cursor-not-allowed bg-muted text-muted-foreground'
             }`}
           >
             {'Continue ->'}
@@ -1218,7 +1218,7 @@ function _ReportTab() {
       {/* Step 2: details */}
       {step === 2 && (
         <div className="flex flex-col gap-3.5">
-          <div className="font-bold text-sm text-slate-900 mb-0.5">Describe the incident</div>
+          <div className="font-bold text-sm text-[var(--on-surface)] mb-0.5">Describe the incident</div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
               Location / Address *
@@ -1227,7 +1227,7 @@ function _ReportTab() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Purok 3, Brgy. San Antonio"
-              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-slate-200 text-[13px] outline-none box-border font-['Roboto',sans-serif]"
+              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-border bg-input-background text-[var(--on-surface)] text-[13px] outline-none box-border font-['Roboto',sans-serif]"
             />
           </div>
           <div>
@@ -1262,13 +1262,13 @@ function _ReportTab() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Briefly describe what is happening..."
               rows={4}
-              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-slate-200 text-[13px] outline-none resize-none box-border font-['Roboto',sans-serif]"
+              className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-border bg-input-background text-[var(--on-surface)] text-[13px] outline-none resize-none box-border font-['Roboto',sans-serif]"
             />
           </div>
           <div className="flex gap-2.5">
             <button
               onClick={() => setStep(1)}
-              className="flex-1 bg-slate-100 text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
+              className="flex-1 bg-surface-container-low text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
             >
               {'<- Back'}
             </button>
@@ -1278,7 +1278,7 @@ function _ReportTab() {
               className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
                 description && location && severity
                   ? 'cursor-pointer bg-primary text-white'
-                  : 'cursor-not-allowed bg-slate-200 text-muted-foreground'
+                  : 'cursor-not-allowed bg-muted text-muted-foreground'
               }`}
             >
               {'Review ->'}
@@ -1290,7 +1290,7 @@ function _ReportTab() {
       {/* Step 3: review */}
       {step === 3 && selectedType && (
         <div>
-          <div className="font-bold text-sm text-slate-900 mb-3.5">Review your report</div>
+          <div className="font-bold text-sm text-[var(--on-surface)] mb-3.5">Review your report</div>
           <div className="bg-card rounded-[14px] p-4 border-[1.5px] border-border flex flex-col gap-3 mb-4">
             {[
               { label: 'Incident Type', value: incidentTypeConfig[selectedType].label },
@@ -1304,7 +1304,7 @@ function _ReportTab() {
                 <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.06em]">
                   {label}
                 </div>
-                <div className="text-[13px] font-semibold text-slate-900">{value}</div>
+                <div className="text-[13px] font-semibold text-[var(--on-surface)]">{value}</div>
               </div>
             ))}
           </div>
@@ -1315,7 +1315,7 @@ function _ReportTab() {
           <div className="flex gap-2.5">
             <button
               onClick={() => setStep(2)}
-              className="flex-1 bg-slate-100 text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
+              className="flex-1 bg-surface-container-low text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
             >
               {'<- Edit'}
             </button>
@@ -1386,7 +1386,7 @@ function MapTab({
     accident: 'bg-amber-100 text-amber-800',
     medical: 'bg-teal-100 text-teal-700',
     crime: 'bg-violet-100 text-violet-700',
-    infrastructure: 'bg-slate-200 text-slate-700',
+    infrastructure: 'bg-muted text-muted-foreground',
     typhoon: 'bg-sky-100 text-sky-700',
   };
   const hasPinsForFilter = filtered.length > 0;
@@ -1577,7 +1577,7 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
       </div>
 
       {/* Report list */}
-      <div className="font-bold text-sm text-slate-900 mb-2.5">Submitted Reports</div>
+      <div className="font-bold text-sm text-[var(--on-surface)] mb-2.5">Submitted Reports</div>
       <div className="bg-card rounded-[14px] px-3.5 py-1 shadow-[0_1px_4px_rgba(0,0,0,0.07)] border border-border/60 mb-4">
         {myReports.map((report) => (
           <MyReportRow key={report.id} report={report} />
@@ -1585,8 +1585,8 @@ function _MyReportsTab({ myReports }: { myReports: CitizenMyReport[] }) {
       </div>
 
       {/* Status guide */}
-      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
-        <div className="font-bold text-[13px] text-slate-900 mb-2.5">Report Status Guide</div>
+      <div className="bg-surface-container-lowest rounded-xl p-3.5 border border-border">
+        <div className="font-bold text-[13px] text-[var(--on-surface)] mb-2.5">Report Status Guide</div>
         {[
           { status: 'active' as const, desc: 'Received, awaiting assignment' },
           { status: 'responding' as const, desc: 'Responders have been deployed' },

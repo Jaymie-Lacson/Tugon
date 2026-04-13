@@ -208,6 +208,13 @@
   --chart-3: #6ee7b7;
   --chart-4: #fca5a5;
   --chart-5: #818cf8;
+  /* ── Dark mode shadows (softer with less opacity) ────────────────────── */
+  --shadow-card:     0 2px 12px rgba(0, 0, 0, 0.25);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-ambient:  0 20px 40px rgba(0, 0, 0, 0.25);
+  /* ── App-level backgrounds (dark) ──────────────────────────────────────── */
+  --app-bg:              var(--surface-container-low);
+  --citizen-bg:          var(--surface);
   /* ── Missing tokens for dark mode ────────────────────────────────────── */
   --outline:               rgba(182, 196, 255, 0.50);
   --outline-variant:       rgba(182, 196, 255, 0.18);
@@ -482,8 +489,9 @@
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
-  .glass-panel-dark {
-    background: rgba(13, 28, 46, 0.80);
+  .glass-panel-dark,
+  .dark .glass-panel {
+    background: rgba(9, 23, 40, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
@@ -512,4 +520,51 @@
   .border-ghost {
     border: 1px solid rgba(197, 197, 211, 0.15);
   }
+
+  /* Dark mode card lift */
+  .dark .card-lifted {
+    background: var(--surface-container-lowest);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* ── Leaflet dark mode overrides ───────────────────────────────────────────── */
+.dark .leaflet-popup-content-wrapper {
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+.dark .leaflet-popup-tip {
+  background: var(--surface-container-lowest);
+}
+
+.dark .leaflet-tooltip {
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  border-color: var(--outline-variant);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.dark .leaflet-tooltip::before {
+  border-top-color: var(--surface-container-lowest);
+}
+
+.dark .leaflet-control-zoom a {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border-color: var(--outline-variant);
+}
+
+.dark .leaflet-control-zoom a:hover {
+  background: var(--surface-container);
+}
+
+.dark .leaflet-control-attribution {
+  background: rgba(9, 23, 40, 0.8);
+  color: var(--on-surface-variant);
+}
+
+.dark .leaflet-control-attribution a {
+  color: var(--primary);
 }

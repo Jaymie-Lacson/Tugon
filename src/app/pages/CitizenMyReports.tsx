@@ -718,7 +718,7 @@ function DetailView({
                 }}
                 className={`mt-[10px] rounded-md border-none px-[14px] py-[9px] text-xs font-semibold text-white ${
                   cancelling
-                    ? 'cursor-not-allowed bg-slate-400'
+                    ? 'cursor-not-allowed bg-muted text-muted-foreground'
                     : 'cursor-pointer bg-severity-critical'
                 }`}
               >
@@ -963,7 +963,7 @@ function DetailView({
                 disabled={cancelling}
                 className={`h-[38px] rounded-md border-none px-[14px] text-xs font-semibold text-white ${
                   cancelling
-                    ? 'cursor-not-allowed bg-slate-400'
+                    ? 'cursor-not-allowed bg-muted text-muted-foreground'
                     : 'cursor-pointer bg-severity-critical'
                 }`}
               >

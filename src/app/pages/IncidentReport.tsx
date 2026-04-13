@@ -1,7 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation, LanguageToggle } from '../i18n';
+import { useTheme } from 'next-themes';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
+
+// ── Tile layer URLs ───────────────────────────────────────────────────────────
+const TILE_URLS = {
+  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
+
+const TILE_ATTRIBUTIONS = {
+  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+};
 import {
   ChevronLeft, Check, MapPin, Navigation,
   Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal,
@@ -597,6 +609,10 @@ function Step2({
   validationError?: string;
 }) {
   const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
+  const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
   const session = getAuthSession();
   const userBarangayCode = session?.user.barangayCode ?? null;
   const allowedBarangays = userBarangayCode
@@ -680,8 +696,9 @@ function Step2({
       style={{ height }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        key={isDark ? 'dark-tiles' : 'light-tiles'}
+        attribution={tileAttribution}
+        url={tileUrl}
         maxNativeZoom={20}
         maxZoom={22}
       />
@@ -1764,6 +1781,10 @@ const STEP_REQUIREMENTS: Record<number, (f: ReportForm) => string | null> = {
 
 export default function IncidentReport() {
   const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
+  const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
   const navigate = useNavigate();
   const session = getAuthSession();
   const fullName = session?.user.fullName?.trim() || 'Citizen User';

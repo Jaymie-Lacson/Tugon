@@ -1049,6 +1049,100 @@
   border-bottom-color: var(--outline-variant);
 }
 
+/* ── Incident step 5 card heads (dark) ─────────────────────────────────── */
+.dark .incident-step5-card-head.is-pollution {
+  background: rgba(15, 118, 110, 0.12);
+  border-bottom-color: rgba(15, 118, 110, 0.5);
+}
+
+.dark .incident-step5-card-head.is-noise {
+  background: rgba(124, 58, 237, 0.12);
+  border-bottom-color: rgba(124, 58, 237, 0.5);
+}
+
+.dark .incident-step5-card-head.is-crime {
+  background: rgba(182, 196, 255, 0.10);
+  border-bottom-color: var(--primary);
+}
+
+.dark .incident-step5-card-head.is-road-hazard {
+  background: rgba(255, 185, 96, 0.12);
+  border-bottom-color: var(--severity-medium);
+}
+
+.dark .incident-step5-card-head.is-other {
+  background: rgba(182, 196, 255, 0.08);
+  border-bottom-color: var(--outline);
+}
+
+/* ── Incident step 5 card icons (dark) ─────────────────────────────────── */
+.dark .incident-step5-card-icon.is-pollution {
+  background: rgba(15, 118, 110, 0.20);
+  color: #5eead4;
+}
+
+.dark .incident-step5-card-icon.is-noise {
+  background: rgba(124, 58, 237, 0.20);
+  color: #c4b5fd;
+}
+
+.dark .incident-step5-card-icon.is-crime {
+  background: rgba(182, 196, 255, 0.15);
+  color: var(--primary);
+}
+
+.dark .incident-step5-card-icon.is-road-hazard {
+  background: rgba(255, 185, 96, 0.18);
+  color: var(--severity-medium);
+}
+
+.dark .incident-step5-card-icon.is-other {
+  background: rgba(182, 196, 255, 0.12);
+  color: var(--on-surface-variant);
+}
+
+/* ── Incident step 5 detail icons (dark) ───────────────────────────────── */
+.dark .incident-step5-detail-icon.is-category {
+  background: rgba(182, 196, 255, 0.12);
+  color: var(--on-surface-variant);
+}
+
+.dark .incident-step5-detail-icon.is-location {
+  background: rgba(182, 196, 255, 0.15);
+  color: var(--primary);
+}
+
+.dark .incident-step5-detail-icon.is-description {
+  background: rgba(124, 58, 237, 0.15);
+  color: #c4b5fd;
+}
+
+.dark .incident-step5-detail-icon.is-affected {
+  background: rgba(255, 185, 96, 0.15);
+  color: var(--severity-medium);
+}
+
+.dark .incident-step5-detail-icon.is-evidence {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--severity-low);
+}
+
+.dark .incident-step5-detail-icon.is-neutral {
+  background: rgba(182, 196, 255, 0.12);
+  color: var(--on-surface-variant);
+}
+
+/* ── Incident step 5 severity pill (dark) ──────────────────────────────── */
+.dark .incident-step5-severity-pill.is-low {
+  background: var(--severity-low-bg);
+  color: var(--severity-low);
+}
+
+/* ── Photo preview (dark) ──────────────────────────────────────────────── */
+.dark .citizen-photo-preview-count {
+  color: var(--on-surface-variant);
+}
+
 @media (max-width: 768px) {
   .dark .citizen-map-filter-bar {
     border-bottom-color: var(--outline-variant) !important;

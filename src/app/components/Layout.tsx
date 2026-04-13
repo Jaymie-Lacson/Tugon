@@ -21,6 +21,7 @@ import { LanguageToggle } from '../i18n';
 import { officialSidebarNavDefs } from '../data/navigationConfig';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
+import { useTheme } from 'next-themes';
 
 function LiveClock() {
   const [time, setTime] = useState(new Date());
@@ -36,7 +37,9 @@ function LiveClock() {
 }
 
 function Layout() {
-  useImmersiveThemeColor('#ffffff');
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  useImmersiveThemeColor(isDark ? '#091728' : '#ffffff');
 
   const { t } = useTranslation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
