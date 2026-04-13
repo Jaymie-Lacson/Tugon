@@ -28,7 +28,7 @@ import {
 import { citizenReportsApi } from '../services/citizenReportsApi';
 import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
-import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
+import { clearAuthSession, getAuthSession, patchAuthSessionUser, performLogout } from '../utils/authSession';
 import { ThemeToggle } from '../components/ThemeToggle';
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
@@ -475,8 +475,8 @@ export default function CitizenDashboard() {
     setProfileMenuOpen(false);
   }, [mapIncidents, navigate]);
 
-  const handleSignOut = React.useCallback(() => {
-    clearAuthSession();
+  const handleSignOut = React.useCallback(async () => {
+    await performLogout();
     navigate('/auth/login', { replace: true });
   }, [navigate]);
 
@@ -1752,8 +1752,8 @@ function ProfileTab({
 
       {/* Sign out */}
       <button
-        onClick={() => {
-          clearAuthSession();
+        onClick={async () => {
+          await performLogout();
           navigate('/auth/login', { replace: true });
         }}
         className="w-full py-2.5 rounded-md border border-[var(--outline-variant)] bg-card text-[var(--error)] font-medium text-[13px] cursor-pointer hover:bg-[var(--error-container)] transition-colors"

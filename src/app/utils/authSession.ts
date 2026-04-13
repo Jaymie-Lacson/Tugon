@@ -1,4 +1,4 @@
-import type { AuthSession, Role } from "../services/authApi";
+import { authApi, type AuthSession, type Role } from "../services/authApi";
 
 const SESSION_KEY = "tugon.auth.session";
 
@@ -37,6 +37,20 @@ export function getAuthSession(): AuthSession | null {
 
 export function clearAuthSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+/**
+ * Performs a complete logout: invalidates server session cookie,
+ * then clears localStorage. Use this instead of clearAuthSession()
+ * for user-initiated sign-outs.
+ */
+export async function performLogout(): Promise<void> {
+  try {
+    await authApi.logout();
+  } catch {
+    // Server logout failed (maybe already expired), continue with local cleanup
+  }
+  clearAuthSession();
 }
 
 export function patchAuthSessionUser(patch: Partial<AuthSession["user"]>) {

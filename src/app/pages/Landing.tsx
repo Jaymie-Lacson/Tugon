@@ -1139,7 +1139,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="landing-root w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
+    <div className="landing-root bg-background w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>
@@ -1156,6 +1156,43 @@ export default function Landing() {
       </main>
 
       <style>{`
+        /* Force light mode tokens on landing page (bypasses Tailwind layer cascade) */
+        .dark .landing-root,
+        .dark .landing-root * {
+          --background: #f8f9ff !important;
+          --foreground: #0d1c2e !important;
+          --surface: #f8f9ff !important;
+          --surface-container-lowest: #ffffff !important;
+          --surface-container-low: #eff4ff !important;
+          --surface-container: #e5eeff !important;
+          --surface-container-high: #dce9ff !important;
+          --surface-container-highest: #d5e3fc !important;
+          --on-surface: #0d1c2e !important;
+          --on-surface-variant: #444651 !important;
+          --on-background: #0d1c2e !important;
+          --card: #ffffff !important;
+          --card-foreground: #0d1c2e !important;
+          --muted: #e5eeff !important;
+          --muted-foreground: #444651 !important;
+          --border: rgba(0, 0, 0, 0.08) !important;
+          --outline-variant: #c5c5d3 !important;
+          --primary: #00236f !important;
+          --primary-foreground: #ffffff !important;
+          --primary-container: #1e3a8a !important;
+          --primary-fixed: #dce1ff !important;
+          --primary-fixed-dim: #b6c4ff !important;
+          --severity-critical: #b91c1c !important;
+          --severity-critical-bg: #ffdad6 !important;
+          --severity-medium: #865300 !important;
+          --severity-medium-bg: #ffddb8 !important;
+          --severity-low: #059669 !important;
+          --severity-low-bg: #d1fae5 !important;
+          --destructive: #ba1a1a !important;
+          --destructive-foreground: #ffffff !important;
+          --error: #ba1a1a !important;
+          --error-container: #ffdad6 !important;
+        }
+
         [data-reveal] {
           --reveal-x: 0px;
           --reveal-y: 22px;

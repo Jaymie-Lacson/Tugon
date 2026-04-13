@@ -227,36 +227,40 @@
 }
 
 /* ── Landing page CSS isolation — always renders in light mode ─────────── */
-/* Overrides the .dark token cascade for .landing-root and all descendants. */
+/* Uses !important to override layer cascade (Tailwind v4 layers the .dark rule). */
 .dark .landing-root {
-  --background:                #f8f9ff;
-  --foreground:                #0d1c2e;
-  --surface:                   #f8f9ff;
-  --surface-container-lowest:  #ffffff;
-  --surface-container-low:     #eff4ff;
-  --surface-container:         #e5eeff;
-  --surface-container-high:    #dce9ff;
-  --surface-container-highest: #d5e3fc;
-  --on-surface:                #0d1c2e;
-  --on-surface-variant:        #444651;
-  --on-background:             #0d1c2e;
-  --card:                      #ffffff;
-  --card-foreground:           #0d1c2e;
-  --muted:                     #e5eeff;
-  --muted-foreground:          #444651;
-  --border:                    rgba(0, 0, 0, 0.08);
-  --outline-variant:           #c5c5d3;
-  --primary:                   #00236f;
-  --primary-foreground:        #ffffff;
-  --primary-container:         #1e3a8a;
-  --primary-fixed:             #dce1ff;
-  --primary-fixed-dim:         #b6c4ff;
-  --severity-critical:         #b91c1c;
-  --severity-critical-bg:      #ffdad6;
-  --severity-medium:           #865300;
-  --severity-medium-bg:        #ffddb8;
-  --severity-low:              #059669;
-  --severity-low-bg:           #d1fae5;
+  --background:                #f8f9ff !important;
+  --foreground:                #0d1c2e !important;
+  --surface:                   #f8f9ff !important;
+  --surface-container-lowest:  #ffffff !important;
+  --surface-container-low:     #eff4ff !important;
+  --surface-container:         #e5eeff !important;
+  --surface-container-high:    #dce9ff !important;
+  --surface-container-highest: #d5e3fc !important;
+  --on-surface:                #0d1c2e !important;
+  --on-surface-variant:        #444651 !important;
+  --on-background:             #0d1c2e !important;
+  --card:                      #ffffff !important;
+  --card-foreground:           #0d1c2e !important;
+  --muted:                     #e5eeff !important;
+  --muted-foreground:          #444651 !important;
+  --border:                    rgba(0, 0, 0, 0.08) !important;
+  --outline-variant:           #c5c5d3 !important;
+  --primary:                   #00236f !important;
+  --primary-foreground:        #ffffff !important;
+  --primary-container:         #1e3a8a !important;
+  --primary-fixed:             #dce1ff !important;
+  --primary-fixed-dim:         #b6c4ff !important;
+  --severity-critical:         #b91c1c !important;
+  --severity-critical-bg:      #ffdad6 !important;
+  --severity-medium:           #865300 !important;
+  --severity-medium-bg:        #ffddb8 !important;
+  --severity-low:              #059669 !important;
+  --severity-low-bg:           #d1fae5 !important;
+  --destructive:               #ba1a1a !important;
+  --destructive-foreground:    #ffffff !important;
+  --error:                     #ba1a1a !important;
+  --error-container:           #ffdad6 !important;
 }
 
 /* ── Tailwind v4 theme mapping ─────────────────────────────────────────── */
