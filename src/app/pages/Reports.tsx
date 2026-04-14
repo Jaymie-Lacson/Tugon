@@ -782,7 +782,7 @@ export default function Reports() {
   }
 
   return (
-    <div className="min-h-full bg-[var(--surface)] px-5 py-4">
+    <div className="page-content min-h-full bg-[var(--surface)] px-5 py-4">
       <OfficialPageHeader
         title={t('official.reports.pageTitle')}
         subtitle={t('official.reports.pageSubtitle')}

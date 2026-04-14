@@ -410,7 +410,7 @@ export default function SAOverview() {
   }
 
   return (
-    <div className="p-5 bg-[var(--surface)] min-h-full">
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
       <div className="border-b border-[var(--outline-variant)] pb-4 mb-5">
       <div className="flex items-center justify-between gap-[10px] max-md:flex-col max-md:items-start">

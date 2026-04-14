@@ -607,7 +607,7 @@ export default function SAUsers() {
   };
 
   return (
-    <div className="p-5 bg-background min-h-full">
+    <div className="page-content p-5 bg-background min-h-full">
       {/* Header */}
       <div className="sa-users-header flex items-center justify-between border-b border-[var(--outline-variant)] pb-4 mb-4 gap-[10px]">
         <div>

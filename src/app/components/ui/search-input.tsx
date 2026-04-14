@@ -89,7 +89,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     return (
       <div
         className={cn(
-          "group relative flex h-9 w-full items-center rounded-md border border-input bg-input-background text-[13px] transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
+          "group relative flex h-9 w-full items-center rounded-md border border-input bg-input-background text-[13px] transition-[color,box-shadow,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
           wrapperClassName,
         )}
       >
@@ -130,7 +130,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
               innerRef.current?.focus();
             }}
             aria-label="Clear search"
-            className="absolute right-[6px] top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-[var(--surface-container-low)] hover:text-foreground"
+            className="absolute right-[6px] top-1/2 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-[background-color,color,transform] duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] hover:bg-[var(--surface-container-low)] hover:text-foreground active:scale-90"
           >
             <X size={14} />
           </button>

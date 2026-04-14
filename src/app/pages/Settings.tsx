@@ -51,7 +51,7 @@ export default function Settings() {
     .join('') || 'TU';
 
   return (
-    <div className="p-4 px-5 min-h-full">
+    <div className="page-content p-4 px-5 min-h-full">
       <OfficialPageHeader title="Settings" subtitle={settingsSubtitle} />
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">

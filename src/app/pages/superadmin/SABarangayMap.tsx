@@ -740,7 +740,7 @@ export default function SABarangayMap() {
   }
 
   return (
-    <div className="p-5 bg-[var(--surface)] min-h-full">
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
       {/* Page header */}
       <div className="flex flex-col items-start justify-between mb-4 gap-2.5 md:flex-row md:items-center">
         <div>

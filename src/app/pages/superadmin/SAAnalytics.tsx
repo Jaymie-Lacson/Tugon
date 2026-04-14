@@ -151,7 +151,7 @@ export default function SAAnalytics() {
   }
 
   return (
-    <div className="p-5 bg-[var(--surface)] min-h-full">
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
       <div className="border-b border-[var(--outline-variant)] pb-4 mb-4">
       <div className="flex items-center justify-between gap-2.5 max-md:flex-col max-md:items-start">
         <div>

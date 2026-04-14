@@ -1444,7 +1444,7 @@ export default function CitizenMyReports() {
           <TicketPageLoadingState />
         ) : (
           <>
-            <div className="citizen-content-shell pt-4 pb-0">
+            <div className="citizen-content-shell page-content pt-4 pb-0">
               {/* Page header — official style */}
               <section className="mb-3 border-b border-border pb-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">

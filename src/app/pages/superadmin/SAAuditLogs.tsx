@@ -195,7 +195,7 @@ export default function SAAuditLogs() {
   }
 
   return (
-    <div className="p-5 bg-[var(--surface)] min-h-full">
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
       <div className="flex flex-col items-start justify-between mb-3.5 gap-2.5 md:flex-row md:items-center">
         <div>
           <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.auditLogs.pageTitle')}</h1>

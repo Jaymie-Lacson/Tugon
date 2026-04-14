@@ -509,7 +509,7 @@ export default function CitizenVerification() {
       desktopMainPaddingBottom={16}
       desktopMainMaxWidth={1320}
     >
-      <div className="citizen-content-shell pt-4 pb-6">
+      <div className="citizen-content-shell page-content pt-4 pb-6">
         <div className="max-w-[960px] mx-auto grid gap-3">
           {/* Page header — official style */}
           <section className="mb-3 border-b border-border pb-4">

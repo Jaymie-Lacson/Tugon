@@ -713,7 +713,7 @@ export default function Incidents() {
   }
 
   return (
-    <div className="min-h-full bg-[var(--surface)] px-4 py-4">
+    <div className="page-content min-h-full bg-[var(--surface)] px-4 py-4">
       <OfficialPageHeader
         title={t('official.incidents.pageTitle')}
         subtitle={

@@ -95,7 +95,7 @@ export default function Verifications() {
   }
 
   return (
-    <div className="min-h-full bg-background px-4 py-4 md:px-5">
+    <div className="page-content min-h-full bg-background px-4 py-4 md:px-5">
       <OfficialPageHeader
         title={t('official.verifications.pageTitle')}
         subtitle={t('official.verifications.pageSubtitle')}

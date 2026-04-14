@@ -58,6 +58,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        "transition-[color,background-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-out-quart)] active:scale-[0.95] active:duration-[var(--duration-instant)]",
         className,
       )}
       {...props}

@@ -796,7 +796,7 @@ function HomeTab({
   }
 
   return (
-    <div className="citizen-content-shell pt-4 pb-[18px]">
+    <div className="citizen-content-shell page-content pt-4 pb-[18px]">
       {/* Page header — matches official dashboard district focus header */}
       <section className="mb-4 border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
