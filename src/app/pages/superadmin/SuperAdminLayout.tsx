@@ -1,13 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import {
+  Activity,
+  AlertTriangle,
+  BarChart2,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Download,
+  Filter,
   LogOut,
+  Map,
   Menu,
+  Plus,
   Search,
+  Settings,
+  Shield,
+  UserCheck,
+  UserPlus,
   X,
+  Zap,
 } from 'lucide-react';
 import { isAuthExpiredError, superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
@@ -45,6 +57,44 @@ function getMonitoringColor(incidents: number): string {
   return '#22C55E';
 }
 
+type SearchableItem = {
+  id: string;
+  label: string;
+  description?: string;
+  keywords: string[];
+  path: string;
+  queryParams?: string;
+  category: 'action' | 'feature' | 'filter';
+  icon: typeof Plus;
+};
+
+const SEARCHABLE_ITEMS: SearchableItem[] = [
+  // Quick Actions
+  { id: 'create-user', label: 'Create User', description: 'Add a new user to the system', keywords: ['create', 'add', 'new', 'user', 'register'], path: '/superadmin/users', queryParams: 'action=create', category: 'action', icon: UserPlus },
+  { id: 'export-logs', label: 'Export Audit Logs', description: 'Download audit log records', keywords: ['export', 'download', 'audit', 'logs', 'csv'], path: '/superadmin/audit-logs', queryParams: 'action=export', category: 'action', icon: Download },
+  { id: 'verify-user', label: 'Verify Users', description: 'Review pending verifications', keywords: ['verify', 'verification', 'pending', 'approve', 'phone'], path: '/superadmin/users', queryParams: 'filter=unverified', category: 'action', icon: UserCheck },
+  { id: 'manage-boundary', label: 'Manage Boundaries', description: 'Edit barangay boundaries on map', keywords: ['boundary', 'boundaries', 'geofence', 'edit', 'map'], path: '/superadmin/map', queryParams: 'mode=edit', category: 'action', icon: Map },
+
+  // Features
+  { id: 'heatmap', label: 'Incident Heatmap', description: 'View incident density visualization', keywords: ['heatmap', 'heat', 'density', 'hotspot', 'cluster'], path: '/superadmin/analytics', category: 'feature', icon: Zap },
+  { id: 'reports-by-status', label: 'Reports by Status', description: 'View report status breakdown', keywords: ['status', 'submitted', 'review', 'progress', 'resolved', 'closed'], path: '/superadmin/analytics', category: 'feature', icon: BarChart2 },
+  { id: 'user-roles', label: 'User Roles', description: 'Manage user role assignments', keywords: ['role', 'roles', 'citizen', 'official', 'admin', 'permission'], path: '/superadmin/users', category: 'feature', icon: Shield },
+  { id: 'system-settings', label: 'System Settings', description: 'Configure system preferences', keywords: ['settings', 'config', 'configuration', 'preferences', 'system'], path: '/superadmin/settings', category: 'feature', icon: Settings },
+  { id: 'active-reports', label: 'Active Reports', description: 'View all open incident reports', keywords: ['active', 'open', 'pending', 'reports', 'incidents'], path: '/superadmin', category: 'feature', icon: AlertTriangle },
+
+  // Audit Log Filters
+  { id: 'filter-login', label: 'Login Activity', description: 'Filter audit logs by login events', keywords: ['login', 'signin', 'authentication', 'session'], path: '/superadmin/audit-logs', queryParams: 'action=LOGIN', category: 'filter', icon: Activity },
+  { id: 'filter-user-changes', label: 'User Changes', description: 'Filter logs by user modifications', keywords: ['user', 'update', 'role', 'change', 'modify'], path: '/superadmin/audit-logs', queryParams: 'action=UPDATE_USER_ROLE', category: 'filter', icon: Filter },
+  { id: 'filter-report-actions', label: 'Report Actions', description: 'Filter logs by report activity', keywords: ['report', 'incident', 'status', 'update', 'create'], path: '/superadmin/audit-logs', queryParams: 'targetType=REPORT', category: 'filter', icon: Filter },
+  { id: 'filter-admin-actions', label: 'Admin Actions', description: 'Filter logs by admin activity', keywords: ['admin', 'super', 'boundary', 'system'], path: '/superadmin/audit-logs', queryParams: 'targetType=BARANGAY', category: 'filter', icon: Filter },
+
+  // Incident Types
+  { id: 'type-pollution', label: 'Pollution Incidents', description: 'View pollution-related reports', keywords: ['pollution', 'waste', 'garbage', 'environmental'], path: '/superadmin', queryParams: 'type=POLLUTION', category: 'filter', icon: AlertTriangle },
+  { id: 'type-noise', label: 'Noise Incidents', description: 'View noise-related reports', keywords: ['noise', 'loud', 'disturbance', 'sound'], path: '/superadmin', queryParams: 'type=NOISE', category: 'filter', icon: AlertTriangle },
+  { id: 'type-crime', label: 'Crime Incidents', description: 'View crime-related reports', keywords: ['crime', 'theft', 'violence', 'security'], path: '/superadmin', queryParams: 'type=CRIME', category: 'filter', icon: AlertTriangle },
+  { id: 'type-road', label: 'Road Hazard Incidents', description: 'View road hazard reports', keywords: ['road', 'hazard', 'pothole', 'traffic', 'accident'], path: '/superadmin', queryParams: 'type=ROAD_HAZARD', category: 'filter', icon: AlertTriangle },
+];
+
 export default function SuperAdminLayout() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -68,6 +118,7 @@ export default function SuperAdminLayout() {
   const [searchNavResults, setSearchNavResults] = useState<typeof NAV_ITEMS>([]);
   const [searchUserResults, setSearchUserResults] = useState<{ id: string; fullName: string; role: string; barangayCode: string | null }[]>([]);
   const [searchBarangayResults, setSearchBarangayResults] = useState<MonitoringItem[]>([]);
+  const [searchActionResults, setSearchActionResults] = useState<SearchableItem[]>([]);
   const [searchResultsLoading, setSearchResultsLoading] = useState(false);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -201,6 +252,7 @@ export default function SuperAdminLayout() {
     setNotificationsOpen(false);
     setSearchDropdownOpen(false);
     setSearchQuery('');
+    setSearchActionResults([]);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -217,17 +269,35 @@ export default function SuperAdminLayout() {
       setSearchNavResults([]);
       setSearchUserResults([]);
       setSearchBarangayResults([]);
+      setSearchActionResults([]);
       setSearchDropdownOpen(false);
       return;
     }
     searchDebounceRef.current = setTimeout(async () => {
       const ql = q.toLowerCase();
+      const queryWords = ql.split(/\s+/).filter(Boolean);
+
+      // Search navigation items
       const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
       setSearchNavResults(navMatches);
+
+      // Search barangays
       const barangayMatches = monitoringItems.filter(
         (b) => b.name.toLowerCase().includes(ql) || b.code.includes(ql),
       );
       setSearchBarangayResults(barangayMatches);
+
+      // Search quick actions, features, and filters
+      const actionMatches = SEARCHABLE_ITEMS.filter((item) => {
+        const labelMatch = item.label.toLowerCase().includes(ql);
+        const descMatch = item.description?.toLowerCase().includes(ql);
+        const keywordMatch = queryWords.some((word) =>
+          item.keywords.some((kw) => kw.includes(word) || word.includes(kw))
+        );
+        return labelMatch || descMatch || keywordMatch;
+      }).slice(0, 6);
+      setSearchActionResults(actionMatches);
+
       setSearchDropdownOpen(true);
       setSearchResultsLoading(true);
       try {
@@ -540,7 +610,7 @@ export default function SuperAdminLayout() {
                 <Search size={14} className="shrink-0 text-[var(--outline)]" />
                 <input
                   type="search"
-                  placeholder="Search users, barangays, or audits..."
+                  placeholder="Search pages, actions, users, filters..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => { if (searchQuery.trim().length >= 2) setSearchDropdownOpen(true); }}
@@ -613,7 +683,44 @@ export default function SuperAdminLayout() {
                         ))}
                       </div>
                     )}
-                    {!searchResultsLoading && searchNavResults.length === 0 && searchBarangayResults.length === 0 && searchUserResults.length === 0 && (
+                    {searchActionResults.length > 0 && (
+                      <div className={(searchNavResults.length > 0 || searchBarangayResults.length > 0 || searchUserResults.length > 0) ? 'border-t border-[var(--outline-variant)]/20' : ''}>
+                        <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">
+                          Quick Actions & Filters
+                        </div>
+                        {searchActionResults.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSearchResultClick(item.queryParams ? `${item.path}?${item.queryParams}` : item.path)}
+                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                          >
+                            <div className={`flex size-6 shrink-0 items-center justify-center rounded ${
+                              item.category === 'action' ? 'bg-primary/10 text-primary' :
+                              item.category === 'filter' ? 'bg-[var(--analytics)]/10 text-[var(--analytics)]' :
+                              'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
+                            }`}>
+                              <item.icon size={13} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-[13px] font-medium text-[var(--on-surface)]">{item.label}</div>
+                              {item.description && (
+                                <div className="truncate text-[11px] text-[var(--outline)]">{item.description}</div>
+                              )}
+                            </div>
+                            <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase ${
+                              item.category === 'action' ? 'bg-primary/10 text-primary' :
+                              item.category === 'filter' ? 'bg-[var(--analytics)]/10 text-[var(--analytics)]' :
+                              'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
+                            }`}>
+                              {item.category}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!searchResultsLoading && searchNavResults.length === 0 && searchBarangayResults.length === 0 && searchUserResults.length === 0 && searchActionResults.length === 0 && (
                       <div className="px-3 py-3 text-xs text-[var(--outline)]">No results for "{searchQuery.trim()}"</div>
                     )}
                   </div>
