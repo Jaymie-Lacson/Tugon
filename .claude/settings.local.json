@@ -63,7 +63,13 @@
       "Bash(code-review-graph --help)",
       "mcp__code-review-graph__build_or_update_graph_tool",
       "Bash(python3 skills/ui-ux-pro-max/scripts/search.py \"dark mode government civic dashboard professional\" --design-system -p \"TUGON\")",
-      "mcp__code-review-graph__semantic_search_nodes_tool"
+      "mcp__code-review-graph__semantic_search_nodes_tool",
+      "Bash(pandoc --track-changes=all \"C:/Users/Mikell Razon/Downloads/Meeting in _General_ .docx\" -o \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon/docs/_meeting_transcript.md\")",
+      "Bash(where pandoc *)",
+      "Bash(where python *)",
+      "Bash(where soffice *)",
+      "Bash(python -c \"import docx2txt; print\\('ok'\\)\")",
+      "Bash(python -c \"import zipfile; print\\('zipfile ok'\\)\")"
     ]
   }
 }
