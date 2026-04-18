@@ -69,7 +69,13 @@
       "Bash(where python *)",
       "Bash(where soffice *)",
       "Bash(python -c \"import docx2txt; print\\('ok'\\)\")",
-      "Bash(python -c \"import zipfile; print\\('zipfile ok'\\)\")"
+      "Bash(python -c \"import zipfile; print\\('zipfile ok'\\)\")",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" diff --stat docs/ERD.md)",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" status docs/ERD.md)",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" show HEAD:docs/ERD.md)",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" log --oneline -5 -- docs/ERD.md)",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" checkout b0063cb -- docs/ERD.md)",
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" log --oneline -10 -- docs/)"
     ]
   }
 }
