@@ -79,7 +79,10 @@
       "mcp__code-review-graph__get_architecture_overview_tool",
       "mcp__code-review-graph__list_communities_tool",
       "Bash(xargs grep *)",
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(python3 *)",
+      "Bash(python *)",
+      "Bash(cygpath *)"
     ]
   }
 }

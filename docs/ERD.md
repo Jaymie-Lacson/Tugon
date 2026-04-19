@@ -26,6 +26,8 @@ erDiagram
     USER ||--o{ CITIZEN_REPORT : "files"
     BARANGAY ||--o{ CITIZEN_PROFILE : "registers"
     BARANGAY ||--o{ OFFICIAL_PROFILE : "employs"
+    BARANGAY ||..o{ CITIZEN_REPORT : "routes via code"
+    BARANGAY ||..o{ CROSS_BORDER_ALERT : "source/target via code"
     CITIZEN_REPORT ||--o{ INCIDENT_EVIDENCE : "contains"
     CITIZEN_REPORT ||--o{ TICKET_STATUS_HISTORY : "tracks"
     CITIZEN_REPORT ||--o{ CROSS_BORDER_ALERT : "notifies"
@@ -35,6 +37,7 @@ erDiagram
     USER ||..o{ ADMIN_NOTIFICATION : "receives"
     USER ||..o{ USER : "verifies / bans (self-ref)"
     CITIZEN_REPORT ||..o{ ADMIN_NOTIFICATION : "references"
+    BARANGAY ||..o{ OTP_CHALLENGE : "registration barangay code"
 
     USER {
         attr id PK
@@ -87,7 +90,7 @@ erDiagram
     CITIZEN_REPORT {
         attr id PK
         attr citizenUserId FK
-        attr routedBarangayCode
+        attr routedBarangayCode "logical FK to Barangay.code"
         attr latitude
         attr longitude
         attr category "CHECK: Pollution|Noise|Crime|Road Hazard|Other"
@@ -127,8 +130,8 @@ erDiagram
     CROSS_BORDER_ALERT {
         attr id PK
         attr reportId FK
-        attr sourceBarangayCode
-        attr targetBarangayCode
+        attr sourceBarangayCode "logical FK to Barangay.code"
+        attr targetBarangayCode "logical FK to Barangay.code"
         attr alertReason
         attr createdAt
         attr readAt
@@ -193,7 +196,7 @@ erDiagram
         attr lockoutUntil
         attr lastSentAt
         attr registrationFullName
-        attr registrationBarangayCode
+        attr registrationBarangayCode "logical FK to Barangay.code"
         attr createdAt
         attr updatedAt
     }
@@ -207,7 +210,7 @@ erDiagram
     }
 ```
 
-Solid lines = enforced FK. Dashed lines (`..`) = logical relationship (no FK constraint in schema — the column references a `User.id` or `CitizenReport.id` value but Prisma has no `@relation`).
+Solid lines = enforced FK. Dashed lines (`..`) = logical relationship (no FK constraint in schema — the column references a `User.id`, `Barangay.code`, or `CitizenReport.id` value but Prisma has no `@relation`).
 
 ---
 
@@ -254,6 +257,7 @@ erDiagram
 ```mermaid
 erDiagram
     USER ||--o{ CITIZEN_REPORT : "submits"
+    BARANGAY ||..o{ CROSS_BORDER_ALERT : "source/target via code"
     CITIZEN_REPORT ||--o{ INCIDENT_EVIDENCE : "attaches"
     CITIZEN_REPORT ||--o{ TICKET_STATUS_HISTORY : "records"
     CITIZEN_REPORT ||--o{ CROSS_BORDER_ALERT : "may trigger"
@@ -261,7 +265,7 @@ erDiagram
     CITIZEN_REPORT {
         attr id PK
         attr citizenUserId FK
-        attr routedBarangayCode
+        attr routedBarangayCode "logical FK to Barangay.code"
         attr latitude
         attr longitude
         attr status
@@ -282,8 +286,8 @@ erDiagram
     }
     CROSS_BORDER_ALERT {
         attr reportId FK
-        attr sourceBarangayCode
-        attr targetBarangayCode
+        attr sourceBarangayCode "logical FK to Barangay.code"
+        attr targetBarangayCode "logical FK to Barangay.code"
     }
 ```
 
@@ -303,6 +307,7 @@ erDiagram
     USER ||..o{ AUTH_SESSION : "owns"
     USER ||..o{ ADMIN_AUDIT_LOG : "is actor of"
     USER ||..o{ ADMIN_NOTIFICATION : "receives"
+    BARANGAY ||..o{ OTP_CHALLENGE : "registration barangay code"
 
     AUTH_SESSION {
         attr sessionId UK
@@ -328,6 +333,7 @@ erDiagram
         attr purpose
         attr failedVerifyAttempts
         attr lockoutUntil
+        attr registrationBarangayCode "logical FK to Barangay.code"
     }
     IP_RATE_LIMIT_BUCKET {
         attr bucketKey PK
@@ -336,7 +342,7 @@ erDiagram
     }
 ```
 
-**Design note** — `AUTH_SESSION`, `ADMIN_AUDIT_LOG`, `ADMIN_NOTIFICATION`, `OTP_CHALLENGE`, and `IP_RATE_LIMIT_BUCKET` store `userId` / `phoneNumber` / `bucketKey` **without** enforced foreign keys. This is intentional: audit rows must survive user deletion, and rate-limit buckets are keyed by transient IPs.
+**Design note** — `AUTH_SESSION`, `ADMIN_AUDIT_LOG`, `ADMIN_NOTIFICATION`, `OTP_CHALLENGE`, and `IP_RATE_LIMIT_BUCKET` store `userId` / `phoneNumber` / `bucketKey` **without** enforced foreign keys. This is intentional: audit rows must survive user deletion, registration barangay is recorded by code only, and rate-limit buckets are keyed by transient IPs.
 
 ---
 
