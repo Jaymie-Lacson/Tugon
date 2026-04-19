@@ -75,7 +75,11 @@
       "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" show HEAD:docs/ERD.md)",
       "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" log --oneline -5 -- docs/ERD.md)",
       "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" checkout b0063cb -- docs/ERD.md)",
-      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" log --oneline -10 -- docs/)"
+      "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" log --oneline -10 -- docs/)",
+      "mcp__code-review-graph__get_architecture_overview_tool",
+      "mcp__code-review-graph__list_communities_tool",
+      "Bash(xargs grep *)",
+      "Bash(xargs wc *)"
     ]
   }
 }
