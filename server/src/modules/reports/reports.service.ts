@@ -578,9 +578,6 @@ function mapPersistedReport(row: {
   affectedCount: string | null;
   submittedAt: Date;
   updatedAt: Date;
-  hasPhotos: boolean;
-  photoCount: number;
-  hasAudio: boolean;
   assignedOfficer: string | null;
   assignedUnit: string | null;
   resolutionNote: string | null;
@@ -634,9 +631,9 @@ function mapPersistedReport(row: {
     affectedCount: row.affectedCount,
     submittedAt: row.submittedAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    hasPhotos: row.hasPhotos,
-    photoCount: row.photoCount,
-    hasAudio: row.hasAudio,
+    hasPhotos: (row.evidences ?? []).some((e) => e.kind === "photo"),
+    photoCount: (row.evidences ?? []).filter((e) => e.kind === "photo").length,
+    hasAudio: (row.evidences ?? []).some((e) => e.kind === "audio"),
     assignedOfficer: row.assignedOfficer,
     assignedUnit: row.assignedUnit,
     resolutionNote: row.resolutionNote,
@@ -1009,9 +1006,6 @@ export const reportsService = {
           description: report.description,
           severity: prismaSeverityMap[report.severity],
           affectedCount: report.affectedCount,
-          hasPhotos: report.hasPhotos,
-          photoCount: report.photoCount,
-          hasAudio: report.hasAudio,
         },
         create: {
           id: report.id,
@@ -1032,9 +1026,6 @@ export const reportsService = {
           affectedCount: report.affectedCount,
           submittedAt: new Date(report.submittedAt),
           updatedAt: new Date(report.updatedAt),
-          hasPhotos: report.hasPhotos,
-          photoCount: report.photoCount,
-          hasAudio: report.hasAudio,
         },
       }),
       prisma.ticketStatusHistory.deleteMany({

@@ -527,10 +527,6 @@ async function main() {
     const latitude = boundedCoordinate(barangay.centerLat, 0.00065);
     const longitude = boundedCoordinate(barangay.centerLng, 0.00065);
 
-    const hasPhotos = rand() < 0.65;
-    const photoCount = hasPhotos ? Math.max(1, Math.floor(rand() * 4)) : 0;
-    const hasAudio = rand() < 0.35;
-
     const assignedOfficial =
       status === TicketStatus.SUBMITTED ? null : pickOne(officialUsers).fullName;
 
@@ -558,9 +554,6 @@ async function main() {
         affectedCount,
         submittedAt,
         updatedAt,
-        hasPhotos,
-        photoCount,
-        hasAudio,
         assignedOfficer: assignedOfficial,
         assignedUnit: assignedOfficial ? "Barangay Response Unit" : null,
         resolutionNote:
@@ -589,9 +582,6 @@ async function main() {
         affectedCount,
         submittedAt,
         updatedAt,
-        hasPhotos,
-        photoCount,
-        hasAudio,
         assignedOfficer: assignedOfficial,
         assignedUnit: assignedOfficial ? "Barangay Response Unit" : null,
         resolutionNote:

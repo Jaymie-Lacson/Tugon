@@ -88,9 +88,6 @@ model CitizenReport {
   affectedCount  String?
   submittedAt    DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  hasPhotos      Boolean        @default(false)
-  photoCount     Int            @default(0)
-  hasAudio       Boolean        @default(false)
   assignedOfficer String?
   assignedUnit   String?
   resolutionNote String?

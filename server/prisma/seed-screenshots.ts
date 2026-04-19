@@ -471,9 +471,6 @@ async function main() {
         affectedCount: "6-20",
         submittedAt,
         updatedAt,
-        hasPhotos: report.hasPhotos,
-        photoCount: report.photoCount,
-        hasAudio: report.hasAudio,
         assignedOfficer:
           report.status === TicketStatus.SUBMITTED ? null : "Demo Official 252",
         assignedUnit:
@@ -502,9 +499,6 @@ async function main() {
         affectedCount: "6-20",
         submittedAt,
         updatedAt,
-        hasPhotos: report.hasPhotos,
-        photoCount: report.photoCount,
-        hasAudio: report.hasAudio,
         assignedOfficer:
           report.status === TicketStatus.SUBMITTED ? null : "Demo Official 252",
         assignedUnit:

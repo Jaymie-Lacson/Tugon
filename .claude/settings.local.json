@@ -82,7 +82,10 @@
       "Bash(xargs wc *)",
       "Bash(python3 *)",
       "Bash(python *)",
-      "Bash(cygpath *)"
+      "Bash(cygpath *)",
+      "Bash(npm --prefix server run build)",
+      "Bash(npm --prefix server run prisma:status)",
+      "Bash(npm --prefix server run prisma:migrate:deploy)"
     ]
   }
 }
