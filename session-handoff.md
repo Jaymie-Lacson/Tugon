@@ -1,170 +1,128 @@
-# Session Handoff — 2026-04-20
+# Session Handoff — Performance Optimization Pass
 
 ## What was accomplished this session
 
-### Phase 1 — Foundation (complete)
+1. **Web performance analysis of https://tugon-rho.vercel.app/** — produced a full optimization roadmap covering Core Web Vitals, images, fonts, JS, CSS, and caching.
+2. **Removed unused Inter font family** (was loaded but only used as a CSS fallback):
+   - Removed 3 `@font-face` declarations from `src/styles/fonts.css`
+   - Replaced `'Inter'` with `system-ui` in `--font-body` fallback chain
+   - Deleted `public/fonts/inter-400.woff2`, `inter-500.woff2`, `inter-600.woff2`
+   - Saves ~20 KB on every first paint
+3. **Installed bundle analyzer** (`rollup-plugin-visualizer` + `cross-env`):
+   - Added `build:analyze` npm script
+   - Enabled via `ANALYZE=true` env var in `vite.config.ts`
+   - Output: `dist/bundle-stats.html` (treemap with gzip/brotli sizes)
+4. **Lazy-loaded Filipino translation dictionary** — biggest win this session:
+   - `en` (default locale) remains statically imported as fallback layer
+   - `fil` dictionary now lazy-loaded via dynamic `import('./translations/fil')`
+   - Main `index.js` chunk dropped from **96 KB gzip → 78 KB gzip** (−19%)
+   - `fil` is now its own 18.57 KB gzip lazy chunk
+5. **Started refactor to lazy-load `@chenglou/pretext`** — INCOMPLETE, see Traps section.
 
-1. **Fixed `var(--text-2xl)` / `var(--text-xl)` bug** at `theme.css:451-457` — tokens were referenced in heading rules but never declared. Added the full `--text-xs` → `--text-4xl` fluid `clamp()` scale to `:root`.
-2. **Added typography token scale** — `--text-xs` through `--text-4xl` using `clamp()` from 320px → 1440px viewport, plus `--leading-*`, `--tracking-*`, and `--z-*` z-index scale.
-3. **Added breakpoints + font-size mappings to `@theme inline`** — `--breakpoint-sm/md/lg/xl` (40/48/64/90rem) and `--font-size-xs` → `--font-size-4xl` aliasing the new tokens.
-4. **Removed dead MUI/emotion/popper deps** — `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`, `@popperjs/core`, `react-popper` all removed from `package.json`. No source imports existed — confirmed with grep. 49 packages removed.
-5. **Added `zod` (^3.24.2) and `web-vitals` (^4.2.4)** to `package.json`. Ran `npm install` — clean.
-6. **Created `AppErrorBoundary`** at `src/app/components/AppErrorBoundary.tsx` — class component wrapping the entire app, renders a Reload button on uncaught render errors, uses design tokens inline.
-7. **Wired `AppErrorBoundary` + `initWebVitals` into `src/main.tsx`** — boundary wraps `<TugonThemeProvider><App /></TugonThemeProvider>`, vitals init fires after render.
-8. **Scaffolded `src/app/schemas/`** — `auth.ts` (loginSchema, registerSchema), `incidentReport.ts` (incidentReportSchema with enum matching hard rules), `index.ts` barrel export.
-9. **Created `src/app/utils/webVitals.ts`** — dynamic import of `web-vitals`, logs CLS/FID/INP/LCP/TTFB to console in DEV only.
-10. **Fixed `CLAUDE.md` font reference** — changed `Roboto family` → `Public Sans · IBM Plex Sans · IBM Plex Mono` to match actual `fonts.css`.
-11. **Build result** — main bundle dropped from 699 KB → 469 KB minified (178 KB → 142 KB gzip). `npm run build` passes clean.
-
-### Phase 2 — Responsive (complete)
-
-1. **Downloaded hero image locally** — `public/hero-city.jpg` (605 KB) from Pexels; eliminates the cross-origin external fetch that was the biggest LCP risk.
-2. **Updated `Landing.tsx`** — `HERO_IMAGE` constant now points to `/hero-city.jpg`; hero `<img>` gets `fetchPriority="high"`, `loading="eager"`, `decoding="async"`, `alt=""`, `aria-hidden="true"` (decorative).
-3. **Added `<link rel="preload">` in `index.html`** for `/hero-city.jpg` with `fetchpriority="high"`.
-4. **Fixed ad-hoc 900/901px breakpoints in `mobile.css`** — replaced with `63.9375rem` / `64rem` (aligned to the `lg` tier, 1024px). Affects `.citizen-report-footer` sticky vs. fixed behaviour.
-5. **Gated touch-unsafe hover effects** — `.incident-step4-photo-add-btn:hover` (light + dark) wrapped in `@media (hover: hover)` so they no longer fire on touchscreens.
-6. **Fixed `font-family: Roboto` in `mobile.css`** (2 instances: `.incident-step2-address-input` and `.incident-success-overlay`) → `font-family: inherit`.
-
-### Phase 3 — Performance, Steps 1–4 (complete)
-
-1. **Vite `manualChunks` added to `vite.config.ts`** — splits `leaflet`/`react-leaflet` into `vendor-leaflet` and `recharts` into `vendor-charts`. Removed `vendor-radix` (caused circular chunk warning). Main bundle: **325 KB / 96 KB gzip** (was 469 KB / 142 KB gzip).
-
-2. **Leaflet lazy-loaded** — extracted all react-leaflet JSX into `IncidentReportMap.tsx`, then into `IncidentReport/Map.tsx` after folder decomposition. Uses `React.lazy` + `<Suspense>`. The 45 KB gz `vendor-leaflet` chunk only downloads when user reaches Step 2 of the incident form.
-
-3. **WebP + AVIF hero image** — converted JPEG → WebP (425 KB) and AVIF (310 KB). Landing hero uses `<picture>` with AVIF + WebP sources + JPEG fallback. `index.html` has type-gated preload links.
-
-4. **Service worker + PWA manifest** — `public/sw.js` (stale-while-revalidate for static GET assets; `/api/*` always network-only to preserve server-side geofencing). `public/manifest.webmanifest` for installability. SW registered in `main.tsx` (PROD only, on `load` event).
-
-### Phase 3 — Performance, Step 5: IncidentReport.tsx decomposed (complete)
-
-The 2,200+ LOC `IncidentReport.tsx` monolith has been split into:
-
-```
-src/app/pages/IncidentReport/
-  types.ts            — PinData, ReportForm, IncidentCategory, Severity, LatLng
-  shared.ts           — CATEGORIES, TILE_URLS, BARANGAY_BOUNDARIES, utility fns, STEP_REQUIREMENTS
-  Map.tsx             — Leaflet MapContainer component (lazy-load boundary)
-  Step1Type.tsx       — Category cards + severity row + subcategory select (exports Step1WithValidation)
-  Step2Location.tsx   — Map pin placement + address input (lazy-imports Map.tsx)
-  Step3Description.tsx — Textarea + quick tags + affected count
-  Step4Evidence.tsx   — Photo upload + voice recorder
-  Step5Review.tsx     — Summary card + photo thumbnails + disclaimer
-  index.tsx           — Orchestrator + StepIndicator + SuccessScreen + SubmissionLoadingOverlay
-```
-
-Old flat files deleted: `src/app/pages/IncidentReport.tsx`, `src/app/pages/IncidentReportMap.tsx`.
-
-Router import `./pages/IncidentReport` auto-resolves to `index.tsx` — no route changes needed.
-
-`npm run build` passes clean after decomposition. Main bundle unchanged at 325 KB / 96 KB gz.
-
----
+### Cumulative first-paint savings: ~38 KB gzipped
 
 ## Current state
 
-**Working:**
-- `npm run build` passes clean — no errors, no type errors, no circular chunk warnings.
-- All 4 phases of Phase 3 complete.
-- Main bundle: 325 KB / 96 KB gzip (was 699 KB / 178 KB gzip at project start).
-- `vendor-leaflet` (156 KB / 45 KB gz) only loads when user reaches Step 2 of incident report.
-- `vendor-charts` (544 KB / 163 KB gz) only loads on analytics pages.
-- Hero image serves AVIF (310 KB) to modern browsers, WebP (425 KB) to mid-tier, JPEG (606 KB) to legacy.
-- Service worker provides stale-while-revalidate for static assets; API routes bypass cache.
-- `IncidentReport` is now a clean folder with 9 focused files (was a 2,200+ LOC monolith).
+### What is working
+- All previous optimizations (Inter removal, bundle analyzer, fil lazy-load) build cleanly and ship correctly.
+- `npm run build` succeeds.
+- `npm run build:analyze` opens bundle treemap in browser.
+- Main bundle: `index.js` = 249 KB raw / 78 KB gzip (down from 324/96).
 
-**Broken / incomplete:**
-- Zod schemas exist but are NOT wired into any form — `react-hook-form` + `@hookform/resolvers` integration still needed in auth pages and IncidentReport.
-- `web-vitals` only logs to console in DEV — no analytics endpoint for production yet.
-- Lower-priority mega-page decompositions not yet done: `CitizenDashboard.tsx` (1,768 LOC), `CitizenMyReports.tsx` (1,633 LOC), `SABarangayMap.tsx` (1,409 LOC).
-- Phase 4 (Polish) not started: no ARIA live regions, heading hierarchy unaudited, no Playwright harness.
+### What is broken or incomplete
+**`src/app/components/PretextAutoTextBridge.tsx` has a runtime bug.**
 
----
+The build passes (Vite doesn't run tsc), but the component will throw at runtime when `scheduleMeasure` fires. Specifically:
 
-## Files modified this session
+- `applyPretextAutoMeasurement` now requires a `pretextModule` argument (line 58).
+- `scheduleMeasure` on line 113 calls `applyPretextAutoMeasurement()` with NO argument.
+- At runtime this will `TypeError: Cannot destructure property 'layout' of 'undefined'`.
+- The `loadPretextModule()` helper (lines 8–11) exists but is never called.
+- Pretext is tree-shaken from PretextAutoTextBridge's bundle (since nothing actually imports the module), but `App.tsx` still statically imports `clearCache` and `setLocale` from `@chenglou/pretext`, so pretext is still in `index.js` — no bundle saving realized yet.
 
-| File | Change |
-|------|--------|
-| `src/app/pages/IncidentReport/types.ts` | NEW — PinData, ReportForm, IncidentCategory, Severity, LatLng |
-| `src/app/pages/IncidentReport/shared.ts` | NEW — constants, barangay boundaries, utility functions, STEP_REQUIREMENTS |
-| `src/app/pages/IncidentReport/Map.tsx` | NEW — Leaflet MapContainer (was IncidentReportMap.tsx, now imports TONDO_MAP_CENTER/BOUNDS from shared.ts) |
-| `src/app/pages/IncidentReport/Step1Type.tsx` | NEW — getCategoryThemeClasses, getSeverityButtonClasses, Step1, Step1WithValidation (named export) |
-| `src/app/pages/IncidentReport/Step2Location.tsx` | NEW — Step2 with lazy Map import, pin validation, address input |
-| `src/app/pages/IncidentReport/Step3Description.tsx` | NEW — Step3 with textarea, quick tags, affected count |
-| `src/app/pages/IncidentReport/Step4Evidence.tsx` | NEW — Step4 with photo upload and voice recorder |
-| `src/app/pages/IncidentReport/Step5Review.tsx` | NEW — Step5 with summary card, photo thumbnails, disclaimer |
-| `src/app/pages/IncidentReport/index.tsx` | NEW — main orchestrator, StepIndicator, SuccessScreen, SubmissionLoadingOverlay |
-| `src/app/pages/IncidentReport.tsx` | DELETED — replaced by folder |
-| `src/app/pages/IncidentReportMap.tsx` | DELETED — content moved to IncidentReport/Map.tsx |
-| `public/sw.js` | NEW — stale-while-revalidate service worker; network-only for /api/* |
-| `public/manifest.webmanifest` | NEW — PWA manifest with TUGON branding |
-| `src/main.tsx` | Added SW registration (PROD only) after initWebVitals |
-| `index.html` | Added manifest link, mobile-web-app-capable meta, type-gated AVIF+WebP preloads |
+**DO NOT DEPLOY THIS BRANCH.** Landing page and most content pages will break as soon as the first DOM mutation triggers `scheduleMeasure`.
 
----
+## Files modified
+
+| File | Summary |
+|------|---------|
+| `src/styles/fonts.css` | Removed Inter @font-face blocks; updated `--font-body` fallback to `system-ui` |
+| `public/fonts/inter-400.woff2` | Deleted (unused) |
+| `public/fonts/inter-500.woff2` | Deleted (unused) |
+| `public/fonts/inter-600.woff2` | Deleted (unused) |
+| `vite.config.ts` | Added conditional `rollup-plugin-visualizer` (gated on `ANALYZE=true` env var) |
+| `package.json` | Added `build:analyze` script; added `rollup-plugin-visualizer` + `cross-env` devDeps |
+| `package-lock.json` | Auto-updated from above installs |
+| `src/app/i18n/TranslationProvider.tsx` | Refactored to lazy-load non-default locales; added `loadedDictionaries` cache + revision counter pattern |
+| `src/app/components/PretextAutoTextBridge.tsx` | **INCOMPLETE** — added dynamic-import helper but `scheduleMeasure` still calls `applyPretextAutoMeasurement()` without loading the module first |
+| `.claude/settings.local.json` | Permission allowlist updates (incidental) |
 
 ## Open decisions
 
-- **Zod form integration** — schemas exist in `src/app/schemas/` but wiring to `react-hook-form` via `@hookform/resolvers/zod` hasn't been done. Decision pending: do this per-page or establish a shared `useZodForm` hook.
-- **web-vitals production endpoint** — currently console-only in DEV. Needs a `/api/vitals` endpoint or third-party service (e.g. Vercel Analytics) to be useful.
-- **Remaining mega-page decompositions** — `CitizenDashboard`, `CitizenMyReports`, `SABarangayMap` are still monoliths. Decision: decompose now (consistency) or defer until feature work requires touching them.
-
----
+1. **Pretext lazy-load approach** — Two options:
+   - **(a)** Finish the partial refactor: wire up `loadPretextModule().then(m => applyPretextAutoMeasurement(m))` in `scheduleMeasure`, AND refactor `App.tsx`'s `PretextRuntimeBridge` to also dynamic-import `clearCache`/`setLocale`. Saves ~25 KB gzip from main bundle.
+   - **(b)** Revert `PretextAutoTextBridge.tsx` to its pre-session state. Accept the 25 KB cost. Re-visit later.
+2. **Unused npm dependencies** — Confirmed truly unused via grep (no imports anywhere in src/):
+   - `react-slick`, `react-dnd`, `react-dnd-html5-backend`, `date-fns`, `motion`, `react-responsive-masonry`
+   - And orphaned UI files whose libs are only used internally: `ui/carousel.tsx` (embla), `ui/drawer.tsx` (vaul), `ui/command.tsx` (cmdk), `ui/calendar.tsx` (react-day-picker), `ui/resizable.tsx` (react-resizable-panels), `ui/sonner.tsx` (sonner — Toaster never rendered), `ui/form.tsx` (react-hook-form)
+   - Tree-shaking already keeps these out of the bundle, so **removing them gives zero bundle improvement**. Only benefits: faster `npm install`, smaller attack surface.
+   - **DECISION NEEDED**: Remove them aggressively, or keep as "available for future use"? User has not answered yet.
+3. **Photo compression for incident uploads** — Proposed in roadmap but not started. Requires `sharp` dependency on server side. High-ROI for user-facing load times but requires testing against real phone camera photos.
+4. **React Query for API caching** — Proposed but not started. Medium effort, good UX improvement, but a meaningful architectural change.
 
 ## Traps to avoid
 
-1. **`@theme inline` font-size mapping** — `text-base` now resolves to `var(--text-base)` (our `clamp()` value). Leave `text-[16px]` or `text-[1rem]` hard-codes alone — they're intentional overrides.
-2. **`xl:` breakpoint shift** — `--breakpoint-xl` is 90rem (1440px), not Tailwind's default 80rem. Check visually on 1280–1440px wide viewports.
-3. **MUI removal is already done** — do not re-add `@mui/material` or any emotion/popper package.
-4. **`hero-city.jpg` is decorative** — `alt=""` and `aria-hidden="true"` are intentional. Do not add a descriptive `alt`.
-5. **Do NOT run `npm audit fix --force`** — 10 dev-tool vulnerabilities exist; `--force` would downgrade production deps.
-6. **Vite chunk warning on vendor-charts** — the 544 KB vendor-charts warning is expected (only loads on analytics pages). Do not silence with `chunkSizeWarningLimit`.
-7. **SW must never cache `/api/*`** — hard rule in `CLAUDE.md` §7: server-side geofencing must always reach the server. `public/sw.js` already has the bypass; do not remove it.
-8. **IncidentReport/Step1Type.tsx exports `Step1WithValidation` as a named export** (not default). `index.tsx` imports it as `{ Step1WithValidation }`. `Step1` itself is not exported (internal only).
-9. **IncidentReport/Step2Location.tsx owns its own `useTheme` call** — `index.tsx` no longer imports `useTheme`. Theme-dependent tile URLs are computed inside Step2, not passed from the orchestrator.
-10. **Router resolves `./pages/IncidentReport` → `./pages/IncidentReport/index.tsx` automatically** — no route changes were needed in `App.tsx` or any router config.
-11. **Preload links are type-gated** — browsers only fetch the preload format they support. Do not revert to a single JPEG preload.
-
----
+1. **Partial refactor leaving broken state** — I refactored `applyPretextAutoMeasurement` to take a module argument without updating the ONE caller. Build passes because Vite uses esbuild (not tsc) and doesn't catch missing arguments. Lesson: after refactoring a function signature, immediately grep for all callers before moving on.
+2. **`@chenglou/pretext` has two entry points** — The app imports `{ layout, prepare }` from `PretextAutoTextBridge` AND `{ clearCache, setLocale }` from `App.tsx`'s inline `PretextRuntimeBridge`. To fully lazy-load pretext, BOTH entry points must be converted to dynamic imports. Converting only one leaves pretext in the eager bundle.
+3. **`typeof import('@chenglou/pretext')`** — This is a TYPE-ONLY expression; it does NOT trigger a runtime dynamic import. To actually fetch the module you need `import('@chenglou/pretext')` (expression form) at runtime.
+4. **`dist/bundle-stats.html` is 1.1 MB** — Don't commit it. Already covered by `dist` in `.gitignore`, but worth noting.
+5. **Tree-shaking already handles unused deps** — Removing unused npm packages does NOT reduce bundle size if they were never imported. It only reduces install time + attack surface. Don't oversell it as a performance win.
+6. **`rechartsWarningPatch.ts` looks suspicious but is safe** — It's just a `console.error` monkey-patch; it does NOT import from `recharts` and does NOT pull the heavy charts chunk into the main bundle. Verified.
 
 ## Next steps (priority order)
 
-1. **Phase 4 — Polish: ARIA live regions**
-   Add `aria-live="polite"` regions to status change toasts and incident submission feedback. Check `src/app/i18n/` for translation keys used in status messages.
-
-2. **Phase 4 — Polish: Heading hierarchy audit**
-   Run `scripts/a11y-smoke.cjs` (if it exists) or a browser a11y audit and fix any skipped heading levels (h1→h3 jumps). Key pages: Landing, CitizenDashboard, IncidentReport.
-
-3. **Phase 4 — Polish: Playwright e2e harness**
-   Install `@playwright/test`, scaffold `playwright.config.ts`, write 5 flows × 3 viewports (375px mobile, 768px tablet, 1440px desktop): Landing → Login → Citizen Report form → Submission, Official Dashboard list view, SuperAdmin audit log.
-
-4. **Lower-priority decompositions** (do only if touching these pages for other work):
-   - `CitizenDashboard.tsx` (1,768 LOC) → feature folder
-   - `CitizenMyReports.tsx` (1,633 LOC) → feature folder
-   - `SABarangayMap.tsx` (1,409 LOC) → feature folder
-
-5. **Zod form wiring** — wire `src/app/schemas/auth.ts` into Login and Register pages via `react-hook-form` + `@hookform/resolvers/zod`. Install `@hookform/resolvers` first.
-
----
+1. **FIRST — Fix the broken Pretext refactor.** Two paths:
+   - Either finish wiring: update `scheduleMeasure` in `PretextAutoTextBridge.tsx` to `loadPretextModule().then(m => applyPretextAutoMeasurement(m))`, AND refactor `App.tsx`'s `PretextRuntimeBridge` to also dynamic-import `clearCache`/`setLocale`.
+   - Or revert `PretextAutoTextBridge.tsx` via `git checkout -- src/app/components/PretextAutoTextBridge.tsx`.
+2. **Run `npm run build:analyze`** and look at the remaining 249 KB main bundle. Main targets to investigate:
+   - The 60 KB `ThemeToggle` chunk (really contains `next-themes` runtime)
+   - What's eagerly loaded from `routes.ts` beyond the truly-mandatory (e.g. `AppRouteErrorPage`, `RequireAuth`)
+3. **Decide on unused-dep cleanup** (see Open Decisions #2). If yes, run `npm uninstall react-slick react-dnd react-dnd-html5-backend date-fns motion react-responsive-masonry` and delete the orphaned `ui/*.tsx` files whose libs are only used internally.
+4. **Photo compression on server** (roadmap item #3). High ROI for real-world mobile users uploading incident photos.
+5. **React Query for API caching** (roadmap item #6). Improves perceived performance on repeat navigations.
+6. **Commit the working changes** (everything EXCEPT `PretextAutoTextBridge.tsx`). Suggested commit message:
+   ```
+   perf: remove unused Inter fonts, lazy-load fil translations, add bundle analyzer
+   ```
 
 ## Relevant file paths
 
-- `src/app/pages/IncidentReport/` — decomposed folder (9 files); `index.tsx` is the entry point
-- `src/app/pages/IncidentReport/shared.ts` — all shared constants + STEP_REQUIREMENTS
-- `src/app/pages/IncidentReport/Map.tsx` — lazy-loaded Leaflet map (react-leaflet lives here only)
-- `src/app/pages/CitizenDashboard.tsx` (1,768 LOC) — next decomposition target if needed
-- `src/app/pages/CitizenMyReports.tsx` (1,633 LOC) — next decomposition target if needed
-- `src/app/pages/superadmin/SABarangayMap.tsx` (1,409 LOC) — next decomposition target if needed
-- `vite.config.ts` — manualChunks config (vendor-leaflet, vendor-charts)
-- `src/app/pages/Landing.tsx` — hero `<picture>` element with AVIF/WebP/JPEG sources
-- `src/styles/theme.css` — all design tokens; `@theme inline` block for Tailwind mapping
-- `src/styles/mobile.css` — responsive utilities; breakpoints fixed to 64rem
-- `src/app/components/AppErrorBoundary.tsx` — error boundary (Phase 1)
-- `src/app/utils/webVitals.ts` — web vitals init (Phase 1)
-- `src/app/schemas/` — Zod schemas for auth + incident (not yet wired into forms)
-- `src/main.tsx` — bootstrap; AppErrorBoundary + initWebVitals + SW registration
-- `public/sw.js` — service worker (stale-while-revalidate; /api/* bypass)
-- `public/manifest.webmanifest` — PWA manifest
-- `public/hero-city.jpg` — original JPEG (606 KB) — fallback only
-- `public/hero-city.webp` — WebP (425 KB)
-- `public/hero-city.avif` — AVIF (310 KB) — preferred format
-- `index.html` — type-gated preload links for AVIF + WebP; manifest link
+### Changed this session
+- `src/styles/fonts.css`
+- `src/app/i18n/TranslationProvider.tsx`
+- `src/app/components/PretextAutoTextBridge.tsx` ⚠️ BROKEN
+- `vite.config.ts`
+- `package.json`
+
+### Needs review next session
+- `src/app/App.tsx` — contains `PretextRuntimeBridge` that must also be dynamic-imported to fully remove pretext from eager bundle
+- `src/app/components/ui/{carousel,drawer,command,calendar,resizable,sonner,form}.tsx` — orphaned UI files, candidates for deletion
+- `src/app/routes.ts` — already uses `React.lazy`, mostly good; check if `AppRouteErrorPage` should be lazy too
+
+### Key reference files (unchanged but important)
+- `vercel.json` — cache headers (well-configured; don't regress)
+- `index.html` — hero preload + API preconnect (well-configured; don't regress)
+- `src/main.tsx` — bootstrap entry point
+- `CLAUDE.md` — project rules (hard rules section #1–12 must never be violated)
+
+## Current bundle sizes (for next-session comparison)
+
+| Chunk | Raw | Gzip |
+|-------|-----|------|
+| `vendor-charts` (recharts) | 542 KB | 163 KB — Analytics pages only |
+| `index` (main) | 249 KB | 78 KB |
+| `vendor-leaflet` | 156 KB | 46 KB — Map pages only |
+| `fil` (Filipino translations) | 75 KB | 19 KB — lazy |
+| `ThemeToggle` (+ next-themes) | 60 KB | 19 KB |
+| `index-C8Z8XmSB.js` (Landing+misc) | 57 KB | 16 KB |
+| All route chunks | < 47 KB each | < 12 KB each |
