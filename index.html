@@ -17,13 +17,8 @@
     <link rel="preconnect" href="https://tugon-aapz.onrender.com" crossorigin />
     <link rel="dns-prefetch" href="https://tugon-aapz.onrender.com" />
 
-    <!-- Preload critical fonts (eliminates FOUT for most-used weights) -->
-    <link rel="preload" as="font" href="/fonts/ibm-plex-sans-400.woff2" type="font/woff2" crossorigin />
-    <link rel="preload" as="font" href="/fonts/public-sans-700.woff2" type="font/woff2" crossorigin />
-
-    <!-- Preload hero image (LCP element) — AVIF with WebP fallback -->
+    <!-- Preload ONLY the AVIF hero (browser picks first supported format in <picture>) -->
     <link rel="preload" as="image" href="/hero-city.avif" type="image/avif" fetchpriority="high" />
-    <link rel="preload" as="image" href="/hero-city.webp" type="image/webp" fetchpriority="high" />
   </head>
 
   <body>

@@ -179,10 +179,6 @@
   --font-mono: 'IBM Plex Mono', 'Roboto Mono', 'Courier New', monospace;
 }
 
-* {
-  font-family: var(--font-body);
-}
-
 body {
   font-family: var(--font-body);
 }
