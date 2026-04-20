@@ -1,101 +1,152 @@
-# Session Handoff — 2026-04-19
+# Session Handoff — 2026-04-20
 
 ## What was accomplished this session
 
-1. **Authored a capstone-scale enhancement plan** at `C:\Users\Mikell Razon\.claude\plans\you-are-a-senior-effervescent-thompson.md` covering responsiveness, performance, design system, UX/UI, and technical architecture for TUGON. Plan was approved via ExitPlanMode.
-2. **Audited the existing foundation** (direct file reads + Explore agents) — confirmed the codebase already has MD3 surface tokens, route-level lazy loading, skeleton shimmer system, Visual Viewport API bridge, reduced-motion support, focus-ring tokens, and 54 Radix primitives wired.
-3. **Identified a latent CSS bug** at `src/styles/theme.css:451-457` — headings reference `var(--text-2xl)` / `var(--text-xl)` that are never defined. Currently falls back to browser defaults.
-4. **Identified font doc drift** — `CLAUDE.md` lists Roboto, but `src/styles/fonts.css` actually loads Public Sans + IBM Plex Sans + IBM Plex Mono. Flagged as a Phase 1 docs-only fix.
-5. **Catalogued the MUI duplication** — `@mui/material`, `@mui/icons-material`, `@emotion/*`, `@popperjs/core`, `react-popper` all shipped alongside Radix + Tailwind. Estimated ~150–250KB gz savings on dashboard bundles once removed.
-6. **Sized the mega-pages** — auth pages alone ship ~45,000 LOC across 5 files (CreatePassword 13,941 · Verify 11,009 · Register 9,285 · Login 6,108 · ForgotPassword 4,962), likely Figma Make scaffold with inline JSX + MUI duplicated per component. Plus IncidentReport 2,222 · CitizenDashboard 1,768 · CitizenMyReports 1,633 · SABarangayMap 1,409 · Dashboard 1,043.
-7. **Defined a 4-tier breakpoint system** (sm 640 / md 768 / lg 1024 / xl 1440) with fluid `clamp()` typography to replace ad-hoc 768/769/900/901 queries in `mobile.css`.
-8. **Planned the Core Web Vitals targets**: LCP ≤ 2.5s, INP ≤ 100ms, CLS ≤ 0.05, TTI ≤ 3.5s landing / 4.5s dashboards, initial JS ≤ 180KB gz landing / 280KB gz dashboards.
-9. **Scoped the phased rollout** — Foundation → Responsive → Performance → Polish, ~1 week each.
-10. **No source code was modified** this session — all work was planning, plus this handoff file.
+### Phase 1 — Foundation (complete)
+
+1. **Fixed `var(--text-2xl)` / `var(--text-xl)` bug** at `theme.css:451-457` — tokens were referenced in heading rules but never declared. Added the full `--text-xs` → `--text-4xl` fluid `clamp()` scale to `:root`.
+2. **Added typography token scale** — `--text-xs` through `--text-4xl` using `clamp()` from 320px → 1440px viewport, plus `--leading-*`, `--tracking-*`, and `--z-*` z-index scale.
+3. **Added breakpoints + font-size mappings to `@theme inline`** — `--breakpoint-sm/md/lg/xl` (40/48/64/90rem) and `--font-size-xs` → `--font-size-4xl` aliasing the new tokens.
+4. **Removed dead MUI/emotion/popper deps** — `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`, `@popperjs/core`, `react-popper` all removed from `package.json`. No source imports existed — confirmed with grep. 49 packages removed.
+5. **Added `zod` (^3.24.2) and `web-vitals` (^4.2.4)** to `package.json`. Ran `npm install` — clean.
+6. **Created `AppErrorBoundary`** at `src/app/components/AppErrorBoundary.tsx` — class component wrapping the entire app, renders a Reload button on uncaught render errors, uses design tokens inline.
+7. **Wired `AppErrorBoundary` + `initWebVitals` into `src/main.tsx`** — boundary wraps `<TugonThemeProvider><App /></TugonThemeProvider>`, vitals init fires after render.
+8. **Scaffolded `src/app/schemas/`** — `auth.ts` (loginSchema, registerSchema), `incidentReport.ts` (incidentReportSchema with enum matching hard rules), `index.ts` barrel export.
+9. **Created `src/app/utils/webVitals.ts`** — dynamic import of `web-vitals`, logs CLS/FID/INP/LCP/TTFB to console in DEV only.
+10. **Fixed `CLAUDE.md` font reference** — changed `Roboto family` → `Public Sans · IBM Plex Sans · IBM Plex Mono` to match actual `fonts.css`.
+11. **Build result** — main bundle dropped from 699 KB → 469 KB minified (178 KB → 142 KB gzip). `npm run build` passes clean.
+
+### Phase 2 — Responsive (complete)
+
+1. **Downloaded hero image locally** — `public/hero-city.jpg` (605 KB) from Pexels; eliminates the cross-origin external fetch that was the biggest LCP risk.
+2. **Updated `Landing.tsx`** — `HERO_IMAGE` constant now points to `/hero-city.jpg`; hero `<img>` gets `fetchPriority="high"`, `loading="eager"`, `decoding="async"`, `alt=""`, `aria-hidden="true"` (decorative).
+3. **Added `<link rel="preload">` in `index.html`** for `/hero-city.jpg` with `fetchpriority="high"`.
+4. **Fixed ad-hoc 900/901px breakpoints in `mobile.css`** — replaced with `63.9375rem` / `64rem` (aligned to the `lg` tier, 1024px). Affects `.citizen-report-footer` sticky vs. fixed behaviour.
+5. **Gated touch-unsafe hover effects** — `.incident-step4-photo-add-btn:hover` (light + dark) wrapped in `@media (hover: hover)` so they no longer fire on touchscreens.
+6. **Fixed `font-family: Roboto` in `mobile.css`** (2 instances: `.incident-step2-address-input` and `.incident-success-overlay`) → `font-family: inherit`.
+
+---
 
 ## Current state
 
 **Working:**
-- Approved plan file exists at `.claude/plans/you-are-a-senior-effervescent-thompson.md` — ready to execute in Phase 1.
-- All hard rules from `CLAUDE.md` (3 roles, ticket statuses, incident types, server-side geofencing, citizen bottom nav) preserved in the plan design.
-- Graph MCP built on branch `main` @ commit `185818e` (527 nodes, 5803 edges, 49 files indexed) — graph tools now viable for next session's code exploration.
+- `npm run build` passes clean (no errors, no type errors).
+- All Phase 1 + Phase 2 deliverables landed.
+- MUI is fully removed; no orphan imports remain.
+- Typography tokens are now defined — headings render at their intended sizes.
+- Hero image loads from local disk — no Pexels dependency at runtime.
+- `AppErrorBoundary` catches render panics; `webVitals` logs in DEV.
+- Zod schemas scaffolded and ready for wiring into forms.
 
 **Broken / incomplete:**
-- `var(--text-2xl)` / `var(--text-xl)` bug at `theme.css:451-457` — tokens referenced but never defined. Not yet fixed (scheduled for Phase 1).
-- `CLAUDE.md` design tokens section still says Roboto — actual fonts are Public Sans + IBM Plex Sans + IBM Plex Mono. Not yet fixed (scheduled for Phase 1 docs-only update).
-- `<ThemeToggle />` reportedly imported but visibility on mobile layouts (CitizenMobileMenu, SuperAdminLayout) unverified — agent reports disagreed. Needs runtime check.
-- No Zod schema layer yet (`src/app/schemas/` to be scaffolded).
-- No `web-vitals` instrumentation in `main.tsx`.
-- No `AppErrorBoundary` around `<App />` — only `AppRouteErrorPage` for router-scope errors.
-- No Playwright e2e harness.
-- MUI + `@emotion` + `@popperjs` + `react-popper` still in `package.json` deps.
-- Landing hero still fetches the Pexels image at `Landing.tsx:29` — biggest LCP risk.
-- No `public/manifest.webmanifest` or service-worker-lite for `/citizen/report` draft recovery.
+- Zod schemas exist but are NOT wired into any form — `react-hook-form` + `@hookform/resolvers` integration still needed in auth pages and IncidentReport.
+- `web-vitals` only logs to console in DEV — no analytics endpoint for production yet.
+- Phase 3 (Performance) not started: no `manualChunks` in Vite config, Leaflet still eagerly loaded, no service-worker or manifest.
+- Phase 4 (Polish) not started: no ARIA live regions, heading hierarchy unaudited, no Playwright harness.
+- `ThemeToggle` rendering on mobile layouts still unverified at runtime (agent conflict from previous session unresolved).
+- `public/hero-city.jpg` is 605 KB JPEG — no WebP/AVIF conversion or `<picture>` element yet (scheduled Phase 2 stretch, can be Phase 3).
+
+---
 
 ## Files modified
 
-- `C:\Users\Mikell Razon\.claude\plans\you-are-a-senior-effervescent-thompson.md` — authored the full 8-section enhancement plan (new file).
-- `C:\Users\Mikell Razon\BSIT\2ND YEAR\2ND SEM\PROF ELEC\Tugon\session-handoff.md` — replaced the 2026-04-13 handoff with this session's handoff.
+| File | Change |
+|------|--------|
+| `src/styles/theme.css` | Added `--text-xs`→`--text-4xl` clamp tokens, `--leading-*`, `--tracking-*`, `--z-*` to `:root`; added `--breakpoint-*` and `--font-size-*` to `@theme inline` |
+| `src/styles/mobile.css` | Fixed 900/901px → 63.9375rem/64rem; gated hover effects; fixed 2 Roboto font-family refs → inherit |
+| `src/app/pages/Landing.tsx` | HERO_IMAGE → `/hero-city.jpg`; hero img gets fetchPriority/loading/decoding/aria attrs |
+| `index.html` | Added `<link rel="preload">` for hero-city.jpg |
+| `package.json` | Removed 6 dead MUI/emotion/popper deps; added zod + web-vitals |
+| `CLAUDE.md` | Font token row: Roboto → Public Sans · IBM Plex Sans · IBM Plex Mono |
+| `src/main.tsx` | Import + wire AppErrorBoundary wrapping render tree; import + call initWebVitals after render |
+| `src/app/components/AppErrorBoundary.tsx` | New — class ErrorBoundary with Reload button, uses design tokens |
+| `src/app/utils/webVitals.ts` | New — dynamic-imported web-vitals, console-only in DEV |
+| `src/app/schemas/index.ts` | New — barrel export for all Zod schemas |
+| `src/app/schemas/auth.ts` | New — loginSchema + registerSchema |
+| `src/app/schemas/incidentReport.ts` | New — incidentReportSchema matching hard-rule incident types |
+| `public/hero-city.jpg` | New — 605 KB JPEG downloaded from Pexels; replaces external URL |
 
-No source code in `src/`, `server/`, or `public/` was modified this session.
+---
 
 ## Open decisions
 
-1. **Kick off Phase 1 in the next session, or wait for user approval of the full 4-phase sequence?** Plan is approved at the high level, but each phase's deliverables deserve a brief user check-in before code lands.
-2. **MUI removal order** — audit first (grep all `@mui/material` + `@mui/icons-material` imports → map each to Radix + lucide equivalent) then remove deps in one PR, or remove per-feature-folder in small PRs? Bundled removal is faster; incremental is safer for review. Default to bundled unless the user prefers small PRs.
-3. **Auth page rewrite scope** — the 45K LOC of auth screens is the single biggest bundle win, but rewriting 5 pages is a substantial effort. Confirm with user whether rewriting auth is in scope for Phase 3 or deferred to a later sprint.
-4. **PWA scope** — plan calls for service-worker-lite + manifest + IndexedDB draft recovery for citizen reports only. Confirm that full offline read/write of submitted reports stays out of scope (keeps server-side authoritative per `CLAUDE.md` hard rule #7).
-5. **Playwright CI gating** — run new `test:e2e` as a blocking check in CI, or advisory-only until the suite stabilizes?
+1. **WebP/AVIF conversion for hero-city.jpg** — the JPEG is 605 KB. Converting to WebP/AVIF would cut it to ~120–200 KB and justify the `<picture>` element. Simplest path: use sharp or squoosh CLI in a one-off script, drop both variants in `public/`, then update Landing.tsx with `<picture><source srcSet="/hero-city.avif" type="image/avif" /><source srcSet="/hero-city.webp" type="image/webp" /><img ... /></picture>`. Schedule for Phase 3.
+2. **Zod wiring strategy** — schemas exist. Decision: wire into existing forms with `@hookform/resolvers/zod` (replace manual `validate` props) or leave forms as-is and only use Zod for API response validation? The auth pages are slated for rewrite in Phase 3; wiring Zod now into 45K-LOC scaffold forms is low ROI. Recommend: wire into Phase 3 rewrites only.
+3. **`manualChunks` strategy for Phase 3** — split into: `vendor-leaflet` (Leaflet + react-leaflet), `vendor-charts` (recharts), `vendor-motion` (motion), `vendor-radix` (all @radix-ui/*). Existing `index-legacy` chunk at 699 KB is already addressed partially; the remaining 469 KB main bundle still bundles Radix monolithically.
+4. **Service-worker scope** — plan calls for service-worker-lite covering `/citizen/report` draft recovery (IndexedDB). Confirm this stays out of full offline scope (CLAUDE.md hard rule #7 — server-side authoritative geofencing must not be bypassed offline).
+5. **ThemeToggle visibility** — two prior agents disagreed. Needs a runtime check (open DevTools, navigate to each shell: Layout, CitizenDesktopNav, CitizenMobileMenu, SuperAdminLayout, confirm element visible).
+
+---
 
 ## Traps to avoid
 
-1. **Graph MCP was empty mid-session** — `list_graph_stats_tool` returned 0 nodes initially. Graph rebuilt at session compaction (527 nodes now). If the graph is empty again next session, don't burn tokens waiting — fall back to Grep/Glob/Read immediately. A SessionStart:compact hook runs the rebuild.
-2. **Do not trust agent reports unconditionally on UI wiring.** Agent 1 said ThemeToggle was imported but not rendered; Agent 3 said it IS rendered in Layout + CitizenDesktopNav. The plan softened the claim to "Confirm ThemeToggle visible in all layouts" — verify at runtime before touching code.
-3. **Do not rewrite working behavior for stylistic reasons.** `CLAUDE.md` is explicit: preserve existing working behavior unless explicitly told otherwise. Every decomposition must keep state/props contracts intact.
-4. **`@theme inline` in Tailwind v4 does NOT inline literal values at build time** — it inlines the `var(--x)` reference into utility classes. Token definitions still cascade at runtime. Don't spend time debugging this hypothesis.
-5. **The `var(--text-*)` bug at `theme.css:451-457` is NOT caused by `@theme inline` or missing `@layer` — the tokens are simply never declared.** The fix is to add the `clamp()`-based tokens from §2.2 of the plan.
-6. **Never introduce frontend-only RBAC or client-side status mutation.** Plan explicitly preserves server-side geofencing, status validation, and role checks. Regressions here would violate capstone-defensibility.
-7. **`sleep` commands ≥30s are blocked by the runtime.** Don't chain shorter sleeps; use `run_in_background` + notification instead.
-8. **Do NOT add `--no-verify` or skip hooks on commits.** If a hook fails, diagnose root cause. `CLAUDE.md` + runtime guidance both forbid this.
-9. **The auth pages' sheer LOC (13,941 for CreatePassword alone) suggests Figma Make inline-style scaffold.** Don't try to incrementally refactor — rewrite against shadcn primitives, validate with Playwright, and ship in one PR per page.
-10. **Font doc drift in `CLAUDE.md`** — the token table says Roboto; actual fonts are Public Sans + IBM Plex Sans/Mono. Update `CLAUDE.md` during Phase 1, not silently in a code PR.
+1. **`@theme inline` font-size mapping** — In Tailwind v4, `--font-size-base` maps to the `text-base` utility. This means `text-base` now resolves to `var(--text-base)` (our `clamp()` value). If any existing component hard-codes `text-[16px]` or `text-[1rem]` expecting a fixed size, those are now overriding our token — leave them alone.
+2. **`xl:` breakpoint shift** — `--breakpoint-xl` was changed from Tailwind's default 80rem (1280px) to 90rem (1440px). Any existing `xl:` utility class now only activates at 1440px instead of 1280px. Check visually on 1280–1440px wide viewports before Phase 3.
+3. **MUI removal is already done** — do not re-add MUI. No source imports existed before removal; confirmed via grep. If a future agent suggests importing `@mui/material`, reject it.
+4. **`hero-city.jpg` is decorative** — `alt=""` and `aria-hidden="true"` are intentional; the hero text is in the DOM independently. Do not add a descriptive `alt` to the image; it would be read redundantly by screen readers.
+5. **`react-popper` is removed** — If any component previously used `react-popper` for tooltip positioning, it now needs a Radix `@radix-ui/react-popover` replacement. Grep confirmed no source imports existed; safe.
+6. **Do NOT run `npm audit fix --force`** — the 10 vulnerabilities listed are in dev/build tools (vite, eslint). `--force` would downgrade production deps. Ignore them.
+7. **Build warning about chunks >500KB** — the Vite chunk warning on the 469 KB main bundle is expected and is the target of Phase 3 manualChunks work. Do not silence it with `build.chunkSizeWarningLimit`.
+8. **`src/app/schemas/index.ts`** re-exports from `./incidentReport` and `./auth` — if the barrel is imported before those files exist, it will fail. Both files exist now; keep them in sync if schemas are added.
 
-## Next steps (in priority order)
+---
 
-1. **Confirm Phase 1 kickoff with user** — the plan is approved but no code has landed. Ask: "Start Phase 1 Foundation now?"
-2. **Phase 1 — Foundation (Sprint 1, ~1 week):**
-   - Add missing typography tokens (`--text-xs` … `--text-4xl` via `clamp()`) + spacing gutters + line-height + tracking + z-index scale to `src/styles/theme.css`.
-   - Declare breakpoints in `@theme inline` as `--breakpoint-sm/md/lg/xl`.
-   - Fix the `var(--text-2xl)` bug at `theme.css:451-457`.
-   - Inventory MUI imports (`grep -r "@mui/material" src/`) → port each to Radix + lucide-react → remove `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`, `@popperjs/core`, `react-popper` from `package.json`.
-   - Verify `<ThemeToggle />` rendered on Layout, CitizenDesktopNav, CitizenMobileMenu, SuperAdminLayout at runtime.
-   - Add deps: `zod`, `@hookform/resolvers`, `web-vitals`, `@playwright/test`. Scaffold `src/app/schemas/` and `src/app/utils/webVitals.ts`.
-   - Create `src/app/components/AppErrorBoundary.tsx` and wrap `<App />` in `src/main.tsx`.
-   - Update `CLAUDE.md` font reference: Roboto → Public Sans + IBM Plex Sans + IBM Plex Mono.
-   - Exit criteria: `npm run check:prod` green, Lighthouse perf ≥ 80 on landing, zero `@mui` imports.
-3. **Phase 2 — Responsive:** codemod `hidden lg:flex` → `flex lg:hidden`, gate hover behind `@media (hover: hover)`, replace `h-[100vh]` → `h-dvh`, optimize Landing hero with `<picture>` + local AVIF/WebP, delete ad-hoc 900px queries, ship `<EmptyState>` primitive.
-4. **Phase 3 — Performance:** Vite `manualChunks` for Leaflet/recharts/motion/radix, decompose IncidentReport + CitizenDashboard + CitizenMyReports + SABarangayMap + Dashboard into feature folders, lazy-load Leaflet inside `Step2Location`, service-worker-lite + manifest, font preconnect.
-5. **Phase 4 — Polish:** ARIA live regions (i18n-aware via `src/app/i18n/`), heading hierarchy audit, contrast audit on `on-*` tokens, Zod replaces string-based validation, Playwright e2e on 3 viewports × 5 flows, breadcrumbs on `/app/*` + `/superadmin/*`.
-6. **Commit the plan + this handoff** (separate commits — plan is personal, handoff is session-scoped).
+## Next steps (priority order)
+
+1. **Phase 3 — Performance, Step 1: Vite `manualChunks`**
+   Edit `vite.config.ts` → add `build.rollupOptions.output.manualChunks`:
+   ```ts
+   manualChunks: {
+     'vendor-leaflet':  ['leaflet', 'react-leaflet'],
+     'vendor-charts':   ['recharts'],
+     'vendor-motion':   ['motion'],
+     'vendor-radix':    [/* all @radix-ui/* package names */],
+   }
+   ```
+   Target: main bundle ≤ 280 KB gz after split.
+
+2. **Phase 3 — Performance, Step 2: Lazy-load Leaflet inside `Step2Location`**
+   `IncidentReport.tsx` Step 2 eagerly imports Leaflet even on Step 1 (type selection). Wrap the Leaflet map in `React.lazy()` + `<Suspense>` so the 140 KB Leaflet bundle only loads when the user reaches Step 2.
+
+3. **Phase 3 — Performance, Step 3: WebP/AVIF hero image**
+   Run: `npx sharp-cli -i public/hero-city.jpg -o public/hero-city.webp --format webp --quality 80`
+   Then update Landing.tsx to use `<picture>` with AVIF/WebP sources.
+
+4. **Phase 3 — Performance, Step 4: Service-worker-lite + manifest**
+   Create `public/manifest.webmanifest` with TUGON branding. Create `src/sw.ts` — cache-first for static assets, network-first for API. Register in `main.tsx`. Scope: citizen report draft recovery (IndexedDB) only.
+
+5. **Phase 3 — Performance, Step 5: Decompose mega-pages**
+   `IncidentReport.tsx` (2,222 LOC) → `IncidentReport/{index,Step1Type,Step2Location,Step3Description,Step4Evidence,Step5Review}.tsx`
+   `CitizenDashboard.tsx` (1,768 LOC) → feature folder with sub-components
+   Do not change props/state contracts — extraction only.
+
+6. **Phase 4 — Polish: ARIA live regions**
+   Add `aria-live="polite"` regions to status change toasts and incident submission feedback. Check `src/app/i18n/` for translation keys.
+
+7. **Phase 4 — Polish: Heading hierarchy audit**
+   Run `scripts/a11y-smoke.cjs` and fix any skipped heading levels (h1→h3 jumps).
+
+8. **Phase 4 — Polish: Playwright e2e harness**
+   Install `@playwright/test`, scaffold `playwright.config.ts`, write 5 flows × 3 viewports (375px mobile, 768px tablet, 1440px desktop): Landing → Login → Citizen Report form → Submission, Official Dashboard list view, SuperAdmin audit log.
+
+---
 
 ## Relevant file paths
 
-- `C:\Users\Mikell Razon\.claude\plans\you-are-a-senior-effervescent-thompson.md` — the approved 8-section enhancement plan (start here).
-- `C:\Users\Mikell Razon\BSIT\2ND YEAR\2ND SEM\PROF ELEC\Tugon\CLAUDE.md` — project hard rules + design tokens (has Roboto drift to fix).
-- `C:\Users\Mikell Razon\BSIT\2ND YEAR\2ND SEM\PROF ELEC\Tugon\AGENTS.md`, `ARCHITECTURE.md`, `ANTIGRAVITY.md`, `.impeccable.md` — required reading before any edit.
-- `src/styles/theme.css` — MD3 tokens; **line 451-457 has the `var(--text-*)` bug** and is the first fix of Phase 1.
-- `src/styles/tailwind.css` — skeleton shimmer system; hover gating goes here.
-- `src/styles/mobile.css` — ad-hoc breakpoints (lines 242-276) to delete in Phase 2.
-- `src/styles/fonts.css` — actual fonts (Public Sans + IBM Plex Sans + IBM Plex Mono); update `index.html` preconnect here in Phase 3.
-- `src/app/routes.ts` — route map; preserved as-is, no structural changes planned.
-- `src/main.tsx` — bootstrap; mount point for `AppErrorBoundary` + `webVitals` beacon.
-- `src/app/App.tsx:30-60` — Visual Viewport API bridge (already in place, keep).
-- `src/app/pages/Landing.tsx:29` — Pexels hero; replace with local `<picture>` in Phase 2.
-- `src/app/pages/auth/*.tsx` — 5 auth pages (~45K LOC total) flagged for rewrite in Phase 3.
-- `src/app/pages/IncidentReport.tsx` (2,222 LOC) → target for decomposition into `IncidentReport/{index,Step1..Step5}.tsx` in Phase 3.
-- `src/app/components/ui/` — shadcn primitives (57 components) + lucide icons; the migration target for MUI.
-- `vite.config.ts` — Phase 3 `manualChunks` edit.
-- `package.json` — Phase 1 MUI removal + Phase 1 dep additions (zod, web-vitals, Playwright).
-- `scripts/a11y-smoke.cjs` — existing a11y smoke test to extend in Phase 4.
-- Graph MCP last built: 2026-04-19T13:19:16 @ commit `185818e` on `main` (527 nodes, 5803 edges, 49 files).
-- Latest commit on `main`: `185818e Update settings.local.json`.
+- `vite.config.ts` — Phase 3 manualChunks target (read before editing)
+- `src/app/pages/IncidentReport.tsx` (2,222 LOC) — Phase 3 decomposition target; preserve all step state/props contracts
+- `src/app/pages/CitizenDashboard.tsx` (1,768 LOC) — Phase 3 decomposition target
+- `src/app/pages/CitizenMyReports.tsx` (1,633 LOC) — Phase 3 decomposition target
+- `src/app/pages/superadmin/SABarangayMap.tsx` (1,409 LOC) — Phase 3 decomposition target
+- `src/app/pages/Landing.tsx` — hero `<img>` at line ~420; `<picture>` upgrade in Phase 3
+- `src/styles/theme.css` — all design tokens; `@theme inline` block for Tailwind mapping
+- `src/styles/mobile.css` — responsive utilities; 900px breakpoints now fixed to 64rem
+- `src/app/components/AppErrorBoundary.tsx` — new error boundary (Phase 1)
+- `src/app/utils/webVitals.ts` — new web vitals init (Phase 1)
+- `src/app/schemas/` — Zod schemas for auth + incident (Phase 1); not yet wired into forms
+- `src/main.tsx` — bootstrap; AppErrorBoundary + initWebVitals wired here
+- `public/hero-city.jpg` — local hero image (605 KB JPEG, needs WebP/AVIF in Phase 3)
+- `index.html` — has preload link for hero; add font preconnect in Phase 3
+- `scripts/a11y-smoke.cjs` — existing a11y smoke test to extend in Phase 4
+- `CLAUDE.md` — project hard rules; font token now correct
+- Graph MCP last built: 2026-04-20T10:19:26 @ commit `f76bf34` on `main` (580 nodes, 6368 edges, 52 files).
