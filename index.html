@@ -1,23 +1,33 @@
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-      <meta name="theme-color" content="#0f172a" />
-      <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <title>Tugon</title>
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-      <link rel="manifest" href="/manifest.webmanifest" />
-      <meta name="mobile-web-app-capable" content="yes" />
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="TUGON — Coordinated incident response and emergency reporting for Tondo, Manila. Report incidents, track status, and access emergency hotlines." />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>TUGON — Tondo Emergency Response Portal</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Preconnect to API backend (eliminates DNS + TLS handshake on first API call) -->
+    <link rel="preconnect" href="https://tugon-aapz.onrender.com" crossorigin />
+    <link rel="dns-prefetch" href="https://tugon-aapz.onrender.com" />
+
+    <!-- Preload critical fonts (eliminates FOUT for most-used weights) -->
+    <link rel="preload" as="font" href="/fonts/ibm-plex-sans-400.woff2" type="font/woff2" crossorigin />
+    <link rel="preload" as="font" href="/fonts/public-sans-700.woff2" type="font/woff2" crossorigin />
+
+    <!-- Preload hero image (LCP element) — AVIF with WebP fallback -->
     <link rel="preload" as="image" href="/hero-city.avif" type="image/avif" fetchpriority="high" />
     <link rel="preload" as="image" href="/hero-city.webp" type="image/webp" fetchpriority="high" />
-    </head>
+  </head>
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

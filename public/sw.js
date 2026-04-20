@@ -2,12 +2,17 @@
 // API routes (/api/*) are ALWAYS network-only — server-side geofencing must
 // never be bypassed by serving a cached response offline.
 
-const CACHE = 'tugon-static-v1';
+const CACHE = 'tugon-static-v2';
 
 self.addEventListener('install', (event) => {
-  // Pre-cache the app shell so it loads from cache on repeat visits.
+  // Pre-cache the app shell and critical fonts so they load from cache on repeat visits.
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(['/'])),
+    caches.open(CACHE).then((cache) => cache.addAll([
+      '/',
+      '/fonts/ibm-plex-sans-400.woff2',
+      '/fonts/public-sans-700.woff2',
+      '/fonts/ibm-plex-mono-400.woff2',
+    ])),
   );
   // Activate immediately — don't wait for old tabs to close.
   self.skipWaiting();

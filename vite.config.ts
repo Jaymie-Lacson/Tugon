@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
   plugins: [
@@ -10,10 +9,9 @@ export default defineConfig({
     // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
-    legacy({
-      // Keep support broad while excluding obsolete IE11.
-      targets: ['defaults', 'not IE 11'],
-    }),
+    // NOTE: @vitejs/plugin-legacy was removed to eliminate ~634KB of redundant
+    // polyfill bundles. Target audience uses modern browsers (Chrome 80+,
+    // Safari 14+, Firefox 78+) that support all ES2020+ features natively.
   ],
   resolve: {
     alias: {
