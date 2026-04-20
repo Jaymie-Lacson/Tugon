@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { env } from "../../config/env.js";
 import { hasImageKitConfig, uploadBufferToImageKit } from "../storage/imagekit.service.js";
 
@@ -105,6 +106,30 @@ function ensureAllowedSignature(kind: "photo" | "audio", mimeType: string, bytes
   }
 }
 
+const PHOTO_MAX_DIMENSION = 1920;
+const PHOTO_COMPRESS_QUALITY = 80;
+
+async function compressPhoto(bytes: Buffer, mimeType: string): Promise<{ bytes: Buffer; mimeType: string }> {
+  try {
+    const outputMimeType = mimeType === "image/webp" ? "image/webp" : "image/jpeg";
+    const pipeline = sharp(bytes).resize({
+      width: PHOTO_MAX_DIMENSION,
+      height: PHOTO_MAX_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    });
+
+    const compressed =
+      outputMimeType === "image/webp"
+        ? await pipeline.webp({ quality: PHOTO_COMPRESS_QUALITY }).toBuffer()
+        : await pipeline.jpeg({ quality: PHOTO_COMPRESS_QUALITY, mozjpeg: true }).toBuffer();
+
+    return { bytes: compressed, mimeType: outputMimeType };
+  } catch {
+    return { bytes, mimeType };
+  }
+}
+
 function ensureAllowedSize(kind: "photo" | "audio", bytes: Buffer) {
   const maxBytes = kind === "photo" ? env.evidenceMaxPhotoBytes : env.evidenceMaxAudioBytes;
 
@@ -178,11 +203,14 @@ async function uploadToImageKit(
   kind: "photo" | "audio",
   index: number,
 ): Promise<PreparedEvidence> {
-  const { mimeType: parsedMimeType, bytes } = parseEvidencePayload(payload);
+  const { mimeType: parsedMimeType, bytes: rawBytes } = parseEvidencePayload(payload);
   const mimeType = normalizeEvidenceMimeType(kind, payload.mimeType?.trim() || parsedMimeType);
-  validateEvidencePayload(kind, mimeType, bytes);
+  validateEvidencePayload(kind, mimeType, rawBytes);
 
-  const extension = mimeType.split("/")[1] ?? "bin";
+  const { bytes, mimeType: finalMimeType } =
+    kind === "photo" ? await compressPhoto(rawBytes, mimeType) : { bytes: rawBytes, mimeType };
+
+  const extension = finalMimeType.split("/")[1] ?? "bin";
   const fileName = sanitizeFileName(payload.fileName, `${kind}-${index + 1}.${extension}`);
   const prefixedFileName = `${Date.now()}-${fileName}`;
   const upload = await uploadBufferToImageKit({
@@ -195,7 +223,7 @@ async function uploadToImageKit(
   return {
     kind,
     fileName,
-    mimeType,
+    mimeType: finalMimeType,
     sizeBytes: bytes.length,
     storagePath: upload.filePath,
     publicUrl: upload.url,
