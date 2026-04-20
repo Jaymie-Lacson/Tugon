@@ -77,7 +77,7 @@ npm --prefix server run test:integration   # files in server/tests/
 
 | Token       | Value                               |
 |-------------|-------------------------------------|
-| Font        | Roboto family                       |
+| Font        | Public Sans · IBM Plex Sans · IBM Plex Mono |
 | Primary     | Dark Blue `#1E3A8A`                 |
 | Alert       | Red `#B91C1C`                       |
 | Analytics   | Ochre/Gold `#B4730A`                |

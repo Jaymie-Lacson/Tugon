@@ -1,0 +1,28 @@
+{
+  "name": "TUGON — Incident Management",
+  "short_name": "TUGON",
+  "description": "Web-based incident reporting and management for Barangays 251, 252, and 256 in Tondo, Manila.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1E3A8A",
+  "background_color": "#0f172a",
+  "lang": "en-PH",
+  "icons": [
+    {
+      "src": "/Logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["government", "utilities"],
+  "screenshots": []
+}

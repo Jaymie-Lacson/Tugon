@@ -221,7 +221,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
           )}
 
           {error ? (
-            <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-[10px] py-2 text-severity-critical text-xs font-semibold">
+            <div role="alert" className="mb-3 border-l-4 border-[var(--error)] bg-card px-[10px] py-2 text-severity-critical text-xs font-semibold">
               {error}
             </div>
           ) : null}

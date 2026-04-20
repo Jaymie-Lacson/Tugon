@@ -388,7 +388,7 @@ export default function MapView() {
 
         <div className="map-incident-list">
           {error ? (
-            <div className="map-list-state map-list-state-error">{error}</div>
+            <div role="alert" className="map-list-state map-list-state-error">{error}</div>
           ) : loading ? (
             <TableSkeleton rows={6} columns={2} showHeader={false} className="border-0 bg-transparent" />
           ) : filtered.length === 0 ? (

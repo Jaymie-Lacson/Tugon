@@ -113,7 +113,7 @@ export default function Verifications() {
       />
 
       {error && (
-        <div className="mb-3 border-l-4 border-[var(--severity-critical)] bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--severity-critical)]">
+        <div role="alert" className="mb-3 border-l-4 border-[var(--severity-critical)] bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--severity-critical)]">
           {error}
         </div>
       )}

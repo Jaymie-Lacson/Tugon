@@ -1,9 +1,11 @@
 
 import { createRoot } from 'react-dom/client';
 import App from './app/App.tsx';
+import { AppErrorBoundary } from './app/components/AppErrorBoundary.tsx';
 import { TugonThemeProvider } from './app/providers/ThemeProvider.tsx';
 import { authApi } from './app/services/authApi';
 import { clearAuthSession, saveAuthSession } from './app/utils/authSession';
+import { initWebVitals } from './app/utils/webVitals.ts';
 import './styles/index.css';
 
 const AUTH_SESSION_KEY = 'tugon.auth.session';
@@ -71,10 +73,22 @@ async function bootstrapAndRender() {
   });
 
   createRoot(document.getElementById('root')!).render(
-    <TugonThemeProvider>
-      <App />
-    </TugonThemeProvider>,
+    <AppErrorBoundary>
+      <TugonThemeProvider>
+        <App />
+      </TugonThemeProvider>
+    </AppErrorBoundary>,
   );
+
+  void initWebVitals();
+
+  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // SW registration is best-effort — a failure here is non-fatal.
+      });
+    });
+  }
 }
 
 void bootstrapAndRender();

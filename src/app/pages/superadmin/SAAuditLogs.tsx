@@ -214,7 +214,7 @@ export default function SAAuditLogs() {
       </div>
 
       {error ? (
-        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
+        <div role="alert" className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
           {error}
         </div>
       ) : null}

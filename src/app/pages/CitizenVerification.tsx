@@ -812,13 +812,13 @@ export default function CitizenVerification() {
               </div>
 
               {error ? (
-                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-md px-[11px] py-[9px] text-severity-critical text-xs">
+                <div role="alert" className="bg-[#FEF2F2] border border-[#FECACA] rounded-md px-[11px] py-[9px] text-severity-critical text-xs">
                   {error}
                 </div>
               ) : null}
 
               {message ? (
-                <div className="bg-[#ECFDF3] border border-[#A7F3D0] rounded-md px-[11px] py-[9px] text-[#065F46] text-xs">
+                <div role="status" className="bg-[#ECFDF3] border border-[#A7F3D0] rounded-md px-[11px] py-[9px] text-[#065F46] text-xs">
                   {message}
                 </div>
               ) : null}

@@ -157,6 +157,34 @@
   /* ── Font weights ───────────────────────────────────────────────────── */
   --font-weight-medium: 500;
   --font-weight-normal: 400;
+
+  /* ── Typography scale (fluid — clamp from 320px to 1440px viewport) ─── */
+  --text-xs:   clamp(0.6875rem, 0.665rem  + 0.11vw,  0.75rem);
+  --text-sm:   clamp(0.8125rem, 0.788rem  + 0.11vw,  0.875rem);
+  --text-base: clamp(0.875rem,  0.8rem    + 0.21vw,  1rem);
+  --text-lg:   clamp(1rem,      0.94rem   + 0.27vw,  1.125rem);
+  --text-xl:   clamp(1.125rem,  1.038rem  + 0.38vw,  1.25rem);
+  --text-2xl:  clamp(1.25rem,   1.1rem    + 0.54vw,  1.5rem);
+  --text-3xl:  clamp(1.5rem,    1.275rem  + 0.89vw,  1.875rem);
+  --text-4xl:  clamp(1.75rem,   1.425rem  + 1.25vw,  2.25rem);
+
+  /* ── Line height + letter spacing scale ────────────────────────────── */
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.025em;
+
+  /* ── Z-index scale ──────────────────────────────────────────────────── */
+  --z-base:    0;
+  --z-raised:  10;
+  --z-sticky:  100;
+  --z-overlay: 200;
+  --z-modal:   300;
+  --z-toast:   400;
+  --z-tooltip: 500;
 }
 
 /* ── Dark mode (minimal — primary audience is light mode) ─────────────── */
@@ -348,6 +376,22 @@
   --color-sidebar-accent-foreground:    var(--sidebar-accent-foreground);
   --color-sidebar-border:               var(--sidebar-border);
   --color-sidebar-ring:                 var(--sidebar-ring);
+
+  /* ── Breakpoints ─────────────────────────────────────────────────────── */
+  --breakpoint-sm: 40rem;   /* 640px  */
+  --breakpoint-md: 48rem;   /* 768px  */
+  --breakpoint-lg: 64rem;   /* 1024px */
+  --breakpoint-xl: 90rem;   /* 1440px */
+
+  /* ── Font sizes (Tailwind utility mapping) ──────────────────────────── */
+  --font-size-xs:   var(--text-xs);
+  --font-size-sm:   var(--text-sm);
+  --font-size-base: var(--text-base);
+  --font-size-lg:   var(--text-lg);
+  --font-size-xl:   var(--text-xl);
+  --font-size-2xl:  var(--text-2xl);
+  --font-size-3xl:  var(--text-3xl);
+  --font-size-4xl:  var(--text-4xl);
 }
 
 /* ── Base layer ──────────────────────────────────────────────────────── */

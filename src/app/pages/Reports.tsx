@@ -790,12 +790,12 @@ export default function Reports() {
 
       {/* Status messages */}
       {actionError ? (
-        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
+        <div role="alert" className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
           {actionError}
         </div>
       ) : null}
       {actionSuccess ? (
-        <div className="mb-3 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700">
+        <div role="status" className="mb-3 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700">
           {actionSuccess}
         </div>
       ) : null}

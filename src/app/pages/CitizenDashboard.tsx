@@ -1647,9 +1647,9 @@ function ProfileTab({
               <div className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                 {barangayLabel} · Tondo, Manila
               </div>
-              <h1 className="text-[22px] font-black leading-tight tracking-tight text-foreground truncate">
+              <h2 className="text-[22px] font-black leading-tight tracking-tight text-foreground truncate">
                 {fullName}
-              </h1>
+              </h2>
               <p className="mt-0.5 text-[11px] font-mono text-muted-foreground">{phoneNumber}</p>
             </div>
           </div>

@@ -371,7 +371,7 @@ export default function Analytics() {
   return (
     <div className="analytics-page page-content min-h-full bg-[var(--surface)] p-3.5 px-3 pb-5 md:p-4 md:px-5">
       {error && (
-        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
+        <div role="alert" className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
           {error}
         </div>
       )}
