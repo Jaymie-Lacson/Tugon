@@ -2,6 +2,10 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
+
+// Enable bundle analyzer by running: ANALYZE=true npm run build
+const shouldAnalyze = process.env.ANALYZE === 'true'
 
 export default defineConfig({
   plugins: [
@@ -12,7 +16,15 @@ export default defineConfig({
     // NOTE: @vitejs/plugin-legacy was removed to eliminate ~634KB of redundant
     // polyfill bundles. Target audience uses modern browsers (Chrome 80+,
     // Safari 14+, Firefox 78+) that support all ES2020+ features natively.
-  ],
+    shouldAnalyze &&
+      visualizer({
+        filename: 'dist/bundle-stats.html',
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+        template: 'treemap',
+      }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       // Alias @ to the src directory

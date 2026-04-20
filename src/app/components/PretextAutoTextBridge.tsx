@@ -1,5 +1,14 @@
-import { layout, prepare } from '@chenglou/pretext';
 import { useEffect } from 'react';
+
+// Pretext is heavy (~25 KB gzip) and only performs measurements AFTER first
+// paint. Loading it via dynamic import keeps it out of the initial bundle.
+type PretextModule = typeof import('@chenglou/pretext');
+let pretextModulePromise: Promise<PretextModule> | null = null;
+
+function loadPretextModule(): Promise<PretextModule> {
+  pretextModulePromise ??= import('@chenglou/pretext');
+  return pretextModulePromise;
+}
 
 const TARGET_SELECTOR = [
   '#root h1',
@@ -46,7 +55,8 @@ function resolveCanvasFont(style: CSSStyleDeclaration): string {
   return `${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
 }
 
-function applyPretextAutoMeasurement() {
+function applyPretextAutoMeasurement(pretextModule: PretextModule) {
+  const { layout, prepare } = pretextModule;
   const elements = document.querySelectorAll<HTMLElement>(TARGET_SELECTOR);
 
   for (const element of elements) {
@@ -92,6 +102,7 @@ function applyPretextAutoMeasurement() {
 export default function PretextAutoTextBridge() {
   useEffect(() => {
     let rafId = 0;
+    let cancelled = false;
 
     const scheduleMeasure = () => {
       if (rafId) {
@@ -100,7 +111,12 @@ export default function PretextAutoTextBridge() {
 
       rafId = window.requestAnimationFrame(() => {
         rafId = 0;
-        applyPretextAutoMeasurement();
+        loadPretextModule().then((pretextModule) => {
+          if (cancelled) {
+            return;
+          }
+          applyPretextAutoMeasurement(pretextModule);
+        });
       });
     };
 
@@ -129,6 +145,7 @@ export default function PretextAutoTextBridge() {
     scheduleMeasure();
 
     return () => {
+      cancelled = true;
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }

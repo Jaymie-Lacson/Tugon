@@ -4,7 +4,6 @@ import './utils/rechartsWarningPatch';
 
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
-import { clearCache, setLocale } from '@chenglou/pretext';
 import CardSkeleton from './components/ui/CardSkeleton';
 import PretextAutoTextBridge from './components/PretextAutoTextBridge';
 import TableSkeleton from './components/ui/TableSkeleton';
@@ -74,12 +73,21 @@ function ViewportCompatibilityBridge() {
 
 function PretextRuntimeBridge() {
   useEffect(() => {
-    // Keep Pretext measurement locale aligned with the current browser locale.
-    const locale = navigator.language?.trim();
-    setLocale(locale || undefined);
+    let cancelled = false;
+    let loadedModule: typeof import('@chenglou/pretext') | null = null;
+
+    import('@chenglou/pretext').then((mod) => {
+      if (cancelled) {
+        return;
+      }
+      loadedModule = mod;
+      const locale = navigator.language?.trim();
+      mod.setLocale(locale || undefined);
+    });
 
     return () => {
-      clearCache();
+      cancelled = true;
+      loadedModule?.clearCache();
     };
   }, []);
 
