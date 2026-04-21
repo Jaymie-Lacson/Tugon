@@ -983,7 +983,7 @@ function Footer() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <footer className="bg-[#0F172A] text-white/70">
+      <footer className="bg-[#0F172A] text-slate-300">
         <div className="mx-auto max-w-5xl px-6 pb-6 pt-10">
           <div className="mb-6 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
             <div>
@@ -1000,7 +1000,7 @@ function Footer() {
                   height="36"
                 />
               </button>
-              <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-white/[0.74]">
+              <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-slate-300">
                 {t('landing.footer.desc')}
               </p>
             </div>
@@ -1035,9 +1035,9 @@ function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-white/45">
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-slate-300">
             <span>&copy; {year} TUGON. {t('landing.footer.tagline')}</span>
-            <span className="text-white/55">{t('landing.footer.location')}</span>
+            <span className="text-slate-200">{t('landing.footer.location')}</span>
           </div>
         </div>
       </footer>

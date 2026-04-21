@@ -8,6 +8,17 @@ function read(relativePath) {
   return fs.readFileSync(full, 'utf8');
 }
 
+function readFirst(paths) {
+  for (const relativePath of paths) {
+    const full = path.join(ROOT, relativePath);
+    if (fs.existsSync(full)) {
+      return fs.readFileSync(full, 'utf8');
+    }
+  }
+
+  throw new Error(`None of the expected files exist: ${paths.join(', ')}`);
+}
+
 function assertIncludes(content, needle, message, failures) {
   if (!content.includes(needle)) {
     failures.push(message);
@@ -91,7 +102,10 @@ function run() {
     failures,
   );
 
-  const incidentReport = read('src/app/pages/IncidentReport.tsx');
+  const incidentReport = readFirst([
+    'src/app/pages/IncidentReport.tsx',
+    'src/app/pages/IncidentReport/index.tsx',
+  ]);
   assertOrderedIncludes(
     incidentReport,
     [
