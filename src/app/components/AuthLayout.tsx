@@ -19,8 +19,12 @@ export interface AuthProgressStep {
 }
 
 // Free stock image from Pexels (https://www.pexels.com/photo/buildings-near-body-of-water-325185/)
-const AUTH_BRAND_IMAGE =
-  'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1400&w=1800';
+const AUTH_BRAND_IMAGE_640 =
+  'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=640&h=880';
+const AUTH_BRAND_IMAGE_960 =
+  'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=960&h=1320';
+const AUTH_BRAND_IMAGE_1280 =
+  'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=1280&h=1760';
 
 export function AuthLayout({
   children,
@@ -48,10 +52,15 @@ export function AuthLayout({
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <img
-          src={AUTH_BRAND_IMAGE}
+          src={AUTH_BRAND_IMAGE_960}
+          srcSet={`${AUTH_BRAND_IMAGE_640} 640w, ${AUTH_BRAND_IMAGE_960} 960w, ${AUTH_BRAND_IMAGE_1280} 1280w`}
+          sizes="(max-width: 1024px) 100vw, 46vw"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-[#0f245e]/78" />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a1a49]/48 via-transparent to-[#183d92]/36" />

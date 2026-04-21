@@ -1,4 +1,3 @@
-import { layout, prepare } from '@chenglou/pretext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type UsePretextBlockMetricsOptions = {
@@ -14,6 +13,14 @@ type UsePretextBlockMetricsResult<T extends HTMLElement> = {
   minHeight: string | undefined;
 };
 
+type PretextModule = typeof import('@chenglou/pretext');
+let pretextModulePromise: Promise<PretextModule> | null = null;
+
+function loadPretextModule(): Promise<PretextModule> {
+  pretextModulePromise ??= import('@chenglou/pretext');
+  return pretextModulePromise;
+}
+
 export function usePretextBlockMetrics<T extends HTMLElement>(
   text: string,
   {
@@ -26,10 +33,25 @@ export function usePretextBlockMetrics<T extends HTMLElement>(
 ): UsePretextBlockMetricsResult<T> {
   const elementRef = useRef<T | null>(null);
   const [maxWidth, setMaxWidth] = useState(0);
+  const [pretextModule, setPretextModule] = useState<PretextModule | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadPretextModule().then((module) => {
+      if (!cancelled) {
+        setPretextModule(module);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const prepared = useMemo(
-    () => prepare(text || '', font, { whiteSpace, wordBreak }),
-    [font, text, whiteSpace, wordBreak],
+    () => (pretextModule ? pretextModule.prepare(text || '', font, { whiteSpace, wordBreak }) : null),
+    [font, pretextModule, text, whiteSpace, wordBreak],
   );
 
   const updateWidth = useCallback(() => {
@@ -66,16 +88,16 @@ export function usePretextBlockMetrics<T extends HTMLElement>(
 
   const minHeight = useMemo(() => {
     const normalizedText = text.trim();
-    if (!normalizedText || maxWidth <= 0) {
+    if (!normalizedText || maxWidth <= 0 || !prepared || !pretextModule) {
       return undefined;
     }
 
-    const result = layout(prepared, maxWidth, lineHeight);
+    const result = pretextModule.layout(prepared, maxWidth, lineHeight);
     const boundedHeight =
       typeof maxLines === 'number' ? Math.min(result.height, lineHeight * maxLines) : result.height;
 
     return `${Math.ceil(boundedHeight)}px`;
-  }, [lineHeight, maxLines, maxWidth, prepared, text]);
+  }, [lineHeight, maxLines, maxWidth, prepared, pretextModule, text]);
 
   return { ref, minHeight };
 }
