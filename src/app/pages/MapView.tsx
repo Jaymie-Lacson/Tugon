@@ -52,6 +52,10 @@ function IncidentCard({ incident, selected, onClick }: { incident: Incident; sel
 
 export default function MapView() {
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isPublicCommunityMap = location.pathname === '/community-map';
+
   const { data: reportsData, isLoading: loading, error: reportsQueryError } = useOfficialReports(undefined);
   const heatmapParams = !isPublicCommunityMap ? { days: 14, threshold: 3 } : undefined;
   const { data: heatmapData, isLoading: heatmapLoading, error: heatmapQueryError } = useHeatmap(heatmapParams);
@@ -76,9 +80,6 @@ export default function MapView() {
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [hasHotspotAutoSelected, setHasHotspotAutoSelected] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const isPublicCommunityMap = location.pathname === '/community-map';
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [showSelectedDetail, setShowSelectedDetail] = useState(true);
   const [search, setSearch] = useState('');
