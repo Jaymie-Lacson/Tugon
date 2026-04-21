@@ -5,7 +5,6 @@ import { AppErrorBoundary } from './app/components/AppErrorBoundary.tsx';
 import { TugonThemeProvider } from './app/providers/ThemeProvider.tsx';
 import { authApi } from './app/services/authApi';
 import { clearAuthSession, saveAuthSession } from './app/utils/authSession';
-import { initWebVitals } from './app/utils/webVitals.ts';
 import './styles/index.css';
 
 const AUTH_SESSION_KEY = 'tugon.auth.session';
@@ -55,6 +54,10 @@ function isProtectedPath(pathname: string): boolean {
   return PROTECTED_ROUTE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+function isLandingPath(pathname: string): boolean {
+  return pathname === '/';
+}
+
 function enforceProtectedRouteAuth() {
   if (!isProtectedPath(window.location.pathname)) {
     return;
@@ -96,11 +99,13 @@ function runAfterLoadAndIdle(task: () => void, fallbackDelay = 800) {
 }
 
 async function bootstrapAndRender() {
+  const pathname = window.location.pathname;
+
   // On protected routes the session must be resolved before rendering to
   // prevent a flash of unauthenticated content or a race on RBAC-gated data.
   // On public routes (landing, auth pages) render immediately and restore the
   // session in the background — avoids blocking FCP on a network round trip.
-  if (isProtectedPath(window.location.pathname)) {
+  if (isProtectedPath(pathname)) {
     await restoreSessionFromCookie({ allowAnonymousProbe: true });
     enforceProtectedRouteAuth();
     mountApp();
@@ -119,12 +124,16 @@ async function bootstrapAndRender() {
     }
   });
 
-  runAfterLoadAndIdle(() => {
-    void initWebVitals();
-  }, 3500);
+  if (import.meta.env.DEV) {
+    runAfterLoadAndIdle(async () => {
+      const { initWebVitals } = await import('./app/utils/webVitals.ts');
+      void initWebVitals();
+    }, 3500);
+  }
+
   runAfterLoadAndIdle(() => {
     void import('./styles/fonts-extended.css');
-  }, 1800);
+  }, isLandingPath(pathname) ? 5000 : 1800);
 
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {

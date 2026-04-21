@@ -34,25 +34,7 @@
       ]
     },
     {
-      "source": "/hero-city.avif",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/hero-city.webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/hero-city.jpg",
+      "source": "/hero-city(.*)",
       "headers": [
         {
           "key": "Cache-Control",

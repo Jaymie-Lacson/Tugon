@@ -1,13 +1,14 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
 import CardSkeleton from './components/ui/CardSkeleton';
-import PretextAutoTextBridge from './components/PretextAutoTextBridge';
 import TableSkeleton from './components/ui/TableSkeleton';
 import TextSkeleton from './components/ui/TextSkeleton';
 import { TranslationProvider } from './i18n';
 import { queryClient } from './lib/queryClient';
 import { router } from './routes';
+
+const PretextAutoTextBridge = lazy(() => import('./components/PretextAutoTextBridge'));
 
 function AppSkeletonFallback() {
   return (
@@ -114,13 +115,29 @@ function PretextRuntimeBridge() {
   return null;
 }
 
+function shouldMountRuntimeBridges(pathname: string) {
+  return pathname.startsWith('/app')
+    || pathname.startsWith('/citizen')
+    || pathname.startsWith('/superadmin')
+    || pathname.startsWith('/community-map');
+}
+
 export default function App() {
+  const pathname = window.location.pathname;
+  const mountRuntimeBridges = shouldMountRuntimeBridges(pathname);
+
   return (
     <QueryClientProvider client={queryClient}>
     <TranslationProvider>
-      <PretextRuntimeBridge />
-      <PretextAutoTextBridge />
-      <ViewportCompatibilityBridge />
+      {mountRuntimeBridges ? (
+        <>
+          <PretextRuntimeBridge />
+          <Suspense fallback={null}>
+            <PretextAutoTextBridge />
+          </Suspense>
+          <ViewportCompatibilityBridge />
+        </>
+      ) : null}
       <Suspense
         fallback={<AppSkeletonFallback />}
       >

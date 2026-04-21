@@ -19,13 +19,15 @@ import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
-import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 import '../../styles/landing.css';
 // Card/Badge primitives intentionally not used — landing sections use bespoke layouts
 
 
-const HERO_IMAGE = '/hero-city.jpg';
+const HERO_WEBP_SRCSET = '/hero-city-960.webp 960w, /hero-city-1440.webp 1440w, /hero-city-1920.webp 1920w';
+const HERO_JPG_SRCSET = '/hero-city-960.jpg 960w, /hero-city-1440.jpg 1440w, /hero-city-1920.jpg 1920w';
+const HERO_IMAGE = '/hero-city-1440.jpg';
+const HERO_IMAGE_SIZES = '100vw';
 
 function SectionHeading({
   label,
@@ -41,16 +43,6 @@ function SectionHeading({
   align?: 'left' | 'center';
 }) {
   const isCenter = align === 'center';
-  const titleMetrics = usePretextBlockMetrics<HTMLHeadingElement>(title, {
-    font: '700 36px "Public Sans"',
-    lineHeight: 43,
-    maxLines: 3,
-  });
-  const subtitleMetrics = usePretextBlockMetrics<HTMLParagraphElement>(subtitle, {
-    font: '400 15px "IBM Plex Sans"',
-    lineHeight: 24,
-    maxLines: 4,
-  });
 
   return (
     <div className={`mb-10 ${isCenter ? 'text-center' : 'text-left'}`}>
@@ -66,8 +58,6 @@ function SectionHeading({
         {label}
       </div>
       <h2
-        ref={titleMetrics.ref}
-        style={titleMetrics.minHeight ? { minHeight: titleMetrics.minHeight } : undefined}
         className={`mb-3 max-w-[640px] text-[clamp(26px,3.6vw,36px)] font-bold leading-[1.18] tracking-[-0.015em] ${
           isCenter ? 'mx-auto' : ''
         } ${light ? 'text-white' : 'text-foreground'}`}
@@ -75,8 +65,6 @@ function SectionHeading({
         {title}
       </h2>
       <p
-        ref={subtitleMetrics.ref}
-        style={subtitleMetrics.minHeight ? { minHeight: subtitleMetrics.minHeight } : undefined}
         className={`max-w-[600px] text-[15px] leading-[1.6] ${isCenter ? 'mx-auto' : ''} ${
           light ? 'text-white/70' : 'text-muted-foreground'
         }`}
@@ -382,16 +370,14 @@ function Hero() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section
-        data-reveal
-        className="relative flex min-h-screen items-center overflow-hidden"
-      >
+      <section className="relative flex min-h-screen items-center overflow-hidden">
         <div className="absolute inset-0">
           <picture>
-            <source srcSet="/hero-city.avif" type="image/avif" />
-            <source srcSet="/hero-city.webp" type="image/webp" />
+            <source srcSet={HERO_WEBP_SRCSET} sizes={HERO_IMAGE_SIZES} type="image/webp" />
             <img
               src={HERO_IMAGE}
+              srcSet={HERO_JPG_SRCSET}
+              sizes={HERO_IMAGE_SIZES}
               alt=""
               aria-hidden="true"
               className="h-full w-full object-cover"
@@ -399,7 +385,7 @@ function Hero() {
               loading="eager"
               decoding="async"
               width="1920"
-              height="1080"
+              height="998"
             />
           </picture>
           <div className="absolute inset-0 bg-[#00236f]/[0.88]" />
@@ -408,9 +394,7 @@ function Hero() {
         </div>
 
         <div
-          data-reveal
           className={`landing-hero-content relative z-[2] mx-auto w-full max-w-[1120px] px-6 pb-14 pt-[clamp(112px,14vh,154px)] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
-          style={{ transitionDelay: '90ms' }}
         >
           <div>
             <div className="landing-hero-live mb-7 inline-flex items-center gap-2.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 backdrop-blur-sm">
@@ -1059,11 +1043,12 @@ export default function Landing() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-          } else {
-            entry.target.classList.remove('is-visible');
+          if (!entry.isIntersecting) {
+            return;
           }
+
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
         });
       },
       {
@@ -1113,7 +1098,10 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="landing-root bg-background w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]">
+    <div
+      data-pretext-opt-out="true"
+      className="landing-root bg-background w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]"
+    >
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
       </a>

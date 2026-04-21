@@ -15,7 +15,15 @@
 
     <!-- Preload top LCP candidates on landing -->
     <link rel="preload" as="image" href="/tugon-header-logo.svg" type="image/svg+xml" fetchpriority="high" />
-    <link rel="preload" as="image" href="/hero-city.avif" type="image/avif" fetchpriority="high" />
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-city-1440.webp"
+      imagesrcset="/hero-city-960.webp 960w, /hero-city-1440.webp 1440w, /hero-city-1920.webp 1920w"
+      imagesizes="100vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
 
     <!-- Preload critical font weights to eliminate the CSS→font-file round trip (FCP) -->
     <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />

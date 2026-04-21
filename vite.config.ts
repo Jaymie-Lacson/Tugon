@@ -52,8 +52,20 @@ export default defineConfig({
     cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-leaflet': ['leaflet', 'react-leaflet'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (id.includes('/leaflet/') || id.includes('\\leaflet\\') || id.includes('/react-leaflet/') || id.includes('\\react-leaflet\\')) {
+            return 'vendor-leaflet'
+          }
+
+          if (id.includes('/react/') || id.includes('\\react\\') || id.includes('/react-dom/') || id.includes('\\react-dom\\') || id.includes('/react-router/') || id.includes('\\react-router\\')) {
+            return 'vendor-react'
+          }
+
+          return undefined
         },
       },
     },
