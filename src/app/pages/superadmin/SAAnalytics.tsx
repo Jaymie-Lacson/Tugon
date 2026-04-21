@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { AlertTriangle, Clock, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 import {
@@ -8,7 +8,7 @@ import {
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
-import { officialReportsApi } from '../../services/officialReportsApi';
+import { useOfficialReports } from '../../hooks/useOfficialReportsQueries';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import type { Incident } from '../../data/incidents';
 
@@ -62,29 +62,10 @@ function formatDurationFromMinutes(totalMinutes: number) {
 
 export default function SAAnalytics() {
   const { t } = useTranslation();
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadIncidents = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = await officialReportsApi.getReports();
-      setIncidents(payload.reports.map((report) => reportToIncident(report)));
-    } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Unable to load analytics data.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadIncidents();
-  }, []);
-
-  const showInitialLoader = loading && incidents.length === 0;
+  const { data: reportsData, isLoading: loading, error: queryError } = useOfficialReports();
+  const incidents = reportsData?.reports.map((report) => reportToIncident(report)) ?? [];
+  const error = queryError?.message ?? null;
+  const showInitialLoader = loading && !reportsData;
 
   const kpis = useMemo(() => {
     const active = incidents.filter((item) => item.status === 'active' || item.status === 'responding').length;

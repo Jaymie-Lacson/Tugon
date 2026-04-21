@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOfficialReports, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 import { useTranslation } from '../i18n';
 import {
   BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
@@ -153,41 +155,21 @@ export default function Analytics() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState('This Week');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: reportsData, isLoading: loading, error: queryError } = useOfficialReports();
+  const incidents = reportsData?.reports.map((report) => reportToIncident(report)) ?? [];
+  const error = queryError?.message ?? null;
+  const initialLoadPending = loading && !reportsData;
+
   const [exportingCsv, setExportingCsv] = useState(false);
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
 
-  const loadReports = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    setError(null);
-    try {
-      const payload = await officialReportsApi.getReports();
-      setIncidents(payload.reports.map((report) => reportToIncident(report)));
-    } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Failed to load analytics data.';
-      setError(message);
-      if (!silent) setIncidents([]);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void loadReports(); }, [loadReports]);
-
   useEffect(() => {
-    const disconnect = officialReportsApi.connectReportsStream(() => { void loadReports(true); });
-    const handleFocusRefresh = () => { void loadReports(true); };
-    window.addEventListener('focus', handleFocusRefresh);
-    return () => { disconnect(); window.removeEventListener('focus', handleFocusRefresh); };
-  }, [loadReports]);
-
-  useEffect(() => {
-    if (!initialLoadPending) return;
-    if (!loading) setInitialLoadPending(false);
-  }, [initialLoadPending, loading]);
+    const disconnect = officialReportsApi.connectReportsStream(() => {
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+    });
+    return () => { disconnect(); };
+  }, [queryClient]);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768);
@@ -298,6 +280,8 @@ export default function Analytics() {
     return counts.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
   }, [filteredIncidents]);
 
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const handleExportCsv = useCallback(async () => {
     if (exportingCsv) return;
 
@@ -317,9 +301,8 @@ export default function Analytics() {
       anchor.click();
       anchor.remove();
       window.URL.revokeObjectURL(url);
-    } catch (exportError) {
-      const message = exportError instanceof Error ? exportError.message : 'Failed to export CSV.';
-      setError(message);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Failed to export CSV.');
     } finally {
       setExportingCsv(false);
     }
@@ -370,9 +353,9 @@ export default function Analytics() {
 
   return (
     <div className="analytics-page page-content min-h-full bg-[var(--surface)] p-3.5 px-3 pb-5 md:p-4 md:px-5">
-      {error && (
+      {(error ?? exportError) && (
         <div role="alert" className="mb-3 rounded-xl bg-[var(--error-container)] px-2.5 py-2 text-xs font-semibold text-[var(--error)]">
-          {error}
+          {error ?? exportError}
         </div>
       )}
 

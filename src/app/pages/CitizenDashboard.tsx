@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation, LanguageToggle } from '../i18n';
 import {
@@ -26,10 +26,12 @@ import {
   isIncidentVisibleOnMap,
 } from '../data/incidents';
 import { citizenReportsApi } from '../services/citizenReportsApi';
-import { profileVerificationApi } from '../services/profileVerificationApi';
 import { mapTicketStatus, reportToIncident } from '../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser, performLogout } from '../utils/authSession';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMyReports, citizenReportsKeys } from '../hooks/useCitizenReportsQueries';
+import { useMyVerificationStatus } from '../hooks/useProfileVerificationQueries';
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 interface CitizenMyReport {
@@ -384,10 +386,7 @@ export default function CitizenDashboard() {
   });
   const nowHour = new Date().getHours();
   const greetingLabel = nowHour < 12 ? t('citizen.dashboard.greetingMorning') : nowHour < 18 ? t('citizen.dashboard.greetingAfternoon') : t('citizen.dashboard.greetingEvening');
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [myReports, setMyReports] = useState<CitizenMyReport[]>([]);
-  const [reportsLoading, setReportsLoading] = useState(true);
-  const [verificationLoading, setVerificationLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -400,7 +399,47 @@ export default function CitizenDashboard() {
     idImageUrl: session?.user.idImageUrl ?? null,
     isBanned: Boolean(session?.user.isBanned),
   });
-  const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
+
+  const { data: reportsData, isLoading: reportsLoading } = useMyReports();
+  const { data: verificationData, isLoading: verificationLoading } = useMyVerificationStatus();
+
+  const incidents = useMemo(
+    () => (reportsData?.reports ?? []).map(reportToIncident),
+    [reportsData],
+  );
+
+  const myReports = useMemo((): CitizenMyReport[] =>
+    (reportsData?.reports ?? []).map((report) => ({
+      id: report.id,
+      type: reportToIncident(report).type,
+      description: report.description,
+      status: mapTicketStatus(report.status),
+      reportedAt: report.submittedAt,
+      location: report.location,
+    })),
+  [reportsData]);
+
+  // Sync verificationPreview from query; keep session-backed value as initial
+  useEffect(() => {
+    if (!verificationData) return;
+    const v = verificationData.verification;
+    setVerificationPreview({
+      isVerified: v.isVerified,
+      verificationStatus: v.verificationStatus,
+      rejectionReason: v.rejectionReason,
+      idImageUrl: v.idImageUrl,
+      isBanned: v.isBanned,
+    });
+    patchAuthSessionUser({
+      isVerified: v.isVerified,
+      verificationStatus: v.verificationStatus,
+      verificationRejectionReason: v.rejectionReason,
+      idImageUrl: v.idImageUrl,
+      isBanned: v.isBanned,
+    });
+  }, [verificationData]);
+
+  const mapIncidents = useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
 
   const notificationItems = React.useMemo<CitizenNotificationItem[]>(() => {
     const criticalItems = incidents
@@ -482,83 +521,20 @@ export default function CitizenDashboard() {
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
-  const loadReports = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setReportsLoading(true);
-    }
-    try {
-      const payload = await citizenReportsApi.getMyReports();
-      const mappedIncidents = payload.reports.map((report) => reportToIncident(report));
-      setIncidents(mappedIncidents);
-      setSelectedIncident((current) => {
-        if (!current) {
-          return current;
-        }
-        return mappedIncidents.find((incident) => incident.id === current.id) ?? null;
-      });
-      setMyReports(
-        payload.reports.map((report) => ({
-          id: report.id,
-          type: reportToIncident(report).type,
-          description: report.description,
-          status: mapTicketStatus(report.status),
-          reportedAt: report.submittedAt,
-          location: report.location,
-        })),
-      );
-    } catch {
-      setIncidents([]);
-      setMyReports([]);
-    } finally {
-      if (!silent) {
-        setReportsLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
-
+  // SSE stream → invalidate query
   useEffect(() => {
     const disconnect = citizenReportsApi.connectMyReportsStream(() => {
-      void loadReports(true);
+      void queryClient.invalidateQueries({ queryKey: citizenReportsKeys.myReports() });
     });
+    return () => disconnect();
+  }, [queryClient]);
 
-    return () => {
-      disconnect();
-    };
-  }, [loadReports]);
-
+  // Keep selectedIncident in sync when list refreshes
   useEffect(() => {
-    const loadVerification = async () => {
-      setVerificationLoading(true);
-      try {
-        const payload = await profileVerificationApi.getMyStatus();
-        const verificationState: CitizenVerificationPreview = {
-          isVerified: payload.verification.isVerified,
-          verificationStatus: payload.verification.verificationStatus,
-          rejectionReason: payload.verification.rejectionReason,
-          idImageUrl: payload.verification.idImageUrl,
-          isBanned: payload.verification.isBanned,
-        };
-        setVerificationPreview(verificationState);
-        patchAuthSessionUser({
-          isVerified: payload.verification.isVerified,
-          verificationStatus: payload.verification.verificationStatus,
-          verificationRejectionReason: payload.verification.rejectionReason,
-          idImageUrl: payload.verification.idImageUrl,
-          isBanned: payload.verification.isBanned,
-        });
-      } catch {
-        // Keep session-backed preview if endpoint fails.
-      } finally {
-        setVerificationLoading(false);
-      }
-    };
-
-    void loadVerification();
-  }, []);
+    if (!selectedIncident) return;
+    const refreshed = incidents.find((item) => item.id === selectedIncident.id);
+    if (refreshed && refreshed !== selectedIncident) setSelectedIncident(refreshed);
+  }, [incidents]);
 
   const homeLoading = reportsLoading || verificationLoading;
 

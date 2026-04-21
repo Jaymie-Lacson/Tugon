@@ -20,6 +20,8 @@ import { officialReportsApi } from '../services/officialReportsApi';
 import type { ReportCategory } from '../data/reportTaxonomy';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 import { useLocation } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOfficialReports, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 
 type IncidentView = Incident & {
   ticketStatus: ApiTicketStatus;
@@ -398,14 +400,11 @@ function IncidentDetailModal({
 export default function Incidents() {
   const { t } = useTranslation();
   const location = useLocation();
-  const [incidents, setIncidents] = useState<IncidentView[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
-  const [listView, setListView] = useState<IncidentListView>('open');
+  const queryClient = useQueryClient();
 
+  const [listView, setListView] = useState<IncidentListView>('open');
   const [search, setSearch] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
   const [filterSeverity, setFilterSeverity] = useState<Severity | ''>('');
   const [filterStatus, setFilterStatus] = useState<IncidentStatus | ''>('');
@@ -413,6 +412,7 @@ export default function Incidents() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [selectedIncident, setSelectedIncident] = useState<IncidentView | null>(null);
   const [updatingIncidentId, setUpdatingIncidentId] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     incident: IncidentView;
     x: number;
@@ -421,13 +421,6 @@ export default function Incidents() {
   const [page, setPage] = useState(1);
   const hasFilter = Boolean(search || filterCategory || filterSeverity || filterStatus);
 
-  const { openCount, archivedCount } = useMemo(() => {
-    const open = incidents.filter((incident) => OPEN_TICKET_STATUSES.has(incident.ticketStatus)).length;
-    return {
-      openCount: open,
-      archivedCount: incidents.length - open,
-    };
-  }, [incidents]);
   const [pendingReportId, setPendingReportId] = useState<string | null>(() => {
     const routeState = location.state as { reportId?: unknown } | null;
     return typeof routeState?.reportId === 'string' ? routeState.reportId : null;
@@ -438,80 +431,44 @@ export default function Incidents() {
     setPendingReportId(reportId);
   }, [location.state]);
 
-  const searchRef = React.useRef(search);
-  searchRef.current = search;
-
-  const loadReports = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-    setError(null);
-    try {
-      const currentSearch = searchRef.current.trim();
-      const payload = await officialReportsApi.getReports(
-        currentSearch ? { search: currentSearch } : undefined,
-      );
-      const mapped = payload.reports.map((report) => toIncidentView(report));
-      setIncidents(mapped);
-      setSelectedIncident((current) => {
-        if (!current) {
-          return current;
-        }
-        return mapped.find((incident) => incident.id === current.id) ?? current;
-      });
-    } catch (err) {
-      if (!silent) {
-        setError(err instanceof Error ? err.message : 'Failed to load reports.');
-      }
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
+  // Debounce search → debouncedSearch to drive the query key
   useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
+    const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(handle);
+  }, [search]);
 
-  const didMountSearchRef = React.useRef(false);
+  const { data: reportsData, isLoading, isFetching, error: reportsError } = useOfficialReports(
+    debouncedSearch ? { search: debouncedSearch } : undefined,
+  );
+
+  const incidents = useMemo(
+    () => (reportsData?.reports ?? []).map(toIncidentView),
+    [reportsData],
+  );
+
+  const loading = isFetching;
+  const error = reportsError ? (reportsError instanceof Error ? reportsError.message : 'Failed to load reports.') : statusError;
+  const initialLoadPending = isLoading && !reportsData;
+
+  // Keep selectedIncident in sync when list refreshes
   useEffect(() => {
-    if (!didMountSearchRef.current) {
-      didMountSearchRef.current = true;
-      return;
-    }
-    setSearchLoading(true);
-    const handle = window.setTimeout(async () => {
-      try {
-        await loadReports(true);
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 300);
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [search, loadReports]);
+    if (!selectedIncident) return;
+    const refreshed = incidents.find((item) => item.id === selectedIncident.id);
+    if (refreshed) setSelectedIncident(refreshed);
+  }, [incidents]);
 
+  // SSE stream → invalidate query
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void loadReports(true);
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
     });
+    return () => disconnect();
+  }, [queryClient]);
 
-    return () => {
-      disconnect();
-    };
-  }, [loadReports]);
-
-  useEffect(() => {
-    if (!initialLoadPending) {
-      return;
-    }
-
-    if (!loading) {
-      setInitialLoadPending(false);
-    }
-  }, [initialLoadPending, loading]);
+  const { openCount, archivedCount } = useMemo(() => {
+    const open = incidents.filter((incident) => OPEN_TICKET_STATUSES.has(incident.ticketStatus)).length;
+    return { openCount: open, archivedCount: incidents.length - open };
+  }, [incidents]);
 
   useEffect(() => {
     const incidentId = new URLSearchParams(location.search).get('incident');
@@ -557,11 +514,11 @@ export default function Incidents() {
         }
 
         const mapped = toIncidentView(payload.report);
-        setIncidents((current) => (current.some((item) => item.id === mapped.id) ? current : [mapped, ...current]));
         setSelectedIncident(mapped);
+        void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
       } catch (err) {
         if (!disposed) {
-          setError(err instanceof Error ? err.message : 'Failed to open selected report.');
+          setStatusError(err instanceof Error ? err.message : 'Failed to open selected report.');
         }
       } finally {
         if (!disposed) {
@@ -622,16 +579,15 @@ export default function Incidents() {
     if (!selectedIncident) return;
 
     setContextMenu(null);
-
     setUpdatingIncidentId(selectedIncident.id);
-    setError(null);
+    setStatusError(null);
     try {
       const updated = await officialReportsApi.updateReportStatus(selectedIncident.id, { status: nextStatus });
       const mapped = toIncidentView(updated.report);
-      setIncidents((current) => current.map((item) => (item.id === mapped.id ? mapped : item)));
       setSelectedIncident(mapped);
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update status.');
+      setStatusError(err instanceof Error ? err.message : 'Failed to update status.');
     } finally {
       setUpdatingIncidentId(null);
     }
@@ -639,16 +595,13 @@ export default function Incidents() {
 
   const updateIncidentStatus = async (incident: IncidentView, nextStatus: ApiTicketStatus) => {
     setContextMenu(null);
-
     setUpdatingIncidentId(incident.id);
-    setError(null);
+    setStatusError(null);
     try {
-      const updated = await officialReportsApi.updateReportStatus(incident.id, { status: nextStatus });
-      const mapped = toIncidentView(updated.report);
-      setIncidents((current) => current.map((item) => (item.id === mapped.id ? mapped : item)));
-      setSelectedIncident((current) => (current?.id === mapped.id ? mapped : current));
+      await officialReportsApi.updateReportStatus(incident.id, { status: nextStatus });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update status.');
+      setStatusError(err instanceof Error ? err.message : 'Failed to update status.');
     } finally {
       setUpdatingIncidentId(null);
     }
@@ -776,7 +729,7 @@ export default function Incidents() {
               setSearch(next);
               setPage(1);
             }}
-            loading={searchLoading}
+            loading={isFetching}
             shortcut="/"
             placeholder={t('official.incidents.searchPlaceholderTable')}
             aria-label={t('official.incidents.searchPlaceholderTable')}
@@ -853,7 +806,7 @@ export default function Incidents() {
 
         <button
           onClick={() => {
-            void loadReports();
+            void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
           }}
           className="ml-auto flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-3.5 py-2.5 text-xs font-semibold text-[var(--on-surface-variant)]"
         >

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../i18n';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, XCircle, RefreshCw, ShieldAlert, Upload, Ban, Clock3 } from 'lucide-react';
 import {
   officialReportsApi,
   type ApiPendingVerification,
   type ApiVerificationDecision,
 } from '../services/officialReportsApi';
+import { usePendingVerifications, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import { VerificationsSkeleton } from '../components/ui/PageSkeletons';
@@ -27,10 +29,12 @@ function isPreviewableImageUrl(value: string | null | undefined): boolean {
 
 export default function Verifications() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<ApiPendingVerification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
+  const queryClient = useQueryClient();
+  const { data, isLoading: loading, error: queryError } = usePendingVerifications();
+  const rows = data?.verifications ?? [];
+  const error = queryError?.message ?? null;
+  const initialLoadPending = loading && !data;
+
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [reasonByUser, setReasonByUser] = useState<Record<string, string>>({});
   const [notesByUser, setNotesByUser] = useState<Record<string, string>>({});
@@ -46,45 +50,27 @@ export default function Verifications() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [previewUrl]);
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = await officialReportsApi.getPendingVerifications();
-      setRows(payload.verifications);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Failed to load pending verifications.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { void load(); }, []);
-
-  useEffect(() => {
-    if (!initialLoadPending) return;
-    if (!loading) setInitialLoadPending(false);
-  }, [initialLoadPending, loading]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const submitDecision = async (citizenUserId: string, decision: ApiVerificationDecision) => {
     const reason = reasonByUser[citizenUserId] ?? '';
     const notes = notesByUser[citizenUserId] ?? '';
     const needsReason = decision === 'REJECT' || decision === 'REQUEST_REUPLOAD' || decision === 'BAN_ACCOUNT';
     if (needsReason && !reason) {
-      setError(t('official.verifications.selectReasonFirst'));
+      setSubmitError(t('official.verifications.selectReasonFirst'));
       return;
     }
     setSubmittingId(citizenUserId);
-    setError(null);
+    setSubmitError(null);
     try {
       await officialReportsApi.reviewVerification(citizenUserId, {
         decision,
         reason: needsReason ? reason : undefined,
         notes: notes || undefined,
       });
-      await load();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to submit verification decision.');
+      await queryClient.invalidateQueries({ queryKey: officialReportsKeys.verifications() });
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit verification decision.');
     } finally {
       setSubmittingId(null);
     }
@@ -112,9 +98,9 @@ export default function Verifications() {
         )}
       />
 
-      {error && (
+      {(error ?? submitError) && (
         <div role="alert" className="mb-3 border-l-4 border-[var(--severity-critical)] bg-[var(--error-container)] px-3 py-2.5 text-xs font-semibold text-[var(--severity-critical)]">
-          {error}
+          {error ?? submitError}
         </div>
       )}
 
@@ -153,7 +139,7 @@ export default function Verifications() {
                         type="button"
                         onClick={() => {
                           if (!isPreviewableImageUrl(row.idImageUrl)) {
-                            setError(t('official.verifications.previewNotViewable'));
+                            setSubmitError(t('official.verifications.previewNotViewable'));
                             return;
                           }
                           setPreviewTitle(`${t('official.verifications.residentIdPreview')} - ${row.fullName}`);

@@ -12,6 +12,8 @@ import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import TableSkeleton from '../components/ui/TableSkeleton';
 import { officialReportsApi } from '../services/officialReportsApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOfficialReports, useHeatmap, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 import { reportToIncident } from '../utils/incidentAdapters';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import '../../styles/map-view.css';
@@ -49,18 +51,31 @@ function IncidentCard({ incident, selected, onClick }: { incident: Incident; sel
 }
 
 export default function MapView() {
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [heatmapClusters, setHeatmapClusters] = useState<HeatmapClusterOverlay[]>([]);
-  const [heatmapLoading, setHeatmapLoading] = useState(false);
-  const [heatmapError, setHeatmapError] = useState<string | null>(null);
-  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot')
+  const queryClient = useQueryClient();
+  const { data: reportsData, isLoading: loading, error: reportsQueryError } = useOfficialReports(undefined);
+  const heatmapParams = !isPublicCommunityMap ? { days: 14, threshold: 3 } : undefined;
+  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapQueryError } = useHeatmap(heatmapParams);
+
+  const incidents = !isPublicCommunityMap ? (reportsData?.reports.map((report) => reportToIncident(report)) ?? []) : [];
+  const error = !isPublicCommunityMap ? (reportsQueryError?.message ?? null) : null;
+  const heatmapError = !isPublicCommunityMap ? (heatmapQueryError?.message ?? null) : null;
+  const heatmapClusters: HeatmapClusterOverlay[] = !isPublicCommunityMap && heatmapData
+    ? heatmapData.clusters.map((cluster) => ({
+        id: cluster.clusterId,
+        latitude: cluster.centerLatitude,
+        longitude: cluster.centerLongitude,
+        intensity: cluster.intensity,
+        incidentCount: cluster.incidentCount,
+        incidentType: cluster.category,
+      }))
+    : [];
+  const initialLoadPending = !isPublicCommunityMap && (loading && !reportsData);
+
+  const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
   const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [hasHotspotAutoSelected, setHasHotspotAutoSelected] = useState(false);
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const isPublicCommunityMap = location.pathname === '/community-map';
@@ -84,120 +99,21 @@ export default function MapView() {
     setPanelOpen(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
   }, [isPublicCommunityMap]);
 
-  const loadReports = React.useCallback(async (silent = false) => {
-    if (isPublicCommunityMap) {
-      setIncidents([]);
-      setHeatmapClusters([]);
-      setMapRenderMode('standard');
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    if (!silent) {
-      setLoading(true);
-    }
-    setError(null);
-    try {
-      const payload = await officialReportsApi.getReports();
-      const mapped = payload.reports.map((report) => reportToIncident(report));
-      setIncidents(mapped);
-      setSelectedIncident((current) => {
-        if (!current) {
-          return current;
-        }
-        return mapped.find((incident) => incident.id === current.id) ?? null;
-      });
-    } catch (loadError) {
-      if (!silent) {
-        const message = loadError instanceof Error ? loadError.message : 'Failed to load incidents.';
-        setError(message);
-      }
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, [isPublicCommunityMap]);
-
   useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
-
-  const loadHeatmap = React.useCallback(async (silent = false) => {
-    if (isPublicCommunityMap) {
-      setHeatmapClusters([]);
-      setHeatmapLoading(false);
-      setHeatmapError(null);
-      return;
-    }
-
-    if (!silent) {
-      setHeatmapLoading(true);
-    }
-    setHeatmapError(null);
-    try {
-      const payload = await officialReportsApi.getHeatmap({ days: 14, threshold: 3 });
-      const overlays: HeatmapClusterOverlay[] = payload.clusters.map((cluster) => ({
-        id: cluster.clusterId,
-        latitude: cluster.centerLatitude,
-        longitude: cluster.centerLongitude,
-        intensity: cluster.intensity,
-        incidentCount: cluster.incidentCount,
-        incidentType: cluster.category,
-      }));
-      setHeatmapClusters(overlays);
-    } catch (loadError) {
-      if (!silent) {
-        const message = loadError instanceof Error ? loadError.message : 'Failed to load hotspot clusters.';
-        setHeatmapError(message);
-      }
-      setHeatmapClusters([]);
-    } finally {
-      if (!silent) {
-        setHeatmapLoading(false);
-      }
-    }
-  }, [isPublicCommunityMap]);
-
-  useEffect(() => {
-    void loadHeatmap();
-  }, [loadHeatmap]);
-
-  useEffect(() => {
-    if (isPublicCommunityMap) {
-      return;
-    }
-
+    if (isPublicCommunityMap) return;
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void loadReports(true);
-      void loadHeatmap(true);
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.heatmap({ days: 14, threshold: 3 }) });
     });
-
-    return () => {
-      disconnect();
-    };
-  }, [isPublicCommunityMap, loadHeatmap, loadReports]);
+    return () => { disconnect(); };
+  }, [isPublicCommunityMap, queryClient]);
 
   useEffect(() => {
-    if (isPublicCommunityMap) {
-      return;
-    }
-
-    if (!heatmapLoading && heatmapClusters.length === 0 && mapRenderMode === 'hotspot') {
+    if (isPublicCommunityMap || heatmapLoading) return;
+    if (heatmapClusters.length === 0 && mapRenderMode === 'hotspot') {
       setMapRenderMode('standard');
     }
   }, [heatmapClusters.length, heatmapLoading, isPublicCommunityMap, mapRenderMode]);
-
-  useEffect(() => {
-    if (!initialLoadPending) {
-      return;
-    }
-
-    if (!loading) {
-      setInitialLoadPending(false);
-    }
-  }, [initialLoadPending, loading]);
 
   const handleBack = () => {
     if (window.history.length > 1) {

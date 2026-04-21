@@ -5,6 +5,7 @@ import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminAuditLog } from '../../services/superAdminApi';
+import { useAdminAuditLogs } from '../../hooks/useAdminQueries';
 
 const ACTIONS = ['All Actions', 'ADMIN_USER_CREATED', 'ADMIN_USER_ROLE_UPDATED', 'ADMIN_BARANGAY_BOUNDARY_UPDATED'] as const;
 const TARGET_TYPES = ['All Targets', 'USER', 'BARANGAY'] as const;
@@ -63,10 +64,6 @@ function formatDateInput(date: Date) {
 
 export default function SAAuditLogs() {
   const { t } = useTranslation();
-  const [logs, setLogs] = useState<ApiAdminAuditLog[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [exportingJson, setExportingJson] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [actionFilter, setActionFilter] = useState<string>('All Actions');
@@ -78,31 +75,19 @@ export default function SAAuditLogs() {
 
   const PAGE_SIZE = 50;
 
-  const loadLogs = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = await superAdminApi.getAuditLogs({
-        action: actionFilter === 'All Actions' ? undefined : actionFilter,
-        targetType: targetFilter === 'All Targets' ? undefined : targetFilter,
-        limit: PAGE_SIZE,
-        offset: (page - 1) * PAGE_SIZE,
-        fromDate: fromDate ? toIsoStartOfDay(fromDate) : undefined,
-        toDate: toDate ? toIsoEndOfDay(toDate) : undefined,
-      });
-      setLogs(payload.logs);
-      setTotal(payload.total);
-    } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Unable to load audit logs.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+  const queryParams = {
+    action: actionFilter === 'All Actions' ? undefined : actionFilter,
+    targetType: targetFilter === 'All Targets' ? undefined : targetFilter,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+    fromDate: fromDate ? toIsoStartOfDay(fromDate) : undefined,
+    toDate: toDate ? toIsoEndOfDay(toDate) : undefined,
   };
 
-  useEffect(() => {
-    void loadLogs();
-  }, [actionFilter, targetFilter, fromDate, toDate, page]);
+  const { data, isFetching: loading, error: queryError } = useAdminAuditLogs(queryParams);
+  const logs = data?.logs ?? [];
+  const total = data?.total ?? 0;
+  const error = queryError?.message ?? null;
 
   useEffect(() => {
     setPage(1);

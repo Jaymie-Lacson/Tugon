@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOfficialReports, useAlerts, useHeatmap, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 import { useTranslation } from '../i18n';
 import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
@@ -162,22 +164,24 @@ const AlertBanner = ({
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [incidentsLoading, setIncidentsLoading] = useState(true);
-  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: reportsData, isLoading: incidentsLoading, error: incidentsQueryError } = useOfficialReports();
+  const { data: alertsData, isLoading: alertsLoading, error: alertsQueryError } = useAlerts();
+  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapQueryError } = useHeatmap({ days: 14, threshold: 3 });
+  const incidents = reportsData?.reports.map((report) => reportToIncident(report)) ?? [];
+  const alerts = alertsData?.alerts ?? [];
+  const heatmapClusters = heatmapData?.clusters ?? [];
+  const incidentsError = incidentsQueryError?.message ?? null;
+  const heatmapError = heatmapQueryError?.message ?? null;
+  const initialLoadPending = (incidentsLoading && !reportsData) || (alertsLoading && !alertsData) || (heatmapLoading && !heatmapData);
+
+  const [alertActionError, setAlertActionError] = useState<string | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-  const [alerts, setAlerts] = useState<ApiCrossBorderAlert[]>([]);
-  const [alertsLoading, setAlertsLoading] = useState(true);
-  const [alertsError, setAlertsError] = useState<string | null>(null);
   const [markingReadAlertId, setMarkingReadAlertId] = useState<string | null>(null);
-  const [heatmapClusters, setHeatmapClusters] = useState<ApiHeatmapCluster[]>([]);
-  const [heatmapLoading, setHeatmapLoading] = useState(true);
-  const [heatmapError, setHeatmapError] = useState<string | null>(null);
   const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
   const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -266,110 +270,26 @@ export default function Dashboard() {
     }));
   }, [incidents]);
 
-  const loadReports = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setIncidentsLoading(true);
-    }
-    setIncidentsError(null);
-    try {
-      const payload = await officialReportsApi.getReports();
-      const mapped = payload.reports.map((report) => reportToIncident(report));
-      const mappedMapIncidents = mapped.filter((incident) => isIncidentVisibleOnMap(incident));
-      setIncidents(mapped);
-      setSelectedIncident((current) => {
-        if (!current) {
-          return mappedMapIncidents[0] ?? null;
-        }
-        return mappedMapIncidents.find((item) => item.id === current.id) ?? null;
-      });
-    } catch (error) {
-      if (!silent) {
-        const message = error instanceof Error ? error.message : 'Failed to load incidents.';
-        setIncidentsError(message);
-      }
-    } finally {
-      if (!silent) {
-        setIncidentsLoading(false);
-      }
-    }
-  }, []);
-
-  const loadAlerts = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setAlertsLoading(true);
-    }
-    setAlertsError(null);
-    try {
-      const payload = await officialReportsApi.getAlerts();
-      setAlerts(payload.alerts);
-    } catch (error) {
-      if (!silent) {
-        const message = error instanceof Error ? error.message : 'Failed to load cross-border alerts.';
-        setAlertsError(message);
-      }
-    } finally {
-      if (!silent) {
-        setAlertsLoading(false);
-      }
-    }
-  }, []);
-
-  const loadHeatmap = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setHeatmapLoading(true);
-    }
-    setHeatmapError(null);
-    try {
-      const payload = await officialReportsApi.getHeatmap({
-        days: 14,
-        threshold: 3,
-      });
-      setHeatmapClusters(payload.clusters);
-    } catch (error) {
-      if (!silent) {
-        const message = error instanceof Error ? error.message : 'Failed to load heatmap hotspots.';
-        setHeatmapError(message);
-      }
-    } finally {
-      if (!silent) {
-        setHeatmapLoading(false);
-      }
-    }
-  }, []);
-
   useEffect(() => {
-    void loadReports();
-    void loadAlerts();
-    void loadHeatmap();
-  }, [loadAlerts, loadHeatmap, loadReports]);
+    const mapIncidents = incidents.filter((incident) => isIncidentVisibleOnMap(incident));
+    setSelectedIncident((current) => {
+      if (!current) return mapIncidents[0] ?? null;
+      return mapIncidents.find((item) => item.id === current.id) ?? null;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportsData]);
 
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void loadReports(true);
-      void loadAlerts(true);
-      void loadHeatmap(true);
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.alerts() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.heatmap({ days: 14, threshold: 3 }) });
     });
-
-    return () => {
-      disconnect();
-    };
-  }, [loadAlerts, loadHeatmap, loadReports]);
+    return () => { disconnect(); };
+  }, [queryClient]);
 
   useEffect(() => {
-    if (!initialLoadPending) {
-      return;
-    }
-
-    if (!incidentsLoading && !alertsLoading && !heatmapLoading) {
-      setInitialLoadPending(false);
-    }
-  }, [initialLoadPending, incidentsLoading, alertsLoading, heatmapLoading]);
-
-  useEffect(() => {
-    if (heatmapLoading) {
-      return;
-    }
-
+    if (heatmapLoading) return;
     // Fallback to pin mode when there are no qualifying hotspot clusters.
     if (heatmapClusters.length === 0 && mapRenderMode === 'hotspot') {
       setMapRenderMode('standard');
@@ -378,13 +298,12 @@ export default function Dashboard() {
 
   const handleMarkAlertRead = async (alertId: string) => {
     setMarkingReadAlertId(alertId);
-    setAlertsError(null);
+    setAlertActionError(null);
     try {
-      const payload = await officialReportsApi.markAlertRead(alertId);
-      setAlerts((current) => current.map((item) => (item.id === alertId ? payload.alert : item)));
+      await officialReportsApi.markAlertRead(alertId);
+      await queryClient.invalidateQueries({ queryKey: officialReportsKeys.alerts() });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to update alert.';
-      setAlertsError(message);
+      setAlertActionError(error instanceof Error ? error.message : 'Unable to update alert.');
     } finally {
       setMarkingReadAlertId(null);
     }
@@ -536,9 +455,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {alertsError ? (
+        {(alertsQueryError ?? alertActionError) ? (
           <div className="mx-4 my-3 rounded-lg border border-[var(--error)]/30 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--error)]">
-            {alertsError}
+            {alertsQueryError?.message ?? alertActionError}
           </div>
         ) : null}
 

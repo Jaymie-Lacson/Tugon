@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
   Clock, ArrowRight, MapPin,
@@ -13,11 +13,12 @@ import { IncidentMap } from '../../components/IncidentMap';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
-import { isAuthExpiredError, superAdminApi, type ApiAdminAnalyticsSummary } from '../../services/superAdminApi';
-import { officialReportsApi } from '../../services/officialReportsApi';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminSummary, useAdminBarangays, useAdminAuditLogs, adminKeys } from '../../hooks/useAdminQueries';
+import { useOfficialReports, officialReportsKeys } from '../../hooks/useOfficialReportsQueries';
 
 type BarangayOverviewCard = {
   id: string;
@@ -139,21 +140,76 @@ function formatDurationFromMinutes(totalMinutes: number) {
 export default function SAOverview() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [analyticsSummary, setAnalyticsSummary] = useState<ApiAdminAnalyticsSummary | null>(null);
-  const [reportIncidents, setReportIncidents] = useState<Incident[]>([]);
-  const [barangayCards, setBarangayCards] = useState<BarangayOverviewCard[]>([]);
-  const [systemLogs, setSystemLogs] = useState<Array<{ id: string; timestamp: string; type: string; message: string; barangay?: string; severity: string }>>([]);
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [reportsLoading, setReportsLoading] = useState(true);
-  const [logsLoading, setLogsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [authRedirecting, setAuthRedirecting] = useState(false);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
   const [incidentCardHeight, setIncidentCardHeight] = useState<number | null>(null);
   const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
   const activityLogCardRef = useRef<HTMLDivElement | null>(null);
   const activityLogHeaderRef = useRef<HTMLDivElement | null>(null);
   const activityLogListRef = useRef<HTMLDivElement | null>(null);
-  const mapIncidents = React.useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
+
+  const { data: analyticsSummary, isLoading: summaryLoading, error: summaryQueryError } = useAdminSummary();
+  const { data: reportsData, isLoading: reportsLoading } = useOfficialReports();
+  const { data: barangaysData, isLoading: _barangaysLoading } = useAdminBarangays();
+  const { data: auditLogsData, isLoading: logsLoading } = useAdminAuditLogs({ limit: 8, offset: 0 });
+
+  const summaryError = summaryQueryError
+    ? (summaryQueryError instanceof Error ? summaryQueryError.message : 'Unable to load analytics summary.')
+    : null;
+
+  const reportIncidents = useMemo(
+    () => (reportsData?.reports ?? []).map(reportToIncident),
+    [reportsData],
+  );
+
+  const barangayCards = useMemo((): BarangayOverviewCard[] => {
+    if (!barangaysData) return [];
+    const colorByCode: Record<string, string> = {
+      '251': 'var(--primary)',
+      '252': 'var(--severity-low)',
+      '256': 'var(--severity-medium)',
+    };
+    return barangaysData.barangays
+      .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
+      .sort((a, b) => Number(a.code) - Number(b.code))
+      .map((barangay) => {
+        const activeIncidents = barangay.activeReports;
+        const totalThisMonth = barangay.totalReports;
+        const resolvedThisMonth = Math.max(totalThisMonth - activeIncidents, 0);
+        const responseRate = totalThisMonth > 0
+          ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / totalThisMonth) * 100)))
+          : 100;
+        return {
+          id: barangay.id,
+          code: barangay.code,
+          name: `Barangay ${barangay.code}`,
+          district: 'Tondo, Manila',
+          captain: 'Assigned Barangay Captain',
+          activeIncidents,
+          totalThisMonth,
+          resolvedThisMonth,
+          responseRate,
+          avgResponseMin: 0,
+          responders: barangay.officialCount,
+          registeredUsers: barangay.citizenCount,
+          color: colorByCode[barangay.code] ?? 'var(--primary)',
+          alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
+        } as BarangayOverviewCard;
+      });
+  }, [barangaysData]);
+
+  const systemLogs = useMemo(
+    () => (auditLogsData?.logs ?? []).map((log) => ({
+      id: log.id,
+      timestamp: log.createdAt,
+      type: log.targetType === 'USER' ? 'user' : 'system',
+      message: `${log.action} ${log.targetLabel ?? log.targetId ?? ''}`.trim(),
+      severity: 'info',
+    })),
+    [auditLogsData],
+  );
+
+  const mapIncidents = useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
   const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
   const todayIso = new Date().toISOString().slice(0, 10);
   const yesterday = new Date();
@@ -198,154 +254,13 @@ export default function SAOverview() {
     row[barangayKey] += 1;
   }
 
-  const handleAuthFailure = React.useCallback((error: unknown) => {
-    if (!isAuthExpiredError(error)) {
-      return false;
-    }
-
-    clearAuthSession();
-    setAuthRedirecting(true);
-    navigate('/auth/login', { replace: true });
-    return true;
-  }, [navigate]);
-
   useEffect(() => {
     if (getAuthSession()?.user.role === 'SUPER_ADMIN') {
       return;
     }
-
     setAuthRedirecting(true);
     navigate('/auth/login', { replace: true });
   }, [navigate]);
-
-  const loadAnalyticsSummary = async () => {
-    if (authRedirecting) {
-      return;
-    }
-
-    setSummaryLoading(true);
-    setSummaryError(null);
-    try {
-      const payload = await superAdminApi.getAnalyticsSummary();
-      setAnalyticsSummary(payload);
-    } catch (error) {
-      if (handleAuthFailure(error)) {
-        return;
-      }
-
-      const message = error instanceof Error ? error.message : 'Unable to load analytics summary.';
-      setSummaryError(message);
-    } finally {
-      setSummaryLoading(false);
-    }
-  };
-
-  const loadReports = async () => {
-    if (authRedirecting) {
-      return;
-    }
-
-    setReportsLoading(true);
-    try {
-      const payload = await officialReportsApi.getReports();
-      setReportIncidents(payload.reports.map((report) => reportToIncident(report)));
-    } catch (error) {
-      if (handleAuthFailure(error)) {
-        return;
-      }
-
-      setReportIncidents([]);
-    } finally {
-      setReportsLoading(false);
-    }
-  };
-
-  const loadBarangays = async () => {
-    if (authRedirecting) {
-      return;
-    }
-
-    try {
-      const payload = await superAdminApi.getBarangays();
-      const colorByCode: Record<string, string> = {
-        '251': 'var(--primary)',
-        '252': 'var(--severity-low)',
-        '256': 'var(--severity-medium)',
-      };
-
-      const nextCards = payload.barangays
-        .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
-        .sort((a, b) => Number(a.code) - Number(b.code))
-        .map((barangay) => {
-          const activeIncidents = barangay.activeReports;
-          const totalThisMonth = barangay.totalReports;
-          const resolvedThisMonth = Math.max(totalThisMonth - activeIncidents, 0);
-          const responseRate = totalThisMonth > 0
-            ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / totalThisMonth) * 100)))
-            : 100;
-
-          return {
-            id: barangay.id,
-            code: barangay.code,
-            name: `Barangay ${barangay.code}`,
-            district: 'Tondo, Manila',
-            captain: 'Assigned Barangay Captain',
-            activeIncidents,
-            totalThisMonth,
-            resolvedThisMonth,
-            responseRate,
-            avgResponseMin: 0,
-            responders: barangay.officialCount,
-            registeredUsers: barangay.citizenCount,
-            color: colorByCode[barangay.code] ?? 'var(--primary)',
-            alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
-          } as BarangayOverviewCard;
-        });
-
-      setBarangayCards(nextCards);
-    } catch (error) {
-      if (handleAuthFailure(error)) {
-        return;
-      }
-
-      setBarangayCards([]);
-    }
-  };
-
-  const loadAuditLogs = async () => {
-    if (authRedirecting) {
-      return;
-    }
-
-    setLogsLoading(true);
-    try {
-      const payload = await superAdminApi.getAuditLogs({ limit: 8, offset: 0 });
-      setSystemLogs(
-        payload.logs.map((log) => ({
-          id: log.id,
-          timestamp: log.createdAt,
-          type: log.targetType === 'USER' ? 'user' : 'system',
-          message: `${log.action} ${log.targetLabel ?? log.targetId ?? ''}`.trim(),
-          severity: 'info',
-        })),
-      );
-    } catch (error) {
-      if (handleAuthFailure(error)) {
-        return;
-      }
-
-      setSystemLogs([]);
-    } finally {
-      setLogsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadAnalyticsSummary();
-    void loadReports();
-    void loadBarangays();
-    void loadAuditLogs();
-  }, []);
 
   useEffect(() => {
     const card = incidentTypesCardRef.current;
@@ -388,7 +303,7 @@ export default function SAOverview() {
 
   const visibleSystemLogs = systemLogs.slice(0, MAX_VISIBLE_SYSTEM_LOGS);
 
-  const initialLoadPending = summaryLoading || reportsLoading || logsLoading;
+  const initialLoadPending = (summaryLoading && !analyticsSummary) || (reportsLoading && !reportsData) || (logsLoading && !auditLogsData);
 
   if (initialLoadPending) {
     return (
@@ -429,10 +344,10 @@ export default function SAOverview() {
         <div className="flex items-center gap-[10px] max-md:w-full max-md:flex-wrap">
           <button
             onClick={() => {
-              void loadAnalyticsSummary();
-              void loadReports();
-              void loadBarangays();
-              void loadAuditLogs();
+              void queryClient.invalidateQueries({ queryKey: adminKeys.summary() });
+              void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+              void queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
+              void queryClient.invalidateQueries({ queryKey: adminKeys.auditLogs({ limit: 8, offset: 0 }) });
             }}
             className="flex min-h-11 items-center gap-[6px] bg-card border border-[var(--outline-variant)] rounded-lg px-[14px] py-2 cursor-pointer text-[var(--on-surface)] text-xs font-semibold max-md:flex-1 max-md:justify-center"
           >

@@ -21,10 +21,12 @@ import {
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi } from '../../services/superAdminApi';
-import { officialReportsApi } from '../../services/officialReportsApi';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../../utils/mapCategoryLabels';
 import type { IncidentType } from '../../data/incidents';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminBarangays, adminKeys } from '../../hooks/useAdminQueries';
+import { useOfficialReports } from '../../hooks/useOfficialReportsQueries';
 
 // ── Incident type styling ────────────────────────────────────────────────────
 const INCIDENT_COLORS: Record<string, string> = {
@@ -459,12 +461,71 @@ export default function SABarangayMap() {
   const isDark = resolvedTheme === 'dark';
   const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
   const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
-  const [barangaysData, setBarangaysData] = useState<BarangayMapView[]>([]);
-  const [loadingBarangays, setLoadingBarangays] = useState(true);
-  const [loadingIncidents, setLoadingIncidents] = useState(true);
-  const [barangaysError, setBarangaysError] = useState<string | null>(null);
-  const [reportIncidents, setReportIncidents] = useState<MapIncident[]>([]);
-  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: barangaysQueryData, isLoading: loadingBarangays, error: barangaysQueryError } = useAdminBarangays();
+  const { data: reportsQueryData, isLoading: loadingIncidents } = useOfficialReports();
+
+  const barangaysData = React.useMemo((): BarangayMapView[] => {
+    if (!barangaysQueryData) return [];
+    return barangaysQueryData.barangays.map((apiBarangay) => {
+      const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
+        color: 'var(--primary)',
+        district: 'District II',
+        captain: 'Assigned Barangay Captain',
+        area: 'N/A',
+        population: 0,
+      };
+      const canonicalBoundary = CANONICAL_BOUNDARY_BY_CODE[apiBarangay.code];
+      const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
+      const boundary = canonicalBoundary ?? parsedBoundary ?? fallbackBoundaryForCode(apiBarangay.code);
+      const activeIncidents = apiBarangay.activeReports;
+      const resolvedThisMonth = Math.max(apiBarangay.totalReports - activeIncidents, 0);
+      const responseRate = apiBarangay.totalReports > 0
+        ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / apiBarangay.totalReports) * 100)))
+        : 100;
+      return {
+        id: apiBarangay.id,
+        code: apiBarangay.code,
+        name: apiBarangay.name || `Barangay ${apiBarangay.code}`,
+        district: meta.district,
+        captain: meta.captain,
+        population: meta.population,
+        area: meta.area,
+        center: BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? boundary[0] ?? TONDO_TRI_BRGY_CENTER,
+        boundary,
+        color: meta.color,
+        activeIncidents,
+        totalThisMonth: apiBarangay.totalReports,
+        resolvedThisMonth,
+        responseRate,
+        avgResponseMin: 0,
+        registeredUsers: apiBarangay.citizenCount,
+        alertLevel: alertLevelFromActive(activeIncidents),
+        boundaryGeojson: apiBarangay.boundaryGeojson,
+      } satisfies BarangayMapView;
+    });
+  }, [barangaysQueryData]);
+
+  const reportIncidents = React.useMemo((): MapIncident[] => {
+    if (!reportsQueryData) return [];
+    return reportsQueryData.reports.map((report) => {
+      const incident = reportToIncident(report);
+      return {
+        id: incident.id,
+        lat: incident.lat,
+        lng: incident.lng,
+        type: incident.type,
+        severity: incident.severity,
+        barangay: incident.barangay,
+        label: incident.description,
+      };
+    });
+  }, [reportsQueryData]);
+
+  const barangaysError = barangaysQueryError
+    ? (barangaysQueryError instanceof Error ? barangaysQueryError.message : 'Unable to load barangay data.')
+    : null;
+  const incidentsError: string | null = null;
   const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -503,89 +564,6 @@ export default function SABarangayMap() {
     opacity: Math.max(0.03, Math.min(0.42, (incident.severity === 'critical' ? 0.14 : incident.severity === 'high' ? 0.11 : 0.08) * heatOpacityScale)),
   }));
 
-  const loadBarangays = async () => {
-    setLoadingBarangays(true);
-    setBarangaysError(null);
-    try {
-      const payload = await superAdminApi.getBarangays();
-      const mapped = payload.barangays.map((apiBarangay) => {
-        const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
-          color: 'var(--primary)',
-          district: 'District II',
-          captain: 'Assigned Barangay Captain',
-          area: 'N/A',
-          population: 0,
-        };
-        const canonicalBoundary = CANONICAL_BOUNDARY_BY_CODE[apiBarangay.code];
-        const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
-        const boundary = canonicalBoundary ?? parsedBoundary ?? fallbackBoundaryForCode(apiBarangay.code);
-        const activeIncidents = apiBarangay.activeReports;
-        const resolvedThisMonth = Math.max(apiBarangay.totalReports - activeIncidents, 0);
-        const responseRate = apiBarangay.totalReports > 0
-          ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / apiBarangay.totalReports) * 100)))
-          : 100;
-
-        return {
-          id: apiBarangay.id,
-          code: apiBarangay.code,
-          name: apiBarangay.name || `Barangay ${apiBarangay.code}`,
-          district: meta.district,
-          captain: meta.captain,
-          population: meta.population,
-          area: meta.area,
-          center: BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? boundary[0] ?? TONDO_TRI_BRGY_CENTER,
-          boundary,
-          color: meta.color,
-          activeIncidents,
-          totalThisMonth: apiBarangay.totalReports,
-          resolvedThisMonth,
-          responseRate,
-          avgResponseMin: 0,
-          registeredUsers: apiBarangay.citizenCount,
-          alertLevel: alertLevelFromActive(activeIncidents),
-          boundaryGeojson: apiBarangay.boundaryGeojson,
-        } satisfies BarangayMapView;
-      });
-
-      setBarangaysData(mapped);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load barangay data.';
-      setBarangaysError(message);
-    } finally {
-      setLoadingBarangays(false);
-    }
-  };
-
-  const loadReportIncidents = async () => {
-    setLoadingIncidents(true);
-    setIncidentsError(null);
-    try {
-      const payload = await officialReportsApi.getReports();
-      const mapped = payload.reports.map((report) => {
-        const incident = reportToIncident(report);
-        return {
-          id: incident.id,
-          lat: incident.lat,
-          lng: incident.lng,
-          type: incident.type,
-          severity: incident.severity,
-          barangay: incident.barangay,
-          label: incident.description,
-        };
-      });
-      setReportIncidents(mapped);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load incident markers.';
-      setIncidentsError(message);
-    } finally {
-      setLoadingIncidents(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadBarangays();
-    void loadReportIncidents();
-  }, []);
 
   useEffect(() => {
     const updateCompactMode = () => {
@@ -699,7 +677,7 @@ export default function SABarangayMap() {
     try {
       const parsed = JSON.parse(boundaryDraft);
       await superAdminApi.updateBarangayBoundary(selectedBrgy.code, parsed);
-      await loadBarangays();
+      await queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
       setBoundaryMessage(`Boundary saved for Barangay ${selectedBrgy.code}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save boundary.';
@@ -752,7 +730,7 @@ export default function SABarangayMap() {
         <div className="w-full md:w-auto flex flex-wrap gap-2">
           <button
             onClick={() => {
-              void loadBarangays();
+              void queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
             }}
             className="flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 bg-card text-[var(--on-surface-variant)] border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
           >

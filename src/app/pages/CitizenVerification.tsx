@@ -21,6 +21,8 @@ import CardSkeleton from '../components/ui/CardSkeleton';
 import TextSkeleton from '../components/ui/TextSkeleton';
 import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
 import { profileVerificationApi, type CitizenVerificationState } from '../services/profileVerificationApi';
+import { useMyVerificationStatus, verificationKeys } from '../hooks/useProfileVerificationQueries';
+import { useQueryClient } from '@tanstack/react-query';
 import { clearAuthSession, getAuthSession, patchAuthSessionUser } from '../utils/authSession';
 import { ThemeToggle } from '../components/ThemeToggle';
 
@@ -143,12 +145,27 @@ export default function CitizenVerification() {
   const navigate = useNavigate();
   const session = getAuthSession();
 
-  const [status, setStatus] = useState<CitizenVerificationState | null>(null);
+  const queryClient = useQueryClient();
+  const { data: verificationData, isLoading: loading, error: queryError } = useMyVerificationStatus();
+  const status = verificationData?.verification ?? null;
+  const error = queryError?.message ?? null;
+
+  useEffect(() => {
+    if (!verificationData) return;
+    const v = verificationData.verification;
+    patchAuthSessionUser({
+      isVerified: v.isVerified,
+      verificationStatus: v.verificationStatus,
+      verificationRejectionReason: v.rejectionReason,
+      idImageUrl: v.idImageUrl,
+      isBanned: v.isBanned,
+    });
+  }, [verificationData]);
+
   const [frontIdFile, setFrontIdFile] = useState<File | null>(null);
   const [backIdFile, setBackIdFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const { notificationItems: reportNotificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -249,31 +266,6 @@ export default function CitizenVerification() {
 
   const unreadNotificationCount = notificationItems.filter((item) => item.unread).length;
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = await profileVerificationApi.getMyStatus();
-      setStatus(payload.verification);
-
-      patchAuthSessionUser({
-        isVerified: payload.verification.isVerified,
-        verificationStatus: payload.verification.verificationStatus,
-        verificationRejectionReason: payload.verification.rejectionReason,
-        idImageUrl: payload.verification.idImageUrl,
-        isBanned: payload.verification.isBanned,
-      });
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Failed to load verification status.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
-
   const handleNotificationClick = (item: CitizenNotificationItem) => {
     if (item.action === 'open-my-reports') {
       if (item.reportId) {
@@ -326,7 +318,7 @@ export default function CitizenVerification() {
     }
 
     if (!isAllowedImageFile(file)) {
-      setError(t('citizen.verification.invalidFileType'));
+      setSubmitError(t('citizen.verification.invalidFileType'));
       if (slot === 'front') {
         setFrontIdFile(null);
       } else {
@@ -336,7 +328,7 @@ export default function CitizenVerification() {
     }
 
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setError(t('citizen.verification.fileTooLarge').replace('{{maxSize}}', String(MAX_FILE_SIZE_MB)));
+      setSubmitError(t('citizen.verification.fileTooLarge').replace('{{maxSize}}', String(MAX_FILE_SIZE_MB)));
       if (slot === 'front') {
         setFrontIdFile(null);
       } else {
@@ -345,7 +337,7 @@ export default function CitizenVerification() {
       return;
     }
 
-    setError(null);
+    setSubmitError(null);
     if (slot === 'front') {
       setFrontIdFile(file);
     } else {
@@ -355,23 +347,23 @@ export default function CitizenVerification() {
 
   const submit = async () => {
     if (!canUploadVerification) {
-      setError(t('citizen.verification.cannotUpload'));
+      setSubmitError(t('citizen.verification.cannotUpload'));
       return;
     }
 
     if (!frontIdFile || !backIdFile) {
-      setError(t('citizen.verification.bothRequired'));
+      setSubmitError(t('citizen.verification.bothRequired'));
       return;
     }
 
     setSubmitting(true);
-    setError(null);
+    setSubmitError(null);
     setMessage(null);
 
     try {
       const payload = await profileVerificationApi.submitMyId(frontIdFile, backIdFile);
       setMessage(payload.message);
-      await load();
+      await queryClient.invalidateQueries({ queryKey: verificationKeys.myStatus() });
       setFrontIdFile(null);
       setBackIdFile(null);
       if (frontFileInputRef.current) {
@@ -381,7 +373,7 @@ export default function CitizenVerification() {
         backFileInputRef.current.value = '';
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to upload ID image.');
+      setSubmitError(submitError instanceof Error ? submitError.message : 'Failed to upload ID image.');
     } finally {
       setSubmitting(false);
     }

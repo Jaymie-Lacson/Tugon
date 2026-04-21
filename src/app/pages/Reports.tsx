@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../i18n';
 import {
   FileText, Download, Printer,
@@ -18,6 +18,8 @@ import type { ApiDssRecommendation } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import { getAuthSession } from '../utils/authSession';
 import type { Incident } from '../data/incidents';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOfficialReports, useDssRecommendations, officialReportsKeys } from '../hooks/useOfficialReportsQueries';
 
 const REPORT_TEMPLATES = [
   {
@@ -475,163 +477,76 @@ function DSSCard({
 
 export default function Reports() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ReportsTabKey>('dss');
   const [generating, setGenerating] = useState<string | null>(null);
-  const [recentReports, setRecentReports] = useState<RecentReportItem[]>([]);
-  const [reportsLoading, setReportsLoading] = useState(true);
-  const [reportsError, setReportsError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<number[]>([]);
   const [dssActionSubmittingId, setDssActionSubmittingId] = useState<number | null>(null);
-  const [dssRefreshing, setDssRefreshing] = useState(false);
   const [dssLastRefreshedAt, setDssLastRefreshedAt] = useState<string | null>(null);
-  const [reportsSignature, setReportsSignature] = useState('');
-  const [incidentData, setIncidentData] = useState<Incident[]>([]);
-  const [dssRecommendations, setDssRecommendations] = useState<DSSRecommendation[]>([]);
-  const [dssRecommendationSource, setDssRecommendationSource] = useState<'ai' | 'fallback'>('fallback');
-  const [initialLoadPending, setInitialLoadPending] = useState(true);
   const [templateHistory, setTemplateHistory] = useState<TemplateGenerationHistoryItem[]>(() => loadTemplateGenerationHistory());
 
-  useEffect(() => {
-    const load = async () => {
-      setReportsLoading(true);
-      setReportsError(null);
-      try {
-        const [payload, dssPayload] = await Promise.all([
-          officialReportsApi.getReports(),
-          officialReportsApi.getDssRecommendations().catch(() => null),
-        ]);
-        const mapped = payload.reports.map((report) => reportToIncident(report));
-        const signature = payload.reports
-          .map((report) => `${report.id}:${report.status}:${report.updatedAt}`)
-          .sort()
-          .join('|');
-        setIncidentData(mapped);
-        if (dssPayload?.recommendations?.length) {
-          setDssRecommendations(mapApiRecommendationsToUi(dssPayload.recommendations));
-          setDssRecommendationSource(dssPayload.source);
-        } else {
-          setDssRecommendations(buildRecommendations(mapped));
-          setDssRecommendationSource('fallback');
-        }
-        setReportsSignature(signature);
-        setDssLastRefreshedAt(new Date().toISOString());
-        const historyRows = payload.reports.slice(0, 8).map((report) => {
-          const incident = reportToIncident(report);
-          return {
-            reportId: incident.id,
-            name: `${incident.id} — ${incident.location}`,
-            type: incidentTypeToReportCategory(incident.type),
-            time: new Date(incident.reportedAt).toLocaleString('en-PH', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            }),
-            by: incident.reportedBy,
-            size: formatEvidenceSummary(report.photoCount, report.hasAudio),
-          };
-        });
-        setRecentReports(historyRows);
-      } catch (loadError) {
-        const message = loadError instanceof Error ? loadError.message : 'Failed to load report history.';
-        setReportsError(message);
-        setIncidentData([]);
-        setDssRecommendations([]);
-      } finally {
-        setReportsLoading(false);
-      }
-    };
+  const { data: reportsData, isLoading: reportsLoading, error: reportsQueryError } = useOfficialReports();
+  const { data: dssData, isFetching: dssRefreshing } = useDssRecommendations();
 
-    void load();
-  }, []);
+  const incidentData = useMemo(
+    () => (reportsData?.reports ?? []).map(reportToIncident),
+    [reportsData],
+  );
+
+  const dssRecommendations = useMemo((): DSSRecommendation[] => {
+    if (dssData?.recommendations?.length) {
+      return mapApiRecommendationsToUi(dssData.recommendations);
+    }
+    return buildRecommendations(incidentData);
+  }, [dssData, incidentData]);
+
+  const dssRecommendationSource: 'ai' | 'fallback' = dssData?.source ?? 'fallback';
+
+  const recentReports = useMemo((): RecentReportItem[] => {
+    if (!reportsData) return [];
+    return reportsData.reports.slice(0, 8).map((report) => {
+      const incident = reportToIncident(report);
+      return {
+        reportId: incident.id,
+        name: `${incident.id} — ${incident.location}`,
+        type: incidentTypeToReportCategory(incident.type),
+        time: new Date(incident.reportedAt).toLocaleString('en-PH', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }),
+        by: incident.reportedBy,
+        size: formatEvidenceSummary(report.photoCount, report.hasAudio),
+      };
+    });
+  }, [reportsData]);
+
+  const reportsError = reportsQueryError
+    ? (reportsQueryError instanceof Error ? reportsQueryError.message : 'Failed to load reports.')
+    : null;
+  const initialLoadPending = reportsLoading && !reportsData;
 
   useEffect(() => {
-    if (!initialLoadPending) {
-      return;
-    }
-
-    if (!reportsLoading) {
-      setInitialLoadPending(false);
-    }
-  }, [initialLoadPending, reportsLoading]);
+    if (dssData) setDssLastRefreshedAt(new Date().toISOString());
+  }, [dssData]);
 
   const reloadReports = async (source: 'dss' | 'general' = 'general') => {
     if (source === 'dss') {
-      setDssRefreshing(true);
       setActionError(null);
       setActionSuccess(null);
     }
-
-    setReportsLoading(true);
-    setReportsError(null);
-    try {
-      const [payload, dssPayload] = await Promise.all([
-        officialReportsApi.getReports(),
-        officialReportsApi.getDssRecommendations().catch(() => null),
-      ]);
-      const mapped = payload.reports.map((report) => reportToIncident(report));
-      const nextSignature = payload.reports
-        .map((report) => `${report.id}:${report.status}:${report.updatedAt}`)
-        .sort()
-        .join('|');
-      const changed = nextSignature !== reportsSignature;
-
-      setIncidentData(mapped);
-      if (dssPayload?.recommendations?.length) {
-        setDssRecommendations(mapApiRecommendationsToUi(dssPayload.recommendations));
-        setDssRecommendationSource(dssPayload.source);
-      } else {
-        setDssRecommendations(buildRecommendations(mapped));
-        setDssRecommendationSource('fallback');
-      }
-      setReportsSignature(nextSignature);
-      setDssLastRefreshedAt(new Date().toISOString());
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() }),
+      queryClient.invalidateQueries({ queryKey: officialReportsKeys.dss() }),
+    ]);
+    if (source === 'dss') {
       setDismissedRecommendationIds([]);
-      const historyRows = payload.reports.slice(0, 8).map((report) => {
-        const incident = reportToIncident(report);
-        return {
-          reportId: incident.id,
-          name: `${incident.id} — ${incident.location}`,
-          type: incidentTypeToReportCategory(incident.type),
-          time: new Date(incident.reportedAt).toLocaleString('en-PH', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }),
-          by: incident.reportedBy,
-          size: formatEvidenceSummary(report.photoCount, report.hasAudio),
-        };
-      });
-      setRecentReports(historyRows);
-
-      if (source === 'dss') {
-        setActionSuccess(
-          changed
-            ? 'Decision support analysis refreshed with latest incident updates.'
-            : 'Decision support analysis refreshed. No new incident changes since last refresh.',
-        );
-      }
-    } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Failed to reload reports.';
-      setReportsError(message);
-      setIncidentData([]);
-      setDssRecommendations([]);
-
-      if (source === 'dss') {
-        setActionError(message);
-      }
-    } finally {
-      setReportsLoading(false);
-      if (source === 'dss') {
-        setDssRefreshing(false);
-      }
+      setActionSuccess('Decision support analysis refreshed with latest incident data.');
     }
   };
 

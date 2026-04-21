@@ -24,6 +24,8 @@ import {
 import type { ReportCategory } from '../data/reportTaxonomy';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMyReports, citizenReportsKeys } from '../hooks/useCitizenReportsQueries';
 
 export type CitizenReportStatus =
   | 'submitted'
@@ -1119,7 +1121,7 @@ export default function CitizenMyReports() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'CU';
-  const [reports, setReports]     = useState<CitizenReport[]>(MY_REPORTS);
+  const queryClient = useQueryClient();
   const [filter, setFilter]       = useState<FilterKey>('all');
   const [query, setQuery]         = useState('');
   const [selected, setSelected]   = useState<CitizenReport | null>(null);
@@ -1127,54 +1129,36 @@ export default function CitizenMyReports() {
   const [sortOpen, setSortOpen]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [loadingInitial, setLoadingInitial] = useState(true);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const { notificationItems, unreadNotificationCount, markAllNotificationsRead } = useCitizenReportNotifications();
 
-  const loadReports = React.useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoadingInitial(true);
-    }
-
-    try {
-      const response = await citizenReportsApi.getMyReports();
-      const mappedReports = response.reports.map(mapApiReport);
-      setReports(mappedReports);
-      setSelected((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return mappedReports.find((report) => report.id === current.id) ?? current;
-      });
-    } catch {
-      // Keep the current list when API is unavailable.
-    } finally {
-      if (!silent) {
-        setLoadingInitial(false);
-      }
-    }
-  }, []);
+  const { data: reportsData, isLoading } = useMyReports();
+  const reports = useMemo(
+    () => (reportsData?.reports ?? []).map(mapApiReport),
+    [reportsData],
+  );
+  const loadingInitial = isLoading && !reportsData;
 
   const handleSignOut = React.useCallback(() => {
     clearAuthSession();
     navigate('/auth/login', { replace: true });
   }, [navigate]);
 
-  useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
-
+  // SSE stream → invalidate query
   useEffect(() => {
     const disconnect = citizenReportsApi.connectMyReportsStream(() => {
-      void loadReports(true);
+      void queryClient.invalidateQueries({ queryKey: citizenReportsKeys.myReports() });
     });
+    return () => disconnect();
+  }, [queryClient]);
 
-    return () => {
-      disconnect();
-    };
-  }, [loadReports]);
+  // Keep selected in sync when list refreshes
+  useEffect(() => {
+    if (!selected) return;
+    const refreshed = reports.find((r) => r.id === selected.id);
+    if (refreshed && refreshed !== selected) setSelected(refreshed);
+  }, [reports]);
 
   useEffect(() => {
     setCancelError(null);
@@ -1206,15 +1190,15 @@ export default function CitizenMyReports() {
     try {
       const response = await citizenReportsApi.cancelReport(reportId);
       const updated = mapApiReport(response.report);
-      setReports((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       setSelected(updated);
+      void queryClient.invalidateQueries({ queryKey: citizenReportsKeys.myReports() });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to cancel this report right now.';
       setCancelError(message);
     } finally {
       setCancelSubmitting(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const handleNotificationItemClick = React.useCallback((item: { action?: 'open-my-reports' | 'open-home'; reportId?: string }) => {
     if (item.action === 'open-my-reports' && item.reportId) {

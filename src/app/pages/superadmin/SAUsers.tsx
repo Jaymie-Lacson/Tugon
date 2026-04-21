@@ -12,6 +12,8 @@ import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminUser } from '../../services/superAdminApi';
 import type { Role } from '../../services/authApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminUsers, adminKeys } from '../../hooks/useAdminQueries';
 
 const ROLE_CONFIG = {
   'Super Admin': { color: 'var(--primary)', bg: 'var(--primary-fixed)', icon: <Shield size={11} /> },
@@ -372,11 +374,10 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
 
 export default function SAUsers() {
   const { t } = useTranslation();
-  const [usersData, setUsersData] = useState<SAUserRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [apiError, setApiError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All Roles');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [barangayFilter, setBarangayFilter] = useState('All Barangays');
@@ -424,55 +425,29 @@ export default function SAUsers() {
     inactive: usersData.filter(u => u.status === 'inactive').length,
   };
 
-  const searchRef = React.useRef(search);
-  searchRef.current = search;
-
-  const loadUsers = React.useCallback(async () => {
-    setLoading(true);
-    setApiError(null);
-    try {
-      const currentSearch = searchRef.current.trim();
-      const payload = await superAdminApi.getUsers(
-        currentSearch ? { search: currentSearch } : undefined,
-      );
-      setUsersData(payload.users.map((user, index) => mapApiUserToSaUser(user, index)));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load users.';
-      setApiError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Debounce search for query key
   useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+    const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(handle);
+  }, [search]);
 
-  const didMountSearchRef = React.useRef(false);
-  useEffect(() => {
-    if (!didMountSearchRef.current) {
-      didMountSearchRef.current = true;
-      return;
-    }
-    setSearchLoading(true);
-    const handle = window.setTimeout(async () => {
-      try {
-        await loadUsers();
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 300);
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [search, loadUsers]);
+  const { data: usersQueryData, isLoading, isFetching, error: usersQueryError } = useAdminUsers(
+    debouncedSearch ? { search: debouncedSearch } : {},
+  );
+
+  const usersData = useMemo(
+    () => (usersQueryData?.users ?? []).map((user, index) => mapApiUserToSaUser(user, index)),
+    [usersQueryData],
+  );
+
+  const loading = isLoading && !usersQueryData;
+  const queryApiError = usersQueryError ? (usersQueryError instanceof Error ? usersQueryError.message : 'Unable to load users.') : null;
 
   const handleBulkStatusUpdate = async (nextStatus: SupportedUiStatus) => {
     if (selectedIds.size === 0) {
       return;
     }
 
-    setLoading(true);
     setApiError(null);
     try {
       const selectedUsers = usersData.filter((user) => selectedIds.has(user.id));
@@ -492,12 +467,10 @@ export default function SAUsers() {
       );
 
       setSelectedIds(new Set());
-      await loadUsers();
+      void queryClient.invalidateQueries({ queryKey: adminKeys.users() });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update selected users.';
       setApiError(message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -538,17 +511,13 @@ export default function SAUsers() {
     setModalError(null);
     setApiError(null);
     try {
-      const updated = await superAdminApi.updateUserRole(modal.user.backendUserId, {
+      await superAdminApi.updateUserRole(modal.user.backendUserId, {
         role: apiRole,
         barangayCode,
         isPhoneVerified: payload.status === 'active',
       });
 
-      setUsersData((current) =>
-        current.map((item, index) =>
-          item.backendUserId === updated.user.id ? mapApiUserToSaUser(updated.user, index) : item,
-        ),
-      );
+      void queryClient.invalidateQueries({ queryKey: adminKeys.users() });
       setModal(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update user role.';
@@ -596,7 +565,7 @@ export default function SAUsers() {
         isPhoneVerified: payload.status === 'active',
       });
       setPage(1);
-      await loadUsers();
+      void queryClient.invalidateQueries({ queryKey: adminKeys.users() });
       setModal(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create user.';
@@ -618,7 +587,7 @@ export default function SAUsers() {
         </div>
         <div className="sa-users-header-actions flex gap-[10px]">
           <button
-            onClick={() => { void loadUsers(); }}
+            onClick={() => { void queryClient.invalidateQueries({ queryKey: adminKeys.users() }); }}
             className="flex min-h-11 items-center gap-[6px] rounded-lg border border-[var(--outline-variant)] bg-card px-3 py-2 cursor-pointer text-xs font-semibold text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]"
           >
             <Download size={13} /> {loading ? t('common.refreshing') : t('common.refresh')}
@@ -637,9 +606,9 @@ export default function SAUsers() {
         </div>
       </div>
 
-      {apiError ? (
+      {(queryApiError ?? apiError) ? (
         <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
-          {apiError}
+          {queryApiError ?? apiError}
         </div>
       ) : null}
 
@@ -664,7 +633,7 @@ export default function SAUsers() {
           <SearchInput
             value={search}
             onValueChange={(next) => { setSearch(next); setPage(1); }}
-            loading={searchLoading}
+            loading={isFetching}
             shortcut="/"
             placeholder={t('superadmin.users.searchPlaceholder')}
             aria-label={t('superadmin.users.searchPlaceholder')}
