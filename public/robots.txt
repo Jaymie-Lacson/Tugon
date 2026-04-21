@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Keep sensitive API internals out of crawler indices.
+Disallow: /api/
