@@ -177,6 +177,11 @@
   --tracking-normal:  0em;
   --tracking-wide:    0.025em;
 
+  /* ── Named typography tokens (canonical aliases for body rhythm) ─────── */
+  --font-size-base:    var(--text-base);   /* fluid 14–16px; basis for type scale */
+  --line-height-base:  var(--leading-normal);  /* 1.5 — applied to body element */
+  --measure:           65ch;              /* max line length; use on .prose containers */
+
   /* ── Z-index scale ──────────────────────────────────────────────────── */
   --z-base:    0;
   --z-raised:  10;
@@ -456,6 +461,7 @@
   body {
     background: var(--background);
     color: var(--foreground);
+    line-height: var(--line-height-base);
     min-height: 100%;
     width: 100%;
     max-width: 100%;
@@ -499,6 +505,10 @@
   label  { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
   button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
   input  { font-size: var(--text-base); font-weight: var(--font-weight-normal);  line-height: 1.5; }
+
+  /* Tabular numbers on all table cells — prevents column jitter as values update */
+  th,
+  td { font-variant-numeric: tabular-nums; }
 }
 
 /* ── Utility classes for Stitch design patterns ────────────────────────── */
@@ -569,6 +579,39 @@
   .dark .card-lifted {
     background: var(--surface-container-lowest);
     box-shadow: var(--shadow-card);
+  }
+
+  /* ── Typography utilities ───────────────────────────────────────────── */
+
+  /* Prose reading container — caps line length to ~65ch to prevent eye fatigue */
+  .prose {
+    max-width: 65ch;
+    line-height: 1.625;
+    hyphens: auto;
+  }
+  .prose p { margin-bottom: 1lh; }
+  .prose p:last-child { margin-bottom: 0; }
+  /* Space above headings is 2× the space below — visually binds heading to its section */
+  .prose h2 { margin-top: 2.5em; margin-bottom: 0.75em; }
+  .prose h3 { margin-top: 2em;   margin-bottom: 0.5em;  }
+
+  /* Tabular numbers — use on data columns, KPI values, ticket IDs */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Oldstyle (text) figures — proportional, baseline-aligned, suits running prose */
+  .oldstyle-nums {
+    font-variant-numeric: oldstyle-nums proportional-nums;
+  }
+
+  /* ALL-CAPS label treatment — letter-spacing ONLY on uppercase, never on lowercase */
+  .caps {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75em;
+    font-weight: 600;
   }
 }
 

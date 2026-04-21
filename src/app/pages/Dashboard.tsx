@@ -128,14 +128,14 @@ const AlertBanner = ({
           <div className="w-6 h-6 rounded-md border border-[var(--error)]/30 bg-[var(--error-container)] flex items-center justify-center shrink-0">
             <Radio size={13} color="var(--severity-critical)" />
           </div>
-          <div className="text-severity-critical font-bold text-xs tracking-wide">
+          <div className="text-severity-critical font-bold text-xs uppercase tracking-wider">
             {t('official.dashboard.criticalAlert')}
           </div>
         </div>
         <button
           type="button"
           onClick={() => onOpenIncident(critical[0].id)}
-          className="bg-severity-critical text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wide whitespace-nowrap shrink-0 border-none cursor-pointer"
+          className="bg-severity-critical text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shrink-0 border-none cursor-pointer"
         >
           {t('official.dashboard.criticalLabel')}
         </button>
@@ -923,7 +923,7 @@ export default function Dashboard() {
             <thead>
               <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.dashboard.incidentId'), t('official.dashboard.type'), t('official.dashboard.location'), t('official.dashboard.severity'), t('official.dashboard.status'), t('official.dashboard.reportedCol'), t('official.dashboard.responders')].map(col => (
-                  <th key={col} className="whitespace-nowrap border-b border-[var(--outline-variant)]/30 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{col}</th>
+                  <th key={col} className="whitespace-nowrap border-b border-[var(--outline-variant)]/30 px-3.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--on-surface-variant)]">{col}</th>
                 ))}
               </tr>
             </thead>
