@@ -26,8 +26,15 @@ function hasValidSession(): boolean {
   }
 }
 
-async function restoreSessionFromCookie() {
+async function restoreSessionFromCookie(options?: { allowAnonymousProbe?: boolean }) {
   if (hasValidSession()) {
+    return;
+  }
+
+  const hasStoredSessionSnapshot = localStorage.getItem(AUTH_SESSION_KEY) !== null;
+  if (!options?.allowAnonymousProbe && !hasStoredSessionSnapshot) {
+    // Public routes should not probe /auth/me when the visitor has never logged in.
+    clearAuthSession();
     return;
   }
 
@@ -94,7 +101,7 @@ async function bootstrapAndRender() {
   // On public routes (landing, auth pages) render immediately and restore the
   // session in the background — avoids blocking FCP on a network round trip.
   if (isProtectedPath(window.location.pathname)) {
-    await restoreSessionFromCookie();
+    await restoreSessionFromCookie({ allowAnonymousProbe: true });
     enforceProtectedRouteAuth();
     mountApp();
   } else {
