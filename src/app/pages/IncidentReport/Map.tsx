@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { TONDO_MAP_CENTER, TONDO_MAP_BOUNDS } from './shared';
 import type { LatLng } from './types';
 

@@ -6,6 +6,3 @@
 html, body {
   overflow-x: hidden;
 }
-
-/* Leaflet core styles */
-@import 'leaflet/dist/leaflet.css';

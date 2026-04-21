@@ -10,7 +10,12 @@ import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { useOfficialReports } from '../../hooks/useOfficialReportsQueries';
 import { reportToIncident } from '../../utils/incidentAdapters';
+import { applyRechartsWarningPatch } from '../../utils/rechartsWarningPatch';
 import type { Incident } from '../../data/incidents';
+
+if (import.meta.env.DEV) {
+  applyRechartsWarningPatch();
+}
 
 const TYPE_COLORS: Record<string, string> = {
   flood: '#1D4ED8',
@@ -174,7 +179,7 @@ export default function SAAnalytics() {
               <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip />
-              <Bar dataKey="reports" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="reports" fill="var(--primary)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -183,7 +188,7 @@ export default function SAAnalytics() {
           <div className="text-[var(--on-surface)] text-[15px] font-bold mb-2.5">{t('superadmin.analytics.reportCategoryMix')}</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75}>
+              <Pie data={typeData} dataKey="value" nameKey="type" cx="50%" cy="50%" outerRadius={75} isAnimationActive={false}>
                 {typeData.map((entry) => (
                   <Cell key={entry.type} fill={entry.color} />
                 ))}

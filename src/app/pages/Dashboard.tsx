@@ -24,6 +24,11 @@ import { useNavigate } from 'react-router';
 import { officialReportsApi, type ApiCrossBorderAlert, type ApiHeatmapCluster } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
+import { applyRechartsWarningPatch } from '../utils/rechartsWarningPatch';
+
+if (import.meta.env.DEV) {
+  applyRechartsWarningPatch();
+}
 
 const CATEGORY_DIST_CONFIG = [
   { name: 'Pollution', color: '#0F766E' },
@@ -867,7 +872,7 @@ export default function Dashboard() {
           <div className="mb-2.5 text-[11px] text-muted-foreground">{t('official.dashboard.categoryDistribution')}</div>
           <div className="flex items-center gap-3">
             <PieChart className="shrink-0" width={156} height={156}>
-              <Pie data={typeDist} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
+              <Pie data={typeDist} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value" isAnimationActive={false}>
                 {typeDist.map((entry, index) => (
                   <Cell key={`cell-${index}-${entry.name}`} fill={entry.color} />
                 ))}

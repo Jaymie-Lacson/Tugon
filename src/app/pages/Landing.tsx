@@ -230,6 +230,9 @@ function Navbar() {
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
               className="block h-[38px] w-auto"
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
               width="120"
               height="38"
             />
@@ -296,57 +299,59 @@ function Navbar() {
           )}
         </div>
 
-        <div
-          id="landing-mobile-nav"
-          className="landing-mobile-panel nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
-          style={{
-            padding: mobileOpen ? '12px 20px 20px' : '0 20px',
-            maxHeight: mobileOpen ? 360 : 0,
-            opacity: mobileOpen ? 1 : 0,
-            transform: mobileOpen ? 'translateY(0)' : 'translateY(-10px)',
-            pointerEvents: mobileOpen ? 'auto' : 'none',
-            transition:
-              'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-          }}
-        >
-          {navLinks.map((link) => (
-            <button
-              className="block w-full cursor-pointer border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold text-white/[0.82]"
-              key={link.label}
-              onClick={() => scrollTo(link.href)}
+        {mobileOpen ? (
+          <div
+            id="landing-mobile-nav"
+            className="landing-mobile-panel nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
+            style={{
+              padding: '12px 20px 20px',
+              maxHeight: 360,
+              opacity: 1,
+              transform: 'translateY(0)',
+              pointerEvents: 'auto',
+              transition:
+                'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
+            }}
+          >
+            {navLinks.map((link) => (
+              <button
+                className="block w-full cursor-pointer border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold text-white/[0.82]"
+                key={link.label}
+                onClick={() => scrollTo(link.href)}
+                style={{
+                  opacity: 1,
+                  transform: 'translateY(0)',
+                  transition: 'opacity 180ms ease, transform 180ms ease',
+                }}
+              >
+                {link.label}
+              </button>
+            ))}
+            <div
+              className="mt-3.5 grid gap-2"
               style={{
-                opacity: mobileOpen ? 1 : 0,
-                transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
+                opacity: 1,
+                transform: 'translateY(0)',
                 transition: 'opacity 180ms ease, transform 180ms ease',
               }}
             >
-              {link.label}
-            </button>
-          ))}
-          <div
-            className="mt-3.5 grid gap-2"
-            style={{
-              opacity: mobileOpen ? 1 : 0,
-              transform: mobileOpen ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 180ms ease, transform 180ms ease',
-            }}
-          >
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={() => navigateAuthWithOverlay('/auth/login')}
-            >
-              {t('landing.nav.loginToContinue')}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full border-white/[0.22] bg-white/[0.12] text-white hover:bg-white/20"
-              onClick={() => navigateAuthWithOverlay('/auth/register')}
-            >
-              {t('landing.nav.register')}
-            </Button>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => navigateAuthWithOverlay('/auth/login')}
+              >
+                {t('landing.nav.loginToContinue')}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full border-white/[0.22] bg-white/[0.12] text-white hover:bg-white/20"
+                onClick={() => navigateAuthWithOverlay('/auth/register')}
+              >
+                {t('landing.nav.register')}
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </nav>
 
       {/* Landing CSS extracted to src/styles/landing.css */}

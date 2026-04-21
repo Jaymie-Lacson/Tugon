@@ -15,6 +15,7 @@ import { Button } from '../components/ui/button';
 import { OfficialPageHeader } from '../components/OfficialPageHeader';
 import { officialReportsApi } from '../services/officialReportsApi';
 import { reportToIncident } from '../utils/incidentAdapters';
+import { applyRechartsWarningPatch } from '../utils/rechartsWarningPatch';
 import type { Incident } from '../data/incidents';
 import {
   ANALYTICS_PERIODS,
@@ -30,6 +31,10 @@ import {
 } from '../data/analyticsConfig';
 
 const PERIODS = [...ANALYTICS_PERIODS];
+
+if (import.meta.env.DEV) {
+  applyRechartsWarningPatch();
+}
 
 function trendLegendDotClass(seriesKey: string): string {
   if (seriesKey === 'flood') return 'bg-teal-700';
@@ -465,7 +470,7 @@ export default function Analytics() {
                   <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
                   {TREND_SERIES_FOR_CHART.map((series) => (
-                    <Area key={`area-${series.key}`} type="monotone" dataKey={series.key} stroke={series.color} fill={`url(#grad-${series.key})`} strokeWidth={1.5} name={series.chartName} />
+                    <Area key={`area-${series.key}`} type="monotone" dataKey={series.key} stroke={series.color} fill={`url(#grad-${series.key})`} strokeWidth={1.5} name={series.chartName} isAnimationActive={false} />
                   ))}
                 </AreaChart>
               ) : (
@@ -484,7 +489,7 @@ export default function Analytics() {
                   <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
                   {TREND_SERIES_FOR_CHART.map((series) => (
-                    <Bar key={`bar-${series.key}`} dataKey={series.key} stackId="a" fill={series.color} name={series.chartName} radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined} />
+                    <Bar key={`bar-${series.key}`} dataKey={series.key} stackId="a" fill={series.color} name={series.chartName} radius={series.key === 'infrastructure' ? [3, 3, 0, 0] : undefined} isAnimationActive={false} />
                   ))}
                 </BarChart>
               )}
@@ -519,8 +524,8 @@ export default function Analytics() {
                   <XAxis type="number" tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} unit="m" />
                   <YAxis dataKey={isMobile ? 'mobileAxisLabel' : 'axisLabel'} type="category" tick={{ fontSize: isMobile ? 12 : 11, fill: '#334155' }} axisLine={false} tickLine={false} width={isMobile ? 82 : 170} />
                   <Tooltip formatter={(value, name) => [formatDurationFromMinutes(Number(value)), name === 'avgMin' ? 'Avg. Response' : 'Target']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: isMobile ? 12 : 11 }} />
-                  <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} />
-                  <Bar dataKey="avgMin" key="bar-avgmin" fill="var(--primary)" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]}>
+                  <Bar dataKey="target" key="bar-target" fill="#F1F5F9" name="Target" barSize={14} isAnimationActive={false} />
+                  <Bar dataKey="avgMin" key="bar-avgmin" fill="var(--primary)" name="Avg. Response" barSize={10} radius={[0, 3, 3, 0]} isAnimationActive={false}>
                     {RESPONSE_TIME_VISIBLE.map((entry, index) => (
                       <Cell key={`cell-rt-${index}-${entry.typeKey}`} fill={entry.avgMin <= entry.target ? '#059669' : 'var(--severity-critical)'} />
                     ))}
@@ -542,7 +547,7 @@ export default function Analytics() {
           <div className="mb-2.5 text-sm text-muted-foreground md:text-[11px]">{t('official.analytics.severityByPeriod', { period })}</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
-              <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value">
+              <Pie data={SEVERITY_DATA} cx="50%" cy="50%" outerRadius={60} innerRadius={35} paddingAngle={3} dataKey="value" isAnimationActive={false}>
                 {SEVERITY_DATA.map((e, index) => <Cell key={`cell-sev-${index}-${e.name}`} fill={e.color} />)}
               </Pie>
               <Tooltip formatter={(value) => [`${value} incidents`]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
@@ -572,7 +577,7 @@ export default function Analytics() {
               <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 11 : 8, fill: '#64748B' }} axisLine={false} tickLine={false} interval={isMobile ? 5 : 3} />
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} formatter={(value) => [`${value} incidents`]} />
-              <Bar dataKey="count" key="bar-count" fill="var(--primary)" radius={[3, 3, 0, 0]}>
+              <Bar dataKey="count" key="bar-count" fill="var(--primary)" radius={[3, 3, 0, 0]} isAnimationActive={false}>
                 {HOUR_DATA.map((entry, index) => (
                   <Cell
                     key={`cell-hr-${index}-${entry.hour}`}
@@ -604,9 +609,9 @@ export default function Analytics() {
               <YAxis tick={{ fontSize: isMobile ? 12 : 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: isMobile ? 12 : 11 }} />
               <Legend iconType="square" iconSize={isMobile ? 10 : 8} wrapperStyle={{ fontSize: isMobile ? 12 : 11 }} />
-              <Bar dataKey="incidents" key="bar-incidents" fill={ANALYTICS_BARANGAY_BAR_COLORS.incidents} name="Reported" radius={[3, 3, 0, 0]} barSize={18} />
-              <Bar dataKey="resolved" key="bar-resolved" fill={ANALYTICS_BARANGAY_BAR_COLORS.resolved} name="Resolved" radius={[3, 3, 0, 0]} barSize={18} />
-              <Bar dataKey="active" key="bar-active" fill={ANALYTICS_BARANGAY_BAR_COLORS.active} name="Active" radius={[3, 3, 0, 0]} barSize={18} />
+              <Bar dataKey="incidents" key="bar-incidents" fill={ANALYTICS_BARANGAY_BAR_COLORS.incidents} name="Reported" radius={[3, 3, 0, 0]} barSize={18} isAnimationActive={false} />
+              <Bar dataKey="resolved" key="bar-resolved" fill={ANALYTICS_BARANGAY_BAR_COLORS.resolved} name="Resolved" radius={[3, 3, 0, 0]} barSize={18} isAnimationActive={false} />
+              <Bar dataKey="active" key="bar-active" fill={ANALYTICS_BARANGAY_BAR_COLORS.active} name="Active" radius={[3, 3, 0, 0]} barSize={18} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -13,11 +13,8 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- Preconnect to API backend (eliminates DNS + TLS handshake on first API call) -->
-    <link rel="preconnect" href="https://tugon-aapz.onrender.com" crossorigin />
-    <link rel="dns-prefetch" href="https://tugon-aapz.onrender.com" />
-
-    <!-- Preload ONLY the AVIF hero (browser picks first supported format in <picture>) -->
+    <!-- Preload top LCP candidates on landing -->
+    <link rel="preload" as="image" href="/tugon-header-logo.svg" type="image/svg+xml" fetchpriority="high" />
     <link rel="preload" as="image" href="/hero-city.avif" type="image/avif" fetchpriority="high" />
 
     <!-- Preload critical font weights to eliminate the CSS→font-file round trip (FCP) -->
@@ -52,7 +49,20 @@
   </head>
 
   <body>
+    <!-- Keep the nav logo request discoverable in initial HTML for LCP audits. -->
+    <img
+      src="/tugon-header-logo.svg"
+      alt=""
+      width="120"
+      height="38"
+      fetchpriority="high"
+      loading="eager"
+      decoding="async"
+      aria-hidden="true"
+      style="position:absolute;left:-9999px;top:0;opacity:0;pointer-events:none"
+    />
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
-</html>
+
+  </html>

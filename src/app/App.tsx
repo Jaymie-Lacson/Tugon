@@ -1,7 +1,3 @@
-// Import the recharts CartesianGrid duplicate-key warning suppression first,
-// before any chart component is mounted.
-import './utils/rechartsWarningPatch';
-
 import { Suspense, useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';

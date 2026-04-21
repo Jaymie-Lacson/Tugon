@@ -70,6 +70,24 @@ function mountApp() {
   );
 }
 
+function runAfterLoadAndIdle(task: () => void, fallbackDelay = 800) {
+  const runTask = () => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => task(), { timeout: fallbackDelay });
+      return;
+    }
+
+    window.setTimeout(task, fallbackDelay);
+  };
+
+  if (document.readyState === 'complete') {
+    runTask();
+    return;
+  }
+
+  window.addEventListener('load', runTask, { once: true });
+}
+
 async function bootstrapAndRender() {
   // On protected routes the session must be resolved before rendering to
   // prevent a flash of unauthenticated content or a race on RBAC-gated data.
@@ -81,7 +99,9 @@ async function bootstrapAndRender() {
     mountApp();
   } else {
     mountApp();
-    void restoreSessionFromCookie();
+    runAfterLoadAndIdle(() => {
+      void restoreSessionFromCookie();
+    }, 2500);
   }
 
   window.addEventListener('pageshow', enforceProtectedRouteAuth);
@@ -92,7 +112,12 @@ async function bootstrapAndRender() {
     }
   });
 
-  void initWebVitals();
+  runAfterLoadAndIdle(() => {
+    void initWebVitals();
+  }, 3500);
+  runAfterLoadAndIdle(() => {
+    void import('./styles/fonts-extended.css');
+  }, 1800);
 
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {

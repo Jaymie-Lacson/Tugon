@@ -22,30 +22,39 @@
  * so all other duplicate-key warnings from application code remain visible.
  */
 
-const _originalConsoleError = console.error.bind(console);
+let patchApplied = false;
 
-console.error = (...args: unknown[]): void => {
-  // Build a single string from all arguments so we can pattern-match regardless
-  // of how React formats the warning (React 17, 18, and 19 each use slightly
-  // different argument layouts for component-stack appending).
-  const combined = args
-    .map((a) => (typeof a === 'string' ? a : ''))
-    .join(' ');
-
-  const isUniqueKeyWarning =
-    combined.includes('unique') &&
-    (combined.includes('"key"') || combined.includes("'key'") || combined.includes('key prop'));
-
-  const isFromCartesianGrid =
-    combined.includes('CartesianGrid') ||
-    combined.includes('recharts-cartesian-grid') ||
-    combined.includes('HorizontalGridLines') ||
-    combined.includes('VerticalGridLines');
-
-  if (isUniqueKeyWarning && isFromCartesianGrid) {
-    // Silently drop — this is a known recharts library defect, not app code.
+export function applyRechartsWarningPatch() {
+  if (patchApplied) {
     return;
   }
 
-  _originalConsoleError(...args);
-};
+  patchApplied = true;
+  const originalConsoleError = console.error.bind(console);
+
+  console.error = (...args: unknown[]): void => {
+    // Build a single string from all arguments so we can pattern-match regardless
+    // of how React formats the warning (React 17, 18, and 19 each use slightly
+    // different argument layouts for component-stack appending).
+    const combined = args
+      .map((a) => (typeof a === 'string' ? a : ''))
+      .join(' ');
+
+    const isUniqueKeyWarning =
+      combined.includes('unique') &&
+      (combined.includes('"key"') || combined.includes("'key'") || combined.includes('key prop'));
+
+    const isFromCartesianGrid =
+      combined.includes('CartesianGrid') ||
+      combined.includes('recharts-cartesian-grid') ||
+      combined.includes('HorizontalGridLines') ||
+      combined.includes('VerticalGridLines');
+
+    if (isUniqueKeyWarning && isFromCartesianGrid) {
+      // Silently drop — this is a known recharts library defect, not app code.
+      return;
+    }
+
+    originalConsoleError(...args);
+  };
+}

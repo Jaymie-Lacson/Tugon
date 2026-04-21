@@ -10,6 +10,18 @@ function loadPretextModule(): Promise<PretextModule> {
   return pretextModulePromise;
 }
 
+type NavigatorWithConnection = Navigator & {
+  connection?: {
+    saveData?: boolean;
+  };
+};
+
+function shouldEnablePretextAutoMeasurement(): boolean {
+  const saveData = (navigator as NavigatorWithConnection).connection?.saveData === true;
+  const isMobileViewport = window.matchMedia('(max-width: 1024px)').matches;
+  return !saveData && !isMobileViewport;
+}
+
 const TARGET_SELECTOR = [
   '#root h1',
   '#root h2',
@@ -101,23 +113,38 @@ function applyPretextAutoMeasurement(pretextModule: PretextModule) {
 
 export default function PretextAutoTextBridge() {
   useEffect(() => {
+    if (typeof window === 'undefined' || !shouldEnablePretextAutoMeasurement()) {
+      return;
+    }
+
     let rafId = 0;
+    let timeoutId = 0;
     let cancelled = false;
 
+    const runMeasure = () => {
+      loadPretextModule().then((pretextModule) => {
+        if (cancelled) {
+          return;
+        }
+        applyPretextAutoMeasurement(pretextModule);
+      });
+    };
+
     const scheduleMeasure = () => {
-      if (rafId) {
-        return;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
       }
 
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        loadPretextModule().then((pretextModule) => {
-          if (cancelled) {
-            return;
-          }
-          applyPretextAutoMeasurement(pretextModule);
+      timeoutId = window.setTimeout(() => {
+        timeoutId = 0;
+        if (rafId) {
+          window.cancelAnimationFrame(rafId);
+        }
+        rafId = window.requestAnimationFrame(() => {
+          rafId = 0;
+          runMeasure();
         });
-      });
+      }, 100);
     };
 
     const root = document.getElementById('root');
@@ -129,7 +156,6 @@ export default function PretextAutoTextBridge() {
       mutationObserver.observe(root, {
         childList: true,
         subtree: true,
-        characterData: true,
       });
     }
 
@@ -146,6 +172,9 @@ export default function PretextAutoTextBridge() {
 
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }

@@ -16,9 +16,14 @@ import TextSkeleton from '../../components/ui/TextSkeleton';
 import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
 import { reportToIncident } from '../../utils/incidentAdapters';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
+import { applyRechartsWarningPatch } from '../../utils/rechartsWarningPatch';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAdminSummary, useAdminBarangays, useAdminAuditLogs, adminKeys } from '../../hooks/useAdminQueries';
 import { useOfficialReports, officialReportsKeys } from '../../hooks/useOfficialReportsQueries';
+
+if (import.meta.env.DEV) {
+  applyRechartsWarningPatch();
+}
 
 type BarangayOverviewCard = {
   id: string;
@@ -514,9 +519,9 @@ export default function SAOverview() {
                 itemStyle={{ color: '#CBD5E1' }}
               />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#6B7280' }} />
-              <Bar dataKey="brgy251" name="Brgy 251" fill="var(--primary)" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="brgy252" name="Brgy 252" fill="var(--severity-low)" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="brgy256" name="Brgy 256" fill="var(--severity-medium)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="brgy251" name="Brgy 251" fill="var(--primary)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="brgy252" name="Brgy 252" fill="var(--severity-low)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="brgy256" name="Brgy 256" fill="var(--severity-medium)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>
