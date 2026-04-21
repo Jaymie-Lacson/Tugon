@@ -887,7 +887,7 @@ export default function Reports() {
                 <thead>
                   <tr className="bg-[var(--surface-container-low)]">
                     {[t('official.reports.templateCol'), t('official.reports.generatedAtCol'), t('official.reports.generatedByCol'), t('official.reports.fileNameCol'), t('official.reports.quickActions')].map((heading) => (
-                      <th key={heading} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{heading}</th>
+                      <th key={heading} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--on-surface-variant)]">{heading}</th>
                     ))}
                   </tr>
                 </thead>
@@ -962,7 +962,7 @@ export default function Reports() {
             <thead>
               <tr className="bg-[var(--surface-container-low)]">
                 {[t('official.reports.reportNameCol'), t('official.reports.categoryCol'), t('official.reports.generatedCol'), t('official.reports.generatedByCol'), t('official.reports.sizeCol'), t('official.reports.actionsCol')].map(h => (
-                  <th key={h} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold tracking-wide text-[var(--on-surface-variant)]">{h}</th>
+                  <th key={h} className="whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--on-surface-variant)]">{h}</th>
                 ))}
               </tr>
             </thead>

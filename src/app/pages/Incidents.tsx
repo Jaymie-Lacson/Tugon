@@ -832,7 +832,7 @@ export default function Incidents() {
                   <th
                     key={col.label}
                     onClick={() => col.key && handleSort(col.key)}
-                    className={`whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-[11px] text-left text-[11px] font-semibold tracking-wide select-none ${
+                    className={`whitespace-nowrap border-b border-[var(--outline-variant)]/25 px-3.5 py-[11px] text-left text-[11px] font-semibold uppercase tracking-wider select-none ${
                       sortKey === col.key ? 'text-primary' : 'text-[var(--outline)]'
                     } ${col.key ? 'cursor-pointer' : 'cursor-default'}`}
                   >

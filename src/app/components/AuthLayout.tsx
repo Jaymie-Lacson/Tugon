@@ -78,7 +78,7 @@ export function AuthLayout({
           </button>
 
           <div className="max-w-[380px]">
-            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold tracking-wide">
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
               <Sparkles size={12} />
               Crisis Command Network
             </div>
