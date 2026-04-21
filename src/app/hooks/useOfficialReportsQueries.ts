@@ -14,6 +14,7 @@ export function useOfficialReports(params?: { search?: string }) {
   return useQuery({
     queryKey: officialReportsKeys.reports(params?.search),
     queryFn: () => officialReportsApi.getReports(params),
+    staleTime: 30_000,
   });
 }
 
@@ -22,6 +23,7 @@ export function useOfficialReportById(reportId: string | null) {
     queryKey: officialReportsKeys.reportById(reportId ?? ''),
     queryFn: () => officialReportsApi.getReportById(reportId!),
     enabled: !!reportId,
+    staleTime: 60_000,
   });
 }
 
@@ -29,6 +31,7 @@ export function useAlerts() {
   return useQuery({
     queryKey: officialReportsKeys.alerts(),
     queryFn: () => officialReportsApi.getAlerts(),
+    staleTime: 60_000,
   });
 }
 

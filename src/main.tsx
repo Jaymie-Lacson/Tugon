@@ -60,18 +60,7 @@ function enforceProtectedRouteAuth() {
   window.location.replace('/auth/login');
 }
 
-async function bootstrapAndRender() {
-  await restoreSessionFromCookie();
-
-  enforceProtectedRouteAuth();
-  window.addEventListener('pageshow', enforceProtectedRouteAuth);
-  window.addEventListener('popstate', enforceProtectedRouteAuth);
-  window.addEventListener('storage', (event) => {
-    if (event.key === AUTH_SESSION_KEY || event.key === null) {
-      enforceProtectedRouteAuth();
-    }
-  });
-
+function mountApp() {
   createRoot(document.getElementById('root')!).render(
     <AppErrorBoundary>
       <TugonThemeProvider>
@@ -79,6 +68,29 @@ async function bootstrapAndRender() {
       </TugonThemeProvider>
     </AppErrorBoundary>,
   );
+}
+
+async function bootstrapAndRender() {
+  // On protected routes the session must be resolved before rendering to
+  // prevent a flash of unauthenticated content or a race on RBAC-gated data.
+  // On public routes (landing, auth pages) render immediately and restore the
+  // session in the background — avoids blocking FCP on a network round trip.
+  if (isProtectedPath(window.location.pathname)) {
+    await restoreSessionFromCookie();
+    enforceProtectedRouteAuth();
+    mountApp();
+  } else {
+    mountApp();
+    void restoreSessionFromCookie();
+  }
+
+  window.addEventListener('pageshow', enforceProtectedRouteAuth);
+  window.addEventListener('popstate', enforceProtectedRouteAuth);
+  window.addEventListener('storage', (event) => {
+    if (event.key === AUTH_SESSION_KEY || event.key === null) {
+      enforceProtectedRouteAuth();
+    }
+  });
 
   void initWebVitals();
 

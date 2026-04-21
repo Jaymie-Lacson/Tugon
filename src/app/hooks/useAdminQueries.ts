@@ -29,6 +29,7 @@ export function useAdminAuditLogs(params: Parameters<typeof superAdminApi.getAud
   return useQuery({
     queryKey: adminKeys.auditLogs(params),
     queryFn: () => superAdminApi.getAuditLogs(params),
+    staleTime: 30_000,
   });
 }
 

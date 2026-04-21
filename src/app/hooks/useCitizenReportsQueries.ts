@@ -9,5 +9,6 @@ export function useMyReports() {
   return useQuery({
     queryKey: citizenReportsKeys.myReports(),
     queryFn: () => citizenReportsApi.getMyReports(),
+    staleTime: 30_000,
   });
 }

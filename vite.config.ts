@@ -45,6 +45,11 @@ export default defineConfig({
   },
 
   build: {
+    // Target modern browsers only — matches the audience (Chrome 80+, Safari 14+,
+    // Firefox 78+) and produces smaller output without ES5 transforms.
+    target: 'es2020',
+    // Use Lightning CSS for faster, smaller CSS output than the default postcss path.
+    cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
         manualChunks: {

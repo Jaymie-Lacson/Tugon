@@ -165,7 +165,7 @@ export function Step5({
                   aria-label={`Preview attached photo ${i + 1}`}
                   title={`Preview attached photo ${i + 1}`}
                 >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img src={src} alt="" className="w-full h-full object-cover" decoding="async" />
                 </button>
                 <div className="incident-step5-photo-overlay" />
                 <div className="incident-step5-photo-badge">{i + 1}</div>
@@ -197,6 +197,7 @@ export function Step5({
               className="citizen-photo-preview-image"
               src={form.photoPreviews[previewIndex]}
               alt={`review-preview-${previewIndex + 1}`}
+              decoding="async"
             />
             <div className="citizen-photo-preview-count">
               {t('citizen.report.step5.photoPreviewCount', { current: previewIndex + 1, total: form.photoPreviews.length })}

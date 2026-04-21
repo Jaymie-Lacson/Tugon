@@ -54,15 +54,23 @@ function ViewportCompatibilityBridge() {
       document.documentElement.style.setProperty('--app-vv-bottom-gap', `${bottomGap}px`);
     };
 
+    // Throttle via RAF so style recalculation runs at most once per frame (TBT).
+    let rafId = 0;
+    const throttledSync = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(syncViewportVars);
+    };
+
     syncViewportVars();
-    viewport.addEventListener('resize', syncViewportVars);
-    viewport.addEventListener('scroll', syncViewportVars);
-    window.addEventListener('orientationchange', syncViewportVars);
+    viewport.addEventListener('resize', throttledSync, { passive: true });
+    viewport.addEventListener('scroll', throttledSync, { passive: true });
+    window.addEventListener('orientationchange', throttledSync, { passive: true });
 
     return () => {
-      viewport.removeEventListener('resize', syncViewportVars);
-      viewport.removeEventListener('scroll', syncViewportVars);
-      window.removeEventListener('orientationchange', syncViewportVars);
+      cancelAnimationFrame(rafId);
+      viewport.removeEventListener('resize', throttledSync);
+      viewport.removeEventListener('scroll', throttledSync);
+      window.removeEventListener('orientationchange', throttledSync);
       document.documentElement.style.removeProperty('--app-vv-top');
       document.documentElement.style.removeProperty('--app-vv-left');
       document.documentElement.style.removeProperty('--app-vv-width');
@@ -78,17 +86,31 @@ function PretextRuntimeBridge() {
     let cancelled = false;
     let loadedModule: typeof import('@chenglou/pretext') | null = null;
 
-    import('@chenglou/pretext').then((mod) => {
-      if (cancelled) {
-        return;
-      }
-      loadedModule = mod;
-      const locale = navigator.language?.trim();
-      mod.setLocale(locale || undefined);
-    });
+    const load = () => {
+      import('@chenglou/pretext').then((mod) => {
+        if (cancelled) return;
+        loadedModule = mod;
+        const locale = navigator.language?.trim();
+        mod.setLocale(locale || undefined);
+      });
+    };
+
+    // Defer past the critical rendering path so pretext JS evaluation
+    // does not contribute to TBT on initial page load.
+    let idleHandle = 0;
+    if ('requestIdleCallback' in window) {
+      idleHandle = requestIdleCallback(load);
+    } else {
+      idleHandle = setTimeout(load, 200) as unknown as number;
+    }
 
     return () => {
       cancelled = true;
+      if ('requestIdleCallback' in window) {
+        cancelIdleCallback(idleHandle);
+      } else {
+        clearTimeout(idleHandle);
+      }
       loadedModule?.clearCache();
     };
   }, []);

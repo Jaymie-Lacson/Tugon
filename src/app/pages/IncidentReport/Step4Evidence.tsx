@@ -139,7 +139,7 @@ export function Step4({
                 onClick={() => setPreviewIndex(i)}
                 className="p-0 m-0 w-full h-full border-none bg-transparent cursor-zoom-in"
               >
-                <img src={src} alt={`evidence-${i}`} className="w-full h-full object-cover" />
+                <img src={src} alt={`evidence-${i}`} className="w-full h-full object-cover" decoding="async" />
               </button>
               <button
                 onClick={() => removePhoto(i)}
@@ -284,6 +284,7 @@ export function Step4({
               className="citizen-photo-preview-image"
               src={form.photoPreviews[previewIndex]}
               alt={`preview-${previewIndex + 1}`}
+              decoding="async"
             />
             <div className="citizen-photo-preview-count">
               {t('citizen.report.step4.photoPreviewCount', { current: previewIndex + 1, total: form.photoPreviews.length })}
