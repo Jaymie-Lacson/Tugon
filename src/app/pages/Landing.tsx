@@ -15,7 +15,6 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
 import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
@@ -28,6 +27,22 @@ const HERO_WEBP_SRCSET = '/hero-city-960.webp 960w, /hero-city-1440.webp 1440w, 
 const HERO_JPG_SRCSET = '/hero-city-960.jpg 960w, /hero-city-1440.jpg 1440w, /hero-city-1920.jpg 1920w';
 const HERO_IMAGE = '/hero-city-1440.jpg';
 const HERO_IMAGE_SIZES = '100vw';
+
+function navigateTo(path: string, options?: { replace?: boolean }) {
+  if (window.location.pathname === path && !window.location.hash) {
+    if (path === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return;
+  }
+
+  if (options?.replace) {
+    window.location.replace(path);
+    return;
+  }
+
+  window.location.assign(path);
+}
 
 function SectionHeading({
   label,
@@ -91,7 +106,6 @@ function AuthRedirectOverlay({ visible }: { visible: boolean }) {
 }
 
 function Navbar() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -107,37 +121,6 @@ function Navbar() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const viewport = window.visualViewport;
-
-    if (!viewport) {
-      return;
-    }
-
-    const syncViewportTop = () => {
-      const topOffset = Math.max(0, viewport.offsetTop || 0);
-      const leftOffset = Math.max(0, viewport.offsetLeft || 0);
-      const viewportWidth = Math.max(0, viewport.width || window.innerWidth);
-      document.documentElement.style.setProperty('--landing-nav-top', `${topOffset}px`);
-      document.documentElement.style.setProperty('--landing-nav-left', `${leftOffset}px`);
-      document.documentElement.style.setProperty('--landing-nav-width', `${viewportWidth}px`);
-    };
-
-    syncViewportTop();
-    viewport.addEventListener('resize', syncViewportTop);
-    viewport.addEventListener('scroll', syncViewportTop);
-    window.addEventListener('orientationchange', syncViewportTop);
-
-    return () => {
-      viewport.removeEventListener('resize', syncViewportTop);
-      viewport.removeEventListener('scroll', syncViewportTop);
-      window.removeEventListener('orientationchange', syncViewportTop);
-      document.documentElement.style.removeProperty('--landing-nav-top');
-      document.documentElement.style.removeProperty('--landing-nav-left');
-      document.documentElement.style.removeProperty('--landing-nav-width');
-    };
   }, []);
 
   useEffect(() => {
@@ -182,7 +165,7 @@ function Navbar() {
     setAuthRedirecting(true);
     setMobileOpen(false);
     window.setTimeout(() => {
-      navigate(path);
+      navigateTo(path);
     }, 260);
   };
 
@@ -194,9 +177,8 @@ function Navbar() {
         ref={navRef}
         style={{
           position: 'fixed',
-          top: 'var(--landing-nav-top, 0px)',
-          left: 'var(--landing-nav-left, 0px)',
-          width: 'var(--landing-nav-width, 100%)',
+          insetInline: 0,
+          top: 0,
           zIndex: 100,
           background: scrolled ? 'rgba(15,23,42,0.95)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
@@ -210,14 +192,14 @@ function Navbar() {
       >
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigateTo('/')}
             aria-label="Go to TUGON home"
             className="flex cursor-pointer items-center border-none bg-transparent p-0"
           >
             <img
               src="/tugon-header-logo.svg"
               alt="TUGON Tondo Emergency Response"
-              className="block h-[38px] w-auto"
+              className="block h-[38px] w-[120px]"
               fetchPriority="high"
               loading="eager"
               decoding="async"
@@ -348,7 +330,6 @@ function Navbar() {
 }
 
 function Hero() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -359,7 +340,7 @@ function Hero() {
       setAuthRedirecting(true);
     }
     window.setTimeout(() => {
-      navigate(path);
+      navigateTo(path);
     }, isAuth ? 260 : 170);
   };
 
@@ -480,7 +461,6 @@ function Hero() {
 }
 
 function QuickActions() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const [authRedirecting, setAuthRedirecting] = useState(false);
@@ -488,7 +468,7 @@ function QuickActions() {
   const navigateAuthWithOverlay = (path: string) => {
     setAuthRedirecting(true);
     window.setTimeout(() => {
-      navigate(path);
+      navigateTo(path);
     }, 260);
   };
 
@@ -566,13 +546,12 @@ function QuickActions() {
 }
 
 function MapTeaser() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
   const go = () => {
     setAuthRedirecting(true);
-    window.setTimeout(() => navigate('/community-map'), 260);
+    window.setTimeout(() => navigateTo('/community-map'), 260);
   };
 
   const pins = [
@@ -729,7 +708,6 @@ function HowToUse() {
 }
 
 function SupportedBarangays() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const barangays = [
@@ -808,7 +786,7 @@ function SupportedBarangays() {
               </div>
 
               <button
-                onClick={() => navigate('/auth/register')}
+                onClick={() => navigateTo('/auth/register')}
                 className="inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-primary transition-transform duration-200 hover:translate-x-0.5"
               >
                 {t('landing.barangays.startReporting')} <ChevronRight size={15} />
@@ -945,7 +923,6 @@ function EmergencyHotlines() {
 }
 
 function Footer() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const year = new Date().getFullYear();
 
@@ -954,7 +931,7 @@ function Footer() {
   const navigateAuthWithOverlay = (path: string) => {
     setAuthRedirecting(true);
     window.setTimeout(() => {
-      navigate(path);
+      navigateTo(path);
     }, 260);
   };
 
@@ -972,14 +949,14 @@ function Footer() {
           <div className="mb-6 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
             <div>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigateTo('/')}
                 aria-label="Go to TUGON home"
                 className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
               >
                 <img
                   src="/tugon-header-logo.svg"
                   alt="TUGON Tondo Emergency Response"
-                  className="block h-9 w-auto"
+                  className="block h-[36px] w-[114px]"
                   width="114"
                   height="36"
                 />
@@ -1061,8 +1038,6 @@ export default function Landing() {
 
     return () => observer.disconnect();
   }, []);
-  const navigate = useNavigate();
-
   useEffect(() => {
     const session = getAuthSession();
     if (!session) {
@@ -1070,17 +1045,17 @@ export default function Landing() {
     }
 
     if (session.user.role === 'CITIZEN') {
-      navigate('/citizen', { replace: true });
+      navigateTo('/citizen', { replace: true });
       return;
     }
 
     if (session.user.role === 'SUPER_ADMIN') {
-      navigate('/superadmin', { replace: true });
+      navigateTo('/superadmin', { replace: true });
       return;
     }
 
-    navigate('/app', { replace: true });
-  }, [navigate]);
+    navigateTo('/app', { replace: true });
+  }, []);
 
   useEffect(() => {
     const html = document.documentElement;

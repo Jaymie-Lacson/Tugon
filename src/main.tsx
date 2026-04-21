@@ -1,6 +1,5 @@
 
 import { createRoot } from 'react-dom/client';
-import App from './app/App.tsx';
 import { AppErrorBoundary } from './app/components/AppErrorBoundary.tsx';
 import { TugonThemeProvider } from './app/providers/ThemeProvider.tsx';
 import { authApi } from './app/services/authApi';
@@ -9,6 +8,7 @@ import './styles/index.css';
 
 const AUTH_SESSION_KEY = 'tugon.auth.session';
 const PROTECTED_ROUTE_PREFIXES = ['/app', '/citizen', '/superadmin'] as const;
+const root = createRoot(document.getElementById('root')!);
 
 function hasValidSession(): boolean {
   const raw = localStorage.getItem(AUTH_SESSION_KEY);
@@ -70,11 +70,33 @@ function enforceProtectedRouteAuth() {
   window.location.replace('/auth/login');
 }
 
-function mountApp() {
-  createRoot(document.getElementById('root')!).render(
+async function mountApp() {
+  const [{ default: App }] = await Promise.all([
+    import('./app/App.tsx'),
+    import('./styles/mobile.css'),
+  ]);
+
+  root.render(
     <AppErrorBoundary>
       <TugonThemeProvider>
         <App />
+      </TugonThemeProvider>
+    </AppErrorBoundary>,
+  );
+}
+
+async function mountLandingPage() {
+  const [{ TranslationProvider }, { default: Landing }] = await Promise.all([
+    import('./app/i18n/TranslationProvider.tsx'),
+    import('./app/pages/Landing.tsx'),
+  ]);
+
+  root.render(
+    <AppErrorBoundary>
+      <TugonThemeProvider>
+        <TranslationProvider>
+          <Landing />
+        </TranslationProvider>
       </TugonThemeProvider>
     </AppErrorBoundary>,
   );
@@ -100,17 +122,26 @@ function runAfterLoadAndIdle(task: () => void, fallbackDelay = 800) {
 
 async function bootstrapAndRender() {
   const pathname = window.location.pathname;
+  const landingPath = isLandingPath(pathname);
 
-  // On protected routes the session must be resolved before rendering to
-  // prevent a flash of unauthenticated content or a race on RBAC-gated data.
-  // On public routes (landing, auth pages) render immediately and restore the
-  // session in the background — avoids blocking FCP on a network round trip.
-  if (isProtectedPath(pathname)) {
+  if (landingPath) {
+    await mountLandingPage();
+
+    // Deferred session check — if the visitor happens to be logged in,
+    // the Landing component's own useEffect will redirect them.
+    runAfterLoadAndIdle(() => {
+      void restoreSessionFromCookie();
+    }, 2500);
+  } else if (isProtectedPath(pathname)) {
+    // On protected routes the session must be resolved before rendering to
+    // prevent a flash of unauthenticated content or a race on RBAC-gated data.
     await restoreSessionFromCookie({ allowAnonymousProbe: true });
     enforceProtectedRouteAuth();
-    mountApp();
+    await mountApp();
   } else {
-    mountApp();
+    // Public non-landing routes (auth pages, etc.) — render immediately and
+    // restore the session in the background to avoid blocking FCP.
+    await mountApp();
     runAfterLoadAndIdle(() => {
       void restoreSessionFromCookie();
     }, 2500);
@@ -133,7 +164,7 @@ async function bootstrapAndRender() {
 
   runAfterLoadAndIdle(() => {
     void import('./styles/fonts-extended.css');
-  }, isLandingPath(pathname) ? 5000 : 1800);
+  }, 1800);
 
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {

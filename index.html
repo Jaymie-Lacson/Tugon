@@ -37,6 +37,7 @@
       2. [data-reveal] initial state: prevents a flash where hero elements
          briefly appear at full opacity before landing.css loads and hides them
          for the scroll-reveal animation (Speed Index / visual stability).
+      3. .landing-hero-content reserves minimum height to prevent CLS.
     -->
     <style>
       @font-face {
@@ -53,6 +54,8 @@
         font-display: swap;
         src: url('/fonts/ibm-plex-sans-400.woff2') format('woff2');
       }
+      [data-reveal]{opacity:0}
+      .landing-hero-content{contain:layout style;min-height:420px}
     </style>
   </head>
 
@@ -73,4 +76,4 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 
-  </html>
+</html>

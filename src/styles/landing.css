@@ -20,9 +20,9 @@
 @media (max-width: 768px) {
   .landing-navbar {
     position: fixed !important;
-    top: var(--landing-nav-top, 0px) !important;
-    left: var(--landing-nav-left, 0px) !important;
-    width: var(--landing-nav-width, 100%) !important;
+    inset-inline: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -84,6 +84,13 @@
   --destructive-foreground: #ffffff !important;
   --error: #ba1a1a !important;
   --error-container: #ffdad6 !important;
+}
+
+/* ── CLS prevention: reserve hero layout before JS hydrates ──────────── */
+
+.landing-hero-content {
+  contain: layout style;
+  min-height: 420px;
 }
 
 /* ── Scroll-reveal animation system ───────────────────────────────────── */

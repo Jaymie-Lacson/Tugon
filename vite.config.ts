@@ -61,7 +61,11 @@ export default defineConfig({
             return 'vendor-leaflet'
           }
 
-          if (id.includes('/react/') || id.includes('\\react\\') || id.includes('/react-dom/') || id.includes('\\react-dom\\') || id.includes('/react-router/') || id.includes('\\react-router\\')) {
+          if (id.includes('/react-router/') || id.includes('\\react-router\\')) {
+            return 'vendor-router'
+          }
+
+          if (id.includes('/react/') || id.includes('\\react\\') || id.includes('/react-dom/') || id.includes('\\react-dom\\')) {
             return 'vendor-react'
           }
 
