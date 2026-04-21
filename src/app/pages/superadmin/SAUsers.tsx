@@ -387,6 +387,24 @@ export default function SAUsers() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
+  // Debounce search for query key
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(handle);
+  }, [search]);
+
+  const { data: usersQueryData, isLoading, isFetching, error: usersQueryError } = useAdminUsers(
+    debouncedSearch ? { search: debouncedSearch } : {},
+  );
+
+  const usersData = useMemo(
+    () => (usersQueryData?.users ?? []).map((user, index) => mapApiUserToSaUser(user, index)),
+    [usersQueryData],
+  );
+
+  const loading = isLoading && !usersQueryData;
+  const queryApiError = usersQueryError ? (usersQueryError instanceof Error ? usersQueryError.message : 'Unable to load users.') : null;
+
   const filtered = useMemo(() => {
     return usersData.filter(u => {
       const matchRole = roleFilter === 'All Roles' || u.role === roleFilter;
@@ -424,24 +442,6 @@ export default function SAUsers() {
     active: usersData.filter(u => u.status === 'active').length,
     inactive: usersData.filter(u => u.status === 'inactive').length,
   };
-
-  // Debounce search for query key
-  useEffect(() => {
-    const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => window.clearTimeout(handle);
-  }, [search]);
-
-  const { data: usersQueryData, isLoading, isFetching, error: usersQueryError } = useAdminUsers(
-    debouncedSearch ? { search: debouncedSearch } : {},
-  );
-
-  const usersData = useMemo(
-    () => (usersQueryData?.users ?? []).map((user, index) => mapApiUserToSaUser(user, index)),
-    [usersQueryData],
-  );
-
-  const loading = isLoading && !usersQueryData;
-  const queryApiError = usersQueryError ? (usersQueryError instanceof Error ? usersQueryError.message : 'Unable to load users.') : null;
 
   const handleBulkStatusUpdate = async (nextStatus: SupportedUiStatus) => {
     if (selectedIds.size === 0) {

@@ -5,7 +5,8 @@ import CardSkeleton from '../../components/ui/CardSkeleton';
 import TableSkeleton from '../../components/ui/TableSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
 import { superAdminApi, type ApiAdminAuditLog } from '../../services/superAdminApi';
-import { useAdminAuditLogs } from '../../hooks/useAdminQueries';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminAuditLogs, adminKeys } from '../../hooks/useAdminQueries';
 
 const ACTIONS = ['All Actions', 'ADMIN_USER_CREATED', 'ADMIN_USER_ROLE_UPDATED', 'ADMIN_BARANGAY_BOUNDARY_UPDATED'] as const;
 const TARGET_TYPES = ['All Targets', 'USER', 'BARANGAY'] as const;
@@ -64,6 +65,7 @@ function formatDateInput(date: Date) {
 
 export default function SAAuditLogs() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [exportingJson, setExportingJson] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [actionFilter, setActionFilter] = useState<string>('All Actions');
@@ -190,7 +192,7 @@ export default function SAAuditLogs() {
         </div>
         <button
           onClick={() => {
-            void loadLogs();
+            void queryClient.invalidateQueries({ queryKey: adminKeys.auditLogs() });
           }}
           className="flex min-h-11 w-full justify-center items-center gap-1.5 rounded-lg bg-card border border-[var(--outline-variant)] px-3.5 py-2 cursor-pointer text-[var(--on-surface-variant)] text-xs font-semibold md:w-auto"
         >
