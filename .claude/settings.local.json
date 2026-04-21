@@ -92,7 +92,10 @@
       "Bash(ANALYZE=true npm run build)",
       "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" status)",
       "Bash(git -C \"C:/Users/Mikell Razon/BSIT/2ND YEAR/2ND SEM/PROF ELEC/Tugon\" diff --stat)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(grep -r \"react-slick\\\\|react-dnd\\\\|date-fns\\\\|from 'motion\\\\|from \\\\\"motion\\\\|react-responsive-masonry\" src/ --include=\"*.ts\" --include=\"*.tsx\" -l)",
+      "Bash(grep -r \"ui/carousel\\\\|ui/drawer\\\\|ui/command\\\\|ui/calendar\\\\|ui/resizable\\\\|ui/sonner\\\\|ui/form\" src/ --include=\"*.ts\" --include=\"*.tsx\" -l)",
+      "Bash(npm uninstall *)"
     ]
   }
 }
