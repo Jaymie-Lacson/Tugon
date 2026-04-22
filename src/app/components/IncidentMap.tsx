@@ -255,6 +255,7 @@ export interface IncidentMapProps {
   interactive?: boolean;
   viewportKey?: string;
   showMarkerTooltip?: boolean;
+  showIncidentGlow?: boolean;
 }
 
 export interface HeatmapClusterOverlay {
@@ -353,6 +354,7 @@ export function IncidentMap({
   interactive = true,
   viewportKey = 'default',
   showMarkerTooltip = true,
+  showIncidentGlow = true,
 }: IncidentMapProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -429,7 +431,7 @@ export function IncidentMap({
         <MapViewportController incidents={sorted} selectedIncident={selectedIncident} targetZoom={zoom} viewportKey={viewportKey} />
 
         {/* Soft glow circles for active incidents */}
-        {!isHotspotMode && sorted
+        {showIncidentGlow && !isHotspotMode && sorted
           .filter(inc => inc.status === 'active' || inc.status === 'responding')
           .map(inc => (
             <Circle

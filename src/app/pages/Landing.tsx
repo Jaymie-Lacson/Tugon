@@ -6,12 +6,12 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
-  Map as MapIcon,
   MapPin,
   Menu,
   Phone,
   Radio,
   Shield,
+  Sparkles,
   Users,
   X,
 } from 'lucide-react';
@@ -19,14 +19,120 @@ import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
+import { IncidentMap } from '../components/IncidentMap';
+import type { Incident } from '../data/incidents';
 import '../../styles/landing.css';
-// Card/Badge primitives intentionally not used — landing sections use bespoke layouts
 
 
-const HERO_WEBP_SRCSET = '/hero-city-960.webp 960w, /hero-city-1440.webp 1440w, /hero-city-1920.webp 1920w';
-const HERO_JPG_SRCSET = '/hero-city-960.jpg 960w, /hero-city-1440.jpg 1440w, /hero-city-1920.jpg 1920w';
-const HERO_IMAGE = '/hero-city-1440.jpg';
-const HERO_IMAGE_SIZES = '100vw';
+const HERO_DUMMY_REPORTS: Incident[] = [
+  {
+    id: 'TGN-25041',
+    type: 'crime',
+    severity: 'critical',
+    status: 'active',
+    barangay: 'Barangay 252',
+    district: 'Tondo I',
+    location: 'Abad Santos Ave cor. Villaruel St.',
+    reportedAt: '2026-04-22T11:52:00.000Z',
+    responders: 2,
+    description: 'Street altercation reported near transport stop.',
+    reportedBy: 'Resident',
+    mapX: 24,
+    mapY: 56,
+    lat: 14.61447,
+    lng: 120.97692,
+  },
+  {
+    id: 'TGN-25042',
+    type: 'accident',
+    severity: 'medium',
+    status: 'responding',
+    barangay: 'Barangay 251',
+    district: 'Tondo I',
+    location: 'Almeda St. near Aurora Health Center',
+    reportedAt: '2026-04-22T11:38:00.000Z',
+    responders: 1,
+    description: 'Minor road hazard from motorcycle slip.',
+    reportedBy: 'Resident',
+    mapX: 43,
+    mapY: 63,
+    lat: 14.61452,
+    lng: 120.97754,
+  },
+  {
+    id: 'TGN-25043',
+    type: 'medical',
+    severity: 'high',
+    status: 'active',
+    barangay: 'Barangay 256',
+    district: 'Tondo I',
+    location: 'Villaruel St. interior lane',
+    reportedAt: '2026-04-22T11:21:00.000Z',
+    responders: 1,
+    description: 'Elderly resident needing urgent assistance.',
+    reportedBy: 'Watch Volunteer',
+    mapX: 62,
+    mapY: 40,
+    lat: 14.61558,
+    lng: 120.97855,
+  },
+  {
+    id: 'TGN-25044',
+    type: 'infrastructure',
+    severity: 'medium',
+    status: 'responding',
+    barangay: 'Barangay 256',
+    district: 'Tondo I',
+    location: 'Dapdap St. drainage section',
+    reportedAt: '2026-04-22T10:58:00.000Z',
+    responders: 1,
+    description: 'Blocked drainage with rising roadside water.',
+    reportedBy: 'Citizen',
+    mapX: 68,
+    mapY: 32,
+    lat: 14.61595,
+    lng: 120.97886,
+  },
+  {
+    id: 'TGN-25045',
+    type: 'crime',
+    severity: 'high',
+    status: 'active',
+    barangay: 'Barangay 251',
+    district: 'Tondo I',
+    location: 'Biak na Bato St. alley',
+    reportedAt: '2026-04-22T10:44:00.000Z',
+    responders: 2,
+    description: 'Disturbance escalated near residential alley.',
+    reportedBy: 'Resident',
+    mapX: 39,
+    mapY: 57,
+    lat: 14.61476,
+    lng: 120.97769,
+  },
+];
+
+function revealDelayClass(delayMs: number) {
+  return `reveal-delay-${delayMs}`;
+}
+
+function updateCardTilt(event: React.MouseEvent<HTMLElement>) {
+  if (!window.matchMedia('(hover: hover)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / rect.width - 0.5;
+  const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+  event.currentTarget.style.setProperty('--card-tilt-x', `${(-y * 6).toFixed(2)}deg`);
+  event.currentTarget.style.setProperty('--card-tilt-y', `${(x * 8).toFixed(2)}deg`);
+}
+
+function resetCardTilt(event: React.MouseEvent<HTMLElement>) {
+  event.currentTarget.style.setProperty('--card-tilt-x', '0deg');
+  event.currentTarget.style.setProperty('--card-tilt-y', '0deg');
+}
 
 function navigateTo(path: string, options?: { replace?: boolean }) {
   if (window.location.pathname === path && !window.location.hash) {
@@ -73,7 +179,7 @@ function SectionHeading({
         {label}
       </div>
       <h2
-        className={`mb-3 max-w-[640px] text-[clamp(26px,3.6vw,36px)] font-bold leading-[1.18] tracking-[-0.015em] ${
+        className={`mb-3 max-w-[640px] text-[clamp(28px,3.8vw,40px)] font-bold leading-[1.14] tracking-[-0.018em] ${
           isCenter ? 'mx-auto' : ''
         } ${light ? 'text-white' : 'text-foreground'}`}
       >
@@ -173,98 +279,79 @@ function Navbar() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <nav
-        className="landing-navbar"
+        className={`landing-navbar ${scrolled ? 'is-scrolled' : ''}`}
         ref={navRef}
-        style={{
-          position: 'fixed',
-          insetInline: 0,
-          top: 0,
-          zIndex: 100,
-          background: scrolled ? 'rgba(15,23,42,0.95)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
-          transition: 'background 0.3s, backdrop-filter 0.3s',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : 'none',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-        }}
+        aria-label="Primary"
       >
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-6">
           <button
             onClick={() => navigateTo('/')}
             aria-label="Go to TUGON home"
             className="flex cursor-pointer items-center border-none bg-transparent p-0"
           >
             <img
-              src="/tugon-header-logo.svg"
+              src="/tugon-wordmark-blue.svg"
               alt="TUGON Tondo Emergency Response"
-              className="block h-[38px] w-[120px]"
+              className="landing-nav-logo"
               fetchPriority="high"
               loading="eager"
               decoding="async"
               width="120"
-              height="38"
+              height="40"
             />
           </button>
 
           <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <Button
+              <button
                 key={link.label}
-                variant="ghost"
-                size="sm"
+                type="button"
                 onClick={() => scrollTo(link.href)}
-                className="text-[13px] font-medium text-white/[0.82] hover:bg-white/10 hover:text-white"
+                className="landing-nav-link"
               >
                 {link.label}
-              </Button>
+              </button>
             ))}
           </div>
 
-          <div className="hidden items-center gap-2 md:flex">
-            <Button
-              variant="outline"
-              size="sm"
+          <div className="hidden items-center gap-3 md:flex">
+            <button
+              type="button"
               onClick={() => navigateAuthWithOverlay('/auth/login')}
-              className="border-white/25 bg-white/10 text-white hover:bg-white/20"
+              className="landing-nav-link landing-nav-link--muted"
             >
               {t('landing.nav.login')}
-            </Button>
+            </button>
             <Button
-              variant="destructive"
               size="sm"
               onClick={() => navigateAuthWithOverlay('/auth/register')}
+              className="landing-nav-cta h-9 gap-1.5 rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
             >
-              {t('landing.nav.register')}
+              {t('landing.nav.register')} <ArrowRight size={14} aria-hidden="true" />
             </Button>
           </div>
 
           {mobileOpen ? (
             <button
               type="button"
-              className="landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] transition-[background,transform] duration-150 ease-out scale-[0.97] !bg-white/20 md:hidden"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              className="landing-mobile-toggle is-open md:hidden"
+              onClick={() => setMobileOpen(false)}
               aria-label="Close navigation menu"
               aria-expanded="true"
               aria-controls="landing-mobile-nav"
             >
-              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-                <X size={20} color="white" />
-              </span>
+              <X size={20} aria-hidden="true" />
             </button>
           ) : (
             <button
               type="button"
-              className="landing-mobile-toggle flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] transition-[background,transform] duration-150 ease-out md:hidden"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              className="landing-mobile-toggle md:hidden"
+              onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
               aria-expanded="false"
               aria-controls="landing-mobile-nav"
             >
-              <span className="inline-flex items-center justify-center transition-transform duration-[180ms] ease-out">
-                <Menu size={20} color="white" />
-              </span>
+              <Menu size={20} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -272,197 +359,206 @@ function Navbar() {
         {mobileOpen ? (
           <div
             id="landing-mobile-nav"
-            className="landing-mobile-panel nav-mobile-panel overflow-hidden border-t border-white/[0.08] bg-[rgba(15,23,42,0.98)]"
-            style={{
-              padding: '12px 20px 20px',
-              maxHeight: 360,
-              opacity: 1,
-              transform: 'translateY(0)',
-              pointerEvents: 'auto',
-              transition:
-                'max-height 320ms cubic-bezier(0.2, 0.65, 0.3, 1), opacity 220ms ease, transform 220ms ease, padding 220ms ease',
-            }}
+            className="landing-mobile-panel nav-mobile-panel"
           >
             {navLinks.map((link) => (
               <button
-                className="block w-full cursor-pointer border-b border-white/[0.06] bg-transparent px-0 py-3 text-left text-[15px] font-semibold text-white/[0.82]"
+                className="landing-mobile-link"
                 key={link.label}
                 onClick={() => scrollTo(link.href)}
-                style={{
-                  opacity: 1,
-                  transform: 'translateY(0)',
-                  transition: 'opacity 180ms ease, transform 180ms ease',
-                }}
               >
                 {link.label}
               </button>
             ))}
-            <div
-              className="mt-3.5 grid gap-2"
-              style={{
-                opacity: 1,
-                transform: 'translateY(0)',
-                transition: 'opacity 180ms ease, transform 180ms ease',
-              }}
-            >
+            <div className="landing-mobile-actions">
               <Button
-                variant="destructive"
-                className="w-full"
-                onClick={() => navigateAuthWithOverlay('/auth/login')}
-              >
-                {t('landing.nav.loginToContinue')}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full border-white/[0.22] bg-white/[0.12] text-white hover:bg-white/20"
+                className="w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => navigateAuthWithOverlay('/auth/register')}
               >
                 {t('landing.nav.register')}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full rounded-md border-border bg-background text-foreground"
+                onClick={() => navigateAuthWithOverlay('/auth/login')}
+              >
+                {t('landing.nav.loginToContinue')}
               </Button>
             </div>
           </div>
         ) : null}
       </nav>
-
-      {/* Landing CSS extracted to src/styles/landing.css */}
     </>
   );
 }
 
 function Hero() {
   const { t } = useTranslation();
-  const [activeAction, setActiveAction] = useState<'report' | 'track' | 'community' | null>(null);
+  const [activeAction, setActiveAction] = useState<'report' | 'track' | null>(null);
   const [authRedirecting, setAuthRedirecting] = useState(false);
+  const illustrationRef = useRef<HTMLDivElement | null>(null);
+  const heroHighlights = [
+    { value: '24/7', label: 'report intake' },
+    { value: `${new Set(HERO_DUMMY_REPORTS.map((report) => report.type)).size}`, label: 'incident types in preview' },
+    { value: '3', label: 'barangays covered' },
+  ];
 
-  const navigateWithTransition = (action: 'report' | 'track' | 'community', path: string, isAuth = false) => {
-    setActiveAction(action);
-    if (isAuth) {
-      setAuthRedirecting(true);
+  useEffect(() => {
+    const el = illustrationRef.current;
+    if (!el) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      el.style.setProperty('--hero-tilt-progress', '1');
+      return;
     }
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // Progress climbs from 0 (element's top is at/below viewport bottom) to 1
+      // (element has risen past ~35% from the top of the viewport).
+      const start = vh * 1.0;
+      const end = vh * 0.35;
+      const raw = (start - rect.top) / (start - end);
+      const progress = Math.max(0, Math.min(1, raw));
+      el.style.setProperty('--hero-tilt-progress', progress.toFixed(3));
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  const navigateWithTransition = (action: 'report' | 'track', path: string) => {
+    setActiveAction(action);
+    setAuthRedirecting(true);
     window.setTimeout(() => {
       navigateTo(path);
-    }, isAuth ? 260 : 170);
+    }, 260);
   };
 
-  const scrollToQuickActions = () => {
-    document.querySelector('#quick-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToNext = () => {
+    document.querySelector('#why')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section className="relative flex min-h-screen items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <picture>
-            <source srcSet={HERO_WEBP_SRCSET} sizes={HERO_IMAGE_SIZES} type="image/webp" />
-            <img
-              src={HERO_IMAGE}
-              srcSet={HERO_JPG_SRCSET}
-              sizes={HERO_IMAGE_SIZES}
-              alt=""
-              aria-hidden="true"
-              className="h-full w-full object-cover"
-              fetchPriority="high"
-              loading="eager"
-              decoding="async"
-              width="1920"
-              height="998"
-            />
-          </picture>
-          <div className="absolute inset-0 bg-[#00236f]/[0.88]" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#001a57]/50 via-transparent to-[#001a57]/28" />
-          <div className="absolute inset-0 opacity-[0.06] bg-white/5" />
+      <section className="landing-hero">
+        <div className="landing-hero-bg" aria-hidden="true">
+          <span className="landing-hero-bg-glow landing-hero-bg-glow--a" />
+          <span className="landing-hero-bg-glow landing-hero-bg-glow--b" />
         </div>
 
-        <div
-          className={`landing-hero-content relative z-[2] mx-auto w-full max-w-[1120px] px-6 pb-14 pt-[clamp(112px,14vh,154px)] ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}
-        >
-          <div>
-            <div className="landing-hero-live mb-7 inline-flex items-center gap-2.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 backdrop-blur-sm">
-              <span className="relative flex size-2 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400/60" aria-hidden="true" />
-                <span className="relative inline-flex size-2 rounded-full bg-red-400" aria-hidden="true" />
-              </span>
-              <Radio size={12} className="text-white/55" aria-hidden="true" />
-              {t('landing.hero.liveIn')}
+        <div className={`landing-hero-content ${activeAction ? 'hero-transition-scope is-routing' : 'hero-transition-scope'}`}>
+          <div className={`landing-hero-badge ${revealDelayClass(0)}`} data-reveal>
+            <span className="landing-hero-pulse" aria-hidden="true">
+              <span className="landing-hero-pulse-dot" />
+              <span className="landing-hero-pulse-ring" />
+            </span>
+            <Radio size={12} aria-hidden="true" />
+            {t('landing.hero.liveIn')}
+          </div>
+
+          <h1 className={`landing-hero-title ${revealDelayClass(60)}`} data-reveal>
+            The civic response system that <em>just works</em> for{' '}
+            <span className="landing-hero-title-mark">Tondo</span>.
+          </h1>
+
+          <p className={`landing-hero-copy ${revealDelayClass(120)}`} data-reveal>
+            {t('landing.hero.subtagline')}
+          </p>
+
+          <div className={`landing-hero-actions ${revealDelayClass(180)}`} data-reveal>
+            <Button
+              size="lg"
+              onClick={() => navigateWithTransition('report', '/auth/register')}
+              className={`landing-hero-cta-primary ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
+            >
+              {t('landing.hero.reportIncident')} <ArrowRight size={16} aria-hidden="true" />
+            </Button>
+            <button
+              type="button"
+              onClick={() => navigateWithTransition('track', '/auth/login')}
+              className={`landing-hero-cta-secondary ${activeAction === 'track' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
+            >
+              {t('landing.hero.trackStatus')}
+              <ArrowRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+
+          <p className={`landing-hero-fineprint ${revealDelayClass(240)}`} data-reveal>
+            Verified barangay routing / Phone OTP secured / Free for residents
+          </p>
+
+          <div className={`landing-hero-highlights ${revealDelayClass(260)}`} data-reveal>
+            {heroHighlights.map((item) => (
+              <div key={item.label} className="landing-hero-highlight">
+                <div className="landing-hero-highlight-value">{item.value}</div>
+                <div className="landing-hero-highlight-label">{item.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            ref={illustrationRef}
+            className="landing-hero-illustration"
+          >
+            <div className="landing-hero-map-frame" aria-label="Interactive Tondo map preview with sample incident reports">
+              <IncidentMap
+                incidents={HERO_DUMMY_REPORTS}
+                showMarkerTooltip={false}
+                showIncidentGlow={false}
+                compact
+                interactive
+                zoom={17}
+                height="100%"
+                viewportKey="landing-hero-map"
+              />
             </div>
-
-            <h1 className="landing-hero-title mb-5 max-w-[860px] text-[clamp(42px,7vw,74px)] font-bold leading-[1] tracking-[-0.03em] text-white">
-              Coordinated incident response for <span className="text-blue-300">Tondo</span> starts with{' '}
-              <span className="inline-flex items-baseline">
-                <img
-                  src="/tugon-wordmark-red.svg"
-                  alt="TUGON"
-                  className="landing-hero-wordmark inline-block h-[0.92em] w-auto max-w-[min(35vw,248px)] translate-y-[0.1em] md:max-w-[min(35vw,248px)]"
-                  width="248"
-                  height="68"
-                />
-              </span>
-            </h1>
-
-            <p className="landing-hero-copy mb-9 max-w-[52ch] text-[clamp(18px,2.1vw,24px)] leading-[1.5] text-white/80">
-              {t('landing.hero.subtagline')}
-            </p>
-
-            <div className="landing-hero-actions mb-10 flex flex-wrap items-center gap-3">
-              <Button
-                size="lg"
-                onClick={() => navigateWithTransition('report', '/auth/register', true)}
-                className={`min-h-[46px] gap-2 rounded-md bg-white px-5 text-[15px] font-semibold text-[#00236f] shadow-none hover:bg-white/95 ${activeAction === 'report' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
-              >
-                {t('landing.hero.reportIncident')} <ArrowRight size={16} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => navigateWithTransition('track', '/auth/login', true)}
-                className={`min-h-[46px] gap-2 rounded-md px-4 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white ${activeAction === 'track' ? 'hero-action-btn is-clicking' : 'hero-action-btn'}`}
-              >
-                {t('landing.hero.trackStatus')}
-              </Button>
-            </div>
-
-            {/* Hero stats strip */}
-            <div className="landing-hero-stats flex flex-wrap items-end gap-x-10 gap-y-4 border-t border-white/10 pt-6">
-              {([
-                { val: '3', labelKey: 'landing.hero.statBarangays' as const },
-                { val: '5', labelKey: 'landing.hero.statCategories' as const },
-                { val: '24/7', labelKey: 'landing.hero.statReporting' as const },
-              ]).map((stat) => (
-                <div key={stat.val} className="flex flex-col gap-1">
-                  <span className="text-[28px] font-bold leading-none tracking-[-0.02em] text-white">{stat.val}</span>
-                  <span className="whitespace-pre-line text-[12px] font-medium uppercase tracking-[0.11em] text-white/55">{t(stat.labelKey)}</span>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => navigateWithTransition('community', '/community-map', true)}
-                className={`ml-auto hidden items-center gap-1.5 text-[13px] font-medium text-white/70 transition-colors hover:text-white md:inline-flex ${activeAction === 'community' ? 'hero-link-action is-clicking' : 'hero-link-action'}`}
-              >
-                {t('landing.hero.viewCommunityMap')} <ArrowRight size={14} />
-              </button>
+            <div className="landing-hero-map-caption">
+              Browse sample reports directly on the map preview across Barangays 251, 252, and 256.
             </div>
           </div>
         </div>
 
         <button
           data-reveal
-          onClick={scrollToQuickActions}
-          aria-label="Scroll to quick actions"
-          className="landing-scroll-cue"
-          style={{ transitionDelay: '220ms' }}
+          onClick={scrollToNext}
+          aria-label="Scroll to next section"
+          className={`landing-scroll-cue landing-scroll-cue--light ${revealDelayClass(420)}`}
         >
           <ChevronDown size={14} aria-hidden="true" />
         </button>
-
       </section>
     </>
   );
 }
 
-function QuickActions() {
-  const { t } = useTranslation();
+type ActionRowConfig = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  cta: string;
+  path: string;
+  illustration: 'report' | 'track' | 'map';
+};
 
+function ActionRows() {
+  const { t } = useTranslation();
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
   const navigateAuthWithOverlay = (path: string) => {
@@ -472,80 +568,349 @@ function QuickActions() {
     }, 260);
   };
 
-  const actions = [
+  const rows: ActionRowConfig[] = [
     {
+      eyebrow: 'Report',
       title: t('landing.quickActions.reportTitle'),
-      desc: t('landing.quickActions.reportDesc'),
-      icon: AlertTriangle,
-      color: 'var(--severity-critical)',
-      bg: '#FEE2E2',
-      action: () => navigateAuthWithOverlay('/auth/register'),
+      body: 'Pin the exact spot, attach a photo or voice note, and submit in under a minute. Geofencing routes the report to the right barangay automatically, with no phone trees or walk-ins required.',
+      cta: t('landing.quickActions.reportTitle'),
+      path: '/auth/register',
+      illustration: 'report',
     },
     {
+      eyebrow: 'Track',
       title: t('landing.quickActions.trackTitle'),
-      desc: t('landing.quickActions.trackDesc'),
-      icon: FileText,
-      color: 'var(--primary)',
-      bg: '#DBEAFE',
-      action: () => navigateAuthWithOverlay('/auth/login'),
+      body: "Every report moves through five clear statuses, from Submitted to Resolved. You'll see who's reviewing it, when it changed hands, and what comes next from one timeline.",
+      cta: t('landing.quickActions.trackTitle'),
+      path: '/auth/login',
+      illustration: 'track',
     },
     {
+      eyebrow: 'Map',
       title: t('landing.quickActions.mapTitle'),
-      desc: t('landing.quickActions.mapDesc'),
-      icon: MapIcon,
-      color: 'var(--severity-medium)',
-      bg: '#FEF3C7',
-      action: () => navigateAuthWithOverlay('/community-map'),
+      body: 'Pins drop in real time across Barangays 251, 252, and 256. Filter by incident type, scan what neighbors are reporting, and stay aware of what is happening on your block.',
+      cta: t('landing.quickActions.mapTitle'),
+      path: '/community-map',
+      illustration: 'map',
     },
   ];
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section id="quick-actions" data-reveal className="bg-background px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <section id="why" className="landing-rows">
+        <div className="landing-container">
+          <div className="landing-rows-intro" data-reveal>
             <SectionHeading
               label={t('landing.quickActions.label')}
               title={t('landing.quickActions.title')}
               subtitle={t('landing.quickActions.subtitle')}
+              align="center"
             />
           </div>
 
-          <div className="grid gap-px overflow-hidden rounded-lg bg-border md:grid-cols-3">
-            {actions.map((item, index) => (
-              <button
-                key={item.title}
-                data-reveal
-                className="group flex flex-col items-start gap-4 bg-card p-7 text-left transition-colors duration-200 hover:bg-muted/60 focus-visible:outline-none"
-                style={{ transitionDelay: `${index * 80}ms` }}
-                onClick={item.action}
-              >
-                <div
-                  className="flex size-11 items-center justify-center rounded-md"
-                  style={{ background: item.bg }}
+          {rows.map((row, index) => (
+            <div
+              key={row.title}
+              data-reveal
+              className={`landing-row ${index % 2 === 1 ? 'landing-row--reverse' : ''} ${revealDelayClass(index * 60)}`}
+            >
+              <div className="landing-row-text">
+                <span className="landing-row-eyebrow">{row.eyebrow}</span>
+                <h3 className="landing-row-title">{row.title}</h3>
+                <p className="landing-row-body">{row.body}</p>
+                <button
+                  type="button"
+                  onClick={() => navigateAuthWithOverlay(row.path)}
+                  className="landing-row-cta"
                 >
-                  <item.icon size={20} style={{ color: item.color }} strokeWidth={2} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="mb-1.5 text-[17px] font-semibold tracking-[-0.01em] text-foreground">
-                    {item.title}
-                  </h3>
-                  <p className="text-[14px] leading-[1.55] text-muted-foreground">{item.desc}</p>
-                </div>
-                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition-transform duration-200 group-hover:translate-x-0.5">
-                  {t('landing.quickActions.open')} <ArrowRight size={14} />
-                </span>
-              </button>
-            ))}
-          </div>
+                  {row.cta}
+                  <ArrowRight size={15} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="landing-row-visual" aria-hidden="true">
+                {row.illustration === 'report' && <ReportIllustration />}
+                {row.illustration === 'track' && <TrackIllustration />}
+                {row.illustration === 'map' && <MapIllustration />}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </>
   );
 }
 
-function MapTeaser() {
+function OperationalSignals() {
+  const signals = [
+    {
+      title: 'Barangay-first routing',
+      detail: 'Automatically matched to the right desk',
+    },
+    {
+      title: 'OTP-protected accounts',
+      detail: 'Verified access before residents file reports',
+    },
+    {
+      title: 'Map-based awareness',
+      detail: 'See what is happening around your block',
+    },
+    {
+      title: 'Clear status timeline',
+      detail: 'Submission to resolution in one flow',
+    },
+    {
+      title: 'Emergency handoff first',
+      detail: 'Call-first behavior for urgent incidents',
+    },
+  ];
+
+  return (
+    <section className="landing-press" aria-label="Operational strengths">
+      <div className="landing-container">
+        <div className="landing-press-label">
+          <Sparkles size={13} aria-hidden="true" />
+          Designed for civic response
+        </div>
+        <div className="landing-press-marquee">
+          <div className="landing-press-track">
+            {[0, 1].map((copyIndex) => (
+              <div
+                key={copyIndex}
+                className="landing-press-group"
+                aria-hidden={copyIndex === 1 ? 'true' : undefined}
+              >
+                {signals.map((signal) => (
+                  <article key={`${copyIndex}-${signal.title}`} className="landing-press-card">
+                    <div className="landing-press-card-kicker">Operational signal</div>
+                    <h3 className="landing-press-card-title">{signal.title}</h3>
+                    <p className="landing-press-card-detail">{signal.detail}</p>
+                  </article>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ReportIllustration() {
+  return (
+    <div className="illustration illustration-report">
+      <div
+        className="illustration-phone illustration-tilt-card"
+        onMouseMove={updateCardTilt}
+        onMouseLeave={resetCardTilt}
+      >
+        <div className="illustration-phone-bar">
+          <span className="illustration-phone-dot" />
+          <span className="illustration-phone-pill" />
+        </div>
+        <div className="illustration-form-row">
+          <span className="illustration-form-label">Type</span>
+          <div className="illustration-chips">
+            <span className="illustration-chip illustration-chip--a">Crime</span>
+            <span className="illustration-chip illustration-chip--b">Noise</span>
+            <span className="illustration-chip illustration-chip--c">Pollution</span>
+          </div>
+        </div>
+        <div className="illustration-form-row">
+          <span className="illustration-form-label">Location</span>
+          <div className="illustration-pin-line">
+            <MapPin size={14} aria-hidden="true" />
+            <span>Brgy 251 / Almeda St.</span>
+          </div>
+        </div>
+        <div className="illustration-evidence">
+          <div className="illustration-evidence-tile">
+            <Sparkles size={16} aria-hidden="true" />
+            <span>Photo</span>
+          </div>
+          <div className="illustration-evidence-tile">
+            <Radio size={16} aria-hidden="true" />
+            <span>Voice</span>
+          </div>
+        </div>
+        <div className="illustration-submit">Submit Report</div>
+      </div>
+      <span className="illustration-blob illustration-blob--a" />
+      <span className="illustration-blob illustration-blob--b" />
+    </div>
+  );
+}
+
+function TrackIllustration() {
+  const steps = [
+    { label: 'Submitted', state: 'done' },
+    { label: 'Under Review', state: 'done' },
+    { label: 'In Progress', state: 'active' },
+    { label: 'Resolved', state: 'pending' },
+    { label: 'Closed', state: 'pending' },
+  ];
+
+  return (
+    <div className="illustration illustration-track">
+      <div
+        className="illustration-card illustration-tilt-card"
+        onMouseMove={updateCardTilt}
+        onMouseLeave={resetCardTilt}
+      >
+        <div className="illustration-card-head">
+          <div>
+            <div className="illustration-card-id">TGN-00184</div>
+            <div className="illustration-card-meta">Pollution / Brgy 252</div>
+          </div>
+          <span className="illustration-card-badge">In Progress</span>
+        </div>
+        <ol className="illustration-timeline">
+          {steps.map((s, i) => (
+            <li key={s.label} className={`illustration-step illustration-step--${s.state}`}>
+              <span className="illustration-step-marker">
+                {s.state === 'done' && <CheckCircle2 size={14} aria-hidden="true" />}
+                {s.state === 'active' && <span className="illustration-step-pulse" />}
+              </span>
+              <span className="illustration-step-label">{s.label}</span>
+              {i < steps.length - 1 && <span className="illustration-step-line" aria-hidden="true" />}
+            </li>
+          ))}
+        </ol>
+      </div>
+      <span className="illustration-blob illustration-blob--c" />
+    </div>
+  );
+}
+
+function MapIllustration() {
+  const pins = [
+    { pinClass: 'illustration-map-pin--1', toneClass: 'illustration-map-pin-tone--medium', label: 'Noise' },
+    { pinClass: 'illustration-map-pin--2', toneClass: 'illustration-map-pin-tone--critical', label: 'Crime' },
+    { pinClass: 'illustration-map-pin--3', toneClass: 'illustration-map-pin-tone--medium', label: 'Noise' },
+    { pinClass: 'illustration-map-pin--4', toneClass: 'illustration-map-pin-tone--pollution', label: 'Pollution' },
+    { pinClass: 'illustration-map-pin--5', toneClass: 'illustration-map-pin-tone--critical', label: 'Crime' },
+  ];
+
+  const barangayLabels = [
+    { name: 'Barangay 252', labelClass: 'illustration-map-zone-label--252' },
+    { name: 'Barangay 251', labelClass: 'illustration-map-zone-label--251' },
+    { name: 'Barangay 256', labelClass: 'illustration-map-zone-label--256' },
+  ];
+
+  return (
+    <div className="illustration illustration-map">
+      <div
+        className="illustration-map-tile illustration-tilt-card"
+        onMouseMove={updateCardTilt}
+        onMouseLeave={resetCardTilt}
+      >
+        <img
+          src="/maps/tondo-barangays-clean.svg"
+          alt=""
+          className="illustration-map-img"
+          loading="lazy"
+          decoding="async"
+        />
+        {pins.map((pin) => (
+          <div
+            key={`${pin.pinClass}-${pin.label}`}
+            className={`illustration-map-pin ${pin.pinClass}`}
+          >
+            <span className={`illustration-map-pin-dot ${pin.toneClass}`} />
+            <span className={`illustration-map-pin-pulse ${pin.toneClass}`} />
+          </div>
+        ))}
+        {barangayLabels.map((barangay) => (
+          <span
+            key={barangay.name}
+            className={`illustration-map-zone-label ${barangay.labelClass}`}
+          >
+            {barangay.name}
+          </span>
+        ))}
+        <div className="illustration-map-legend">
+          <span className="illustration-map-legend-item">
+            <span className="illustration-map-legend-dot illustration-map-pin-tone--critical" />
+            Crime
+          </span>
+          <span className="illustration-map-legend-item">
+            <span className="illustration-map-legend-dot illustration-map-pin-tone--medium" />
+            Noise
+          </span>
+          <span className="illustration-map-legend-item">
+            <span className="illustration-map-legend-dot illustration-map-pin-tone--pollution" />
+            Pollution
+          </span>
+        </div>
+      </div>
+      <span className="illustration-blob illustration-blob--d" />
+    </div>
+  );
+}
+
+function FeatureCards() {
+  const { t } = useTranslation();
+
+  const cards = [
+    {
+      title: t('landing.safety.tip1.title'),
+      icon: Shield,
+      tone: 'navy' as const,
+      bullets: [t('landing.safety.tip1.action1'), t('landing.safety.tip1.action2')],
+    },
+    {
+      title: t('landing.safety.tip2.title'),
+      icon: Users,
+      tone: 'ochre' as const,
+      bullets: [t('landing.safety.tip2.action1'), t('landing.safety.tip2.action2')],
+    },
+    {
+      title: t('landing.safety.tip3.title'),
+      icon: AlertTriangle,
+      tone: 'rose' as const,
+      bullets: [t('landing.safety.tip3.action1'), t('landing.safety.tip3.action2')],
+    },
+  ];
+
+  return (
+    <section id="safety" className="landing-features">
+      <div className="landing-container">
+        <SectionHeading
+          label={t('landing.safety.label')}
+          title={t('landing.safety.subtitle')}
+          subtitle={t('landing.safety.tagline')}
+          align="center"
+        />
+
+        <div className="landing-features-grid">
+          {cards.map((card, index) => (
+            <article
+              key={card.title}
+              data-reveal
+              className={`landing-feature landing-feature--${card.tone} ${revealDelayClass(index * 80)}`}
+            >
+              <div className="landing-feature-orb">
+                <span className="landing-feature-orb-bg" aria-hidden="true" />
+                <card.icon size={28} strokeWidth={2} aria-hidden="true" />
+              </div>
+              <h3 className="landing-feature-title">{card.title}</h3>
+              <ul className="landing-feature-list">
+                {card.bullets.map((b) => (
+                  <li key={b}>
+                    <CheckCircle2 size={14} aria-hidden="true" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatsMap() {
   const { t } = useTranslation();
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
@@ -555,60 +920,79 @@ function MapTeaser() {
   };
 
   const pins = [
-    { x: '22%', y: '32%', color: '#B91C1C', label: t('incident.type.crime') },
-    { x: '58%', y: '48%', color: '#865300', label: t('incident.type.noise') },
-    { x: '38%', y: '68%', color: '#0F766E', label: t('incident.type.pollution') },
-    { x: '72%', y: '28%', color: '#1E3A8A', label: t('incident.type.road_hazard') },
+    { pinClass: 'landing-stats-map-pin--1', toneClass: 'landing-stats-map-pin-tone--medium' },
+    { pinClass: 'landing-stats-map-pin--2', toneClass: 'landing-stats-map-pin-tone--critical' },
+    { pinClass: 'landing-stats-map-pin--3', toneClass: 'landing-stats-map-pin-tone--pollution' },
+    { pinClass: 'landing-stats-map-pin--4', toneClass: 'landing-stats-map-pin-tone--critical' },
+    { pinClass: 'landing-stats-map-pin--5', toneClass: 'landing-stats-map-pin-tone--pollution' },
+    { pinClass: 'landing-stats-map-pin--6', toneClass: 'landing-stats-map-pin-tone--medium' },
+    { pinClass: 'landing-stats-map-pin--7', toneClass: 'landing-stats-map-pin-tone--info' },
+  ];
+
+  const barangayLabels = [
+    { name: 'Barangay 252', labelClass: 'landing-stats-map-zone-label--252' },
+    { name: 'Barangay 251', labelClass: 'landing-stats-map-zone-label--251' },
+    { name: 'Barangay 256', labelClass: 'landing-stats-map-zone-label--256' },
+  ];
+
+  const stats = [
+    { val: '3', label: 'Barangays\ncovered' },
+    { val: '5', label: 'Incident\ncategories' },
+    { val: '24/7', label: 'Real-time\nreporting' },
   ];
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section data-reveal className="relative overflow-hidden bg-primary px-6 py-24 md:py-32">
-        <div className="relative z-[1] mx-auto max-w-6xl">
-          <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr]">
-            {/* Left: text */}
-            <div>
+      <section className="landing-stats-map">
+        <div className="landing-container">
+          <div className="landing-stats-map-inner">
+            <div className="landing-stats-map-text" data-reveal>
               <SectionHeading
                 label={t('landing.map.label')}
-                title={t('landing.map.title').replace('\n', ' ')}
+                title="Real-time pins across every block we serve"
                 subtitle={t('landing.map.desc')}
-                light
               />
               <Button
                 size="lg"
                 onClick={go}
-                className="mt-2 gap-2 rounded-md bg-white px-5 text-sm font-semibold text-primary shadow-none hover:bg-white/95"
+                className="landing-stats-map-cta"
               >
-                {t('landing.map.exploreBtn')} <ArrowRight size={14} />
+                {t('landing.map.exploreBtn')} <ArrowRight size={15} aria-hidden="true" />
               </Button>
             </div>
 
-            {/* Right: map preview — muted, no glow */}
-            <div className="relative">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-lg border border-white/10 bg-[#0a1a3e]">
-                <div className="pointer-events-none absolute inset-0 bg-white/[0.02]" />
-
-                {/* Pins — flat, no glow */}
-                {pins.map((pin) => (
-                  <div
-                    key={pin.label}
-                    className="absolute flex items-center gap-2"
-                    style={{ left: pin.x, top: pin.y, transform: 'translate(-50%, -50%)' }}
+            <div className={`landing-stats-map-visual ${revealDelayClass(120)}`} data-reveal>
+              <div className="landing-stats-map-tile" aria-hidden="true">
+                <img
+                  src="/maps/tondo-barangays-clean.svg"
+                  alt=""
+                  className="landing-stats-map-img"
+                  loading="lazy"
+                  decoding="async"
+                />
+                {pins.map((pin, i) => (
+                  <span
+                    key={i}
+                    className={`landing-stats-map-pin ${pin.pinClass} ${pin.toneClass}`}
+                  />
+                ))}
+                {barangayLabels.map((barangay) => (
+                  <span
+                    key={barangay.name}
+                    className={`landing-stats-map-zone-label ${barangay.labelClass}`}
                   >
-                    <span
-                      className="block size-2.5 rounded-full ring-2 ring-[#0a1a3e]"
-                      style={{ background: pin.color }}
-                    />
-                    <span className="whitespace-nowrap rounded bg-white/10 px-1.5 py-[2px] text-[10px] font-medium text-white/85 backdrop-blur-sm">
-                      {pin.label}
-                    </span>
+                    {barangay.name}
+                  </span>
+                ))}
+              </div>
+              <div className="landing-stats-map-numbers">
+                {stats.map((s) => (
+                  <div key={s.val} className="landing-stats-map-stat">
+                    <div className="landing-stats-map-stat-val">{s.val}</div>
+                    <div className="landing-stats-map-stat-label">{s.label}</div>
                   </div>
                 ))}
-
-                <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white/75 backdrop-blur-sm">
-                  <MapIcon size={11} /> {t('landing.map.footer')}
-                </div>
               </div>
             </div>
           </div>
@@ -620,88 +1004,172 @@ function MapTeaser() {
 
 function HowToUse() {
   const { t } = useTranslation();
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const steps = [
     {
       title: t('landing.howItWorks.step1.sectionTitle'),
       detail: t('landing.howItWorks.step1.detail'),
       icon: FileText,
-      color: 'var(--primary)',
-      bg: '#DBEAFE',
+      tone: 'navy' as const,
       visual: t('landing.howItWorks.step1.visual'),
     },
     {
       title: t('landing.howItWorks.step2.sectionTitle'),
       detail: t('landing.howItWorks.step2.detail'),
       icon: Users,
-      color: 'var(--severity-medium)',
-      bg: '#FEF3C7',
+      tone: 'ochre' as const,
       visual: t('landing.howItWorks.step2.visual'),
     },
     {
       title: t('landing.howItWorks.step3.sectionTitle'),
       detail: t('landing.howItWorks.step3.detail'),
       icon: CheckCircle2,
-      color: '#059669',
-      bg: '#D1FAE5',
+      tone: 'green' as const,
       visual: t('landing.howItWorks.step3.visual'),
     },
   ];
 
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) {
+      return;
+    }
+
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+      setProgress(0);
+      setActiveIndex(0);
+      return;
+    }
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const scrollable = rect.height - vh;
+      if (scrollable <= 0) {
+        setProgress(0);
+        setActiveIndex(0);
+        return;
+      }
+      const scrolled = Math.max(0, Math.min(scrollable, -rect.top));
+      const p = scrolled / scrollable;
+      setProgress(p);
+      const idx = p < 1 / 3 ? 0 : p < 2 / 3 ? 1 : 2;
+      setActiveIndex((prev) => (prev === idx ? prev : idx));
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  const scrollToStep = (i: number) => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const scrollable = Math.max(1, rect.height - vh);
+    const targetP = i / (steps.length - 1);
+    const sectionTop = rect.top + window.scrollY;
+    window.scrollTo({ top: sectionTop + targetP * scrollable, behavior: 'smooth' });
+  };
+
+  const segmentProgress = Math.max(
+    0,
+    Math.min(1, progress * steps.length - activeIndex),
+  );
+  const activeTone = steps[activeIndex].tone;
+
   return (
-    <section id="how" data-reveal className="bg-muted/50 px-6 py-[5.5rem] md:py-28">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid gap-14 md:grid-cols-[1fr_1.3fr]">
-          <div className="md:sticky md:top-28 md:self-start">
-            <SectionHeading
-              label={t('landing.howItWorks.label')}
-              title={t('landing.howItWorks.threeSteps')}
-              subtitle={t('landing.howItWorks.tagline')}
-            />
+    <section id="how" ref={sectionRef} className={`landing-how landing-how--${activeTone}`}>
+      <div className="landing-how-sticky">
+        <div className="landing-how-eyebrow" aria-hidden="true">
+          <span className="landing-how-eyebrow-line" />
+          {t('landing.howItWorks.label')}
+        </div>
+
+        <h2 className="landing-how-title">
+          {t('landing.howItWorks.threeSteps')}
+        </h2>
+
+        <div className="landing-how-stage">
+          <div className="landing-how-numeral" aria-hidden="true">
+            {steps.map((_, i) => (
+              <span
+                key={i}
+                className={`landing-how-numeral-digit ${
+                  i === activeIndex ? 'is-active' : ''
+                } ${i < activeIndex ? 'is-past' : ''}`}
+              >
+                {String(i + 1).padStart(2, '0')}
+              </span>
+            ))}
           </div>
 
-          <ol className="relative space-y-px">
-            {steps.map((step, index) => (
-              <li
+          <div className="landing-how-panels">
+            {steps.map((step, i) => (
+              <article
                 key={step.title}
-                data-reveal
-                className="relative flex gap-5 border-t border-border bg-background px-6 py-7 first:rounded-t-lg last:rounded-b-lg last:border-b md:px-8 md:py-8"
-                style={{ transitionDelay: `${index * 80}ms` }}
+                aria-hidden={i !== activeIndex}
+                className={`landing-how-panel landing-how-panel--${step.tone} ${
+                  i === activeIndex ? 'is-active' : ''
+                } ${i < activeIndex ? 'is-past' : ''}`}
               >
-                <div className="flex flex-col items-center">
-                  <div
-                    className="flex size-11 items-center justify-center rounded-md"
-                    style={{ background: step.bg }}
-                  >
-                    <step.icon size={20} color={step.color} strokeWidth={2} />
-                  </div>
-                  {index < steps.length - 1 && (
-                    <span className="mt-3 w-px flex-1 bg-border" aria-hidden="true" />
-                  )}
-                </div>
-                <div className="flex-1 pb-1">
-                  <div className="mb-1.5 flex items-center gap-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      {t('landing.howItWorks.step', { number: String(index + 1).padStart(2, '0') })}
-                    </span>
-                    <span
-                      className="rounded px-1.5 py-0.5 text-[10px] font-medium"
-                      style={{ color: step.color, background: step.bg }}
-                    >
-                      {step.visual}
-                    </span>
-                  </div>
-                  <h3 className="mb-2 text-[18px] font-semibold tracking-[-0.01em] text-foreground">
-                    {step.title}
-                  </h3>
-                  <p className="max-w-[560px] text-[14px] leading-[1.6] text-muted-foreground">
-                    {step.detail}
-                  </p>
-                </div>
-              </li>
+                <span className="landing-how-panel-step" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="landing-how-panel-kicker">{step.visual}</span>
+                <h3 className="landing-how-panel-title">{step.title}</h3>
+                <p className="landing-how-panel-detail">{step.detail}</p>
+              </article>
             ))}
-          </ol>
+          </div>
         </div>
+
+        <nav className="landing-how-rail" aria-label="Jump to step">
+          {steps.map((step, i) => {
+            const isActive = i === activeIndex;
+            const isPast = i < activeIndex;
+            const fillPct = isPast ? 100 : isActive ? segmentProgress * 100 : 0;
+            return (
+              <button
+                key={step.title}
+                type="button"
+                onClick={() => scrollToStep(i)}
+                aria-label={`Go to step ${i + 1}: ${step.title}`}
+                aria-current={isActive ? 'step' : undefined}
+                className={`landing-how-rail-item ${isActive ? 'is-active' : ''} ${
+                  isPast ? 'is-past' : ''
+                }`}
+              >
+                <span className="landing-how-rail-num">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="landing-how-rail-track" aria-hidden="true">
+                  <span
+                    className="landing-how-rail-fill"
+                    style={{ transform: `scaleX(${fillPct / 100})` }}
+                  />
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </section>
   );
@@ -717,8 +1185,6 @@ function SupportedBarangays() {
       district: 'District II, Tondo, Manila',
       hallAddress: '1781 Almeda Street, Tondo, Manila',
       responders: ['MDRRMO', 'BFP', 'PNP'],
-      color: 'var(--primary)',
-      light: '#EFF6FF',
     },
     {
       name: 'Barangay 252',
@@ -726,8 +1192,6 @@ function SupportedBarangays() {
       district: 'District II, Tondo, Manila',
       hallAddress: '1787 Biak-na-Bato Street, Tondo, Manila',
       responders: ['MDRRMO', 'PNP', 'EMS'],
-      color: 'var(--severity-critical)',
-      light: '#FEE2E2',
     },
     {
       name: 'Barangay 256',
@@ -735,61 +1199,53 @@ function SupportedBarangays() {
       district: 'District II, Tondo, Manila',
       hallAddress: '1865 Tescon de Cuia Street, Tondo, Manila',
       responders: ['MDRRMO', 'BFP', 'EMS'],
-      color: 'var(--severity-medium)',
-      light: '#FEF3C7',
     },
   ];
 
   return (
-    <section id="barangays" data-reveal className="bg-background px-6 py-16 md:py-24">
-      <div className="mx-auto max-w-6xl">
+    <section id="barangays" className="landing-barangays">
+      <div className="landing-container">
         <SectionHeading
           label={t('landing.barangays.label')}
           title={t('landing.barangays.subtitle')}
           subtitle={t('landing.barangays.tagline')}
         />
 
-        <div className="mt-4 overflow-hidden rounded-lg border border-border">
+        <div className="landing-barangays-list">
           {barangays.map((item, index) => (
             <div
               key={item.name}
               data-reveal
-              className="group flex flex-col gap-4 border-b border-border bg-card px-6 py-6 transition-colors last:border-b-0 hover:bg-muted/40 md:flex-row md:items-center md:gap-8 md:px-8"
-              style={{ transitionDelay: `${index * 70}ms` }}
+              className={`landing-barangay-row ${revealDelayClass(index * 70)}`}
             >
-              <div className="flex items-center gap-4 md:w-[280px] md:shrink-0">
-                <div className="flex size-10 items-center justify-center rounded-md bg-primary/[0.08] text-primary">
-                  <MapPin size={18} strokeWidth={2} />
+              <div className="landing-barangay-id">
+                <div className="landing-barangay-pin">
+                  <MapPin size={18} strokeWidth={2} aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-semibold tracking-[-0.005em] text-foreground">{item.name}</h3>
-                  <p className="text-[12px] text-muted-foreground">{item.district}</p>
+                  <div className="landing-barangay-name">{item.name}</div>
+                  <div className="landing-barangay-district">{item.district}</div>
                 </div>
               </div>
 
-              <div className="flex-1 md:border-l md:border-border md:pl-8">
-                <p className="text-[13px] font-medium text-foreground">
+              <div className="landing-barangay-info">
+                <div className="landing-barangay-captain">
                   {t('landing.barangays.captain', { name: item.captain })}
-                </p>
-                <p className="mt-0.5 text-[12px] text-muted-foreground">{item.hallAddress}</p>
+                </div>
+                <div className="landing-barangay-address">{item.hallAddress}</div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5 md:w-[180px] md:shrink-0">
+              <div className="landing-barangay-responders">
                 {item.responders.map((r) => (
-                  <span
-                    key={r}
-                    className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.04em] text-muted-foreground"
-                  >
-                    {r}
-                  </span>
+                  <span key={r} className="landing-barangay-tag">{r}</span>
                 ))}
               </div>
 
               <button
                 onClick={() => navigateTo('/auth/register')}
-                className="inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-primary transition-transform duration-200 hover:translate-x-0.5"
+                className="landing-barangay-cta"
               >
-                {t('landing.barangays.startReporting')} <ChevronRight size={15} />
+                {t('landing.barangays.startReporting')} <ChevronRight size={15} aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -799,57 +1255,60 @@ function SupportedBarangays() {
   );
 }
 
-function SafetyTips() {
-  const { t } = useTranslation();
-
-  const tips = [
+function Testimonials() {
+  const stories = [
     {
-      title: t('landing.safety.tip1.title'),
-      icon: Shield,
-      actions: [t('landing.safety.tip1.action1'), t('landing.safety.tip1.action2')],
+      quote: 'Residents do not need a manual. They need one place to report, one place to track, and proof that someone saw it.',
+      name: 'Mariel S.',
+      role: 'Resident, Barangay 251',
     },
     {
-      title: t('landing.safety.tip2.title'),
-      icon: Users,
-      actions: [t('landing.safety.tip2.action1'), t('landing.safety.tip2.action2')],
+      quote: 'The timeline reduces duplicate follow-ups because everyone can see what already happened and what still needs action.',
+      name: 'Desk Officer',
+      role: 'Barangay 252 response desk',
     },
     {
-      title: t('landing.safety.tip3.title'),
-      icon: AlertTriangle,
-      actions: [t('landing.safety.tip3.action1'), t('landing.safety.tip3.action2')],
+      quote: 'A map view changes the conversation. Repeat trouble spots become visible before they turn into a larger community issue.',
+      name: 'Volunteer Lead',
+      role: 'Community watch, Barangay 256',
     },
   ];
 
   return (
-    <section id="safety" data-reveal className="bg-muted/50 px-6 py-[5.5rem] md:py-28">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          label={t('landing.safety.label')}
-          title={t('landing.safety.subtitle')}
-          subtitle={t('landing.safety.tagline')}
-        />
+    <section className="landing-testimonials">
+      <div className="landing-container">
+        <div data-reveal>
+          <SectionHeading
+            label="Confidence"
+            title="Confidence for residents, clarity for responders"
+            subtitle="TUGON is designed to make the next step obvious, whether you are filing a report, checking its status, or scanning what is happening nearby."
+            align="center"
+          />
+        </div>
 
-        <div className="mt-4 grid gap-6 md:grid-cols-3">
-          {tips.map((tip, index) => (
-            <div
-              key={tip.title}
+        <div className="landing-testimonials-grid">
+          {stories.map((story, index) => (
+            <figure
+              key={story.name}
               data-reveal
-              className="flex flex-col gap-4 rounded-lg bg-card p-6 md:p-7"
-              style={{ transitionDelay: `${index * 80}ms` }}
+              className={`landing-testimonial ${revealDelayClass(index * 80)}`}
             >
-              <div className="flex size-10 items-center justify-center rounded-md bg-primary/[0.08] text-primary">
-                <tip.icon size={18} strokeWidth={2} />
+              <div className="landing-testimonial-mark" aria-hidden="true">
+                <Sparkles size={18} strokeWidth={1.8} />
               </div>
-              <h3 className="text-[16px] font-semibold tracking-[-0.005em] text-foreground">{tip.title}</h3>
-              <ul className="flex flex-col gap-2.5">
-                {tip.actions.map((action) => (
-                  <li key={action} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-muted-foreground">
-                    <CheckCircle2 size={14} className="mt-[3px] shrink-0 text-primary" />
-                    <span>{action}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <blockquote className="landing-testimonial-body">
+                "{story.quote}"
+              </blockquote>
+              <figcaption className="landing-testimonial-cite">
+                <span className="landing-testimonial-avatar" aria-hidden="true">
+                  {story.name.slice(0, 2).toUpperCase()}
+                </span>
+                <div>
+                  <div className="landing-testimonial-name">{story.name}</div>
+                  <div className="landing-testimonial-role">{story.role}</div>
+                </div>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
@@ -857,75 +1316,8 @@ function SafetyTips() {
   );
 }
 
-function EmergencyHotlines() {
+function ClosingCta() {
   const { t } = useTranslation();
-
-  const hotlines = [
-    { name: t('landing.emergency.hotline1.name'), number: '911', note: t('landing.emergency.hotline1.note') },
-    { name: t('landing.emergency.hotline2.name'), number: '117', note: t('landing.emergency.hotline2.note') },
-    { name: t('landing.emergency.hotline3.name'), number: '160', note: t('landing.emergency.hotline3.note') },
-  ];
-
-  return (
-    <section id="hotlines" data-reveal className="bg-background px-6 py-16 md:py-24">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          label={t('landing.emergency.label')}
-          title={t('landing.emergency.subtitle')}
-          subtitle={t('landing.emergency.tagline')}
-        />
-
-        <div
-          data-reveal
-          className="mb-2 flex flex-wrap items-center justify-between gap-4 rounded-lg bg-destructive px-6 py-5 md:px-7"
-          style={{ transitionDelay: '80ms' }}
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex size-10 items-center justify-center rounded-md bg-white/15">
-              <AlertTriangle size={18} className="text-white" />
-            </div>
-            <div>
-              <div className="text-[15px] font-semibold text-white">{t('landing.emergency.callNow')}</div>
-              <div className="text-[13px] text-white/80">{t('landing.emergency.callThenFile')}</div>
-            </div>
-          </div>
-          <a
-            href="tel:911"
-            className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-[13px] font-semibold text-destructive transition-colors hover:bg-white/95"
-          >
-            <Phone size={14} /> {t('landing.emergency.callNowBtn')}
-          </a>
-        </div>
-
-        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
-          {hotlines.map((item, index) => (
-            <a
-              key={item.name}
-              data-reveal
-              href={`tel:${item.number}`}
-              className="group flex items-center gap-5 bg-card px-6 py-5 transition-colors hover:bg-muted/40 md:px-7"
-              style={{ transitionDelay: `${index * 70}ms` }}
-            >
-              <div className="font-mono text-[22px] font-semibold tracking-[-0.01em] text-foreground md:w-[90px]">
-                {item.number}
-              </div>
-              <div className="flex-1 border-l border-border pl-5">
-                <div className="text-[14px] font-medium text-foreground">{item.name}</div>
-                <div className="mt-0.5 text-[12.5px] text-muted-foreground">{item.note}</div>
-              </div>
-              <Phone size={16} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  const { t } = useTranslation();
-  const year = new Date().getFullYear();
-
   const [authRedirecting, setAuthRedirecting] = useState(false);
 
   const navigateAuthWithOverlay = (path: string) => {
@@ -935,70 +1327,155 @@ function Footer() {
     }, 260);
   };
 
-  const quickLinks = [
-    { label: t('landing.footer.register'), action: () => navigateAuthWithOverlay('/auth/register') },
-    { label: t('landing.footer.login'), action: () => navigateAuthWithOverlay('/auth/login') },
-    { label: t('landing.footer.communityMap'), action: () => navigateAuthWithOverlay('/community-map') },
+  const hotlines = [
+    { name: t('landing.emergency.hotline1.name'), number: '911' },
+    { name: t('landing.emergency.hotline2.name'), number: '117' },
+    { name: t('landing.emergency.hotline3.name'), number: '160' },
   ];
 
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <footer className="bg-[#0F172A] text-slate-300">
-        <div className="mx-auto max-w-5xl px-6 pb-6 pt-10">
-          <div className="mb-6 grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-            <div>
+      <section id="hotlines" className="landing-closing">
+        <div className="landing-container">
+          <div className="landing-closing-grid">
+            <div data-reveal className="landing-closing-card landing-closing-card--emergency">
+              <div className="landing-closing-icon landing-closing-icon--alert">
+                <AlertTriangle size={22} aria-hidden="true" />
+              </div>
+              <h3 className="landing-closing-title">Life-threatening emergency?</h3>
+              <p className="landing-closing-body">
+                {t('landing.emergency.callThenFile')}
+              </p>
+              <div className="landing-closing-hotlines">
+                {hotlines.map((h) => (
+                  <a key={h.number} href={`tel:${h.number}`} className="landing-closing-hotline">
+                    <span className="landing-closing-hotline-num">{h.number}</span>
+                    <span className="landing-closing-hotline-name">{h.name}</span>
+                    <Phone size={14} aria-hidden="true" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div data-reveal className={`landing-closing-card landing-closing-card--register ${revealDelayClass(80)}`}>
+              <div className="landing-closing-icon landing-closing-icon--primary">
+                <CheckCircle2 size={22} aria-hidden="true" />
+              </div>
+              <h3 className="landing-closing-title">Ready to file your first report?</h3>
+              <p className="landing-closing-body">
+                Set up your TUGON account in under two minutes. Verify your phone, confirm your barangay, and you are ready to report.
+              </p>
+              <Button
+                size="lg"
+                onClick={() => navigateAuthWithOverlay('/auth/register')}
+                className="landing-closing-cta"
+              >
+                {t('landing.nav.register')} <ArrowRight size={15} aria-hidden="true" />
+              </Button>
+              <p className="landing-closing-fineprint">
+                Free for residents / Phone OTP secured / No spam
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function Footer() {
+  const { t } = useTranslation();
+  const year = new Date().getFullYear();
+
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+
+  const scrollToSection = (selector: string) => {
+    document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const navigateAuthWithOverlay = (path: string) => {
+    setAuthRedirecting(true);
+    window.setTimeout(() => {
+      navigateTo(path);
+    }, 260);
+  };
+
+  const columns = [
+    {
+      heading: 'Citizen access',
+      links: [
+        { label: t('landing.footer.register'), action: () => navigateAuthWithOverlay('/auth/register') },
+        { label: t('landing.footer.login'), action: () => navigateAuthWithOverlay('/auth/login') },
+        { label: t('landing.footer.communityMap'), action: () => navigateAuthWithOverlay('/community-map') },
+      ],
+    },
+    {
+      heading: 'Coverage',
+      links: [
+        { label: 'Barangay 251', action: () => scrollToSection('#barangays') },
+        { label: 'Barangay 252', action: () => scrollToSection('#barangays') },
+        { label: 'Barangay 256', action: () => scrollToSection('#barangays') },
+      ],
+    },
+    {
+      heading: 'Resources',
+      links: [
+        { label: t('landing.nav.howItWorks'), action: () => scrollToSection('#how') },
+        { label: t('landing.nav.safety'), action: () => scrollToSection('#safety') },
+        { label: t('landing.nav.hotlines'), action: () => scrollToSection('#hotlines') },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      <AuthRedirectOverlay visible={authRedirecting} />
+      <footer className="landing-footer">
+        <div className="landing-container">
+          <div className="landing-footer-grid">
+            <div className="landing-footer-brand">
               <button
                 onClick={() => navigateTo('/')}
                 aria-label="Go to TUGON home"
-                className="mb-3 inline-flex cursor-pointer border-none bg-transparent p-0"
+                className="landing-footer-logo-btn"
               >
                 <img
                   src="/tugon-header-logo.svg"
                   alt="TUGON Tondo Emergency Response"
-                  className="block h-[36px] w-[114px]"
-                  width="114"
+                  className="landing-footer-logo"
+                  width="120"
                   height="36"
                 />
               </button>
-              <p className="m-0 max-w-[500px] text-[13px] leading-[1.62] text-slate-300">
+              <p className="landing-footer-desc">
                 {t('landing.footer.desc')}
               </p>
+              <a href="tel:911" className="landing-footer-emergency">
+                <Phone size={14} aria-hidden="true" />
+                {t('landing.footer.emergencyCall')}
+              </a>
             </div>
 
-            <div>
-              <div className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-white">
-                {t('landing.footer.citizenAccess')}
+            {columns.map((col) => (
+              <div key={col.heading} className="landing-footer-col">
+                <div className="landing-footer-col-head">{col.heading}</div>
+                <ul className="landing-footer-col-list">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <button type="button" onClick={link.action} className="landing-footer-link">
+                        {link.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="mb-3 flex flex-wrap gap-2.5">
-                {quickLinks.map((link) => (
-                  <Button
-                    key={link.label}
-                    variant="ghost"
-                    size="sm"
-                    onClick={link.action}
-                    className="min-h-[40px] border border-white/[0.12] bg-white/[0.06] text-[13px] font-semibold text-blue-100 hover:bg-white/[0.12]"
-                  >
-                    {link.label}
-                  </Button>
-                ))}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="min-h-[40px] gap-1.5 border border-red-500/35 bg-red-800/[0.18] text-xs font-bold tracking-[0.04em] text-red-300 hover:bg-red-800/30"
-              >
-                <a href="tel:911">
-                  <Phone size={13} /> {t('landing.footer.emergencyCall')}
-                </a>
-              </Button>
-            </div>
+            ))}
           </div>
 
-          <div className="flex flex-wrap justify-between gap-2 border-t border-white/[0.08] pt-3.5 text-xs text-slate-300">
+          <div className="landing-footer-meta">
             <span>&copy; {year} TUGON. {t('landing.footer.tagline')}</span>
-            <span className="text-slate-200">{t('landing.footer.location')}</span>
+            <span className="landing-footer-loc">{t('landing.footer.location')}</span>
           </div>
         </div>
       </footer>
@@ -1009,7 +1486,7 @@ function Footer() {
 export default function Landing() {
   const { t } = useTranslation();
 
-  useImmersiveThemeColor('#0f172a');
+  useImmersiveThemeColor('#f5f7fb');
 
   useEffect(() => {
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
@@ -1038,6 +1515,7 @@ export default function Landing() {
 
     return () => observer.disconnect();
   }, []);
+
   useEffect(() => {
     const session = getAuthSession();
     if (!session) {
@@ -1063,8 +1541,8 @@ export default function Landing() {
     const previousHtmlOverflowX = html.style.overflowX;
     const previousBodyOverflowX = body.style.overflowX;
 
-    html.style.overflowX = 'hidden';
-    body.style.overflowX = 'hidden';
+    html.style.overflowX = 'clip';
+    body.style.overflowX = 'clip';
 
     return () => {
       html.style.overflowX = previousHtmlOverflowX;
@@ -1075,7 +1553,7 @@ export default function Landing() {
   return (
     <div
       data-pretext-opt-out="true"
-      className="landing-root bg-background w-full max-w-[100vw] overflow-x-clip [touch-action:pan-y] [font-family:Roboto,system-ui,-apple-system,Segoe_UI,sans-serif]"
+      className="landing-root"
     >
       <a className="skip-link" href="#landing-main-content">
         {t('landing.skipToMain')}
@@ -1083,16 +1561,16 @@ export default function Landing() {
       <Navbar />
       <main id="landing-main-content">
         <Hero />
-        <QuickActions />
-        <MapTeaser />
+        <OperationalSignals />
+        <ActionRows />
+        <FeatureCards />
+        <StatsMap />
         <HowToUse />
         <SupportedBarangays />
-        <SafetyTips />
-        <EmergencyHotlines />
+        <Testimonials />
+        <ClosingCta />
         <Footer />
       </main>
-
-      {/* All landing CSS extracted to src/styles/landing.css for better caching */}
     </div>
   );
 }
