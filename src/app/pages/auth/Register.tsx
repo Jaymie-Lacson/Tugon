@@ -75,6 +75,7 @@ export default function Register() {
       title={t('auth.register.title')}
       subtitle={t('auth.register.subtitle')}
       logoSrc="/tugon-header-logo.svg"
+      mobileLogoSrc="/tugon-wordmark-blue.svg"
       topAction={
         <Button
           variant="ghost"
@@ -214,7 +215,7 @@ export default function Register() {
           onClick={() => navigate('/auth/login')}
           className="gap-1.5 text-muted-foreground"
         >
-          <ArrowLeft size={14} /> {t('auth.register.backToLogin')} <span className="font-bold text-primary">{t('auth.register.login')}</span>
+          {t('auth.register.backToLogin')} <span className="font-bold text-primary">{t('auth.register.login')}</span>
         </Button>
       </div>
     </AuthLayout>

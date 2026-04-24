@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House, ArrowLeft } from 'lucide-react';
+import { Phone, Lock, Eye, EyeOff, ArrowRight, ShieldAlert, House } from 'lucide-react';
 import { AuthLayout, InputField, PrimaryButton } from '../../components/AuthLayout';
 import { Button } from '../../components/ui/button';
 import { Separator } from '../../components/ui/separator';
@@ -71,6 +71,7 @@ export default function Login() {
       title={t('auth.login.title')}
       subtitle={t('auth.login.subtitle')}
       logoSrc="/tugon-header-logo.svg"
+      mobileLogoSrc="/tugon-wordmark-blue.svg"
       topAction={
         <Button
           variant="ghost"
@@ -78,7 +79,6 @@ export default function Login() {
           onClick={() => navigate('/')}
           className="gap-1.5 text-muted-foreground hover:text-primary"
         >
-          <ArrowLeft size={14} />
           <House size={14} />
           {t('auth.backToHome')}
         </Button>
