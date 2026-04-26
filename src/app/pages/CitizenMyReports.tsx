@@ -157,7 +157,7 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
   },
   closed: {
     label: 'Closed', color: '#475569', bg: '#F8FAFC', border: '#CBD5E1',
-    dotColor: '#94A3B8', icon: XCircle, step: 4, filterGroup: 'resolved',
+    dotColor: '#94A3B8', icon: XCircle, step: 5, filterGroup: 'resolved',
     description: 'This case has been officially closed.',
   },
   unresolvable: {
@@ -402,22 +402,36 @@ const WORKFLOW_STEPS: { key: CitizenReportStatus | 'created'; label: string }[] 
   { key: 'resolved',     label: 'Done' },
 ];
 
+const WORKFLOW_STEPS_CLOSED: { key: CitizenReportStatus | 'created'; label: string }[] = [
+  { key: 'submitted',    label: 'Submitted' },
+  { key: 'under_review', label: 'Review' },
+  { key: 'in_progress',  label: 'In Progress' },
+  { key: 'resolved',     label: 'Resolved' },
+  { key: 'closed',       label: 'Closed' },
+];
+
 function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const cfg = citizenStatusConfig[status];
   const currentStep = cfg.step;
+  const isClosed = status === 'closed';
   const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
   const isFailed = status === 'unresolvable';
+  const steps = isClosed ? WORKFLOW_STEPS_CLOSED : WORKFLOW_STEPS;
+  const lastStepNum = steps.length;
 
   return (
     <div className="flex w-full items-center gap-0">
-      {WORKFLOW_STEPS.map((s, i) => {
+      {steps.map((s, i) => {
         const stepNum = i + 1;
-        const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
+        const isLastStep = stepNum === lastStepNum;
+        const done = stepNum < currentStep || (isTerminal && !isLastStep);
         const active = stepNum === currentStep && !isTerminal;
         const terminalDoneClass = isFailed
           ? 'bg-[var(--error-container)] border-[var(--error)]'
+          : isClosed
+          ? 'bg-surface-container-high border-[var(--outline-variant)]'
           : 'bg-[var(--severity-low-bg)] border-[var(--severity-low)]';
-        const stepToneClassName = isTerminal && stepNum === 4
+        const stepToneClassName = isLastStep && isTerminal
           ? terminalDoneClass
           : done
             ? 'bg-primary border-primary'
@@ -431,10 +445,12 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
               <div
                 className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded border transition-all duration-300 ${stepToneClassName}`}
               >
-                {(done || (isTerminal && stepNum === 4)) ? (
-                  isTerminal && stepNum === 4 ? (
+                {(done || (isLastStep && isTerminal)) ? (
+                  isLastStep && isTerminal ? (
                     isFailed
                       ? <X size={10} className="text-[var(--error)]" />
+                      : isClosed
+                      ? <CheckCircle2 size={10} className="text-[var(--outline)]" />
                       : <CheckCircle2 size={10} className="text-[var(--severity-low)]" />
                   ) : (
                     <CheckCircle2 size={10} className="text-[var(--primary-foreground)]" />
@@ -446,15 +462,21 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                 )}
               </div>
               <span
-                className={`text-center text-[8px] leading-[1.2] ${done || active ? 'font-bold text-primary' : 'font-normal text-[var(--outline)]'}`}
+                className={`text-center text-[8px] leading-[1.2] ${
+                  isLastStep && isTerminal
+                    ? `font-bold ${isFailed ? 'text-[var(--error)]' : isClosed ? 'text-[var(--outline)]' : 'text-[var(--severity-low)]'}`
+                    : done || active
+                      ? 'font-bold text-primary'
+                      : 'font-normal text-[var(--outline)]'
+                }`}
               >
-                {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
+                {isLastStep && isTerminal ? citizenStatusConfig[status].label : s.label}
               </span>
             </div>
-            {i < WORKFLOW_STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={`mb-[14px] h-0.5 flex-1 rounded-[1px] transition-colors duration-300 ${
-                  stepNum < currentStep || (isTerminal && stepNum < 4) ? 'bg-primary' : 'bg-surface-container-high'
+                  stepNum < currentStep || (isTerminal && !isLastStep) ? 'bg-primary' : 'bg-surface-container-high'
                 }`}
               />
             )}
