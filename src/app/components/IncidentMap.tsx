@@ -256,6 +256,7 @@ export interface IncidentMapProps {
   viewportKey?: string;
   showMarkerTooltip?: boolean;
   showIncidentGlow?: boolean;
+  forceLight?: boolean;
 }
 
 export interface HeatmapClusterOverlay {
@@ -355,9 +356,10 @@ export function IncidentMap({
   viewportKey = 'default',
   showMarkerTooltip = true,
   showIncidentGlow = true,
+  forceLight = false,
 }: IncidentMapProps) {
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
+  const isDark = !forceLight && resolvedTheme === 'dark';
   const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
   const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
 

@@ -50,7 +50,7 @@ export function AuthLayout({
   });
 
   return (
-    <div className="app-shell-height flex w-full bg-[var(--surface)]">
+    <div className="auth-root app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <img
@@ -157,7 +157,7 @@ export function AuthLayout({
             <div className="mt-4 flex justify-center">{topAction}</div>
           )}
 
-          <div className="mt-5 text-center text-[10px] text-[var(--outline)]">
+          <div className="mt-5 text-center text-[10px] text-[var(--on-surface-variant)]">
             <span>Privacy</span>
             <span className="mx-2">|</span>
             <span>Terms</span>
@@ -210,12 +210,12 @@ export function InputField({
         }`}
       >
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--outline)]'}`}>
+          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--on-surface-variant)]'}`}>
             {icon}
           </div>
         )}
         <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--on-surface-variant)] placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
           type={type}
           placeholder={placeholder}
           value={value}
@@ -231,7 +231,7 @@ export function InputField({
         {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
       {error && <div className="mt-1.5 text-[11px] font-semibold text-[var(--error)]">! {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--on-surface-variant)]">{hint}</div>}
     </div>
   );
 }

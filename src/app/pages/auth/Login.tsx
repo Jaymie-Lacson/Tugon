@@ -154,7 +154,7 @@ export default function Login() {
       </div>
 
       <Button
-        variant="outline"
+        variant="secondary"
         className="w-full h-12 font-bold"
         onClick={() => navigate('/auth/register')}
       >

@@ -396,51 +396,11 @@ function Hero() {
   const { t } = useTranslation();
   const [activeAction, setActiveAction] = useState<'report' | 'track' | null>(null);
   const [authRedirecting, setAuthRedirecting] = useState(false);
-  const illustrationRef = useRef<HTMLDivElement | null>(null);
   const heroHighlights = [
     { value: '24/7', label: 'report intake' },
     { value: `${new Set(HERO_DUMMY_REPORTS.map((report) => report.type)).size}`, label: 'incident types in preview' },
     { value: '3', label: 'barangays covered' },
   ];
-
-  useEffect(() => {
-    const el = illustrationRef.current;
-    if (!el) return;
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) {
-      el.style.setProperty('--hero-tilt-progress', '1');
-      return;
-    }
-
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      // Progress climbs from 0 (element's top is at/below viewport bottom) to 1
-      // (element has risen past ~35% from the top of the viewport).
-      const start = vh * 1.0;
-      const end = vh * 0.35;
-      const raw = (start - rect.top) / (start - end);
-      const progress = Math.max(0, Math.min(1, raw));
-      el.style.setProperty('--hero-tilt-progress', progress.toFixed(3));
-    };
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
 
   const navigateWithTransition = (action: 'report' | 'track', path: string) => {
     setActiveAction(action);
@@ -513,26 +473,6 @@ function Hero() {
             ))}
           </div>
 
-          <div
-            ref={illustrationRef}
-            className="landing-hero-illustration"
-          >
-            <div className="landing-hero-map-frame" aria-label="Interactive Tondo map preview with sample incident reports">
-              <IncidentMap
-                incidents={HERO_DUMMY_REPORTS}
-                showMarkerTooltip={false}
-                showIncidentGlow={false}
-                compact
-                interactive
-                zoom={17}
-                height="100%"
-                viewportKey="landing-hero-map"
-              />
-            </div>
-            <div className="landing-hero-map-caption">
-              Browse sample reports directly on the map preview across Barangays 251, 252, and 256.
-            </div>
-          </div>
         </div>
 
         <button
@@ -545,6 +485,108 @@ function Hero() {
         </button>
       </section>
     </>
+  );
+}
+
+function HeroMapStage() {
+  const stageRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      el.style.setProperty('--map-progress', '1');
+      return;
+    }
+
+    // Modern Chromium (115+) and Safari (18+) drive --map-progress entirely
+    // from CSS @supports block, on the compositor thread. Skip the JS path
+    // altogether — no scroll listener, no rAF, no layout reads.
+    const hasNativeScrollTimeline =
+      typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()');
+    if (hasNativeScrollTimeline) {
+      return;
+    }
+
+    let ticking = false;
+    let lastProgress = -1;
+    let inView = false;
+
+    const update = () => {
+      ticking = false;
+      if (!inView) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const scrollable = rect.height - vh;
+      let next = 1;
+      if (scrollable > 0) {
+        const scrolled = Math.max(0, Math.min(scrollable, -rect.top));
+        const raw = scrolled / (scrollable * 0.7);
+        next = raw < 0 ? 0 : raw > 1 ? 1 : raw;
+      }
+
+      // Quantize to two decimals so trivial scroll deltas don't trigger
+      // style writes (and the resulting compositor work) on weak devices.
+      const quantized = Math.round(next * 100) / 100;
+      if (quantized === lastProgress) return;
+      lastProgress = quantized;
+      el.style.setProperty('--map-progress', String(quantized));
+    };
+
+    const onScroll = () => {
+      // Bail before queuing rAF when stage isn't visible — saves callback
+      // dispatch + layout read on every scroll tick.
+      if (ticking || !inView) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    // One-viewport buffer so the transform is settled before the stage
+    // scrolls into view.
+    const io = new IntersectionObserver(
+      (entries) => {
+        inView = entries[0]?.isIntersecting ?? false;
+        if (inView) update();
+      },
+      { rootMargin: '100% 0px' },
+    );
+    io.observe(el);
+
+    inView = true;
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      io.disconnect();
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  return (
+    <section
+      ref={stageRef}
+      className="landing-hero-map-stage"
+      aria-hidden="true"
+    >
+      <div className="landing-hero-map-sticky">
+        <div className="landing-hero-map-frame">
+          <IncidentMap
+            incidents={HERO_DUMMY_REPORTS}
+            showMarkerTooltip={false}
+            showIncidentGlow={false}
+            compact
+            interactive={false}
+            zoom={17}
+            height="100%"
+            viewportKey="landing-hero-map"
+            forceLight
+          />
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -599,6 +641,7 @@ function ActionRows() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <section id="why" className="landing-rows">
+        <ZigzagTrail count={rows.length} />
         <div className="landing-container">
           <div className="landing-rows-intro" data-reveal>
             <SectionHeading
@@ -609,35 +652,78 @@ function ActionRows() {
             />
           </div>
 
-          {rows.map((row, index) => (
-            <div
-              key={row.title}
-              data-reveal
-              className={`landing-row ${index % 2 === 1 ? 'landing-row--reverse' : ''} ${revealDelayClass(index * 60)}`}
-            >
-              <div className="landing-row-text">
-                <span className="landing-row-eyebrow">{row.eyebrow}</span>
-                <h3 className="landing-row-title">{row.title}</h3>
-                <p className="landing-row-body">{row.body}</p>
-                <button
-                  type="button"
-                  onClick={() => navigateAuthWithOverlay(row.path)}
-                  className="landing-row-cta"
-                >
-                  {row.cta}
-                  <ArrowRight size={15} aria-hidden="true" />
-                </button>
+          <div className="landing-rows-stack">
+            {rows.map((row, index) => (
+              <div
+                key={row.title}
+                data-reveal
+                className={`landing-row ${index % 2 === 1 ? 'landing-row--reverse' : ''} ${revealDelayClass(index * 60)}`}
+              >
+                <div className="landing-row-text">
+                  <span className="landing-row-eyebrow">{row.eyebrow}</span>
+                  <h3 className="landing-row-title">{row.title}</h3>
+                  <p className="landing-row-body">{row.body}</p>
+                  <button
+                    type="button"
+                    onClick={() => navigateAuthWithOverlay(row.path)}
+                    className="landing-row-cta"
+                  >
+                    {row.cta}
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="landing-row-visual" aria-hidden="true">
+                  {row.illustration === 'report' && <ReportIllustration />}
+                  {row.illustration === 'track' && <TrackIllustration />}
+                  {row.illustration === 'map' && <MapIllustration />}
+                </div>
               </div>
-              <div className="landing-row-visual" aria-hidden="true">
-                {row.illustration === 'report' && <ReportIllustration />}
-                {row.illustration === 'track' && <TrackIllustration />}
-                {row.illustration === 'map' && <MapIllustration />}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </>
+  );
+}
+
+function ZigzagTrail({ count }: { count: number }) {
+  if (count < 2) return null;
+
+  // Build a zigzag SVG path that swings between left (20) and right (80)
+  // along a 0–100 viewBox, with one swing per gap between rows.
+  const segments = Math.max(count - 1, 1);
+  const stepY = 100 / segments;
+  const sway = 30; // horizontal swing distance from center
+  const cx = 50;
+
+  let d = `M ${cx} 0`;
+  for (let i = 0; i < segments; i++) {
+    const startY = i * stepY;
+    const endY = (i + 1) * stepY;
+    const midY = startY + stepY / 2;
+    const swingX = i % 2 === 0 ? cx + sway : cx - sway;
+    // Smooth S-curve into the swing point, then back to center on the next pass
+    d += ` C ${cx} ${startY + stepY * 0.18}, ${swingX} ${midY - stepY * 0.18}, ${swingX} ${midY}`;
+    d += ` C ${swingX} ${midY + stepY * 0.18}, ${cx} ${endY - stepY * 0.18}, ${cx} ${endY}`;
+  }
+
+  return (
+    <svg
+      className="landing-rows-trail"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeDasharray="6 7"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 }
 
@@ -1561,13 +1647,13 @@ export default function Landing() {
       <Navbar />
       <main id="landing-main-content">
         <Hero />
+        <HeroMapStage />
         <OperationalSignals />
         <ActionRows />
         <FeatureCards />
         <StatsMap />
         <HowToUse />
         <SupportedBarangays />
-        <Testimonials />
         <ClosingCta />
         <Footer />
       </main>

@@ -612,39 +612,89 @@
   color: rgba(13, 28, 46, 0.55);
 }
 
-.landing-hero-illustration {
-  --hero-tilt-progress: 0;
-  --hero-tilt-deg: calc((1 - var(--hero-tilt-progress)) * 28deg);
-  --hero-tilt-y: calc((1 - var(--hero-tilt-progress)) * 46px);
-  --hero-tilt-scale: calc(0.92 + var(--hero-tilt-progress) * 0.08);
+/* Register --map-progress so native scroll-driven animations can smoothly
+   interpolate it on the compositor thread (no main-thread work). */
+@property --map-progress {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: true;
+}
+
+.landing-hero-map-stage {
+  --map-progress: 0;
+  --map-overlap: 18vh;
   position: relative;
   width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  border-radius: 16px;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  min-height: clamp(300px, 44vw, 430px);
-  background: #dbe5f6;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 30px 60px -28px rgba(0, 35, 111, 0.35),
-    0 8px 24px -12px rgba(0, 35, 111, 0.18);
-  transform-origin: 50% 100%;
-  transform:
-    perspective(1600px)
-    translateY(var(--hero-tilt-y))
-    rotateX(var(--hero-tilt-deg))
-    scale(var(--hero-tilt-scale));
-  transition: transform 80ms linear;
-  will-change: transform;
-  backface-visibility: hidden;
+  margin-top: calc(-1 * var(--map-overlap));
+  height: 220vh;
+  background: transparent;
+  overflow: clip;
+  z-index: 2;
+  contain: layout paint;
+}
+
+/* Native CSS scroll-driven animation — runs on the compositor, never blocks
+   the main thread. JS fallback in HeroMapStage handles older browsers. */
+@supports (animation-timeline: view()) {
+  .landing-hero-map-stage {
+    view-timeline-name: --hero-map-stage;
+    view-timeline-axis: block;
+    animation: hero-map-progress linear both;
+    animation-timeline: --hero-map-stage;
+    animation-range: contain 0% contain 70%;
+  }
+
+  @keyframes hero-map-progress {
+    from { --map-progress: 0; }
+    to   { --map-progress: 1; }
+  }
+}
+
+.landing-hero-map-stage::before {
+  content: '';
+  position: absolute;
+  top: var(--map-overlap);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #eaf0fb 0%, #f5f7fb 55%, #ffffff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-hero-map-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
+  transform: translateZ(0);
+  contain: layout paint;
 }
 
 .landing-hero-map-frame {
-  position: relative;
-  min-height: clamp(240px, 36vw, 370px);
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: calc(22px * (1 - var(--map-progress)));
+  overflow: hidden;
+  background: #dbe5f6;
+  transform-origin: 50% 50%;
+  transform:
+    translate3d(
+      calc((1 - var(--map-progress)) * 22%),
+      calc((1 - var(--map-progress)) * 9%),
+      0
+    )
+    rotateX(calc((1 - var(--map-progress)) * 48deg))
+    rotateZ(calc((1 - var(--map-progress)) * -24deg));
+  pointer-events: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
 }
 
 .landing-hero-map-frame .leaflet-container {
@@ -652,6 +702,7 @@
   height: 100%;
   background: #dbe5f6;
   font-family: 'Public Sans', 'IBM Plex Sans', system-ui, sans-serif;
+  pointer-events: none;
 }
 
 .landing-hero-map-frame::after {
@@ -659,22 +710,10 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(0, 35, 111, 0.06) 15%, rgba(0, 35, 111, 0.22) 100%),
-    linear-gradient(120deg, rgba(0, 35, 111, 0.12), rgba(0, 35, 111, 0.02));
+    linear-gradient(180deg, rgba(0, 35, 111, 0.04) 15%, rgba(0, 35, 111, 0.14) 100%),
+    linear-gradient(120deg, rgba(0, 35, 111, 0.08), rgba(0, 35, 111, 0.02));
   pointer-events: none;
   z-index: 450;
-}
-
-.landing-hero-map-caption {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(13, 28, 46, 0.62);
-  background: rgba(255, 255, 255, 0.88);
-  border-top: 1px solid rgba(0, 35, 111, 0.12);
-  padding: 10px 14px;
-  text-align: left;
 }
 
 /* ── Scroll cue ───────────────────────────────────────────────────────── */
@@ -753,19 +792,21 @@
     line-height: 1.25;
   }
 
-  .landing-hero-illustration {
-    min-height: 278px;
-    border-radius: 14px;
+  .landing-hero-map-stage {
+    --map-overlap: 14vh;
+    height: 180vh;
   }
 
   .landing-hero-map-frame {
-    min-height: 238px;
-  }
-
-  .landing-hero-map-caption {
-    font-size: 9.5px;
-    letter-spacing: 0.06em;
-    padding: 8px 10px;
+    border-radius: calc(14px * (1 - var(--map-progress)));
+    transform:
+      translate3d(
+        calc((1 - var(--map-progress)) * 10%),
+        calc((1 - var(--map-progress)) * 6%),
+        0
+      )
+      rotateX(calc((1 - var(--map-progress)) * 32deg))
+      rotateZ(calc((1 - var(--map-progress)) * -14deg));
   }
 }
 
@@ -805,6 +846,7 @@
 /* ── Action rows (alternating image/text) ─────────────────────────────── */
 
 .landing-rows {
+  position: relative;
   background: #ffffff;
   padding-block: clamp(64px, 9vw, 112px);
 }
@@ -894,6 +936,26 @@
   transform: scale(0.98);
 }
 
+.landing-rows-stack {
+  position: relative;
+  color: rgba(0, 35, 111, 0.55);
+}
+
+.landing-rows-trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.landing-rows-stack > .landing-row {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 768px) {
   .landing-row,
   .landing-row--reverse {
@@ -903,6 +965,12 @@
 
   .landing-row--reverse .landing-row-text { order: 0; }
   .landing-row--reverse .landing-row-visual { order: 1; }
+
+  .landing-rows-trail {
+    inset: 0;
+    height: 100%;
+    opacity: 0.6;
+  }
 }
 
 /* ── Illustrations (action rows) ──────────────────────────────────────── */
@@ -1826,35 +1894,32 @@
 @media (max-width: 768px) {
   .landing-how {
     height: auto;
-    padding-block: clamp(56px, 11vw, 88px);
-    background: #f5f7fb;
+    padding-block: clamp(48px, 10vw, 80px) 0;
+    background: #ffffff;
   }
   .landing-how-sticky {
     position: static;
     height: auto;
     display: block;
-    padding: 0 clamp(18px, 4.8vw, 24px);
+    padding: 0;
     overflow: visible;
-  }
-  .landing-how-eyebrow,
-  .landing-how-title {
-    justify-self: auto;
   }
   .landing-how-eyebrow {
     display: inline-flex;
-    justify-content: flex-start;
-    margin: 0 0 10px;
+    justify-self: auto;
+    margin: 0 clamp(20px, 6vw, 28px) 14px;
     font-size: 10.5px;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.24em;
   }
   .landing-how-eyebrow-line { width: 24px; }
   .landing-how-title {
-    margin: 0 0 28px;
+    justify-self: auto;
+    margin: 0 clamp(20px, 6vw, 28px) clamp(36px, 8vw, 56px);
     text-align: left;
-    font-size: clamp(30px, 7.4vw, 39px);
-    line-height: 1.05;
-    max-width: 10ch;
-    letter-spacing: -0.024em;
+    font-size: clamp(36px, 10vw, 52px);
+    line-height: 0.96;
+    max-width: 11ch;
+    letter-spacing: -0.03em;
   }
   .landing-how-stage {
     display: block;
@@ -1867,111 +1932,104 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 0;
   }
   .landing-how-panel {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(58px, 68px) 1fr;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-      'step kicker'
-      'step title'
-      'detail detail';
-    column-gap: 16px;
-    row-gap: 8px;
+    display: block;
     opacity: 1;
     transform: none;
     pointer-events: auto;
-    align-items: start;
     text-align: left;
-    padding: 20px 18px 18px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, var(--panel-tint, rgba(13, 28, 46, 0.03)) 112%);
-    border: 1px solid rgba(13, 28, 46, 0.12);
-    border-radius: 18px;
-    box-shadow: 0 1px 0 rgba(13, 28, 46, 0.03), 0 14px 28px -24px rgba(13, 28, 46, 0.34);
+    padding: clamp(36px, 8vw, 48px) clamp(20px, 6vw, 28px) clamp(40px, 9vw, 56px);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid rgba(13, 28, 46, 0.1);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .landing-how-panel:last-child {
+    border-bottom: 1px solid rgba(13, 28, 46, 0.1);
   }
   .landing-how-panel::after {
     content: '';
     position: absolute;
-    inset: 0 auto auto 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, var(--panel-accent, var(--how-accent)) 0%, rgba(13, 28, 46, 0) 66%);
-    opacity: 0.22;
-    border-radius: 18px 18px 0 0;
+    top: -1px;
+    left: clamp(20px, 6vw, 28px);
+    width: clamp(56px, 14vw, 88px);
+    height: 2px;
+    background: var(--panel-accent, var(--how-accent));
+    opacity: 1;
+    border-radius: 0;
   }
   .landing-how-panel + .landing-how-panel::before {
-    content: '';
-    position: absolute;
-    top: -14px;
-    left: 42px;
-    width: 1px;
-    height: 14px;
-    background: rgba(13, 28, 46, 0.16);
+    display: none;
   }
   .landing-how-panel.is-past { opacity: 1; transform: none; }
   .landing-how-panel-step {
-    grid-area: step;
     display: block;
-    align-self: start;
     font-family: 'Public Sans', 'IBM Plex Sans', system-ui, sans-serif;
-    font-size: clamp(52px, 15vw, 68px);
+    font-size: clamp(72px, 22vw, 120px);
     font-weight: 800;
-    line-height: 0.82;
+    line-height: 0.86;
     letter-spacing: -0.05em;
     color: var(--panel-accent, var(--how-accent));
-    opacity: 0.18;
-    margin-top: 0;
-    min-width: 1.2em;
+    opacity: 0.12;
+    margin: 0 0 clamp(6px, 2vw, 12px);
   }
   .landing-how-panel-kicker {
-    grid-area: kicker;
-    justify-self: start;
-    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     border: 0;
     border-radius: 0;
     padding: 0;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: color-mix(in srgb, var(--panel-accent, var(--how-accent)) 82%, #203047 18%);
-    opacity: 0.98;
+    margin: 0 0 clamp(14px, 3vw, 18px);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--panel-accent, var(--how-accent));
+  }
+  .landing-how-panel-kicker::before {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+    display: inline-block;
+    opacity: 0.6;
   }
   .landing-how-panel-title {
-    grid-area: title;
-    font-size: clamp(19px, 5.4vw, 25px);
-    line-height: 1.16;
-    letter-spacing: -0.024em;
-    max-width: none;
-    margin-top: 0;
+    font-size: clamp(28px, 8vw, 40px);
+    line-height: 1.04;
+    letter-spacing: -0.028em;
+    max-width: 16ch;
+    margin: 0 0 clamp(12px, 3vw, 16px);
+    color: var(--how-ink);
   }
   .landing-how-panel-detail {
-    grid-area: detail;
-    margin-top: 4px;
-    font-size: 14px;
-    line-height: 1.52;
-    max-width: none;
-    color: rgba(13, 28, 46, 0.72);
+    font-size: clamp(14.5px, 3.8vw, 16px);
+    line-height: 1.6;
+    max-width: 44ch;
+    color: rgba(13, 28, 46, 0.68);
+    margin: 0;
   }
   .landing-how-rail { display: none; }
 }
 
 @media (max-width: 380px) {
   .landing-how-panel {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'step'
-      'kicker'
-      'title'
-      'detail';
-    row-gap: 8px;
-    padding: 18px 16px 16px;
+    padding-inline: 18px;
+  }
+  .landing-how-panel::after {
+    left: 18px;
+    width: 48px;
   }
   .landing-how-panel-step {
-    font-size: 50px;
+    font-size: clamp(64px, 20vw, 88px);
   }
-  .landing-how-panel + .landing-how-panel::before {
-    display: none;
+  .landing-how-panel-title {
+    font-size: clamp(24px, 7.2vw, 30px);
   }
 }
 
@@ -2625,17 +2683,20 @@
     margin-bottom: 16px;
   }
 
-  .landing-hero-illustration {
-    min-height: 244px;
+  .landing-hero-map-stage {
+    --map-overlap: 8vh;
+    height: 160vh;
   }
 
   .landing-hero-map-frame {
-    min-height: 212px;
-  }
-
-  .landing-hero-map-caption {
-    font-size: 8.5px;
-    padding: 7px 9px;
+    transform:
+      translate3d(
+        calc((1 - var(--map-progress)) * 8%),
+        calc((1 - var(--map-progress)) * 4%),
+        0
+      )
+      rotateX(calc((1 - var(--map-progress)) * 26deg))
+      rotateZ(calc((1 - var(--map-progress)) * -10deg));
   }
 
   .landing-scroll-cue { bottom: 14px; }
@@ -2671,8 +2732,12 @@
     animation: none !important;
   }
 
-  .landing-hero-illustration {
-    transform: none !important;
+  .landing-hero-map-stage {
+    --map-overlap: 0vh;
+    height: 100vh;
+  }
+
+  .landing-hero-map-frame {
     transition: none !important;
   }
 

@@ -73,8 +73,8 @@ export default function ForgotPassword() {
 
           <Button
             onClick={() => setSent(false)}
-            variant="outline"
-            className="mt-3 h-12 w-full gap-1.5 border-border text-sm font-semibold"
+            variant="secondary"
+            className="mt-3 h-12 w-full gap-1.5 text-sm font-semibold"
           >
             <RefreshCw size={13} /> {t('auth.forgotPassword.differentNumber')}
           </Button>

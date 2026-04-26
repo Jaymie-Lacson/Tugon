@@ -266,9 +266,10 @@
   --severity-low-bg:       #0a2d1a;
 }
 
-/* ── Landing page CSS isolation — always renders in light mode ─────────── */
+/* ── Landing + auth CSS isolation — always render in light mode ─────────── */
 /* Uses !important to override layer cascade (Tailwind v4 layers the .dark rule). */
-.dark .landing-root {
+.dark .landing-root,
+.dark .auth-root {
   --background:                #f8f9ff !important;
   --foreground:                #0d1c2e !important;
   --surface:                   #f8f9ff !important;
@@ -301,6 +302,49 @@
   --destructive-foreground:    #ffffff !important;
   --error:                     #ba1a1a !important;
   --error-container:           #ffdad6 !important;
+  --popover:                   #ffffff !important;
+  --popover-foreground:        #0d1c2e !important;
+  --accent:                    #dce9ff !important;
+  --accent-foreground:         #00236f !important;
+  --ring:                      #00236f !important;
+  --input-background:          #eff4ff !important;
+  --secondary:                 #dce9ff !important;
+  --secondary-foreground:      #00236f !important;
+  color-scheme: light;
+}
+
+/* ── Landing page: reset Leaflet controls to light mode ────────────────── */
+.dark .landing-root .leaflet-popup-content-wrapper {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+}
+.dark .landing-root .leaflet-popup-tip {
+  background: #fff;
+}
+.dark .landing-root .leaflet-tooltip {
+  background: #fff;
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.dark .landing-root .leaflet-tooltip::before {
+  border-top-color: #fff;
+}
+.dark .landing-root .leaflet-control-zoom a {
+  background: #fff;
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.dark .landing-root .leaflet-control-zoom a:hover {
+  background: #f4f4f4;
+}
+.dark .landing-root .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
+}
+.dark .landing-root .leaflet-control-attribution a {
+  color: #00236f;
 }
 
 /* ── Tailwind v4 theme mapping ─────────────────────────────────────────── */

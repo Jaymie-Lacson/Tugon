@@ -87,7 +87,7 @@ export default function Verifications() {
         subtitle={t('official.verifications.pageSubtitle')}
         actions={(
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => void load()}
             disabled={loading}
