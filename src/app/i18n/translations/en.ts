@@ -426,6 +426,21 @@ export const en: TranslationDictionary = {
   'citizen.dashboard.greetingMorning': 'Good morning',
   'citizen.dashboard.greetingAfternoon': 'Good afternoon',
   'citizen.dashboard.greetingEvening': 'Good evening',
+
+  // First-run spotlight tour
+  'citizen.tour.skip': 'Skip tour',
+  'citizen.tour.next': 'Next',
+  'citizen.tour.done': 'Got it',
+  'citizen.tour.replay': 'Show welcome tour',
+  'citizen.tour.stepOf': 'Step {{current}} of {{total}}',
+  'citizen.tour.targetMissing': 'This part of the dashboard is not visible right now. Continue to the next step.',
+  'citizen.tour.submit.title': 'File your first incident report',
+  'citizen.tour.submit.body': 'Tap here to start a report. You will choose a type, drop a pin on the map, then add a photo or voice note. Your barangay will be notified once you submit.',
+  'citizen.tour.map.title': 'See what is happening near you',
+  'citizen.tour.map.body': 'Active reports in your barangay appear here. Tap any pin to view its status and location.',
+  'citizen.tour.bell.title': 'Updates land here',
+  'citizen.tour.bell.body': 'When officials respond to your reports or new alerts come in, you will see them in this bell.',
+
   'citizen.dashboard.reportsFiled': 'Reports Filed',
   'citizen.dashboard.pending': 'Pending',
   'citizen.dashboard.alertBannerSingle': '{{count}} Critical Report in your submissions still needs attention.',

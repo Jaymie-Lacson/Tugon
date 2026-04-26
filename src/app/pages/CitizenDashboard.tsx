@@ -32,6 +32,9 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMyReports, citizenReportsKeys } from '../hooks/useCitizenReportsQueries';
 import { useMyVerificationStatus } from '../hooks/useProfileVerificationQueries';
+import { CitizenSpotlightTour, type SpotlightStep } from '../components/CitizenSpotlightTour';
+
+const FIRST_RUN_TOUR_STORAGE_KEY = 'tugon.onboarding.tourSeen';
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 interface CitizenMyReport {
@@ -391,6 +394,7 @@ export default function CitizenDashboard() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const { notificationItems: reportNotificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
   const [verificationPreview, setVerificationPreview] = useState<CitizenVerificationPreview>({
     isVerified: Boolean(session?.user.isVerified),
@@ -538,6 +542,55 @@ export default function CitizenDashboard() {
 
   const homeLoading = reportsLoading || verificationLoading;
 
+  const tourSteps: SpotlightStep[] = useMemo(() => [
+    {
+      selector: '[data-tour="submit-report"]',
+      title: t('citizen.tour.submit.title'),
+      body: t('citizen.tour.submit.body'),
+      placement: 'auto',
+    },
+    {
+      selector: '[data-tour="map-preview"]',
+      title: t('citizen.tour.map.title'),
+      body: t('citizen.tour.map.body'),
+      placement: 'auto',
+    },
+    {
+      selector: '[data-tour="notif-bell"]',
+      title: t('citizen.tour.bell.title'),
+      body: t('citizen.tour.bell.body'),
+      placement: 'bottom',
+    },
+  ], [t]);
+
+  useEffect(() => {
+    if (homeLoading) return;
+    if (activeTab !== 'home') return;
+    if (myReports.length > 0) return;
+    if (tourOpen) return;
+    let seen = false;
+    try {
+      seen = localStorage.getItem(FIRST_RUN_TOUR_STORAGE_KEY) === '1';
+    } catch {
+      return;
+    }
+    if (seen) return;
+    const handle = window.setTimeout(() => setTourOpen(true), 600);
+    return () => window.clearTimeout(handle);
+  }, [homeLoading, activeTab, myReports.length, tourOpen]);
+
+  const replayTour = React.useCallback(() => {
+    try {
+      localStorage.removeItem(FIRST_RUN_TOUR_STORAGE_KEY);
+    } catch {
+      /* ignore storage failures */
+    }
+    setActiveTab('home');
+    setProfileMenuOpen(false);
+    setNotifOpen(false);
+    window.setTimeout(() => setTourOpen(true), 250);
+  }, []);
+
   useEffect(() => {
     const handleOutsideHeaderTap = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null;
@@ -587,6 +640,21 @@ export default function CitizenDashboard() {
   };
 
   return (
+    <>
+      <CitizenSpotlightTour
+        open={tourOpen}
+        steps={tourSteps}
+        storageKey={FIRST_RUN_TOUR_STORAGE_KEY}
+        onClose={() => setTourOpen(false)}
+        labels={{
+          skip: t('citizen.tour.skip'),
+          back: t('common.back'),
+          next: t('citizen.tour.next'),
+          done: t('citizen.tour.done'),
+          stepOf: (current, total) => t('citizen.tour.stepOf', { current: String(current), total: String(total) }),
+          targetMissing: t('citizen.tour.targetMissing'),
+        }}
+      />
     <CitizenPageLayout
       header={
         <header className="citizen-web-header bg-[var(--citizen-header-bg)] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
@@ -608,14 +676,16 @@ export default function CitizenDashboard() {
                   else setActiveTab('home');
                 }}
               />
-              <CitizenNotificationBellTrigger
-                unreadCount={unreadNotificationCount}
-                open={notifOpen}
-                onClick={() => {
-                  setNotifOpen((prev) => !prev);
-                  setProfileMenuOpen(false);
-                }}
-              />
+              <span data-tour="notif-bell" className="inline-flex">
+                <CitizenNotificationBellTrigger
+                  unreadCount={unreadNotificationCount}
+                  open={notifOpen}
+                  onClick={() => {
+                    setNotifOpen((prev) => !prev);
+                    setProfileMenuOpen(false);
+                  }}
+                />
+              </span>
               <div className="relative">
                 <button
                   type="button"
@@ -656,6 +726,14 @@ export default function CitizenDashboard() {
                       <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
                       <ThemeToggle compact />
                     </div>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={replayTour}
+                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
+                    >
+                      {t('citizen.tour.replay')}
+                    </button>
                     <button
                       type="button"
                       role="menuitem"
@@ -719,6 +797,7 @@ export default function CitizenDashboard() {
     >
       {renderContent()}
     </CitizenPageLayout>
+    </>
   );
 }
 
@@ -845,7 +924,7 @@ function HomeTab({
       ) : null}
 
       {/* Map preview */}
-      <div className="mb-4 overflow-hidden bg-card border border-border">
+      <div data-tour="map-preview" className="mb-4 overflow-hidden bg-card border border-border">
         <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/60">
           <div>
             <div className="text-[13px] font-bold text-foreground">{t('citizen.dashboard.myReportMap')}</div>
@@ -925,14 +1004,16 @@ function HomeTab({
         <div
           className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2"
         >
-          <QuickActionCard
-            icon={<Plus size={22} />}
-            label={t('citizen.dashboard.submitIncidentReport')}
-            sublabel={t('citizen.dashboard.submitIncidentSublabel')}
-            accent="var(--severity-critical)"
-            featured
-            onClick={() => navigate('/citizen/report')}
-          />
+          <div data-tour="submit-report" className="rounded-lg">
+            <QuickActionCard
+              icon={<Plus size={22} />}
+              label={t('citizen.dashboard.submitIncidentReport')}
+              sublabel={t('citizen.dashboard.submitIncidentSublabel')}
+              accent="var(--severity-critical)"
+              featured
+              onClick={() => navigate('/citizen/report')}
+            />
+          </div>
           <QuickActionCard
             icon={<FileText size={22} />}
             label={t('citizen.myReports.title')}

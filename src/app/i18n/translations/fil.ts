@@ -426,6 +426,21 @@ export const fil: TranslationDictionary = {
   'citizen.dashboard.greetingMorning': 'Magandang umaga',
   'citizen.dashboard.greetingAfternoon': 'Magandang tanghali',
   'citizen.dashboard.greetingEvening': 'Magandang gabi',
+
+  // First-run spotlight tour
+  'citizen.tour.skip': 'Laktawan',
+  'citizen.tour.next': 'Susunod',
+  'citizen.tour.done': 'Gets ko',
+  'citizen.tour.replay': 'Ipakita ang welcome tour',
+  'citizen.tour.stepOf': 'Hakbang {{current}} ng {{total}}',
+  'citizen.tour.targetMissing': 'Hindi nakikita ang bahaging ito sa ngayon. Magpatuloy sa susunod na hakbang.',
+  'citizen.tour.submit.title': 'I-file ang iyong unang ulat',
+  'citizen.tour.submit.body': 'Pindutin dito para magsimula. Pipili ka ng uri, mag-drop ng pin sa mapa, at maglalagay ng larawan o voice note. Aabisuhan ang inyong barangay kapag na-submit na.',
+  'citizen.tour.map.title': 'Tingnan ang nangyayari malapit sa iyo',
+  'citizen.tour.map.body': 'Lalabas dito ang mga aktibong ulat sa inyong barangay. Pindutin ang anumang pin para makita ang status at lokasyon.',
+  'citizen.tour.bell.title': 'Dito makikita ang mga update',
+  'citizen.tour.bell.body': 'Kapag may sumagot na opisyal sa iyong ulat o may bagong alerto, makikita mo ito sa bell na ito.',
+
   'citizen.dashboard.reportsFiled': 'Mga Ulat na Naisumite',
   'citizen.dashboard.pending': 'Nakabinbin',
   'citizen.dashboard.alertBannerSingle': '{{count}} Kritikal na Ulat sa iyong mga naisumite ay nangangailangan pa ng pansin.',
