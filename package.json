@@ -4,8 +4,10 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "build:analyze": "cross-env ANALYZE=true vite build",
+    "build": "vite build && node scripts/stamp-sw.mjs",
+    "build:analyze": "cross-env ANALYZE=true vite build && node scripts/stamp-sw.mjs",
+    "prerender": "node scripts/prerender.mjs",
+    "build:prerender": "vite build && node scripts/stamp-sw.mjs && node scripts/prerender.mjs",
     "dev": "vite",
     "test:frontend": "vitest run",
     "test:frontend:watch": "vitest",

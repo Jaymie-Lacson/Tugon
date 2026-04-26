@@ -5,8 +5,13 @@ import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../.
 import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
+import { useDocumentHead } from '../../hooks/useDocumentHead';
 
 export default function ForgotPassword() {
+  useDocumentHead({
+    title: 'Forgot Password — TUGON',
+    noindex: true,
+  });
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [phone, setPhone] = useState('');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { CheckCircle2, Shield } from 'lucide-react';
+import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
@@ -11,7 +11,6 @@ interface AuthLayoutProps {
   subtitle: string;
   topAction?: React.ReactNode;
   logoSrc?: string;
-  mobileLogoSrc?: string;
 }
 
 export interface AuthProgressStep {
@@ -33,7 +32,6 @@ export function AuthLayout({
   subtitle,
   topAction,
   logoSrc = '/tugon-header-logo.svg',
-  mobileLogoSrc = '/tugon-wordmark-blue.svg',
 }: AuthLayoutProps) {
   useImmersiveThemeColor('#f8f9ff');
 
@@ -50,7 +48,7 @@ export function AuthLayout({
   });
 
   return (
-    <div className="auth-root app-shell-height flex w-full bg-[var(--surface)]">
+    <div className="app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <img
@@ -80,23 +78,24 @@ export function AuthLayout({
           </button>
 
           <div className="max-w-[380px]">
-            <div className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
-              Tondo I/II · Official Platform
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
+              <Sparkles size={12} />
+              Crisis Command Network
             </div>
             <h2 className="text-[38px] font-black leading-[1.05] tracking-[-0.03em]">
-              Barangays
+              Fast.
               <br />
-              251, 252
+              Reliable.
               <br />
-              & 256.
+              Community Focused.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-blue-100">
-              TUGON is the official incident reporting system for Tondo I/II. File pollution, noise, crime, road hazard, and other reports — directly routed to your barangay's response team.
+              Coordinate reports, monitor active incidents, and help every barangay response team move with confidence.
             </p>
 
             <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3 py-2 text-xs font-semibold text-blue-50">
               <Shield size={14} />
-              All reports are reviewed and officially recorded.
+              Verified access keeps emergency operations secure.
             </div>
           </div>
 
@@ -104,17 +103,11 @@ export function AuthLayout({
             <div className="mb-1">
               Copyright 2026 TUGON Incident Management System
             </div>
-            <div className="flex gap-3">
-              {['Privacy', 'Terms', 'Contact', 'Emergency'].map(label => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => navigate(`/${label.toLowerCase()}`)}
-                  className="cursor-pointer border-none bg-transparent p-0 text-[10px] text-blue-200 underline-offset-2 hover:text-white hover:underline"
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="flex gap-3 text-[10px] text-blue-200">
+              <span>Privacy</span>
+              <span>Terms</span>
+              <span>Contact</span>
+              <span>Emergency</span>
             </div>
           </div>
         </div>
@@ -130,7 +123,7 @@ export function AuthLayout({
           <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
             <button onClick={() => navigate('/')} className="border-none bg-transparent p-0">
               <img
-                src={mobileLogoSrc}
+                src={logoSrc}
                 alt="TUGON Tondo Emergency Response"
                 className="h-9"
               />
@@ -162,19 +155,14 @@ export function AuthLayout({
             <div className="mt-4 flex justify-center">{topAction}</div>
           )}
 
-          <div className="mt-5 text-center text-[10px] text-[var(--on-surface-variant)]">
-            {['Privacy', 'Terms', 'Contact', 'Emergency'].map((label, i) => (
-              <React.Fragment key={label}>
-                {i > 0 && <span className="mx-2">|</span>}
-                <button
-                  type="button"
-                  onClick={() => navigate(`/${label.toLowerCase()}`)}
-                  className="cursor-pointer border-none bg-transparent p-0 text-[10px] text-[var(--on-surface-variant)] underline-offset-2 hover:text-[var(--on-surface)] hover:underline"
-                >
-                  {label}
-                </button>
-              </React.Fragment>
-            ))}
+          <div className="mt-5 text-center text-[10px] text-[var(--outline)]">
+            <span>Privacy</span>
+            <span className="mx-2">|</span>
+            <span>Terms</span>
+            <span className="mx-2">|</span>
+            <span>Contact</span>
+            <span className="mx-2">|</span>
+            <span>Emergency</span>
           </div>
         </div>
       </div>
@@ -220,12 +208,12 @@ export function InputField({
         }`}
       >
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--on-surface-variant)]'}`}>
+          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--outline)]'}`}>
             {icon}
           </div>
         )}
         <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--on-surface-variant)] placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
           type={type}
           placeholder={placeholder}
           value={value}
@@ -241,7 +229,7 @@ export function InputField({
         {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
       {error && <div className="mt-1.5 text-[11px] font-semibold text-[var(--error)]">! {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--on-surface-variant)]">{hint}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
     </div>
   );
 }
@@ -297,7 +285,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'bg-emerald-600 text-white'
                   : isActive
                     ? 'bg-primary text-white'
-                    : 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
+                    : 'bg-[var(--surface-container-high)] text-[var(--outline)]'
               }`}
             >
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
@@ -308,7 +296,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'text-emerald-600'
                   : isActive
                     ? 'font-bold text-primary'
-                    : 'text-[var(--on-surface-variant)]'
+                    : 'text-[var(--outline)]'
               }`}
             >
               {step.label}

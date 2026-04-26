@@ -1,8 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
+import { useDocumentHead } from '../hooks/useDocumentHead';
 
 export default function Terms() {
+  useDocumentHead({
+    title: 'Terms of Use — TUGON',
+    description: 'Terms of use for the TUGON Tondo Emergency Response Portal.',
+    canonicalPath: '/terms',
+  });
   const navigate = useNavigate();
 
   return (

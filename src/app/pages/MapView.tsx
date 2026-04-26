@@ -17,6 +17,7 @@ import { useOfficialReports, useHeatmap, officialReportsKeys } from '../hooks/us
 import { reportToIncident } from '../utils/incidentAdapters';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import '../../styles/map-view.css';
+import { useDocumentHead } from '../hooks/useDocumentHead';
 
 const typeIcons: Record<IncidentType, React.ReactNode> = {
   flood: <Droplets size={14} />, accident: <Car size={14} />,
@@ -55,6 +56,16 @@ export default function MapView() {
   const location = useLocation();
   const navigate = useNavigate();
   const isPublicCommunityMap = location.pathname === '/community-map';
+
+  useDocumentHead(
+    isPublicCommunityMap
+      ? {
+          title: 'Community Map — TUGON',
+          description: 'Interactive community incident map for Tondo, Manila barangays.',
+          canonicalPath: '/community-map',
+        }
+      : { title: 'Incident Map — TUGON' },
+  );
 
   const { data: reportsData, isLoading: loading, error: reportsQueryError } = useOfficialReports(undefined);
   const heatmapParams = !isPublicCommunityMap ? { days: 14, threshold: 3 } : undefined;

@@ -5,6 +5,7 @@ import { AuthLayout, AuthProgressStepper, InputField, PrimaryButton } from '../.
 import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
+import { useDocumentHead } from '../../hooks/useDocumentHead';
 
 const BARANGAYS = [
   { value: '251', label: 'Barangay 251', sub: 'Zone 24 — Tondo I/II' },
@@ -15,6 +16,11 @@ const BARANGAYS = [
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
 
 export default function Register() {
+  useDocumentHead({
+    title: 'Create Account — TUGON',
+    description: 'Register for TUGON to start filing incident reports for your barangay in Tondo, Manila.',
+    canonicalPath: '/auth/register',
+  });
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [fullName, setFullName] = useState('');

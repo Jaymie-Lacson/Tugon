@@ -6,7 +6,7 @@ import TableSkeleton from './components/ui/TableSkeleton';
 import TextSkeleton from './components/ui/TextSkeleton';
 import { TranslationProvider } from './i18n';
 import { queryClient } from './lib/queryClient';
-import { router } from './routes';
+import { getRouter } from './routes';
 
 const PretextAutoTextBridge = lazy(() => import('./components/PretextAutoTextBridge'));
 
@@ -125,6 +125,7 @@ function shouldMountRuntimeBridges(pathname: string) {
 export default function App() {
   const pathname = window.location.pathname;
   const mountRuntimeBridges = shouldMountRuntimeBridges(pathname);
+  const router = getRouter();
 
   return (
     <QueryClientProvider client={queryClient}>

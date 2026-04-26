@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Phone } from 'lucide-react';
+import { useDocumentHead } from '../hooks/useDocumentHead';
 
 const HOTLINES = [
   {
@@ -36,6 +37,11 @@ const HOTLINES = [
 ];
 
 export default function Emergency() {
+  useDocumentHead({
+    title: 'Emergency Hotlines — TUGON',
+    description: 'Quick-access national and local emergency hotlines for Tondo, Manila residents.',
+    canonicalPath: '/emergency',
+  });
   const navigate = useNavigate();
 
   return (

@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { useTranslation } from '../../i18n';
+import { useDocumentHead } from '../../hooks/useDocumentHead';
 
 interface StrengthRule {
   key: string;
@@ -31,6 +32,10 @@ function getStrength(pw: string): { level: number; key: string; color: string } 
 }
 
 export default function CreatePassword() {
+  useDocumentHead({
+    title: 'Create Password — TUGON',
+    noindex: true,
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();

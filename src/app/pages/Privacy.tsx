@@ -1,8 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
+import { useDocumentHead } from '../hooks/useDocumentHead';
 
 export default function Privacy() {
+  useDocumentHead({
+    title: 'Privacy Policy — TUGON',
+    description: 'How TUGON collects, uses, and protects citizen data for incident reporting in Tondo, Manila.',
+    canonicalPath: '/privacy',
+  });
   const navigate = useNavigate();
 
   return (

@@ -1,9 +1,7 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, matchRoutes, type RouteObject } from 'react-router';
 import AppRouteErrorPage from './components/AppRouteErrorPage';
 import { RequireAuth, RequireRole } from './components/RequireAuth';
-import { getAuthSession } from './utils/authSession';
-import { resolveDefaultAppPath } from './utils/navigationGuards';
 
 type RouteModule = {
   default: React.ComponentType;
@@ -17,28 +15,26 @@ function lazyRoute(importModule: () => Promise<RouteModule>) {
   };
 }
 
+function lazyComponent(importModule: () => Promise<RouteModule>) {
+  return async () => {
+    const m = await importModule();
+    return { Component: m.default };
+  };
+}
+
+// Lazy wrappers retained for routes used inside an auth/role guard. The guard
+// wraps the lazy element, which keeps Component: as the activation point.
 const Layout = lazyRoute(() => import('./components/Layout'));
-const Landing = lazyRoute(() => import('./pages/Landing'));
 const Dashboard = lazyRoute(() => import('./pages/Dashboard'));
 const Incidents = lazyRoute(() => import('./pages/Incidents'));
 const MapView = lazyRoute(() => import('./pages/MapView'));
 const Analytics = lazyRoute(() => import('./pages/Analytics'));
 const Reports = lazyRoute(() => import('./pages/Reports'));
 const Settings = lazyRoute(() => import('./pages/Settings'));
-const Login = lazyRoute(() => import('./pages/auth/Login'));
-const Register = lazyRoute(() => import('./pages/auth/Register'));
-const Verify = lazyRoute(() => import('./pages/auth/Verify'));
-const CreatePassword = lazyRoute(() => import('./pages/auth/CreatePassword'));
-const ForgotPassword = lazyRoute(() => import('./pages/auth/ForgotPassword'));
 const CitizenDashboard = lazyRoute(() => import('./pages/CitizenDashboard'));
 const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'));
 const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
 const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
-const SkeletonDemo = lazyRoute(() => import('./pages/SkeletonDemo'));
-const Privacy = lazyRoute(() => import('./pages/Privacy'));
-const Terms = lazyRoute(() => import('./pages/Terms'));
-const Contact = lazyRoute(() => import('./pages/Contact'));
-const Emergency = lazyRoute(() => import('./pages/Emergency'));
 const Verifications = lazyRoute(() => import('./pages/Verifications'));
 const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
 const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
@@ -47,16 +43,6 @@ const SAAnalytics = lazyRoute(() => import('./pages/superadmin/SAAnalytics'));
 const SAUsers = lazyRoute(() => import('./pages/superadmin/SAUsers'));
 const SAAuditLogs = lazyRoute(() => import('./pages/superadmin/SAAuditLogs'));
 const SASettings = lazyRoute(() => import('./pages/Settings'));
-
-// Landing uses CSS isolation (.dark .landing-root overrides) instead of a nested ThemeProvider.
-function LandingLightOnly() {
-  return React.createElement(Landing);
-}
-
-function RedirectToApp() {
-  const session = getAuthSession();
-  return React.createElement(Navigate, { to: resolveDefaultAppPath(session), replace: true });
-}
 
 function CitizenGuard() {
   return React.createElement(
@@ -98,27 +84,30 @@ function OfficialAppGuard() {
   );
 }
 
-export const router = createBrowserRouter([
-  // Public landing — always light-mode (LandingLightOnly forces theme)
-  { path: '/', Component: LandingLightOnly, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/community-map', Component: MapView, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/skeleton-demo', Component: SkeletonDemo, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/privacy', Component: Privacy, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/terms', Component: Terms, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/contact', Component: Contact, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/emergency', Component: Emergency, errorElement: React.createElement(AppRouteErrorPage) },
+const errorElement = React.createElement(AppRouteErrorPage);
 
-  // Auth screens
-  { path: '/auth/login', Component: Login, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/auth/register', Component: Register, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/auth/verify', Component: Verify, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/auth/create-password', Component: CreatePassword, errorElement: React.createElement(AppRouteErrorPage) },
-  { path: '/auth/forgot-password', Component: ForgotPassword, errorElement: React.createElement(AppRouteErrorPage) },
+// Non-guarded routes use `lazy:` so preloadMatchedRoutes() can resolve the
+// matched module before hydrateRoot runs — making the prerendered DOM match
+// the React tree at first sync render.
+const routes: RouteObject[] = [
+  { path: '/', lazy: lazyComponent(() => import('./pages/Landing')), errorElement },
+  { path: '/community-map', lazy: lazyComponent(() => import('./pages/MapView')), errorElement },
+  { path: '/skeleton-demo', lazy: lazyComponent(() => import('./pages/SkeletonDemo')), errorElement },
+  { path: '/privacy', lazy: lazyComponent(() => import('./pages/Privacy')), errorElement },
+  { path: '/terms', lazy: lazyComponent(() => import('./pages/Terms')), errorElement },
+  { path: '/contact', lazy: lazyComponent(() => import('./pages/Contact')), errorElement },
+  { path: '/emergency', lazy: lazyComponent(() => import('./pages/Emergency')), errorElement },
 
-  // Citizen portal
+  { path: '/auth/login', lazy: lazyComponent(() => import('./pages/auth/Login')), errorElement },
+  { path: '/auth/register', lazy: lazyComponent(() => import('./pages/auth/Register')), errorElement },
+  { path: '/auth/verify', lazy: lazyComponent(() => import('./pages/auth/Verify')), errorElement },
+  { path: '/auth/create-password', lazy: lazyComponent(() => import('./pages/auth/CreatePassword')), errorElement },
+  { path: '/auth/forgot-password', lazy: lazyComponent(() => import('./pages/auth/ForgotPassword')), errorElement },
+
+  // Citizen portal — auth-wrapped, uses Component: pattern
   {
     path: '/citizen',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -128,7 +117,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/report',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -138,7 +127,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/my-reports',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -148,7 +137,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/citizen/verification',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -164,7 +153,7 @@ export const router = createBrowserRouter([
   // Super Admin Console
   {
     path: '/superadmin',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -184,7 +173,7 @@ export const router = createBrowserRouter([
   // Protected app (dashboard + sub-pages)
   {
     path: '/app',
-    errorElement: React.createElement(AppRouteErrorPage),
+    errorElement,
     Component: () =>
       React.createElement(
         RequireAuth,
@@ -210,6 +199,36 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Catch-all: redirect any unmatched URL to /app
-  { path: '*', Component: RedirectToApp, errorElement: React.createElement(AppRouteErrorPage) },
-]);
+  // Catch-all 404
+  { path: '*', lazy: lazyComponent(() => import('./pages/NotFound')), errorElement },
+];
+
+type LazyRouteObject = RouteObject & {
+  lazy?: () => Promise<{ Component: React.ComponentType }>;
+};
+
+// Resolve any lazy() factories on the routes that match `pathname` and pin the
+// resulting Component directly onto the route. After this returns, those
+// matched routes render synchronously — so hydrateRoot can match the
+// prerendered DOM without tripping on a Suspense fallback.
+export async function preloadMatchedRoutes(pathname: string) {
+  const matches = matchRoutes(routes, pathname);
+  if (!matches) return;
+  for (const m of matches) {
+    const route = m.route as LazyRouteObject;
+    if (route.lazy && !route.Component) {
+      const result = await route.lazy();
+      route.Component = result.Component;
+      delete route.lazy;
+    }
+  }
+}
+
+let _router: ReturnType<typeof createBrowserRouter> | null = null;
+
+export function getRouter() {
+  if (!_router) {
+    _router = createBrowserRouter(routes);
+  }
+  return _router;
+}

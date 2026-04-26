@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, MapPin, Phone } from 'lucide-react';
+import { useDocumentHead } from '../hooks/useDocumentHead';
 
 const BARANGAYS = [
   {
@@ -18,6 +19,11 @@ const BARANGAYS = [
 ];
 
 export default function Contact() {
+  useDocumentHead({
+    title: 'Contact — TUGON',
+    description: 'Contact details for Barangays 251, 252, and 256 in Tondo, Manila served by the TUGON portal.',
+    canonicalPath: '/contact',
+  });
   const navigate = useNavigate();
 
   return (

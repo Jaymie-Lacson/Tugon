@@ -1,26 +1,28 @@
-// TUGON Service Worker — stale-while-revalidate for static assets only.
-// API routes (/api/*) are ALWAYS network-only — server-side geofencing must
-// never be bypassed by serving a cached response offline.
+// TUGON Service Worker — network-first for HTML so deploys propagate
+// immediately, stale-while-revalidate for hashed static assets, network-only
+// for /api/* (server-side geofencing must never be bypassed by stale data).
+//
+// __BUILD_ID__ is replaced at build time by scripts/stamp-sw.mjs so a fresh
+// deploy invalidates the previous cache via the activate handler below.
 
-const CACHE = 'tugon-static-v3';
+const CACHE = 'tugon-static-__BUILD_ID__';
 
 self.addEventListener('install', (event) => {
-  // Pre-cache the app shell and critical fonts so they load from cache on repeat visits.
+  // Pre-cache only the immutable font files. The homepage HTML is no longer
+  // pre-cached because that froze stale prerendered content into the cache
+  // until the next SW version bump.
   event.waitUntil(
     caches.open(CACHE).then((cache) => cache.addAll([
-      '/',
       '/fonts/public-sans-400.woff2',
       '/fonts/public-sans-700.woff2',
       '/fonts/ibm-plex-sans-400.woff2',
       '/fonts/ibm-plex-mono-400.woff2',
     ])),
   );
-  // Activate immediately — don't wait for old tabs to close.
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  // Delete any stale caches from previous SW versions.
   event.waitUntil(
     caches
       .keys()
@@ -32,22 +34,40 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Only handle GET requests — POST/PUT/DELETE go straight to the network.
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // API calls: bypass the cache entirely. Geofencing validation, pin routing,
-  // and all RBAC decisions must reach the server. A cached response could
-  // allow an offline report to pass client-side checks with stale boundary data.
+  // API calls bypass the cache entirely — geofencing, RBAC and pin routing
+  // decisions must always reach the server with fresh boundary data.
   if (url.pathname.startsWith('/api/')) return;
 
-  // Cross-origin requests (e.g., tile servers, CDN fonts): let them through.
+  // Cross-origin requests (tile servers, third-party CDNs) pass through.
   if (url.origin !== self.location.origin) return;
 
-  // Static assets: stale-while-revalidate.
-  // Serve from cache immediately if available, then update the cache in the
-  // background so the next visit gets fresh assets.
+  // Network-first for HTML navigations: the latest deploy is served as soon
+  // as the user is online; cached copies are only used when the network fails.
+  const isNavigation = request.mode === 'navigate' || request.destination === 'document';
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE).then((c) => c.put(request, clone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
+        }),
+    );
+    return;
+  }
+
+  // Static assets: stale-while-revalidate. Hashed filenames are content-
+  // addressed so stale chunks are safe; fonts are versioned by URL.
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const cached = await cache.match(request);
@@ -59,7 +79,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => cached); // If offline, fall back to whatever we have.
+        .catch(() => cached);
 
       return cached ?? networkFetch;
     }),

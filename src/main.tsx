@@ -71,10 +71,16 @@ function enforceProtectedRouteAuth() {
 }
 
 async function mountApp() {
-  const [{ default: App }] = await Promise.all([
+  const [{ default: App }, { preloadMatchedRoutes }] = await Promise.all([
     import('./app/App.tsx'),
+    import('./app/routes.ts'),
     import('./styles/mobile.css'),
   ]);
+
+  // Resolve the matched lazy chunk before render so RouterProvider can render
+  // the matched Component sync — eliminates the Suspense-fallback flash that
+  // would otherwise appear before the route module loads.
+  await preloadMatchedRoutes(window.location.pathname);
 
   root.render(
     <AppErrorBoundary>

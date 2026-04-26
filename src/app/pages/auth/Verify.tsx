@@ -5,6 +5,7 @@ import { AuthLayout, AuthProgressStepper, PrimaryButton } from '../../components
 import { Button } from '../../components/ui/button';
 import { authApi } from '../../services/authApi';
 import { useTranslation } from '../../i18n';
+import { useDocumentHead } from '../../hooks/useDocumentHead';
 
 const OTP_LENGTH = 6;
 const PENDING_REGISTRATION_KEY = 'tugon.pending.registration';
@@ -17,6 +18,10 @@ type PendingRegistrationState = {
 };
 
 export default function Verify() {
+  useDocumentHead({
+    title: 'Verify Account — TUGON',
+    noindex: true,
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();

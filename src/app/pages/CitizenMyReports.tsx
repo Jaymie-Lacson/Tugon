@@ -157,7 +157,7 @@ export const citizenStatusConfig: Record<CitizenReportStatus, {
   },
   closed: {
     label: 'Closed', color: '#475569', bg: '#F8FAFC', border: '#CBD5E1',
-    dotColor: '#94A3B8', icon: XCircle, step: 5, filterGroup: 'resolved',
+    dotColor: '#94A3B8', icon: XCircle, step: 4, filterGroup: 'resolved',
     description: 'This case has been officially closed.',
   },
   unresolvable: {
@@ -197,9 +197,9 @@ const statusToneClass: Record<CitizenReportStatus, {
     text: 'text-[var(--secondary)]',
   },
   in_progress: {
-    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary)]',
+    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary-container)]',
     footer: 'bg-[var(--surface-container-high)] border-t border-[var(--surface-container-highest)]',
-    text: 'text-[var(--primary)]',
+    text: 'text-[var(--primary-container)]',
   },
   resolved: {
     badge: 'bg-[var(--severity-low-bg)] border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
@@ -231,10 +231,10 @@ const typeToneClass: Record<CitizenReportType, {
     fieldIcon: 'text-[var(--severity-low)]',
   },
   noise: {
-    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
-    detailHeader: 'border-b-2 border-b-[var(--primary)]',
-    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
-    fieldIcon: 'text-[var(--primary)]',
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+    fieldIcon: 'text-[var(--primary-container)]',
   },
   crime: {
     iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
@@ -249,10 +249,10 @@ const typeToneClass: Record<CitizenReportType, {
     fieldIcon: 'text-[var(--secondary)]',
   },
   flood: {
-    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
-    detailHeader: 'border-b-2 border-b-[var(--primary)]',
-    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
-    fieldIcon: 'text-[var(--primary)]',
+    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
+    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    fieldIcon: 'text-[var(--primary-container)]',
   },
   accident: {
     iconChip: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
@@ -308,9 +308,9 @@ const timelineToneClass: Record<string, {
     actorBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   in_progress: {
-    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary)]',
-    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
-    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
+    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
   },
   resolved: {
     iconShell: 'bg-[var(--severity-low-bg)] border-2 border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
@@ -402,36 +402,22 @@ const WORKFLOW_STEPS: { key: CitizenReportStatus | 'created'; label: string }[] 
   { key: 'resolved',     label: 'Done' },
 ];
 
-const WORKFLOW_STEPS_CLOSED: { key: CitizenReportStatus | 'created'; label: string }[] = [
-  { key: 'submitted',    label: 'Submitted' },
-  { key: 'under_review', label: 'Review' },
-  { key: 'in_progress',  label: 'In Progress' },
-  { key: 'resolved',     label: 'Resolved' },
-  { key: 'closed',       label: 'Closed' },
-];
-
 function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
   const cfg = citizenStatusConfig[status];
   const currentStep = cfg.step;
-  const isClosed = status === 'closed';
   const isTerminal = status === 'resolved' || status === 'closed' || status === 'unresolvable';
   const isFailed = status === 'unresolvable';
-  const steps = isClosed ? WORKFLOW_STEPS_CLOSED : WORKFLOW_STEPS;
-  const lastStepNum = steps.length;
 
   return (
     <div className="flex w-full items-center gap-0">
-      {steps.map((s, i) => {
+      {WORKFLOW_STEPS.map((s, i) => {
         const stepNum = i + 1;
-        const isLastStep = stepNum === lastStepNum;
-        const done = stepNum < currentStep || (isTerminal && !isLastStep);
+        const done  = stepNum < currentStep || (isTerminal && stepNum <= 4);
         const active = stepNum === currentStep && !isTerminal;
         const terminalDoneClass = isFailed
           ? 'bg-[var(--error-container)] border-[var(--error)]'
-          : isClosed
-          ? 'bg-surface-container-high border-[var(--outline-variant)]'
           : 'bg-[var(--severity-low-bg)] border-[var(--severity-low)]';
-        const stepToneClassName = isLastStep && isTerminal
+        const stepToneClassName = isTerminal && stepNum === 4
           ? terminalDoneClass
           : done
             ? 'bg-primary border-primary'
@@ -445,15 +431,13 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
               <div
                 className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded border transition-all duration-300 ${stepToneClassName}`}
               >
-                {(done || (isLastStep && isTerminal)) ? (
-                  isLastStep && isTerminal ? (
+                {(done || (isTerminal && stepNum === 4)) ? (
+                  isTerminal && stepNum === 4 ? (
                     isFailed
                       ? <X size={10} className="text-[var(--error)]" />
-                      : isClosed
-                      ? <CheckCircle2 size={10} className="text-[var(--outline)]" />
                       : <CheckCircle2 size={10} className="text-[var(--severity-low)]" />
                   ) : (
-                    <CheckCircle2 size={10} className="text-[var(--primary-foreground)]" />
+                    <CheckCircle2 size={10} className="text-white" />
                   )
                 ) : active ? (
                   <div className="h-[7px] w-[7px] rounded-[2px] bg-primary" />
@@ -462,21 +446,15 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                 )}
               </div>
               <span
-                className={`text-center text-[8px] leading-[1.2] ${
-                  isLastStep && isTerminal
-                    ? `font-bold ${isFailed ? 'text-[var(--error)]' : isClosed ? 'text-[var(--outline)]' : 'text-[var(--severity-low)]'}`
-                    : done || active
-                      ? 'font-bold text-primary'
-                      : 'font-normal text-[var(--outline)]'
-                }`}
+                className={`text-center text-[8px] leading-[1.2] ${done || active ? 'font-bold text-primary' : 'font-normal text-[var(--outline)]'}`}
               >
-                {isLastStep && isTerminal ? citizenStatusConfig[status].label : s.label}
+                {isTerminal && stepNum === 4 ? citizenStatusConfig[status].label : s.label}
               </span>
             </div>
-            {i < steps.length - 1 && (
+            {i < WORKFLOW_STEPS.length - 1 && (
               <div
                 className={`mb-[14px] h-0.5 flex-1 rounded-[1px] transition-colors duration-300 ${
-                  stepNum < currentStep || (isTerminal && !isLastStep) ? 'bg-primary' : 'bg-surface-container-high'
+                  stepNum < currentStep || (isTerminal && stepNum < 4) ? 'bg-primary' : 'bg-surface-container-high'
                 }`}
               />
             )}
@@ -768,8 +746,8 @@ function DetailView({
                 ) : null}
                 {report.hasAudio ? (
                   <div className="flex items-center gap-[6px] rounded-md border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
-                    <Mic size={14} className="text-[var(--primary)]" />
-                    <span className="text-xs font-bold text-[var(--primary)]">{t('citizen.myReports.voiceRecording')}</span>
+                    <Mic size={14} className="text-[var(--primary-container)]" />
+                    <span className="text-xs font-bold text-[var(--primary-container)]">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
                 ) : null}
               </div>
@@ -1524,7 +1502,7 @@ export default function CitizenMyReports() {
                           onClick={() => { setSortBy(opt); setSortOpen(false); }}
                           className={`block w-full cursor-pointer border-none px-[14px] py-[10px] text-left text-[13px] ${
                             sortBy === opt
-                              ? 'bg-[#EFF6FF] dark:bg-[var(--primary-fixed)] font-bold text-primary'
+                              ? 'bg-[#EFF6FF] font-bold text-primary'
                               : 'bg-card font-normal text-muted-foreground'
                           }`}
                         >
@@ -1554,7 +1532,7 @@ export default function CitizenMyReports() {
                         {tab.label}
                         <span
                           className={`rounded-[20px] px-[7px] py-[1px] text-[11px] font-bold ${
-                            isActive ? 'bg-primary text-[var(--primary-foreground)]' : 'bg-muted text-muted-foreground'
+                            isActive ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {tab.count}

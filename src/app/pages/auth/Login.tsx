@@ -8,8 +8,14 @@ import { authApi } from '../../services/authApi';
 import { clearAuthSession, saveAuthSession } from '../../utils/authSession';
 import { validateLoginForm } from '../../utils/authValidation';
 import { useTranslation } from '../../i18n';
+import { useDocumentHead } from '../../hooks/useDocumentHead';
 
 export default function Login() {
+  useDocumentHead({
+    title: 'Sign In — TUGON',
+    description: 'Sign in to TUGON to file incident reports and track responses for Tondo, Manila.',
+    canonicalPath: '/auth/login',
+  });
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [phone, setPhone] = useState('');

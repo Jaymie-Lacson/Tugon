@@ -97,7 +97,8 @@
       "Bash(grep -r \"ui/carousel\\\\|ui/drawer\\\\|ui/command\\\\|ui/calendar\\\\|ui/resizable\\\\|ui/sonner\\\\|ui/form\" src/ --include=\"*.ts\" --include=\"*.tsx\" -l)",
       "Bash(npm uninstall *)",
       "Bash(mkdir *)",
-      "WebFetch(domain:tatem.com)"
+      "WebFetch(domain:tatem.com)",
+      "Bash(grep -v \":0$\")"
     ]
   }
 }
