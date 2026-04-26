@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
+import { CheckCircle2, Shield } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
@@ -80,24 +80,23 @@ export function AuthLayout({
           </button>
 
           <div className="max-w-[380px]">
-            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
-              <Sparkles size={12} />
-              Crisis Command Network
+            <div className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
+              Tondo I/II · Official Platform
             </div>
             <h2 className="text-[38px] font-black leading-[1.05] tracking-[-0.03em]">
-              Fast.
+              Barangays
               <br />
-              Reliable.
+              251, 252
               <br />
-              Community Focused.
+              & 256.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-blue-100">
-              Coordinate reports, monitor active incidents, and help every barangay response team move with confidence.
+              TUGON is the official incident reporting system for Tondo I/II. File pollution, noise, crime, road hazard, and other reports — directly routed to your barangay's response team.
             </p>
 
             <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3 py-2 text-xs font-semibold text-blue-50">
               <Shield size={14} />
-              Verified access keeps emergency operations secure.
+              All reports are reviewed and officially recorded.
             </div>
           </div>
 
@@ -105,11 +104,17 @@ export function AuthLayout({
             <div className="mb-1">
               Copyright 2026 TUGON Incident Management System
             </div>
-            <div className="flex gap-3 text-[10px] text-blue-200">
-              <span>Privacy</span>
-              <span>Terms</span>
-              <span>Contact</span>
-              <span>Emergency</span>
+            <div className="flex gap-3">
+              {['Privacy', 'Terms', 'Contact', 'Emergency'].map(label => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => navigate(`/${label.toLowerCase()}`)}
+                  className="cursor-pointer border-none bg-transparent p-0 text-[10px] text-blue-200 underline-offset-2 hover:text-white hover:underline"
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -158,13 +163,18 @@ export function AuthLayout({
           )}
 
           <div className="mt-5 text-center text-[10px] text-[var(--on-surface-variant)]">
-            <span>Privacy</span>
-            <span className="mx-2">|</span>
-            <span>Terms</span>
-            <span className="mx-2">|</span>
-            <span>Contact</span>
-            <span className="mx-2">|</span>
-            <span>Emergency</span>
+            {['Privacy', 'Terms', 'Contact', 'Emergency'].map((label, i) => (
+              <React.Fragment key={label}>
+                {i > 0 && <span className="mx-2">|</span>}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/${label.toLowerCase()}`)}
+                  className="cursor-pointer border-none bg-transparent p-0 text-[10px] text-[var(--on-surface-variant)] underline-offset-2 hover:text-[var(--on-surface)] hover:underline"
+                >
+                  {label}
+                </button>
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>
@@ -287,7 +297,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'bg-emerald-600 text-white'
                   : isActive
                     ? 'bg-primary text-white'
-                    : 'bg-[var(--surface-container-high)] text-[var(--outline)]'
+                    : 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
               }`}
             >
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
@@ -298,7 +308,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'text-emerald-600'
                   : isActive
                     ? 'font-bold text-primary'
-                    : 'text-[var(--outline)]'
+                    : 'text-[var(--on-surface-variant)]'
               }`}
             >
               {step.label}

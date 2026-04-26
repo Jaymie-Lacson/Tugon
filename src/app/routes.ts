@@ -35,6 +35,10 @@ const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'
 const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
 const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
 const SkeletonDemo = lazyRoute(() => import('./pages/SkeletonDemo'));
+const Privacy = lazyRoute(() => import('./pages/Privacy'));
+const Terms = lazyRoute(() => import('./pages/Terms'));
+const Contact = lazyRoute(() => import('./pages/Contact'));
+const Emergency = lazyRoute(() => import('./pages/Emergency'));
 const Verifications = lazyRoute(() => import('./pages/Verifications'));
 const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
 const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
@@ -99,6 +103,10 @@ export const router = createBrowserRouter([
   { path: '/', Component: LandingLightOnly, errorElement: React.createElement(AppRouteErrorPage) },
   { path: '/community-map', Component: MapView, errorElement: React.createElement(AppRouteErrorPage) },
   { path: '/skeleton-demo', Component: SkeletonDemo, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/privacy', Component: Privacy, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/terms', Component: Terms, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/contact', Component: Contact, errorElement: React.createElement(AppRouteErrorPage) },
+  { path: '/emergency', Component: Emergency, errorElement: React.createElement(AppRouteErrorPage) },
 
   // Auth screens
   { path: '/auth/login', Component: Login, errorElement: React.createElement(AppRouteErrorPage) },
