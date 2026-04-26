@@ -152,7 +152,7 @@ const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
   },
   primary: {
     card: 'border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)]',
-    icon: 'bg-[var(--primary)] text-white',
+    icon: 'bg-[var(--primary)] text-[var(--primary-foreground)]',
   },
   success: {
     card: 'border border-[var(--outline-variant)] bg-card',
@@ -197,12 +197,12 @@ const quickActionToneClass: Record<AccentTone, {
 };
 
 const incidentIconToneClass: Record<IncidentType, string> = {
-  flood: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
+  flood: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   accident: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
   medical: 'bg-[var(--error-container)] text-[var(--error)]',
   crime: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   infrastructure: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
-  typhoon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+  typhoon: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
 };
 
 /* ── sub-components ──────────────────────────────────────────────────── */
@@ -790,7 +790,7 @@ function HomeTab({
           <button
             type="button"
             onClick={() => navigate('/citizen/report')}
-            className="cursor-pointer rounded border border-primary bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+            className="cursor-pointer rounded border border-primary bg-primary px-4 py-2 text-xs font-bold text-[var(--primary-foreground)] transition-colors hover:bg-primary/90"
           >
             {t('citizen.dashboard.submitIncidentReport')}
           </button>
@@ -836,7 +836,7 @@ function HomeTab({
             <button
               type="button"
               onClick={() => navigate('/citizen/verification')}
-              className="border-0 rounded-md bg-primary text-white text-[12px] font-semibold px-3 py-2 cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
+              className="border-0 rounded-md bg-primary text-[var(--primary-foreground)] text-[12px] font-semibold px-3 py-2 cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
             >
               {t('citizen.dashboard.openVerification')}
             </button>
@@ -1361,12 +1361,12 @@ function MapTab({
       ? incidents.filter((i) => i.status === 'active')
       : incidents.filter((i) => i.status === 'responding');
   const incidentTypeChipClass: Record<IncidentType, string> = {
-    flood: 'bg-blue-100 text-blue-700',
-    accident: 'bg-amber-100 text-amber-800',
-    medical: 'bg-teal-100 text-teal-700',
-    crime: 'bg-violet-100 text-violet-700',
+    flood: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+    accident: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+    medical: 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300',
+    crime: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
     infrastructure: 'bg-muted text-muted-foreground',
-    typhoon: 'bg-sky-100 text-sky-700',
+    typhoon: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
   };
   const hasPinsForFilter = filtered.length > 0;
   const isCompactMobileHeight = isMobileViewport && viewportHeight < 760;
@@ -1432,7 +1432,7 @@ function MapTab({
           showMarkerTooltip={false}
         />
         {!hasPinsForFilter ? (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/40 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-white/40 dark:bg-black/60 backdrop-blur-[2px]">
             <div className="citizen-map-empty-card pointer-events-auto bg-card border border-[var(--outline-variant)] rounded-lg px-4 py-3 text-center">
               <div className="text-[12px] font-medium text-[var(--on-surface)] mb-2">
                 {t('citizen.dashboard.noMapPins')}
@@ -1516,7 +1516,7 @@ function MapTab({
               <button
                 type="button"
                 onClick={() => navigate(`/citizen/my-reports?reportId=${encodeURIComponent(selectedIncident.id)}`)}
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-primary px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-primary/90"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-primary px-4 py-2.5 text-[13px] font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-primary/90"
               >
                 <FileText size={14} />
                 View Full Details

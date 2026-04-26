@@ -1,4 +1,4 @@
-import { Wind, Volume2, AlertCircle, AlertTriangle, MoreHorizontal } from 'lucide-react';
+import { Wind, Volume2, AlertCircle, AlertTriangle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { IncidentCategory, Severity, PinData, ReportForm, LatLng } from './types';
 
@@ -22,7 +22,6 @@ export const CATEGORIES: {
   { type: 'Noise',       label: 'Noise',       icon: Volume2,       color: '#7C3AED',                   bg: '#EDE9FE', desc: 'Public noise disturbance incidents',             descKey: 'citizen.report.category.noise.desc',       emoji: 'N' },
   { type: 'Crime',       label: 'Crime',       icon: AlertCircle,   color: 'var(--primary)',             bg: '#DBEAFE', desc: 'Criminal and suspicious activity reports',      descKey: 'citizen.report.category.crime.desc',       emoji: 'C' },
   { type: 'Road Hazard', label: 'Road Hazard', icon: AlertTriangle, color: 'var(--severity-medium)',     bg: '#FEF3C7', desc: 'Road, sidewalk, and street safety hazards',     descKey: 'citizen.report.category.roadHazard.desc',  emoji: 'R' },
-  { type: 'Other',       label: 'Other',       icon: MoreHorizontal,color: '#475569',                   bg: '#F1F5F9', desc: 'Unlisted general issues',                       descKey: 'citizen.report.category.other.desc',       emoji: 'O' },
 ];
 
 export const STEP_LABEL_KEYS = [

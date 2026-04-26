@@ -32,11 +32,6 @@ export const REPORT_TAXONOMY = [
     requiresMediation: false,
     subcategories: ["Potholes", "Broken streetlights", "Blocked sidewalks", "Road obstruction or illegal parking"],
   },
-  {
-    category: "Other",
-    requiresMediation: false,
-    subcategories: ["Unlisted general issues"],
-  },
 ] as const;
 
 export type ReportCategory = (typeof REPORT_TAXONOMY)[number]["category"];

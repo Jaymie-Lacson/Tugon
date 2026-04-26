@@ -3,7 +3,7 @@ import { CATEGORY_OPTIONS, MEDIATION_WARNING, REPORT_TAXONOMY, getCategoryTaxono
 
 describe('report taxonomy', () => {
   it('matches required incident categories for the reporting flow', () => {
-    expect(CATEGORY_OPTIONS).toEqual(['Pollution', 'Noise', 'Crime', 'Road Hazard', 'Other']);
+    expect(CATEGORY_OPTIONS).toEqual(['Pollution', 'Noise', 'Crime', 'Road Hazard']);
   });
 
   it('ensures every category has at least one configured subcategory', () => {

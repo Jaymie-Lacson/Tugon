@@ -29,7 +29,7 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
           aria-current={!isDark ? 'true' : undefined}
           className={`flex min-w-9 items-center justify-center gap-1 px-2 py-1 transition-colors ${
             !isDark
-              ? 'bg-primary text-white'
+              ? 'bg-primary text-[var(--primary-foreground)]'
               : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-high)]'
           }`}
         >
@@ -42,7 +42,7 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
           aria-current={isDark ? 'true' : undefined}
           className={`flex min-w-9 items-center justify-center gap-1 px-2 py-1 transition-colors ${
             isDark
-              ? 'bg-primary text-white'
+              ? 'bg-primary text-[var(--primary-foreground)]'
               : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-high)]'
           }`}
         >

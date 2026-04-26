@@ -197,9 +197,9 @@ const statusToneClass: Record<CitizenReportStatus, {
     text: 'text-[var(--secondary)]',
   },
   in_progress: {
-    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary-container)]',
+    badge: 'bg-[var(--surface-container-high)] border-[var(--surface-container-highest)] text-[var(--primary)]',
     footer: 'bg-[var(--surface-container-high)] border-t border-[var(--surface-container-highest)]',
-    text: 'text-[var(--primary-container)]',
+    text: 'text-[var(--primary)]',
   },
   resolved: {
     badge: 'bg-[var(--severity-low-bg)] border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
@@ -231,10 +231,10 @@ const typeToneClass: Record<CitizenReportType, {
     fieldIcon: 'text-[var(--severity-low)]',
   },
   noise: {
-    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
-    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
-    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
-    fieldIcon: 'text-[var(--primary-container)]',
+    iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary)]',
+    detailIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
+    fieldIcon: 'text-[var(--primary)]',
   },
   crime: {
     iconChip: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
@@ -249,10 +249,10 @@ const typeToneClass: Record<CitizenReportType, {
     fieldIcon: 'text-[var(--secondary)]',
   },
   flood: {
-    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
-    detailHeader: 'border-b-2 border-b-[var(--primary-container)]',
-    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
-    fieldIcon: 'text-[var(--primary-container)]',
+    iconChip: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
+    detailHeader: 'border-b-2 border-b-[var(--primary)]',
+    detailIcon: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
+    fieldIcon: 'text-[var(--primary)]',
   },
   accident: {
     iconChip: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
@@ -308,9 +308,9 @@ const timelineToneClass: Record<string, {
     actorBadge: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   in_progress: {
-    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary-container)]',
-    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
-    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
+    iconShell: 'bg-[var(--surface-container-high)] border-2 border-[var(--surface-container-highest)] text-[var(--primary)]',
+    latestBadge: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
+    actorBadge: 'bg-[var(--surface-container-high)] text-[var(--primary)]',
   },
   resolved: {
     iconShell: 'bg-[var(--severity-low-bg)] border-2 border-[rgba(5,150,105,0.28)] text-[var(--severity-low)]',
@@ -437,7 +437,7 @@ function WorkflowProgress({ status }: { status: CitizenReportStatus }) {
                       ? <X size={10} className="text-[var(--error)]" />
                       : <CheckCircle2 size={10} className="text-[var(--severity-low)]" />
                   ) : (
-                    <CheckCircle2 size={10} className="text-white" />
+                    <CheckCircle2 size={10} className="text-[var(--primary-foreground)]" />
                   )
                 ) : active ? (
                   <div className="h-[7px] w-[7px] rounded-[2px] bg-primary" />
@@ -746,8 +746,8 @@ function DetailView({
                 ) : null}
                 {report.hasAudio ? (
                   <div className="flex items-center gap-[6px] rounded-md border border-[var(--surface-container-highest)] bg-surface-container-high px-3 py-2">
-                    <Mic size={14} className="text-[var(--primary-container)]" />
-                    <span className="text-xs font-bold text-[var(--primary-container)]">{t('citizen.myReports.voiceRecording')}</span>
+                    <Mic size={14} className="text-[var(--primary)]" />
+                    <span className="text-xs font-bold text-[var(--primary)]">{t('citizen.myReports.voiceRecording')}</span>
                   </div>
                 ) : null}
               </div>
@@ -1502,7 +1502,7 @@ export default function CitizenMyReports() {
                           onClick={() => { setSortBy(opt); setSortOpen(false); }}
                           className={`block w-full cursor-pointer border-none px-[14px] py-[10px] text-left text-[13px] ${
                             sortBy === opt
-                              ? 'bg-[#EFF6FF] font-bold text-primary'
+                              ? 'bg-[#EFF6FF] dark:bg-[var(--primary-fixed)] font-bold text-primary'
                               : 'bg-card font-normal text-muted-foreground'
                           }`}
                         >
@@ -1532,7 +1532,7 @@ export default function CitizenMyReports() {
                         {tab.label}
                         <span
                           className={`rounded-[20px] px-[7px] py-[1px] text-[11px] font-bold ${
-                            isActive ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                            isActive ? 'bg-primary text-[var(--primary-foreground)]' : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {tab.count}

@@ -23,7 +23,7 @@ function getCategoryThemeClasses(type: IncidentCategory) {
   }
   if (type === 'Crime') {
     return {
-      selectedCard: 'bg-primary border-primary',
+      selectedCard: 'bg-primary border-primary dark:bg-[#1e3a8a] dark:border-[#1e3a8a]',
       unselectedHalo: 'bg-[#DBEAFE]',
       unselectedIcon: 'bg-[#DBEAFE] text-primary',
     };
@@ -91,7 +91,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   return (
     <div className="incident-step2 pt-[22px] px-4 pb-2">
       <div className="mb-5">
-        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
+        <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] dark:bg-[var(--primary-fixed)] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
           {t('citizen.report.step1.badge')}
         </div>
         <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">
@@ -211,7 +211,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
             ))}
           </select>
           {form.requiresMediation ? (
-            <div className="mt-2.5 text-[11px] text-primary bg-[#EFF6FF] border border-[#BFDBFE] rounded-[10px] py-2 px-2.5 leading-[1.5]">
+            <div className="mt-2.5 text-[11px] text-primary bg-[#EFF6FF] dark:bg-[var(--primary-fixed)] border border-[#BFDBFE] dark:border-[var(--primary)] rounded-[10px] py-2 px-2.5 leading-[1.5]">
               {MEDIATION_WARNING}
             </div>
           ) : null}

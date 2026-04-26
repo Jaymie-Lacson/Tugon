@@ -77,7 +77,7 @@ export function CitizenMobileMenu({ activeKey, onNavigate }: CitizenMobileMenuPr
               type="button"
               onClick={() => handleSelect(item.key)}
               className={`flex w-full cursor-pointer items-center gap-3 border-none border-b border-white/[0.16] px-3 py-3 text-left text-[15px] font-semibold transition-colors ${
-                isActive ? 'bg-primary text-white' : 'bg-transparent text-white/[0.82]'
+                isActive ? 'bg-primary text-[var(--primary-foreground)]' : 'bg-transparent text-white/[0.82]'
               } ${panelItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
             >
               <Icon size={16} />

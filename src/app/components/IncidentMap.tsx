@@ -370,6 +370,9 @@ export function IncidentMap({
   });
   const isHotspotMode = renderMode === 'hotspot' && heatmapClusters.length > 0;
   const clampedRadiusPercent = Math.max(50, Math.min(100, heatmapRadiusPercent));
+  const uniqueLegendKeys = Object.keys(incidentTypeConfig).filter((key, idx, arr) =>
+    arr.findIndex(k => getCategoryLabelForIncidentType(k as Incident['type']) === getCategoryLabelForIncidentType(key as Incident['type'])) === idx
+  );
   const clampedOpacityPercent = Math.max(50, Math.min(120, heatmapOpacityPercent));
   const heatRadiusScale = 0.1 + ((clampedRadiusPercent - 50) / 50) * 0.9;
   const heatOpacityScale = 0.2 + ((clampedOpacityPercent - 50) / 70) * 1.3;
@@ -594,7 +597,7 @@ export function IncidentMap({
                 <span style={{ color: 'var(--on-surface-variant)', fontSize: 9 }}>Only selected incident pin is shown to reduce clutter.</span>
               </div>
             </>
-          ) : Object.entries(incidentTypeConfig).map(([key]) => (
+          ) : uniqueLegendKeys.map((key) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
               <span
                 style={{
@@ -636,7 +639,7 @@ export function IncidentMap({
           border: isDark ? '1px solid var(--outline-variant)' : '1px solid #E2E8F0',
         }}>
           <div style={{ fontWeight: 700, color: 'var(--on-surface)', marginBottom: 5, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Incident Categories</div>
-          {Object.entries(incidentTypeConfig).map(([key]) => (
+          {uniqueLegendKeys.map((key) => (
             <div key={`mobile-${key}`} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
               <span
                 style={{

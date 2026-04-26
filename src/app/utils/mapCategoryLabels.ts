@@ -5,8 +5,8 @@ const INCIDENT_TYPE_TO_CATEGORY_LABEL: Record<IncidentType, string> = {
   accident: 'Road Hazard',
   medical: 'Noise',
   crime: 'Crime',
-  infrastructure: 'Other',
-  typhoon: 'Other',
+  infrastructure: 'Road Hazard',
+  typhoon: 'Pollution',
 };
 
 export function getCategoryLabelForIncidentType(type: IncidentType): string {

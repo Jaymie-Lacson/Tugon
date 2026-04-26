@@ -118,7 +118,7 @@ export function CitizenDesktopNav({ activeKey, onNavigate, collapsed = false, on
       {/* User info footer — mirrors official sidebar footer */}
       <div className={`shrink-0 overflow-x-hidden border-t border-[var(--outline-variant)]/35 bg-[var(--surface-container-lowest)] ${collapsed ? 'px-2' : 'px-4'} py-3`}>
         <div className={`flex min-w-0 items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-[var(--primary-foreground)]">
             {initials}
           </div>
           {!collapsed ? (

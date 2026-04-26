@@ -18,8 +18,8 @@ export function LanguageToggle({ compact = false }: LanguageToggleProps) {
     : 'px-3 py-1.5 transition-colors';
 
   const activeClassName = compact
-    ? 'bg-primary text-white'
-    : 'bg-primary text-white';
+    ? 'bg-primary text-[var(--primary-foreground)]'
+    : 'bg-primary text-[var(--primary-foreground)]';
 
   const inactiveClassName = compact
     ? 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-high)]'
