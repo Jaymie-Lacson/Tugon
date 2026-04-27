@@ -490,6 +490,23 @@ function Hero() {
 
 function HeroMapStage() {
   const stageRef = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setInView(true);
+        });
+      },
+      { threshold: 0.1, rootMargin: '200% 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = stageRef.current;
@@ -512,11 +529,11 @@ function HeroMapStage() {
 
     let ticking = false;
     let lastProgress = -1;
-    let inView = false;
+    let isStageInView = false;
 
     const update = () => {
       ticking = false;
-      if (!inView) return;
+      if (!isStageInView) return;
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
       const scrollable = rect.height - vh;
@@ -547,14 +564,14 @@ function HeroMapStage() {
     // scrolls into view.
     const io = new IntersectionObserver(
       (entries) => {
-        inView = entries[0]?.isIntersecting ?? false;
+        isStageInView = entries[0]?.isIntersecting ?? false;
         if (inView) update();
       },
-      { rootMargin: '100% 0px' },
+      { rootMargin: '200% 0px' },
     );
     io.observe(el);
 
-    inView = true;
+    isStageInView = true;
     update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', update);
@@ -573,17 +590,21 @@ function HeroMapStage() {
     >
       <div className="landing-hero-map-sticky">
         <div className="landing-hero-map-frame">
-          <IncidentMap
-            incidents={HERO_DUMMY_REPORTS}
-            showMarkerTooltip={false}
-            showIncidentGlow={false}
-            compact
-            interactive={false}
-            zoom={17}
-            height="100%"
-            viewportKey="landing-hero-map"
-            forceLight
-          />
+          {inView ? (
+            <IncidentMap
+              incidents={HERO_DUMMY_REPORTS}
+              showMarkerTooltip={false}
+              showIncidentGlow={false}
+              compact
+              interactive={false}
+              zoom={17}
+              height="100%"
+              viewportKey="landing-hero-map"
+              forceLight
+            />
+          ) : (
+            <div className="landing-hero-map-placeholder" />
+          )}
         </div>
       </div>
     </section>

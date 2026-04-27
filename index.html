@@ -43,6 +43,10 @@
          briefly appear at full opacity before landing.css loads and hides them
          for the scroll-reveal animation (Speed Index / visual stability).
       3. .landing-hero-content reserves minimum height to prevent CLS.
+      4. Base HTML/body to eliminate layout shifts from render-blocking CSS load.
+
+      Full index.css is loaded async via onload="this.onload=null;this.media='all'"
+      to eliminate render-blocking (LCP improvement ~850ms).
     -->
     <style>
       @font-face {
@@ -75,6 +79,7 @@
       }
       [data-reveal]{opacity:0}
       .landing-hero-content{contain:layout style;min-height:420px}
+      html,body{overflow-x:clip}
     </style>
   </head>
 

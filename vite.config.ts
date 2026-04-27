@@ -3,19 +3,34 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
+import fs from 'fs'
 
 // Enable bundle analyzer by running: ANALYZE=true npm run build
 const shouldAnalyze = process.env.ANALYZE === 'true'
 
+function asyncCssPlugin() {
+  return {
+    name: 'async-css',
+    closeBundle() {
+      const distDir = path.resolve(__dirname, 'dist')
+      const htmlPath = path.join(distDir, 'index.html')
+      let html = fs.readFileSync(htmlPath, 'utf-8')
+const mainCss = html.match(/href="(\/assets\/index-[^"]+\.css)"/)?.[1]
+      if (mainCss) {
+        const asyncTag = `<link rel="stylesheet" href="${mainCss}" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="${mainCss}"></noscript>`
+        const escapedCss = mainCss.replace('/', '\\/')
+        html = html.replace(new RegExp(`<link rel="stylesheet"[^>]*href="${escapedCss}">`), asyncTag)
+        fs.writeFileSync(htmlPath, html)
+      }
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
-    // NOTE: @vitejs/plugin-legacy was removed to eliminate ~634KB of redundant
-    // polyfill bundles. Target audience uses modern browsers (Chrome 80+,
-    // Safari 14+, Firefox 78+) that support all ES2020+ features natively.
+    asyncCssPlugin(),
     shouldAnalyze &&
       visualizer({
         filename: 'dist/bundle-stats.html',

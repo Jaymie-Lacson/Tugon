@@ -672,12 +672,21 @@
   contain: layout paint;
 }
 
+.landing-hero-map-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #dbe5f6 0%, #e8edf5 100%);
+}
+
 .landing-hero-map-frame {
   position: absolute;
   inset: 0;
   width: 100vw;
   height: 100vh;
   max-height: 100vh;
+  contain: strict;
   border-radius: calc(22px * (1 - var(--map-progress)));
   overflow: hidden;
   background: #dbe5f6;
