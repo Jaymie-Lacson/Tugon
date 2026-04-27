@@ -530,13 +530,28 @@ function HeroMapStage() {
     let ticking = false;
     let lastProgress = -1;
     let isStageInView = false;
+    let cachedHeight = 0;
+    let cachedTop = 0;
+
+    // Cache dimensions once to avoid forced reflow on every scroll
+    const cacheDimensions = () => {
+      cachedHeight = el.offsetHeight;
+    };
+    cacheDimensions();
+
+    // Update cached dimensions on resize to handle responsive layouts
+    const resizeObserver = new ResizeObserver(() => {
+      cacheDimensions();
+    });
+    resizeObserver.observe(el);
 
     const update = () => {
       ticking = false;
       if (!isStageInView) return;
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      const scrollable = rect.height - vh;
+      // Use cached height + current top for scroll calculation
+      const scrollable = cachedHeight - vh;
       let next = 1;
       if (scrollable > 0) {
         const scrolled = Math.max(0, Math.min(scrollable, -rect.top));
@@ -577,6 +592,7 @@ function HeroMapStage() {
     window.addEventListener('resize', update);
     return () => {
       io.disconnect();
+      resizeObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', update);
     };
@@ -1153,11 +1169,23 @@ function HowToUse() {
     }
 
     let ticking = false;
+    let cachedHeight = 0;
+
+    const cacheDimensions = () => {
+      cachedHeight = el.offsetHeight;
+    };
+    cacheDimensions();
+
+    const resizeObserver = new ResizeObserver(() => {
+      cacheDimensions();
+    });
+    resizeObserver.observe(el);
+
     const update = () => {
       ticking = false;
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      const scrollable = rect.height - vh;
+      const scrollable = cachedHeight - vh;
       if (scrollable <= 0) {
         setProgress(0);
         setActiveIndex(0);
@@ -1180,6 +1208,7 @@ function HowToUse() {
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', update);
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', update);
     };

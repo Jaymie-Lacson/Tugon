@@ -187,6 +187,8 @@ export default function Dashboard() {
   const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
+  const [mapInView, setMapInView] = useState(false);
+  const mapContainerRef = React.useRef<HTMLDivElement>(null);
   const mapIncidents = React.useMemo(() => incidents.filter((incident) => isIncidentVisibleOnMap(incident)), [incidents]);
   const activeIncidents = incidents.filter(i => i.status === 'active' || i.status === 'responding');
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -203,6 +205,23 @@ export default function Dashboard() {
     if (pct < 0) return { dir: 'down', val: `${pct}% vs yesterday` };
     return { dir: 'flat', val: 'Same as yesterday' };
   }, [resolvedToday.length, resolvedYesterday.length, t]);
+
+  React.useEffect(() => {
+    if (mapInView) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setMapInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+    const ref = mapContainerRef.current;
+    if (ref) io.observe(ref);
+    return () => { io.disconnect(); };
+  }, [mapInView]);
+
   const criticalCount = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved').length;
   const deployedUnits = activeIncidents.reduce((sum, incident) => sum + Math.max(0, incident.responders || 0), 0);
   const avgResponseMinutes = React.useMemo(() => {
@@ -748,19 +767,25 @@ export default function Dashboard() {
               </div>
             ) : null}
 
-            <IncidentMap
-              incidents={mapIncidents}
-              height={280}
-              selectedId={selectedIncident?.id}
-              onSelectIncident={setSelectedIncident}
-              compact={false}
-              zoom={14}
-              heatmapClusters={heatmapOverlays}
-              renderMode={mapRenderMode}
-              heatmapRadiusPercent={heatRadiusPercent}
-              heatmapOpacityPercent={heatOpacityPercent}
-              interactive={!showHeatmapTuning}
-            />
+            <div ref={mapContainerRef}>
+              {mapInView ? (
+                <IncidentMap
+                  incidents={mapIncidents}
+                  height={280}
+                  selectedId={selectedIncident?.id}
+                  onSelectIncident={setSelectedIncident}
+                  compact={false}
+                  zoom={14}
+                  heatmapClusters={heatmapOverlays}
+                  renderMode={mapRenderMode}
+                  heatmapRadiusPercent={heatRadiusPercent}
+                  heatmapOpacityPercent={heatOpacityPercent}
+                  interactive={!showHeatmapTuning}
+                />
+              ) : (
+                <div className="h-[280px] bg-muted/30 animate-pulse" />
+              )}
+            </div>
           </div>
           {selectedIncident && (
             <div className="flex flex-wrap items-center gap-2.5 border-t border-border/60 bg-muted/50 px-3.5 py-2.5">

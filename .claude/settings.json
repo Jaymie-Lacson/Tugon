@@ -25,5 +25,8 @@
       "mcp__code-review-graph__refactor_tool",
       "mcp__code-review-graph__get_minimal_context_tool"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }

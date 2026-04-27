@@ -978,17 +978,21 @@ function HomeTab({
             )}
           </aside>
 
-          <div className="flex-[1_1_420px] min-w-0">
+          <div className="flex-[1_1_420px] min-w-0" ref={map1Ref}>
             <div className="rounded-md overflow-hidden border border-[var(--outline-variant)] bg-card block w-full min-h-[360px]">
-              <IncidentMap
-                incidents={incidents}
-                height={360}
-                selectedId={selectedIncident?.id ?? null}
-                onSelectIncident={setSelectedIncident}
-                compact={false}
-                zoom={17}
-                showSelectedPopup
-              />
+              {map1InView ? (
+                <IncidentMap
+                  incidents={incidents}
+                  height={360}
+                  selectedId={selectedIncident?.id ?? null}
+                  onSelectIncident={setSelectedIncident}
+                  compact={false}
+                  zoom={17}
+                  showSelectedPopup
+                />
+              ) : (
+                <div className="h-[360px] bg-muted/30 animate-pulse" />
+              )}
             </div>
           </div>
         </div>

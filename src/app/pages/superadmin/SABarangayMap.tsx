@@ -6,13 +6,14 @@ import { useTheme } from 'next-themes';
 import L from 'leaflet';
 
 // ── Tile layer URLs ───────────────────────────────────────────────────────────
+// CARTO has better cache policies than OSM (longer TTL, better CDN)
 const TILE_URLS = {
-  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
   dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
 };
 
 const TILE_ATTRIBUTIONS = {
-  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 };
 import {

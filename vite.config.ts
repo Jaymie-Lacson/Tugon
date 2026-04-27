@@ -15,13 +15,25 @@ function asyncCssPlugin() {
       const distDir = path.resolve(__dirname, 'dist')
       const htmlPath = path.join(distDir, 'index.html')
       let html = fs.readFileSync(htmlPath, 'utf-8')
-const mainCss = html.match(/href="(\/assets\/index-[^"]+\.css)"/)?.[1]
-      if (mainCss) {
-        const asyncTag = `<link rel="stylesheet" href="${mainCss}" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="${mainCss}"></noscript>`
-        const escapedCss = mainCss.replace('/', '\\/')
-        html = html.replace(new RegExp(`<link rel="stylesheet"[^>]*href="${escapedCss}">`), asyncTag)
-        fs.writeFileSync(htmlPath, html)
+
+      // Find ALL CSS files in the HTML (index, landing, vendor chunks, fonts-extended)
+      const cssRegex = /href="(\/assets\/[^"]+\.css)"/g
+      let match
+      const cssFiles = new Set()
+
+      while ((match = cssRegex.exec(html)) !== null) {
+        cssFiles.add(match[1])
       }
+
+      // Convert all CSS links to async loading
+      for (const cssFile of cssFiles) {
+        const asyncTag = `<link rel="stylesheet" href="${cssFile}" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="${cssFile}"></noscript>`
+        // Escape for regex: / becomes \/
+        const escapedCss = cssFile.replace('/', '\\/')
+        html = html.replace(new RegExp(`<link rel="stylesheet"[^>]*href="${escapedCss}">`), asyncTag)
+      }
+
+      fs.writeFileSync(htmlPath, html)
     },
   }
 }
@@ -59,12 +71,16 @@ export default defineConfig({
     },
   },
 
-  build: {
+build: {
     // Target modern browsers only — matches the audience (Chrome 80+, Safari 14+,
     // Firefox 78+) and produces smaller output without ES5 transforms.
     target: 'es2020',
     // Use Lightning CSS for faster, smaller CSS output than the default postcss path.
     cssMinify: 'lightningcss',
+    // Disable CSS code splitting to consolidate all CSS into a single file
+    // that can be easily deferred. Code-split CSS causes render-blocking when
+    // loaded dynamically by JS chunks.
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         manualChunks(id) {

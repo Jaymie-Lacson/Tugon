@@ -98,7 +98,11 @@
       "Bash(npm uninstall *)",
       "Bash(mkdir *)",
       "WebFetch(domain:tatem.com)",
-      "Bash(grep -v \":0$\")"
+      "Bash(grep -v \":0$\")",
+      "Bash(command -v opencode)",
+      "Bash(opencode --version)",
+      "Bash(echo \"OpenCode $\\(opencode --version\\) is installed\")",
+      "Bash(bunx oh-my-opencode *)"
     ]
   }
 }
