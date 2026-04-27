@@ -525,28 +525,29 @@ function HeroMapStage() {
       return;
     }
 
-    // Modern Chromium (115+) and Safari (18+) drive --map-progress entirely
-    // from CSS @supports block, on the compositor thread. Skip the JS path
-    // altogether — no scroll listener, no rAF, no layout reads.
+    // Check for native scroll-driven animation support BEFORE attaching any
+    // scroll listeners. If the browser supports animation-timeline: view(),
+    // the CSS will drive --map-progress on the compositor — no JS needed.
+    // This eliminates the main-thread layout thrashing that kills mobile LCP.
     const hasNativeScrollTimeline =
-      typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()');
+      typeof CSS !== 'undefined' && CSS.supports('animation-timeline', 'view()');
+
     if (hasNativeScrollTimeline) {
-      return;
+      return; // CSS handles everything — zero JS cost
     }
 
+    // Fallback: only for browsers without scroll-driven animation support.
+    // This code path is NOT entered on Chrome 115+, Safari 18+, or Firefox 123+.
     let ticking = false;
     let lastProgress = -1;
     let isStageInView = false;
     let cachedHeight = 0;
-    let cachedTop = 0;
 
-    // Cache dimensions once to avoid forced reflow on every scroll
     const cacheDimensions = () => {
       cachedHeight = el.offsetHeight;
     };
     cacheDimensions();
 
-    // Update cached dimensions on resize to handle responsive layouts
     const resizeObserver = new ResizeObserver(() => {
       cacheDimensions();
     });
@@ -557,7 +558,6 @@ function HeroMapStage() {
       if (!isStageInView) return;
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      // Use cached height + current top for scroll calculation
       const scrollable = cachedHeight - vh;
       let next = 1;
       if (scrollable > 0) {
@@ -566,24 +566,17 @@ function HeroMapStage() {
         next = raw < 0 ? 0 : raw > 1 ? 1 : raw;
       }
 
-      // Quantize to two decimals so trivial scroll deltas don't trigger
-      // style writes (and the resulting compositor work) on weak devices.
-      const quantized = Math.round(next * 100) / 100;
-      if (quantized === lastProgress) return;
-      lastProgress = quantized;
-      el.style.setProperty('--map-progress', String(quantized));
+      if (next === lastProgress) return;
+      lastProgress = next;
+      el.style.setProperty('--map-progress', String(next));
     };
 
     const onScroll = () => {
-      // Bail before queuing rAF when stage isn't visible — saves callback
-      // dispatch + layout read on every scroll tick.
       if (ticking || !inView) return;
       ticking = true;
       window.requestAnimationFrame(update);
     };
 
-    // One-viewport buffer so the transform is settled before the stage
-    // scrolls into view.
     const io = new IntersectionObserver(
       (entries) => {
         isStageInView = entries[0]?.isIntersecting ?? false;
@@ -610,6 +603,7 @@ function HeroMapStage() {
       ref={stageRef}
       className="landing-hero-map-stage"
       aria-hidden="true"
+      style={{ contentVisibility: 'auto' }}
     >
       <div className="landing-hero-map-sticky">
         <div className="landing-hero-map-frame">

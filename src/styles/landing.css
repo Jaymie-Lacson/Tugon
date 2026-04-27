@@ -274,7 +274,7 @@
   --reveal-y: 22px;
   opacity: 0;
   transform: translate3d(var(--reveal-x), var(--reveal-y), 0);
-  transition: opacity 640ms cubic-bezier(0.2, 0.65, 0.3, 1), transform 640ms cubic-bezier(0.2, 0.65, 0.3, 1);
+  transition: opacity 120ms cubic-bezier(0.2, 0.65, 0.3, 1), transform 120ms cubic-bezier(0.2, 0.65, 0.3, 1);
   will-change: opacity, transform;
 }
 
@@ -626,22 +626,24 @@
   position: relative;
   width: 100%;
   margin-top: calc(-1 * var(--map-overlap));
-  height: 220vh;
+  height: 130vh;
   background: transparent;
   overflow: clip;
   z-index: 2;
   contain: layout paint;
 }
 
-/* Native CSS scroll-driven animation — runs on the compositor, never blocks
-   the main thread. JS fallback in HeroMapStage handles older browsers. */
+/* CSS scroll-driven animation — runs on the compositor, never blocks
+   the main thread. Uses `view()` timeline so --map-progress updates
+   based on the element's entry into the viewport. Falls back to the
+   JS rAF path in HeroMapStage for browsers without view() support. */
 @supports (animation-timeline: view()) {
   .landing-hero-map-stage {
     view-timeline-name: --hero-map-stage;
     view-timeline-axis: block;
     animation: hero-map-progress linear both;
     animation-timeline: --hero-map-stage;
-    animation-range: contain 0% contain 70%;
+    animation-range: entry 0% entry 100%;
   }
 
   @keyframes hero-map-progress {
@@ -693,12 +695,12 @@
   transform-origin: 50% 50%;
   transform:
     translate3d(
-      calc((1 - var(--map-progress)) * 22%),
-      calc((1 - var(--map-progress)) * 9%),
+      calc((1 - var(--map-progress)) * 38%),
+      calc((1 - var(--map-progress)) * 16%),
       0
     )
-    rotateX(calc((1 - var(--map-progress)) * 48deg))
-    rotateZ(calc((1 - var(--map-progress)) * -24deg));
+    rotateX(calc((1 - var(--map-progress)) * 58deg))
+    rotateZ(calc((1 - var(--map-progress)) * -32deg));
   pointer-events: none;
   will-change: transform;
   backface-visibility: hidden;

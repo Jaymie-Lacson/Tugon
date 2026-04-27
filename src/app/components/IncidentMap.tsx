@@ -418,6 +418,7 @@ export function IncidentMap({
           maxNativeZoom={20}
           maxZoom={INCIDENT_MAP_MAX_ZOOM}
           detectRetina
+          crossOrigin={true}
         />
 
         {/* Official barangay boundaries */}
