@@ -496,6 +496,10 @@ function HeroMapStage() {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
+    stageRef.current?.setAttribute('inert', '');
+  }, []);
+
+  useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
 
@@ -811,7 +815,7 @@ function OperationalSignals() {
                 {signals.map((signal) => (
                   <article key={`${copyIndex}-${signal.title}`} className="landing-press-card">
                     <div className="landing-press-card-kicker">Operational signal</div>
-                    <h3 className="landing-press-card-title">{signal.title}</h3>
+                    <p className="landing-press-card-title">{signal.title}</p>
                     <p className="landing-press-card-detail">{signal.detail}</p>
                   </article>
                 ))}

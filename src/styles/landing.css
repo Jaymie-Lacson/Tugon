@@ -1639,7 +1639,7 @@
 
 .landing-how {
   --how-ink: #0d1c2e;
-  --how-muted: rgba(13, 28, 46, 0.52);
+  --how-muted: rgba(13, 28, 46, 0.72);
   --how-hairline: rgba(13, 28, 46, 0.1);
   --how-accent: var(--primary, #00236f);
   position: relative;
@@ -1803,15 +1803,18 @@
   border-radius: 999px;
 }
 
+.landing-how--ochre .landing-how-panel-kicker { color: #7a4f00; }
+.landing-how--green .landing-how-panel-kicker { color: #065f46; }
+
 /* Per-card step number — hidden on desktop (the watermark shows there), visible on mobile */
 .landing-how-panel-step {
   display: none;
 }
 
 /* Accent-tinted tones per step for mobile cards */
-.landing-how-panel--navy { --panel-tint: rgba(0, 35, 111, 0.04); --panel-accent: var(--primary, #00236f); }
-.landing-how-panel--ochre { --panel-tint: rgba(254, 177, 76, 0.08); --panel-accent: #b4730a; }
-.landing-how-panel--green { --panel-tint: rgba(5, 150, 105, 0.06); --panel-accent: #059669; }
+.landing-how-panel--navy { --panel-tint: rgba(0, 35, 111, 0.04); --panel-accent: var(--primary, #00236f); --panel-step-shadow: rgba(0, 35, 111, 0.12); }
+.landing-how-panel--ochre { --panel-tint: rgba(254, 177, 76, 0.08); --panel-accent: #b4730a; --panel-step-shadow: rgba(180, 115, 10, 0.12); }
+.landing-how-panel--green { --panel-tint: rgba(5, 150, 105, 0.06); --panel-accent: #059669; --panel-step-shadow: rgba(5, 150, 105, 0.12); }
 
 .landing-how-panel-title {
   margin: 0;
@@ -1983,7 +1986,10 @@
     line-height: 0.86;
     letter-spacing: -0.05em;
     color: var(--panel-accent, var(--how-accent));
-    opacity: 0.12;
+    background: var(--panel-step-shadow, rgba(13, 28, 46, 0.12));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin: 0 0 clamp(6px, 2vw, 12px);
   }
   .landing-how-panel-kicker {
@@ -2008,6 +2014,8 @@
     display: inline-block;
     opacity: 0.6;
   }
+  .landing-how-panel--ochre .landing-how-panel-kicker { color: #7a4f00; }
+  .landing-how-panel--green .landing-how-panel-kicker { color: #065f46; }
   .landing-how-panel-title {
     font-size: clamp(28px, 8vw, 40px);
     line-height: 1.04;
@@ -2275,7 +2283,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(13, 28, 46, 0.5);
+  color: rgba(13, 28, 46, 0.72);
   margin-bottom: 18px;
 }
 
