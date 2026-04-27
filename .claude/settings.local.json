@@ -103,7 +103,9 @@
       "Bash(opencode --version)",
       "Bash(echo \"OpenCode $\\(opencode --version\\) is installed\")",
       "Bash(bunx oh-my-opencode *)",
-      "Bash(grep -E \"tsconfig|\\\\.json$\")"
+      "Bash(grep -E \"tsconfig|\\\\.json$\")",
+      "Bash(awk 'NR==28' \"C:\\\\Users\\\\Mikell Razon\\\\Downloads\\\\PageSpeed Insights.html\")",
+      "Read(//tmp/**)"
     ]
   }
 }
