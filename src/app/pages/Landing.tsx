@@ -19,9 +19,12 @@ import { getAuthSession } from '../utils/authSession';
 import { useTranslation } from '../i18n';
 import { Button } from '../components/ui/button';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
-import { IncidentMap } from '../components/IncidentMap';
 import type { Incident } from '../data/incidents';
 import '../../styles/landing.css';
+
+const LazyIncidentMap = React.lazy(() =>
+  import('../components/IncidentMap').then((m) => ({ default: m.IncidentMap }))
+);
 
 
 const HERO_DUMMY_REPORTS: Incident[] = [
@@ -502,7 +505,7 @@ function HeroMapStage() {
           if (entry.isIntersecting) setInView(true);
         });
       },
-      { threshold: 0.1, rootMargin: '200% 0px' }
+      { threshold: 0.1, rootMargin: '100px 0px' }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -607,17 +610,19 @@ function HeroMapStage() {
       <div className="landing-hero-map-sticky">
         <div className="landing-hero-map-frame">
           {inView ? (
-            <IncidentMap
-              incidents={HERO_DUMMY_REPORTS}
-              showMarkerTooltip={false}
-              showIncidentGlow={false}
-              compact
-              interactive={false}
-              zoom={17}
-              height="100%"
-              viewportKey="landing-hero-map"
-              forceLight
-            />
+            <React.Suspense fallback={<div className="landing-hero-map-placeholder" />}>
+              <LazyIncidentMap
+                incidents={HERO_DUMMY_REPORTS}
+                showMarkerTooltip={false}
+                showIncidentGlow={false}
+                compact
+                interactive={false}
+                zoom={17}
+                height="100%"
+                viewportKey="landing-hero-map"
+                forceLight
+              />
+            </React.Suspense>
           ) : (
             <div className="landing-hero-map-placeholder" />
           )}
@@ -1170,9 +1175,17 @@ function HowToUse() {
 
     let ticking = false;
     let cachedHeight = 0;
+    let cachedTop = 0;
 
     const cacheDimensions = () => {
       cachedHeight = el.offsetHeight;
+      let top = 0;
+      let curr: HTMLElement | null = el;
+      while (curr) {
+        top += curr.offsetTop;
+        curr = curr.offsetParent as HTMLElement | null;
+      }
+      cachedTop = top;
     };
     cacheDimensions();
 
@@ -1183,7 +1196,6 @@ function HowToUse() {
 
     const update = () => {
       ticking = false;
-      const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
       const scrollable = cachedHeight - vh;
       if (scrollable <= 0) {
@@ -1191,7 +1203,7 @@ function HowToUse() {
         setActiveIndex(0);
         return;
       }
-      const scrolled = Math.max(0, Math.min(scrollable, -rect.top));
+      const scrolled = Math.max(0, Math.min(scrollable, window.scrollY - cachedTop));
       const p = scrolled / scrollable;
       setProgress(p);
       const idx = p < 1 / 3 ? 0 : p < 2 / 3 ? 1 : 2;

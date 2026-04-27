@@ -16,21 +16,21 @@ function asyncCssPlugin() {
       const htmlPath = path.join(distDir, 'index.html')
       let html = fs.readFileSync(htmlPath, 'utf-8')
 
-      // Find ALL CSS files in the HTML (index, landing, vendor chunks, fonts-extended)
-      const cssRegex = /href="(\/assets\/[^"]+\.css)"/g
+      // Find ALL stylesheet link tags Vite injected
+      const linkRegex = /<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/g
       let match
-      const cssFiles = new Set()
+      const replacements: Array<{ original: string; cssFile: string }> = []
 
-      while ((match = cssRegex.exec(html)) !== null) {
-        cssFiles.add(match[1])
+      while ((match = linkRegex.exec(html)) !== null) {
+        replacements.push({ original: match[0], cssFile: match[1] })
       }
 
-      // Convert all CSS links to async loading
-      for (const cssFile of cssFiles) {
-        const asyncTag = `<link rel="stylesheet" href="${cssFile}" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="${cssFile}"></noscript>`
-        // Escape for regex: / becomes \/
-        const escapedCss = cssFile.replace('/', '\\/')
-        html = html.replace(new RegExp(`<link rel="stylesheet"[^>]*href="${escapedCss}">`), asyncTag)
+      // Convert each to: preload + async swap + noscript fallback
+      for (const { original, cssFile } of replacements) {
+        const preload = `<link rel="preload" href="${cssFile}" as="style">`
+        const asyncLink = `<link rel="stylesheet" href="${cssFile}" media="print" onload="this.onload=null;this.media='all'">`
+        const fallback = `<noscript><link rel="stylesheet" href="${cssFile}"></noscript>`
+        html = html.replace(original, `${preload}${asyncLink}${fallback}`)
       }
 
       fs.writeFileSync(htmlPath, html)

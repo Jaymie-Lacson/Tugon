@@ -5,8 +5,8 @@ import type { IncidentCategory, Severity, PinData, ReportForm, LatLng } from './
 // ── Tile layer URLs ───────────────────────────────────────────────────────────
 // CARTO has better cache policies than OSM
 export const TILE_URLS = {
-  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
 };
 
 export const TILE_ATTRIBUTIONS = {

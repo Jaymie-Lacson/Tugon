@@ -14,28 +14,24 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- Preload top LCP candidates on landing -->
+    <!-- Preload top LCP candidate on landing -->
     <link rel="preload" as="image" href="/tugon-header-logo.svg" type="image/svg+xml" fetchpriority="high" />
-    <link
-      rel="preload"
-      as="image"
-      href="/hero-city-1440.webp"
-      imagesrcset="/hero-city-960.webp 960w, /hero-city-1440.webp 1440w, /hero-city-1920.webp 1920w"
-      imagesizes="100vw"
-      type="image/webp"
-      fetchpriority="high"
-    />
 
-    <!-- Preload critical font weights to eliminate the CSS→font-file round trip (FCP) -->
-    <!-- 400 weights: body text and base heading rendering -->
+    <!-- Preload critical font weights to eliminate the CSS→font-file round trip (FCP/LCP) -->
+    <!-- Base weights: body text and base heading rendering -->
     <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-400i.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
-    <!-- 700/500/600/800 weights: bold headings + emphasis above fold -->
+    <!-- Heavy weights: bold headings + emphasis above fold -->
     <link rel="preload" href="/fonts/public-sans-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/public-sans-600.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/public-sans-800.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/ibm-plex-sans-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Mono weights: referenced from fonts-extended.css, preload to break CSS→font chain -->
+    <link rel="preload" href="/fonts/ibm-plex-mono-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-700.woff2" as="font" type="font/woff2" crossorigin />
 
     <!--
       Inline critical styles — kept minimal and intentional:

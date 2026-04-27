@@ -102,7 +102,8 @@
       "Bash(command -v opencode)",
       "Bash(opencode --version)",
       "Bash(echo \"OpenCode $\\(opencode --version\\) is installed\")",
-      "Bash(bunx oh-my-opencode *)"
+      "Bash(bunx oh-my-opencode *)",
+      "Bash(grep -E \"tsconfig|\\\\.json$\")"
     ]
   }
 }

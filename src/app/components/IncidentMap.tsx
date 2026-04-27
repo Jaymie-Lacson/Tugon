@@ -9,8 +9,8 @@ import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 // ── Tile layer URLs ───────────────────────────────────────────────────────────
 // CARTO has better cache policies than OSM (longer TTL, better CDN)
 const TILE_URLS = {
-  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
 };
 
 const TILE_ATTRIBUTIONS = {
