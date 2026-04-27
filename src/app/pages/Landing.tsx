@@ -617,7 +617,7 @@ function HeroMapStage() {
                 showIncidentGlow={false}
                 compact
                 interactive={false}
-                zoom={17}
+                zoom={18}
                 height="100%"
                 viewportKey="landing-hero-map"
                 forceLight

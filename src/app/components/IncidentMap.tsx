@@ -30,6 +30,13 @@ const TYPE_COLORS: Record<string, string> = {
   typhoon:        '#0369A1',
 };
 
+// Barangay-specific colors for map polygons (matching landing page SVG)
+const BARANGAY_COLORS: Record<string, { stroke: string; fill: string; fillOpacity: number }> = {
+  '251': { stroke: '#b91c1c', fill: '#b91c1c', fillOpacity: 0.18 },
+  '252': { stroke: '#865300', fill: '#feb94c', fillOpacity: 0.22 },
+  '256': { stroke: '#0F766E', fill: '#0f766e', fillOpacity: 0.18 },
+};
+
 function getTypeIconSvg(type: string, stroke: string): string {
   switch (type) {
     case 'flood':
@@ -412,23 +419,26 @@ export function IncidentMap({
         />
 
         {/* Official barangay boundaries */}
-        {BARANGAY_POLYGONS.map((barangay) => (
-          <Polygon
-            key={barangay.code}
-            positions={barangay.points}
-            pathOptions={{
-              color: 'var(--primary)',
-              weight: isHotspotMode ? 2 : 3,
-              dashArray: '8 6',
-              fillColor: '#93C5FD',
-              fillOpacity: isHotspotMode ? 0.04 : 0.08,
-            }}
-          >
-            <Tooltip direction="center" permanent>
-              {barangay.name}
-            </Tooltip>
-          </Polygon>
-        ))}
+        {BARANGAY_POLYGONS.map((barangay) => {
+          const brgyColor = BARANGAY_COLORS[barangay.code] || { stroke: 'var(--primary)', fill: '#93C5FD', fillOpacity: 0.08 };
+          return (
+            <Polygon
+              key={barangay.code}
+              positions={barangay.points}
+              pathOptions={{
+                color: brgyColor.stroke,
+                weight: isHotspotMode ? 2 : 3,
+                dashArray: '8 6',
+                fillColor: brgyColor.fill,
+                fillOpacity: isHotspotMode ? brgyColor.fillOpacity * 0.5 : brgyColor.fillOpacity,
+              }}
+            >
+              <Tooltip direction="center" permanent>
+                {barangay.name}
+              </Tooltip>
+            </Polygon>
+          );
+        })}
 
         {/* Auto-pan when selected changes */}
         <MapPanner incident={selectedIncident} />
