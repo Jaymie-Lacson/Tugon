@@ -10,8 +10,8 @@ import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 // CARTO CDN with WebP tiles (transparent conversion — ~40–55 % smaller than PNG).
 // WebP is served when the URL ends in .webp regardless of {s} subdomain.
 const TILE_URLS = {
-  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.webp',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.webp',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.webp',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.webp',
 };
 
 const TILE_ATTRIBUTIONS = {
@@ -417,6 +417,7 @@ export function IncidentMap({
           url={tileUrl}
           maxNativeZoom={20}
           maxZoom={INCIDENT_MAP_MAX_ZOOM}
+          detectRetina
         />
 
         {/* Official barangay boundaries */}

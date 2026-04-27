@@ -59,6 +59,7 @@ export default function IncidentReportMap({
         url={tileUrl}
         maxNativeZoom={20}
         maxZoom={22}
+        detectRetina
       />
 
       {allowedBarangays.map((barangay) => (
