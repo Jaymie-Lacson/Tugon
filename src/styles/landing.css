@@ -687,7 +687,7 @@
   height: 100vh;
   max-height: 100vh;
   contain: strict;
-  border-radius: calc(22px * (1 - var(--map-progress)));
+  clip-path: inset(0 0 0 0 round 22px);
   overflow: hidden;
   background: #dbe5f6;
   transform-origin: 50% 50%;
@@ -807,7 +807,7 @@
   }
 
   .landing-hero-map-frame {
-    border-radius: calc(14px * (1 - var(--map-progress)));
+    clip-path: inset(0 0 0 0 round 14px);
     transform:
       translate3d(
         calc((1 - var(--map-progress)) * 10%),

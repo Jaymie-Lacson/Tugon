@@ -14,6 +14,12 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
 
+    <!-- Preconnect CARTO CDN tile servers — saves ~100–300ms on first tile fetch (LCP, mobile) -->
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" />
+    <link rel="preconnect" href="https://b.basemaps.cartocdn.com" />
+    <link rel="preconnect" href="https://c.basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+
     <!-- Preload top LCP candidate on landing -->
     <link rel="preload" as="image" href="/tugon-header-logo.svg" type="image/svg+xml" fetchpriority="high" />
 

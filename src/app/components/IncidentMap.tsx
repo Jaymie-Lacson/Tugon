@@ -7,10 +7,11 @@ import { Incident, incidentTypeConfig } from '../data/incidents';
 import { getCategoryLabelForIncidentType } from '../utils/mapCategoryLabels';
 
 // ── Tile layer URLs ───────────────────────────────────────────────────────────
-// CARTO has better cache policies than OSM (longer TTL, better CDN)
+// CARTO CDN with WebP tiles (transparent conversion — ~40–55 % smaller than PNG).
+// WebP is served when the URL ends in .webp regardless of {s} subdomain.
 const TILE_URLS = {
-  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.webp',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.webp',
 };
 
 const TILE_ATTRIBUTIONS = {
