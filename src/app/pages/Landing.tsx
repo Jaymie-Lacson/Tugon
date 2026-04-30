@@ -517,39 +517,20 @@ function HeroMapStage() {
       return;
     }
 
-    // JS rAF always drives --map-progress. The CSS scroll-driven animation
-    // path is disabled because animation-timeline creates implicit compositing
-    // layers that flatten 3D perspective on the fold panels.
-
-    // JS rAF drives --map-progress for the fold animation.
     let ticking = false;
     let lastProgress = -1;
     let isStageInView = false;
-    let cachedHeight = 0;
-
-    const cacheDimensions = () => {
-      cachedHeight = el.offsetHeight;
-    };
-    cacheDimensions();
-
-    const resizeObserver = new ResizeObserver(() => {
-      cacheDimensions();
-    });
-    resizeObserver.observe(el);
 
     const update = () => {
       ticking = false;
       if (!isStageInView) return;
+
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      // Progress 0 → 1 as the stage scrolls from entering the viewport
-      // to being fully centered. The map starts folded and opens as user scrolls.
-      // When rect.top == vh the stage is just below the viewport (progress = 0).
-      // When rect.top == 0 the stage top reaches viewport top (progress = 1).
-      const entered = vh - rect.top;           // how many px have entered
-      const range = vh * 0.85;                 // unfold over 85% of viewport height
+      const entered = vh - rect.top;
+      const range = vh * 0.85;
       const raw = entered / range;
-      let next = raw < 0 ? 0 : raw > 1 ? 1 : raw;
+      const next = raw < 0 ? 0 : raw > 1 ? 1 : raw;
 
       if (next === lastProgress) return;
       lastProgress = next;
@@ -577,7 +558,6 @@ function HeroMapStage() {
     window.addEventListener('resize', update);
     return () => {
       io.disconnect();
-      resizeObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', update);
     };
@@ -629,17 +609,14 @@ function HeroMapStage() {
     >
       <div ref={mapFrameRef} className="landing-hero-map-sticky" aria-hidden="true">
         <div className="landing-hero-map-fold-wrapper">
-          {/* Top half — opens from the center crease */}
           <div className="landing-hero-map-fold landing-hero-map-fold--top">
             {topMap}
             <div className="landing-hero-map-fold-shadow" />
           </div>
-          {/* Bottom half — opens from the center crease */}
           <div className="landing-hero-map-fold landing-hero-map-fold--bottom">
             {bottomMap}
             <div className="landing-hero-map-fold-shadow" />
           </div>
-          {/* Center crease line */}
           <div className="landing-hero-map-crease" />
         </div>
       </div>
@@ -647,7 +624,7 @@ function HeroMapStage() {
         data-reveal
         onClick={scrollToNext}
         aria-label="Scroll to next section"
-        className={`landing-scroll-cue landing-scroll-cue--light landing-hero-map-scroll-cue ${revealDelayClass(120)}`}
+        className={'landing-scroll-cue landing-scroll-cue--light landing-hero-map-scroll-cue ' + revealDelayClass(120)}
       >
         <ChevronDown size={14} aria-hidden="true" />
       </button>

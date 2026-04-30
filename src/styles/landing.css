@@ -629,11 +629,6 @@
   z-index: 2;
 }
 
-/* CSS scroll-driven animation disabled — the animation-timeline creates
-   implicit compositing layers that flatten 3D perspective on the fold panels.
-   The JS rAF fallback in HeroMapStage always runs instead, giving precise
-   control over --map-progress without any CSS-level flattening.              */
-
 .landing-hero-map-stage::before {
   content: '';
   position: absolute;
@@ -653,7 +648,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* perspective removed — now embedded in each panel's transform() */
 }
 
 .landing-hero-map-placeholder {
@@ -672,7 +666,6 @@
   max-width: 1120px;
   height: 72vh;
   max-height: 680px;
-  /* Slight scale-up as it opens */
   transform: scale(calc(0.88 + var(--map-progress) * 0.12));
   will-change: transform;
   transform-style: preserve-3d;
@@ -692,23 +685,17 @@
   pointer-events: none;
 }
 
-/* Top half: clip to top 50%, hinge at the center crease.
-   perspective() is inlined so no ancestor can flatten it.
-   800px perspective = strong foreshortening for a dramatic fold. */
 .landing-hero-map-fold--top {
   clip-path: inset(0 0 50% 0);
   transform-origin: 50% 50%;
   transform: perspective(800px) rotateX(calc((1 - var(--map-progress)) * -65deg));
 }
 
-/* Bottom half: clip to bottom 50%, hinge at the center crease. */
 .landing-hero-map-fold--bottom {
   clip-path: inset(50% 0 0 0);
   transform-origin: 50% 50%;
   transform: perspective(800px) rotateX(calc((1 - var(--map-progress)) * 65deg));
 }
-
-/* ── Map fills each fold panel entirely ─────────────────────────────── */
 
 .landing-hero-map-fold .leaflet-container,
 .landing-hero-map-fold > .landing-hero-map-placeholder {
@@ -720,8 +707,6 @@
   font-family: 'Public Sans', 'IBM Plex Sans', system-ui, sans-serif;
   pointer-events: none;
 }
-
-/* ── Fold shadow — lighting illusion for the crease ──────────────────── */
 
 .landing-hero-map-fold-shadow {
   position: absolute;
@@ -748,8 +733,6 @@
   );
 }
 
-/* ── Center crease line ──────────────────────────────────────────────── */
-
 .landing-hero-map-crease {
   position: absolute;
   left: 0;
@@ -768,8 +751,6 @@
   z-index: 500;
   pointer-events: none;
 }
-
-/* ── Tint overlay on each fold face ──────────────────────────────────── */
 
 .landing-hero-map-fold::after {
   content: '';
