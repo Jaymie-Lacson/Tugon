@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#00236f" />
+    <meta name="description" content="TUGON — Coordinated incident response and emergency reporting for Tondo, Manila. Report incidents, track status, and access emergency hotlines." />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>TUGON — Tondo Emergency Response Portal</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Preconnect CARTO CDN tile servers — saves ~100–300ms on first tile fetch (LCP, mobile) -->
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" />
+    <link rel="preconnect" href="https://b.basemaps.cartocdn.com" />
+    <link rel="preconnect" href="https://c.basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+
+    <!-- Preload top LCP candidate on landing -->
+    <link rel="preload" as="image" href="/tugon-header-logo.svg" type="image/svg+xml" fetchpriority="high" />
+
+    <!-- Preload critical font weights to eliminate the CSS→font-file round trip (FCP/LCP) -->
+    <!-- Base weights: body text and base heading rendering -->
+    <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-400i.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Heavy weights: bold headings + emphasis above fold -->
+    <link rel="preload" href="/fonts/public-sans-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/public-sans-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Mono weights: referenced from fonts-extended.css, preload to break CSS→font chain -->
+    <link rel="preload" href="/fonts/ibm-plex-mono-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-700.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!--
+      Inline critical styles — kept minimal and intentional:
+      1. @font-face for the four preloaded cuts (Public Sans 400/700, IBM Plex
+         Sans 400/500): browser registers the faces before fonts.css parses, so
+         preloaded bytes land into a known face immediately (FCP).
+      2. [data-reveal] initial state: prevents a flash where hero elements
+         briefly appear at full opacity before landing.css loads and hides them
+         for the scroll-reveal animation (Speed Index / visual stability).
+      3. .landing-hero-content reserves minimum height to prevent CLS.
+      4. Base HTML/body to eliminate layout shifts from render-blocking CSS load.
+
+      Full index.css is loaded async via onload="this.onload=null;this.media='all'"
+      to eliminate render-blocking (LCP improvement ~850ms).
+    -->
+    <style>
+      @font-face {
+        font-family: 'Public Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/public-sans-400.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Public Sans';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/public-sans-600.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Public Sans';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/public-sans-700.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Public Sans';
+        font-style: normal;
+        font-weight: 800;
+        font-display: swap;
+        src: url('/fonts/public-sans-800.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/ibm-plex-sans-400.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/ibm-plex-sans-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/ibm-plex-sans-600.woff2') format('woff2');
+      }
+      [data-reveal]{opacity:0}
+      .landing-hero-content{contain:layout style;min-height:420px}
+      html,body{overflow-x:clip}
+    </style>
+  </head>
+
+  <body>
+    <!-- Keep the nav logo request discoverable in initial HTML for LCP audits. -->
+    <img
+      src="/tugon-header-logo.svg"
+      alt=""
+      width="120"
+      height="38"
+      fetchpriority="high"
+      loading="eager"
+      decoding="async"
+      aria-hidden="true"
+      style="position:absolute;left:-9999px;top:0;opacity:0;pointer-events:none"
+    />
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+
+</html>

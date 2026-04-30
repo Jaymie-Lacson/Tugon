@@ -1,0 +1,1390 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, Tooltip, Circle, useMap, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useTranslation } from '../../i18n';
+import { useTheme } from 'next-themes';
+import L from 'leaflet';
+
+// ── Tile layer URLs ───────────────────────────────────────────────────────────
+// CARTO has better cache policies than OSM (longer TTL, better CDN)
+const TILE_URLS = {
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
+
+const TILE_ATTRIBUTIONS = {
+  light: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+};
+import {
+  MapPin, Layers, AlertTriangle, Navigation, RefreshCw, Save,
+  Filter, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
+} from 'lucide-react';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
+import { superAdminApi } from '../../services/superAdminApi';
+import { reportToIncident } from '../../utils/incidentAdapters';
+import { getCategoryLabelForIncidentType } from '../../utils/mapCategoryLabels';
+import type { IncidentType } from '../../data/incidents';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminBarangays, adminKeys } from '../../hooks/useAdminQueries';
+import { useOfficialReports } from '../../hooks/useOfficialReportsQueries';
+
+// ── Incident type styling ────────────────────────────────────────────────────
+const INCIDENT_COLORS: Record<string, string> = {
+  flood: '#1D4ED8', accident: 'var(--severity-medium)',
+  medical: '#0F766E', crime: '#374151', infrastructure: '#374151',
+};
+const INCIDENT_ICON_COMPONENTS: Record<IncidentType, React.ReactElement> = {
+  flood: <Droplets size={12} />,
+  accident: <Car size={12} />,
+  medical: <Heart size={12} />,
+  crime: <ShieldIcon size={12} />,
+  infrastructure: <Zap size={12} />,
+  typhoon: <Wind size={12} />,
+};
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: 'var(--severity-critical)', high: '#EA580C', medium: 'var(--severity-medium)', low: '#059669',
+};
+
+function getTypeIconSvg(type: string, stroke: string): string {
+  switch (type) {
+    case 'flood':
+      return `<path d="M12 3c-2.6 3.5-5.7 6.2-5.7 9.6 0 3.2 2.4 5.6 5.7 5.6s5.7-2.4 5.7-5.6C17.7 9.2 14.6 6.5 12 3z" fill="none" stroke="${stroke}" stroke-width="2.1" stroke-linejoin="round"/><path d="M4.8 19.2c1 .7 2 .9 3 .9s2-.2 3-.9c1-.7 2-.7 3 0 1 .7 2 .9 3 .9" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>`;
+    case 'accident':
+      return `<rect x="4.5" y="10" width="15" height="5.8" rx="1.4" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M7.2 10l2-2.3h5.7l2 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><circle cx="8.3" cy="16.8" r="1.5" fill="${stroke}"/><circle cx="15.7" cy="16.8" r="1.5" fill="${stroke}"/>`;
+    case 'medical':
+      return `<circle cx="12" cy="12" r="7" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M12 8.4v7.2M8.4 12h7.2" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/>`;
+    case 'crime':
+      return `<path d="M12 3.3l6.8 2.8v4.5c0 5-3.1 8.1-6.8 10.3-3.7-2.2-6.8-5.3-6.8-10.3V6.1L12 3.3z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 8.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.8" r="1.2" fill="${stroke}"/>`;
+    case 'infrastructure':
+      return `<path d="M12 4.5l8 14H4l8-14z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.1v4.9" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.1" fill="${stroke}"/>`;
+    case 'typhoon':
+      return `<path d="M7.1 8.8c1.2-1.8 3.9-2.3 5.9-.9 1.7 1.1 2.2 3.2 1.4 4.9-.9 1.8-2.9 2.7-4.8 2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><path d="M16.9 15.2c-1.2 1.8-3.9 2.3-5.9.9-1.7-1.1-2.2-3.2-1.4-4.9.9-1.8 2.9-2.7 4.8-2.3" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.4" fill="${stroke}"/>`;
+    default:
+      return `<circle cx="12" cy="12" r="5" fill="none" stroke="${stroke}" stroke-width="2.1"/><path d="M12 7v2m0 6v2m5-5h-2M9 12H7" stroke="${stroke}" stroke-width="2.1" stroke-linecap="round"/>`;
+  }
+}
+
+function getTypeIconMarkup(type: string, size: number, stroke: string): string {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${getTypeIconSvg(type, stroke)}</svg>`;
+}
+
+function getIncidentTypeIcon(type: string, size: number, color: string) {
+  const icon = INCIDENT_ICON_COMPONENTS[type as IncidentType];
+  if (!icon) {
+    return <AlertTriangle size={size} color={color} />;
+  }
+  return React.cloneElement(icon as React.ReactElement<{ size?: number; color?: string }>, { size, color });
+}
+
+// ── Custom DivIcon factory ───────────────────────────────────────────────────
+function makeIcon(type: string, severity: string, selected: boolean): L.DivIcon {
+  const color  = INCIDENT_COLORS[type] ?? '#374151';
+  const sColor = SEVERITY_COLORS[severity] ?? color;
+  const size   = selected ? 38 : (severity === 'critical' ? 34 : 30);
+  const pulse  = severity === 'critical';
+
+  const html = `
+    <div style="position:relative;width:${size}px;height:${size + 8}px;display:flex;flex-direction:column;align-items:center;">
+      ${pulse ? `<div style="position:absolute;top:0;left:0;right:0;bottom:8px;border-radius:50%;background:${color};opacity:.18;animation:sa-ping 1.8s ease-out infinite;"></div>` : ''}
+      <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${selected ? `3px solid white` : '2px solid rgba(255,255,255,.85)'};box-shadow:${selected ? `0 0 0 3px ${sColor},0 4px 14px rgba(0,0,0,.35)` : '0 2px 8px rgba(0,0,0,.28)'};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.42)}px;cursor:pointer;">
+        ${getTypeIconMarkup(type, Math.round(size * 0.66), '#FFFFFF')}
+      </div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${color};margin-top:-1px;"></div>
+    </div>`;
+
+  return L.divIcon({ html, className: '', iconSize: [size, size + 8], iconAnchor: [size / 2, size + 8] });
+}
+
+// ── Map zoom controller ──────────────────────────────────────────────────────
+function ZoomController() {
+  const map = useMap();
+  return (
+    <div className="absolute top-20 right-2.5 z-[1000] flex flex-col gap-1">
+      {[
+        { label: '+', action: () => map.zoomIn(), title: 'Zoom in' },
+        { label: '−', action: () => map.zoomOut(), title: 'Zoom out' },
+        { label: '⌂', action: () => map.flyTo([14.61495, 120.97795], 18, { animate: true }), title: 'Reset map view' },
+      ].map(btn => (
+        <button
+          key={btn.label}
+          onClick={btn.action}
+          aria-label={btn.title}
+          title={btn.title}
+          className="w-8 h-8 border border-[var(--outline-variant)] rounded-md bg-card cursor-pointer text-[15px] font-bold text-[var(--on-surface)] shadow-[0_1px_4px_rgba(0,0,0,.12)] flex items-center justify-center"
+        >{btn.label}</button>
+      ))}
+    </div>
+  );
+}
+
+function FitToBarangayBounds({ barangays }: { barangays: BarangayMapView[] }) {
+  const map = useMap();
+  const lastBoundsRef = useRef<string>('');
+
+  useEffect(() => {
+    const points = barangays
+      .flatMap((barangay) => sanitizeBoundary(barangay.boundary) ?? [])
+      .filter(isFiniteLatLng);
+    if (points.length === 0) {
+      return;
+    }
+
+    const signature = points.map(([lat, lng]) => `${lat.toFixed(6)},${lng.toFixed(6)}`).join('|');
+    if (signature === lastBoundsRef.current) {
+      return;
+    }
+
+    const bounds = L.latLngBounds(points.map(([lat, lng]) => L.latLng(lat, lng)));
+    if (!bounds.isValid()) {
+      return;
+    }
+
+    map.fitBounds(bounds.pad(0.08), { animate: false });
+    lastBoundsRef.current = signature;
+  }, [map, barangays]);
+
+  return null;
+}
+
+function MapBoundaryEditor({
+  active,
+  onAddPoint,
+}: {
+  active: boolean;
+  onAddPoint: (point: [number, number]) => void;
+}) {
+  useMapEvents({
+    click: (event) => {
+      if (!active) {
+        return;
+      }
+      onAddPoint([event.latlng.lat, event.latlng.lng]);
+    },
+  });
+
+  return null;
+}
+
+const TONDO_TRI_BRGY_CENTER: [number, number] = [14.61495, 120.97795];
+const MAP_MIN_ZOOM = 15;
+const MAP_DEFAULT_ZOOM = 18;
+const MAP_MAX_ZOOM = 20;
+const BOUNDARY_EDIT_ENABLED = false;
+const TONDO_LAT_RANGE: [number, number] = [14.50, 14.75];
+const TONDO_LNG_RANGE: [number, number] = [120.90, 121.05];
+
+const alertLevelConfig: Record<string, { label: string; badgeClass: string }> = {
+  normal: { label: 'NORMAL', badgeClass: 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]' },
+  elevated: { label: 'ELEVATED', badgeClass: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]' },
+  critical: { label: 'CRITICAL', badgeClass: 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]' },
+};
+
+const SEVERITY_TEXT_CLASS: Record<string, string> = {
+  critical: 'text-[var(--error)]',
+  high: 'text-[var(--secondary)]',
+  medium: 'text-[var(--secondary)]',
+  low: 'text-[var(--severity-low)]',
+};
+
+const SEVERITY_BADGE_CLASS: Record<string, string> = {
+  critical: 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]',
+  high: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]',
+  medium: 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]',
+  low: 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]',
+};
+
+const INCIDENT_BUTTON_CLASS: Record<string, { active: string; inactive: string }> = {
+  all: { active: 'bg-primary-container text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+  flood: { active: 'bg-primary text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+  accident: { active: 'bg-secondary text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+  medical: { active: 'bg-error text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+  crime: { active: 'bg-primary-container text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+};
+
+const BARANGAY_TEXT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'text-primary',
+  '252': 'text-[var(--severity-low)]',
+  '256': 'text-secondary',
+};
+
+const BARANGAY_DOT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-primary border-primary',
+  '252': 'bg-severity-low border-severity-low',
+  '256': 'bg-secondary border-secondary',
+};
+
+const BARANGAY_SELECTION_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-[var(--primary-fixed)] border-[var(--primary-fixed-dim)]',
+  '252': 'bg-[var(--severity-low-bg)] border-[rgba(5,150,105,0.28)]',
+  '256': 'bg-[var(--secondary-fixed)] border-[var(--secondary-fixed-dim)]',
+};
+
+const BARANGAY_ACCENT_CLASS_BY_CODE: Record<string, string> = {
+  '251': 'bg-primary',
+  '252': 'bg-severity-low',
+  '256': 'bg-secondary',
+};
+
+function incidentButtonClass(typeKey: string, active: boolean) {
+  const entry = INCIDENT_BUTTON_CLASS[typeKey] ?? INCIDENT_BUTTON_CLASS.all;
+  return active ? entry.active : entry.inactive;
+}
+
+const BARANGAY_CENTER_BY_CODE: Record<string, [number, number]> = {
+  '251': [14.6146, 120.9776],
+  '252': [14.6144, 120.9770],
+  '256': [14.6159, 120.9786],
+};
+
+// Canonical boundaries aligned with citizen/admin IncidentMap and server geofencing defaults.
+const CANONICAL_BOUNDARY_BY_CODE: Record<string, [number, number][]> = {
+  '251': [
+    [14.6151576, 120.9778668],
+    [14.6151269, 120.9780734],
+    [14.6138576, 120.9777379],
+    [14.6138881, 120.9775742],
+    [14.6139514, 120.9772961],
+    [14.6139695, 120.9771491],
+    [14.6140086, 120.9771571],
+    [14.6152725, 120.977463],
+    [14.6151576, 120.9778668],
+  ],
+  '252': [
+    [14.6152725, 120.977463],
+    [14.6140086, 120.9771571],
+    [14.6139695, 120.9771491],
+    [14.6138726, 120.9771203],
+    [14.6138888, 120.9770354],
+    [14.6137142, 120.9769944],
+    [14.6137978, 120.9766256],
+    [14.6140525, 120.9766893],
+    [14.6146931, 120.9768373],
+    [14.6153845, 120.9770152],
+    [14.6152725, 120.977463],
+  ],
+  '256': [
+    [14.6165934, 120.9785196],
+    [14.6165675, 120.9787716],
+    [14.6164604, 120.9788136],
+    [14.616355, 120.9788522],
+    [14.616179, 120.9789493],
+    [14.6159963, 120.9790463],
+    [14.6157071, 120.9791867],
+    [14.6155382, 120.9792674],
+    [14.6153803, 120.9793486],
+    [14.6152404, 120.9794005],
+    [14.6151315, 120.9794212],
+    [14.6148209, 120.97942],
+    [14.6148861, 120.9791266],
+    [14.6149511, 120.9788318],
+    [14.6149661, 120.9787605],
+    [14.6150187, 120.9785164],
+    [14.6150567, 120.9783709],
+    [14.6150973, 120.9782174],
+    [14.6151269, 120.9780734],
+    [14.6151576, 120.9778668],
+    [14.6157229, 120.9779947],
+    [14.616262, 120.9781291],
+    [14.6166307, 120.9781571],
+    [14.6165934, 120.9785196],
+  ],
+};
+
+const BARANGAY_META_BY_CODE: Record<string, { color: string; district: string; captain: string; area: string; population: number }> = {
+  '251': { color: '#1D4ED8', district: 'District II', captain: 'Reynaldo Angat', area: 'N/A', population: 1181 },
+  '252': { color: '#0F766E', district: 'District II', captain: 'Leana Marie Angat', area: 'N/A', population: 910 },
+  '256': { color: 'var(--severity-medium)', district: 'District II', captain: 'Honorario Lopez', area: 'N/A', population: 1030 },
+};
+const BARANGAY_FILTER_CODES = ['251', '252', '256'] as const;
+const HEAT_RADIUS_MAX_SCALE = 0.6;
+
+type BarangayMapView = {
+  id: string;
+  code: string;
+  name: string;
+  district: string;
+  captain: string;
+  population: number;
+  area: string;
+  center: [number, number];
+  boundary: [number, number][];
+  color: string;
+  activeIncidents: number;
+  totalThisMonth: number;
+  resolvedThisMonth: number;
+  responseRate: number;
+  avgResponseMin: number;
+  registeredUsers: number;
+  alertLevel: 'normal' | 'elevated' | 'critical';
+  boundaryGeojson: string | null;
+};
+
+type MapIncident = {
+  id: string;
+  lat: number;
+  lng: number;
+  type: string;
+  severity: string;
+  barangay: string;
+  label: string;
+};
+
+function normalizeLatLngPoint(point: [number, number]): [number, number] {
+  const [a, b] = point;
+
+  // Accept both [lat, lng] and [lng, lat] and normalize to [lat, lng].
+  if (Math.abs(a) > 90 && Math.abs(b) <= 90) {
+    return [b, a];
+  }
+  return [a, b];
+}
+
+function isFiniteLatLng(point: [number, number]): boolean {
+  const [lat, lng] = point;
+  return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+
+function isLikelyTondoPoint(point: [number, number]): boolean {
+  const [lat, lng] = point;
+  return lat >= TONDO_LAT_RANGE[0] && lat <= TONDO_LAT_RANGE[1] && lng >= TONDO_LNG_RANGE[0] && lng <= TONDO_LNG_RANGE[1];
+}
+
+function normalizeBoundaryPointsOrder(boundary: [number, number][]): [number, number][] {
+  return boundary.map((point) => normalizeLatLngPoint(point));
+}
+
+function boundaryToGeoJsonPolygon(boundary: [number, number][]) {
+  const coordinates = normalizeBoundaryPointsOrder(boundary).map(([lat, lng]) => [lng, lat]);
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+  const isClosed = first && last && first[0] === last[0] && first[1] === last[1];
+  const ring = isClosed ? coordinates : [...coordinates, first];
+  return {
+    type: 'Polygon',
+    coordinates: [ring],
+  };
+}
+
+function normalizeBoundaryPoints(boundary: [number, number][]): [number, number][] {
+  const normalized = normalizeBoundaryPointsOrder(boundary);
+
+  if (normalized.length < 2) {
+    return normalized;
+  }
+
+  const first = normalized[0];
+  const last = normalized[normalized.length - 1];
+  const isClosed = first[0] === last[0] && first[1] === last[1];
+  return isClosed ? normalized.slice(0, -1) : normalized;
+}
+
+function sanitizeBoundary(boundary: [number, number][]): [number, number][] | null {
+  const normalized = normalizeBoundaryPointsOrder(boundary)
+    .filter(isFiniteLatLng)
+    .filter(isLikelyTondoPoint);
+
+  if (normalized.length < 3) {
+    return null;
+  }
+
+  return normalizeBoundaryPoints(normalized);
+}
+
+function formatBoundaryGeojson(boundary: [number, number][]) {
+  return JSON.stringify(boundaryToGeoJsonPolygon(boundary), null, 2);
+}
+
+function parseBoundaryGeojsonToBoundary(raw: string | null): [number, number][] | null {
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as { type?: string; coordinates?: unknown };
+    if (!parsed.coordinates || !Array.isArray(parsed.coordinates)) {
+      return null;
+    }
+
+    const polygon =
+      parsed.type === 'MultiPolygon'
+        ? parsed.coordinates[0]
+        : parsed.type === 'Polygon'
+          ? parsed.coordinates
+          : null;
+
+    if (!polygon || !Array.isArray(polygon) || !Array.isArray(polygon[0])) {
+      return null;
+    }
+
+    const ring = polygon[0] as Array<[number, number]>;
+    const converted = ring
+      .filter((point): point is [number, number] => Array.isArray(point) && point.length >= 2)
+      .map((point) => normalizeLatLngPoint(point));
+
+    return sanitizeBoundary(converted);
+  } catch {
+    return null;
+  }
+}
+
+function fallbackBoundaryForCode(code: string): [number, number][] {
+  const canonical = CANONICAL_BOUNDARY_BY_CODE[code];
+  if (canonical) {
+    return canonical;
+  }
+
+  const center = BARANGAY_CENTER_BY_CODE[code] ?? TONDO_TRI_BRGY_CENTER;
+  const latDelta = 0.0009;
+  const lngDelta = 0.0011;
+  return [
+    [center[0] + latDelta, center[1] - lngDelta],
+    [center[0] + latDelta, center[1] + lngDelta],
+    [center[0] - latDelta, center[1] + lngDelta],
+    [center[0] - latDelta, center[1] - lngDelta],
+  ];
+}
+
+function alertLevelFromActive(activeIncidents: number): 'normal' | 'elevated' | 'critical' {
+  if (activeIncidents >= 10) return 'critical';
+  if (activeIncidents >= 5) return 'elevated';
+  return 'normal';
+}
+
+function extractBarangayCode(label: string): string | null {
+  const matched = label.match(/251|252|256/);
+  return matched ? matched[0] : null;
+}
+
+export default function SABarangayMap() {
+  const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const tileUrl = isDark ? TILE_URLS.dark : TILE_URLS.light;
+  const tileAttribution = isDark ? TILE_ATTRIBUTIONS.dark : TILE_ATTRIBUTIONS.light;
+  const queryClient = useQueryClient();
+  const { data: barangaysQueryData, isLoading: loadingBarangays, error: barangaysQueryError } = useAdminBarangays();
+  const { data: reportsQueryData, isLoading: loadingIncidents } = useOfficialReports();
+
+  const barangaysData = React.useMemo((): BarangayMapView[] => {
+    if (!barangaysQueryData) return [];
+    return barangaysQueryData.barangays.map((apiBarangay) => {
+      const meta = BARANGAY_META_BY_CODE[apiBarangay.code] ?? {
+        color: 'var(--primary)',
+        district: 'District II',
+        captain: 'Assigned Barangay Captain',
+        area: 'N/A',
+        population: 0,
+      };
+      const canonicalBoundary = CANONICAL_BOUNDARY_BY_CODE[apiBarangay.code];
+      const parsedBoundary = parseBoundaryGeojsonToBoundary(apiBarangay.boundaryGeojson);
+      const boundary = canonicalBoundary ?? parsedBoundary ?? fallbackBoundaryForCode(apiBarangay.code);
+      const activeIncidents = apiBarangay.activeReports;
+      const resolvedThisMonth = Math.max(apiBarangay.totalReports - activeIncidents, 0);
+      const responseRate = apiBarangay.totalReports > 0
+        ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / apiBarangay.totalReports) * 100)))
+        : 100;
+      return {
+        id: apiBarangay.id,
+        code: apiBarangay.code,
+        name: apiBarangay.name || `Barangay ${apiBarangay.code}`,
+        district: meta.district,
+        captain: meta.captain,
+        population: meta.population,
+        area: meta.area,
+        center: BARANGAY_CENTER_BY_CODE[apiBarangay.code] ?? boundary[0] ?? TONDO_TRI_BRGY_CENTER,
+        boundary,
+        color: meta.color,
+        activeIncidents,
+        totalThisMonth: apiBarangay.totalReports,
+        resolvedThisMonth,
+        responseRate,
+        avgResponseMin: 0,
+        registeredUsers: apiBarangay.citizenCount,
+        alertLevel: alertLevelFromActive(activeIncidents),
+        boundaryGeojson: apiBarangay.boundaryGeojson,
+      } satisfies BarangayMapView;
+    });
+  }, [barangaysQueryData]);
+
+  const reportIncidents = React.useMemo((): MapIncident[] => {
+    if (!reportsQueryData) return [];
+    return reportsQueryData.reports.map((report) => {
+      const incident = reportToIncident(report);
+      return {
+        id: incident.id,
+        lat: incident.lat,
+        lng: incident.lng,
+        type: incident.type,
+        severity: incident.severity,
+        barangay: incident.barangay,
+        label: incident.description,
+      };
+    });
+  }, [reportsQueryData]);
+
+  const barangaysError = barangaysQueryError
+    ? (barangaysQueryError instanceof Error ? barangaysQueryError.message : 'Unable to load barangay data.')
+    : null;
+  const incidentsError: string | null = null;
+  const [selectedBarangay, setSelectedBarangay] = useState<string | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showHeatmapSettings, setShowHeatmapSettings] = useState(false);
+  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatOpacityScale, setHeatOpacityScale] = useState(1);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [selectedBarangayCodes, setSelectedBarangayCodes] = useState<string[]>([...BARANGAY_FILTER_CODES]);
+  const [isCompactFilters, setIsCompactFilters] = useState(false);
+  const [boundaryDraft, setBoundaryDraft] = useState('');
+  const [boundarySaving, setBoundarySaving] = useState(false);
+  const [boundaryMessage, setBoundaryMessage] = useState<string | null>(null);
+  const [boundaryError, setBoundaryError] = useState<string | null>(null);
+  const [boundaryEditMode, setBoundaryEditMode] = useState(false);
+  const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([]);
+
+  const selectedBrgy = barangaysData.find(b => b.id === selectedBarangay);
+  const categoryFilteredIncidents = filterType === 'all'
+    ? reportIncidents
+    : reportIncidents.filter(i => i.type === filterType);
+  const filteredIncidents = selectedBarangayCodes.length === 0
+    ? categoryFilteredIncidents
+    : categoryFilteredIncidents.filter((incident) => {
+        const code = extractBarangayCode(incident.barangay);
+        return code ? selectedBarangayCodes.includes(code) : true;
+      });
+  const heatRadiusScale = (heatRadiusPercent / 100) * HEAT_RADIUS_MAX_SCALE;
+
+  const heatCircles = filteredIncidents.map((incident) => ({
+    baseRadius: incident.severity === 'critical' ? 110 : incident.severity === 'high' ? 85 : 60,
+    baseOpacity: incident.severity === 'critical' ? 0.14 : incident.severity === 'high' ? 0.11 : 0.08,
+    lat: incident.lat,
+    lng: incident.lng,
+    radius: Math.max(20, (incident.severity === 'critical' ? 110 : incident.severity === 'high' ? 85 : 60) * heatRadiusScale),
+    color: INCIDENT_COLORS[incident.type] ?? '#374151',
+    opacity: Math.max(0.03, Math.min(0.42, (incident.severity === 'critical' ? 0.14 : incident.severity === 'high' ? 0.11 : 0.08) * heatOpacityScale)),
+  }));
+
+
+  useEffect(() => {
+    const updateCompactMode = () => {
+      setIsCompactFilters(window.innerWidth < 900);
+    };
+
+    updateCompactMode();
+    window.addEventListener('resize', updateCompactMode);
+    return () => window.removeEventListener('resize', updateCompactMode);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedBrgy) {
+      setBoundaryDraft('');
+      setBoundaryMessage(null);
+      setBoundaryError(null);
+      return;
+    }
+
+    const fallbackGeojson = JSON.stringify(boundaryToGeoJsonPolygon(selectedBrgy.boundary), null, 2);
+    if (selectedBrgy.boundaryGeojson) {
+      try {
+        setBoundaryDraft(JSON.stringify(JSON.parse(selectedBrgy.boundaryGeojson), null, 2));
+      } catch {
+        setBoundaryDraft(fallbackGeojson);
+      }
+    } else {
+      setBoundaryDraft(fallbackGeojson);
+    }
+    setBoundaryPoints(normalizeBoundaryPoints(selectedBrgy.boundary));
+    setBoundaryEditMode(false);
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+  }, [selectedBrgy?.id]);
+
+  const syncDraftFromPoints = (points: [number, number][]) => {
+    if (points.length < 3) {
+      setBoundaryError('Boundary requires at least 3 points.');
+      return;
+    }
+    setBoundaryDraft(formatBoundaryGeojson(points));
+    setBoundaryError(null);
+  };
+
+  const handleAddBoundaryPoint = (point: [number, number]) => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    setBoundaryPoints((current) => {
+      const next = [...current, point];
+      if (next.length >= 3) {
+        setBoundaryDraft(formatBoundaryGeojson(next));
+      }
+      return next;
+    });
+  };
+
+  const handleUndoBoundaryPoint = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    setBoundaryPoints((current) => {
+      if (current.length === 0) {
+        return current;
+      }
+      const next = current.slice(0, -1);
+      if (next.length >= 3) {
+        setBoundaryDraft(formatBoundaryGeojson(next));
+      }
+      return next;
+    });
+  };
+
+  const handleResetBoundaryPoints = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
+    if (!selectedBrgy) {
+      return;
+    }
+    const resetPoints = normalizeBoundaryPoints(selectedBrgy.boundary);
+    setBoundaryPoints(resetPoints);
+    setBoundaryDraft(formatBoundaryGeojson(resetPoints));
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+  };
+
+  const handleApplyPointsToDraft = () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      return;
+    }
+    syncDraftFromPoints(boundaryPoints);
+  };
+
+  const handleSaveBoundary = async () => {
+    if (!BOUNDARY_EDIT_ENABLED) {
+      setBoundaryError('Boundary editing is locked. Contact an administrator to update boundaries.');
+      return;
+    }
+    if (!selectedBrgy) {
+      return;
+    }
+
+    setBoundarySaving(true);
+    setBoundaryMessage(null);
+    setBoundaryError(null);
+    try {
+      const parsed = JSON.parse(boundaryDraft);
+      await superAdminApi.updateBarangayBoundary(selectedBrgy.code, parsed);
+      await queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
+      setBoundaryMessage(`Boundary saved for Barangay ${selectedBrgy.code}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save boundary.';
+      setBoundaryError(message);
+    } finally {
+      setBoundarySaving(false);
+    }
+  };
+
+  const toggleBarangayCode = (code: string) => {
+    setSelectedBarangayCodes((current) => {
+      if (current.includes(code)) {
+        return current.filter((item) => item !== code);
+      }
+      return [...current, code].sort();
+    });
+  };
+
+  const handleCompactBarangaySelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCodes = Array.from(event.target.selectedOptions).map((option) => option.value);
+    setSelectedBarangayCodes(selectedCodes);
+  };
+
+  const handleResetHeatmapSettings = () => {
+    setHeatRadiusPercent(85);
+    setHeatOpacityScale(1);
+  };
+
+  if ((loadingBarangays || loadingIncidents) && reportIncidents.length === 0) {
+    return (
+      <div className="p-5 min-h-full">
+        <TextSkeleton rows={2} title={false} />
+        <div className="mt-3">
+          <CardSkeleton count={3} lines={2} showImage={false} gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
+      {/* Page header */}
+      <div className="flex flex-col items-start justify-between mb-4 gap-2.5 md:flex-row md:items-center">
+        <div>
+          <h1 className="text-[22px] font-bold text-[var(--on-surface)] m-0">{t('superadmin.barangayMap.pageTitle')}</h1>
+          <p className="text-xs text-[var(--on-surface-variant)] m-0 mt-0.5">
+            {t('superadmin.barangayMap.subtitle')}
+          </p>
+        </div>
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              void queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
+            }}
+            className="flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 bg-card text-[var(--on-surface-variant)] border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold"
+          >
+            <RefreshCw size={13} /> {loadingBarangays ? t('superadmin.barangayMap.syncing') : t('superadmin.barangayMap.syncBoundaries')}
+          </button>
+          <button
+            onClick={() => setShowHeatmap(h => !h)}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
+          >
+            <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
+          </button>
+          <button
+            onClick={() => {
+              setShowHeatmapSettings((open) => !open);
+              setShowHeatmap(true);
+            }}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
+          >
+            <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
+          </button>
+        </div>
+      </div>
+
+      {barangaysError ? (
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-severity-critical text-xs font-semibold">
+          {barangaysError}
+        </div>
+      ) : null}
+
+      {incidentsError ? (
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-severity-critical text-xs font-semibold">
+          {incidentsError}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_296px] gap-3.5">
+        {/* ── OSM Map ── */}
+        <div className="bg-card overflow-hidden border border-[var(--outline-variant)] flex flex-col">
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[var(--outline-variant)] bg-surface-container-low flex-wrap">
+            <Filter size={13} className="text-[var(--outline)]" />
+            <span className="text-xs font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.filtersLabel')}</span>
+            {isCompactFilters ? (
+              <>
+                <select
+                  value={filterType}
+                  onChange={(event) => setFilterType(event.target.value)}
+                  title="Filter by category"
+                  className="min-h-10 border border-[var(--outline-variant)] rounded-lg bg-card text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[140px]"
+                >
+                  <option value="all">{t('superadmin.barangayMap.allCategories')}</option>
+                  <option value="flood">{getCategoryLabelForIncidentType('flood')}</option>
+                  <option value="accident">{getCategoryLabelForIncidentType('accident')}</option>
+                  <option value="medical">{getCategoryLabelForIncidentType('medical')}</option>
+                  <option value="crime">{getCategoryLabelForIncidentType('crime')}</option>
+                </select>
+                <select
+                  multiple
+                  value={selectedBarangayCodes}
+                  onChange={handleCompactBarangaySelect}
+                  title={t('superadmin.barangayMap.selectBarangays')}
+                  className="border border-[var(--outline-variant)] rounded-lg bg-card text-[var(--on-surface-variant)] text-[11px] font-semibold px-2 py-1.5 min-w-[120px] h-[88px]"
+                >
+                  {BARANGAY_FILTER_CODES.map((code) => (
+                    <option key={code} value={code}>Barangay {code}</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <>
+                {['all', 'flood', 'accident', 'medical', 'crime'].map(typeKey => (
+                  <button
+                    key={typeKey}
+                    onClick={() => setFilterType(typeKey)}
+                    className={`px-2.5 py-1 rounded-[20px] text-[11px] font-semibold cursor-pointer border border-transparent capitalize ${incidentButtonClass(typeKey, filterType === typeKey)}`}
+                  >
+                    {typeKey !== 'all' ? <span className="mr-1 inline-flex align-middle">{getIncidentTypeIcon(typeKey, 12, filterType === typeKey ? '#FFFFFF' : '#6B7280')}</span> : null}
+                    {typeKey === 'all' ? t('superadmin.barangayMap.allCategories') : getCategoryLabelForIncidentType(typeKey as IncidentType)}
+                  </button>
+                ))}
+                <span className="text-[11px] text-[var(--outline)] ml-1">{t('superadmin.barangayMap.barangayLabel')}</span>
+                <button
+                  onClick={() => setSelectedBarangayCodes([...BARANGAY_FILTER_CODES])}
+                  className="min-h-8 px-2 py-1 rounded-full text-[10px] font-bold cursor-pointer border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)]"
+                >
+                  {t('common.all')}
+                </button>
+                {BARANGAY_FILTER_CODES.map((code) => (
+                  <label
+                    key={code}
+                    className={`inline-flex min-h-8 items-center gap-1 px-2 py-1 border border-[var(--outline-variant)] rounded-full text-[10px] font-bold cursor-pointer ${selectedBarangayCodes.includes(code) ? 'bg-[var(--primary-fixed)] text-[var(--primary-container)]' : 'bg-card text-[var(--on-surface-variant)]'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedBarangayCodes.includes(code)}
+                      onChange={() => toggleBarangayCode(code)}
+                      className="h-3.5 w-3.5"
+                    />
+                    {code}
+                  </label>
+                ))}
+              </>
+            )}
+            <span className="ml-auto text-[11px] text-[var(--outline)]">
+              {t('superadmin.barangayMap.incidentsShown', { count: filteredIncidents.length })}
+            </span>
+            {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy ? (
+              <span className="text-[11px] font-semibold text-primary">
+                {t('superadmin.barangayMap.editModeHint', { name: selectedBrgy.name })}
+              </span>
+            ) : null}
+          </div>
+
+          {/* Map */}
+          <div className="relative flex-1 min-h-[500px]">
+            {showHeatmapSettings ? (
+              <div
+                className="absolute top-3 right-3 z-[1200] w-[232px] bg-[rgba(255,255,255,0.98)] border border-[var(--primary-fixed-dim)] rounded-xl shadow-[0_6px_24px_rgba(15,23,42,.16)] p-3"
+                onMouseDown={(event) => event.stopPropagation()}
+                onMouseMove={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onWheel={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-[var(--on-surface)]">{t('superadmin.barangayMap.heatmapSettings')}</span>
+                  <button
+                    onClick={handleResetHeatmapSettings}
+                    className="min-h-7 border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)] rounded-md text-[10px] font-bold px-1.5 py-0.5 cursor-pointer"
+                  >
+                    {t('superadmin.barangayMap.reset')}
+                  </button>
+                </div>
+
+                <div className="mb-2.5">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.radiusScale')}</span>
+                    <span className="text-[10px] font-bold text-[var(--on-surface)]">{heatRadiusPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    title={t('superadmin.barangayMap.radiusScale')}
+                    min={50}
+                    max={100}
+                    step={1}
+                    value={heatRadiusPercent}
+                    onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="mb-0.5">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.opacityScale')}</span>
+                    <span className="text-[10px] font-bold text-[var(--on-surface)]">{heatOpacityScale.toFixed(2)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    title={t('superadmin.barangayMap.opacityScale')}
+                    min={0.25}
+                    max={3}
+                    step={0.05}
+                    value={heatOpacityScale}
+                    onChange={(event) => setHeatOpacityScale(Number(event.target.value))}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseMove={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onTouchMove={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerMove={(event) => event.stopPropagation()}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            <MapContainer
+              center={TONDO_TRI_BRGY_CENTER}
+              zoom={MAP_DEFAULT_ZOOM}
+              className="w-full h-full min-h-[500px]"
+              zoomControl={false}
+              attributionControl={true}
+              scrollWheelZoom={!showHeatmapSettings}
+              dragging={!showHeatmapSettings}
+              touchZoom={!showHeatmapSettings}
+              doubleClickZoom={!showHeatmapSettings}
+              boxZoom={!showHeatmapSettings}
+              keyboard={!showHeatmapSettings}
+              minZoom={MAP_MIN_ZOOM}
+              maxZoom={MAP_MAX_ZOOM}
+            >
+              {/* Map tiles (theme-aware) */}
+              <TileLayer
+                key={isDark ? 'dark-tiles' : 'light-tiles'}
+                attribution={tileAttribution}
+                url={tileUrl}
+                maxNativeZoom={19}
+                maxZoom={MAP_MAX_ZOOM}
+                detectRetina
+              />
+
+              <FitToBarangayBounds barangays={barangaysData} />
+
+              {/* Barangay boundary polygons */}
+              {barangaysData.map(b => (
+                <Polygon
+                  key={b.id}
+                  positions={b.boundary}
+                  pathOptions={{
+                    color: b.color,
+                    fillColor: b.color,
+                    fillOpacity: selectedBarangay === b.id ? (showHeatmap ? 0.28 : 0.22) : (showHeatmap ? 0.15 : 0.10),
+                    weight: selectedBarangay === b.id ? (showHeatmap ? 4 : 3) : (showHeatmap ? 3 : 2),
+                    dashArray: undefined,
+                  }}
+                  eventHandlers={{
+                    click: () => setSelectedBarangay(selectedBarangay === b.id ? null : b.id),
+                  }}
+                >
+                  <Tooltip sticky direction="center" opacity={1}>
+                    <div className="text-xs">
+                      <div className={`font-bold ${BARANGAY_TEXT_CLASS_BY_CODE[b.code] ?? 'text-[var(--on-surface-variant)]'}`}>{b.name}</div>
+                      <div className="text-[var(--on-surface-variant)]">Pop: {b.population.toLocaleString()}</div>
+                      <div className="text-[var(--outline)]">Active: {b.activeIncidents} incidents</div>
+                    </div>
+                  </Tooltip>
+                </Polygon>
+              ))}
+
+              {BOUNDARY_EDIT_ENABLED && boundaryEditMode && selectedBrgy && boundaryPoints.length >= 3 ? (
+                <Polygon
+                  positions={boundaryPoints}
+                  pathOptions={{
+                    color: '#1D4ED8',
+                    fillColor: '#1D4ED8',
+                    fillOpacity: 0.14,
+                    weight: 2,
+                    dashArray: '6 6',
+                  }}
+                />
+              ) : null}
+
+              {BOUNDARY_EDIT_ENABLED && boundaryEditMode
+                ? boundaryPoints.map((point, index) => (
+                    <Circle
+                      key={`boundary-point-${index}`}
+                      center={point}
+                      radius={3}
+                      pathOptions={{
+                        color: '#1D4ED8',
+                        fillColor: '#1D4ED8',
+                        fillOpacity: 1,
+                        weight: 1,
+                      }}
+                    />
+                  ))
+                : null}
+
+              {/* Heatmap circles */}
+              {heatCircles.map((c, i) => (
+                <Circle
+                  key={`heat-${i}`}
+                  center={[c.lat, c.lng]}
+                  radius={c.radius}
+                  pathOptions={{
+                    color: c.color,
+                    fillColor: c.color,
+                    className: 'sa-map-heat-circle',
+                    fillOpacity: showHeatmap ? c.opacity : 0,
+                    weight: 0,
+                  }}
+                />
+              ))}
+
+              {/* Incident markers */}
+              {!showHeatmap && filteredIncidents.map(inc => (
+                <Marker
+                  key={inc.id}
+                  position={[inc.lat, inc.lng]}
+                  icon={makeIcon(inc.type, inc.severity, selectedIncident?.id === inc.id)}
+                  zIndexOffset={inc.severity === 'critical' ? 500 : 0}
+                  eventHandlers={{
+                    click: () => setSelectedIncident(selectedIncident?.id === inc.id ? null : inc),
+                  }}
+                >
+                  <Tooltip direction="top" offset={[0, -32]} opacity={1}>
+                    <div className="text-[11px] min-w-[140px]">
+                      <div className="font-bold text-[var(--on-surface)] mb-0.5">{inc.label}</div>
+                      <div className="text-[var(--on-surface-variant)]">{inc.barangay}</div>
+                      <div
+                        className={`font-semibold capitalize mt-0.5 ${SEVERITY_TEXT_CLASS[inc.severity] ?? 'text-[var(--on-surface-variant)]'}`}
+                      >
+                        {getCategoryLabelForIncidentType(inc.type as IncidentType)} · {inc.severity}
+                      </div>
+                    </div>
+                  </Tooltip>
+                </Marker>
+              ))}
+
+              {/* Custom zoom controls */}
+              <ZoomController />
+              <MapBoundaryEditor active={BOUNDARY_EDIT_ENABLED && boundaryEditMode && Boolean(selectedBrgy)} onAddPoint={handleAddBoundaryPoint} />
+            </MapContainer>
+
+            {/* Map legend overlay */}
+            <div
+              className="absolute bottom-7 left-2.5 z-[1000] bg-[rgba(255,255,255,0.97)] rounded-[10px] px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,.15)] border border-[var(--outline-variant)] min-w-[140px]"
+            >
+              <div className="font-bold text-[var(--on-surface)] text-[10px] tracking-[0.06em] uppercase mb-[7px]">
+                {t('superadmin.barangayMap.mapLegend')}
+              </div>
+              {barangaysData.map(b => (
+                <div key={b.id} className="flex items-center gap-1.5 mb-1">
+                  <div className={`w-3 h-3 rounded-[3px] opacity-80 border-2 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'}`} />
+                  <span className="text-[10px] text-[var(--on-surface-variant)]">{b.name}</span>
+                </div>
+              ))}
+              {showHeatmap ? (
+                <div className="border-t border-[var(--outline-variant)] pt-[5px] mt-[3px]">
+                  <div className="text-[9px] text-[var(--on-surface-variant)] mb-1 font-bold">
+                    {t('superadmin.barangayMap.heatIntensity')}
+                  </div>
+                  <div className="flex items-center gap-1.5 mb-[3px]">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#64748B] opacity-25" />
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatLow', { radius: Math.round(60 * heatRadiusScale) })}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 mb-[3px]">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#475569] opacity-35" />
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatHigh', { radius: Math.round(85 * heatRadiusScale) })}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-[11px] h-[11px] rounded-full bg-[#334155] opacity-45" />
+                    <span className="text-[9px] text-[var(--on-surface-variant)]">{t('superadmin.barangayMap.heatCritical', { radius: Math.round(110 * heatRadiusScale) })}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-t border-[var(--outline-variant)] pt-[5px] mt-[3px]">
+                  {(Object.keys(INCIDENT_ICON_COMPONENTS) as IncidentType[]).map((type) => (
+                    <div key={type} className="flex items-center gap-[5px] mb-0.5">
+                      <span className="inline-flex items-center">{getIncidentTypeIcon(type, 11, '#6B7280')}</span>
+                      <span className="text-[9px] text-[var(--on-surface-variant)]">{getCategoryLabelForIncidentType(type)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* OSM attribution note */}
+            <div
+              className="absolute bottom-[5px] right-2.5 z-[1000] text-[9px] text-[var(--outline)]"
+            >
+              {t('superadmin.barangayMap.osmAttribution')}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Side panel ── */}
+        <div className="flex flex-col gap-3">
+
+          {/* Barangay detail card */}
+          {selectedBrgy ? (
+            <div className="bg-card overflow-hidden border border-[var(--outline-variant)]">
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-[3px]">
+                      <span className="text-base font-bold text-[var(--on-surface)]">{selectedBrgy.name}</span>
+                      {(() => {
+                        const al = alertLevelConfig[selectedBrgy.alertLevel];
+                        return (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em] ${al.badgeClass}`}>
+                            {al.label}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div className="text-[11px] text-[var(--on-surface-variant)]">{selectedBrgy.district}</div>
+                    <div className="text-[10px] text-[var(--on-surface-variant)] mt-0.5">Capt. {selectedBrgy.captain}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedBarangay(null)}
+                    aria-label={t('common.close')}
+                    title={t('common.close')}
+                    className="bg-muted border-none rounded-md px-2 py-1 cursor-pointer text-[var(--on-surface-variant)] text-[11px]"
+                  >✕</button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-[7px] mb-3">
+                  {[
+                    { label: t('superadmin.barangayMap.statPopulation'), value: selectedBrgy.population.toLocaleString() },
+                    { label: t('superadmin.barangayMap.statArea'), value: selectedBrgy.area },
+                    { label: t('superadmin.barangayMap.statActiveInc'), value: selectedBrgy.activeIncidents },
+                    { label: t('superadmin.barangayMap.statRespRate'), value: `${selectedBrgy.responseRate}%` },
+                    { label: t('superadmin.barangayMap.statAvgResponse'), value: `${selectedBrgy.avgResponseMin}m` },
+                  ].map(s => (
+                    <div key={s.label} className="bg-[var(--surface-container-low)] rounded-lg px-2.5 py-2">
+                      <div className="text-[15px] font-bold text-[var(--on-surface)]">{s.value}</div>
+                      <div className="text-[10px] text-[var(--on-surface-variant)] mt-px">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Coord info */}
+                <div className="bg-[var(--primary-fixed)] rounded-lg px-2.5 py-2 border border-[var(--primary-fixed)]">
+                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-1 flex items-center gap-[5px]">
+                    <Navigation size={10} color="#1D4ED8" /> {t('superadmin.barangayMap.osmCoordinates')}
+                  </div>
+                  <div className="text-[9px] text-[var(--on-surface-variant)] font-mono">
+                    {t('superadmin.barangayMap.centerCoords', { lat: selectedBrgy.center[0].toFixed(4), lng: selectedBrgy.center[1].toFixed(4) })}
+                  </div>
+                  <div className="text-[9px] text-[var(--on-surface-variant)] mt-0.5">
+                    {t('superadmin.barangayMap.polygonBoundary', { count: selectedBrgy.boundary.length })}
+                  </div>
+                </div>
+
+                <div className="mt-2.5">
+                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-[5px]">
+                    {t('superadmin.barangayMap.boundaryGeojson')}
+                  </div>
+                  {!BOUNDARY_EDIT_ENABLED ? (
+                    <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
+                      {t('superadmin.barangayMap.editingLocked')}
+                    </div>
+                  ) : null}
+                  {BOUNDARY_EDIT_ENABLED ? (
+                    <>
+                      <div className="flex flex-wrap gap-1.5 mb-[7px]">
+                        <button
+                          onClick={() => {
+                            if (BOUNDARY_EDIT_ENABLED) {
+                              setBoundaryEditMode((current) => !current);
+                            }
+                          }}
+                          disabled={!BOUNDARY_EDIT_ENABLED}
+                          className={`border border-[var(--primary-fixed-dim)] rounded-md px-2 py-[5px] text-[10px] font-bold text-primary ${boundaryEditMode ? 'bg-[var(--primary-fixed)]' : 'bg-[var(--primary-fixed)]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                        >
+                          {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
+                        </button>
+                        <button
+                          onClick={handleUndoBoundaryPoint}
+                          disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                        >
+                          Undo Point
+                        </button>
+                        <button
+                          onClick={handleResetBoundaryPoints}
+                          disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                        >
+                          Reset Points
+                        </button>
+                        <button
+                          onClick={handleApplyPointsToDraft}
+                          disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
+                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                        >
+                          Apply Points to JSON
+                        </button>
+                      </div>
+                      <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
+                        {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
+                      </div>
+                    </>
+                  ) : null}
+                  <textarea
+                    title={t('superadmin.barangayMap.boundaryGeojson')}
+                    aria-label={t('superadmin.barangayMap.boundaryGeojson')}
+                    value={boundaryDraft}
+                    onChange={(event) => {
+                      if (BOUNDARY_EDIT_ENABLED) {
+                        setBoundaryDraft(event.target.value);
+                      }
+                    }}
+                    readOnly={!BOUNDARY_EDIT_ENABLED}
+                    className="w-full min-h-[120px] border border-[var(--primary-fixed)] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[var(--on-surface-variant)] box-border bg-[var(--surface-container-low)]"
+                  />
+                  {boundaryError ? (
+                    <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-card px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
+                  ) : null}
+                  {boundaryMessage ? (
+                    <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-card px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
+                  ) : null}
+                  {BOUNDARY_EDIT_ENABLED ? (
+                    <button
+                      onClick={() => {
+                        void handleSaveBoundary();
+                      }}
+                      disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
+                      className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+                    >
+                      <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-card p-5 border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
+              <MapPin size={28} className="text-[var(--outline-variant)]" />
+              <div className="text-xs text-[var(--on-surface-variant)] text-center">
+                {t('superadmin.barangayMap.clickBoundaryHint')}
+              </div>
+            </div>
+          )}
+
+          {/* Active incidents list */}
+          <div className="bg-card p-4 border border-[var(--outline-variant)] flex-1 flex flex-col">
+            <div className="text-sm font-bold text-[var(--on-surface)] mb-2.5">
+              {selectedBrgy ? t('superadmin.barangayMap.barangayIncidents', { name: selectedBrgy.name }) : t('superadmin.barangayMap.allActiveIncidents')}
+            </div>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-[7px] max-h-[260px]">
+              {filteredIncidents
+                .filter(inc => !selectedBrgy || inc.barangay === selectedBrgy.name)
+                .map(inc => {
+                  const isSel = selectedIncident?.id === inc.id;
+                  return (
+                    <div
+                      key={inc.id}
+                      onClick={() => setSelectedIncident(isSel ? null : inc)}
+                      className={`flex items-center gap-[9px] px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-[150ms] border ${isSel ? 'bg-[var(--primary-fixed)] border-[var(--primary-fixed-dim)]' : 'bg-surface-container-low border-surface-container-high'}`}
+                    >
+                      <div
+                        className={`w-[26px] h-[26px] rounded-md shrink-0 flex items-center justify-center text-xs ${incidentButtonClass(inc.type, true).split(' ').slice(0, 1).join(' ')}`}
+                      >
+                        {getIncidentTypeIcon(inc.type, 12, '#FFFFFF')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-semibold text-[var(--on-surface)]">{inc.label}</div>
+                        <div className="text-[10px] text-[var(--on-surface-variant)]">{inc.barangay}</div>
+                      </div>
+                      <div
+                        className={`text-[9px] font-bold px-[5px] py-0.5 rounded capitalize ${SEVERITY_BADGE_CLASS[inc.severity] ?? 'border border-[var(--outline-variant)] bg-card text-[var(--on-surface-variant)]'}`}
+                      >{inc.severity}</div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Quick barangay buttons */}
+          <div className="flex flex-col gap-1.5">
+            {barangaysData.map(b => {
+              const al = alertLevelConfig[b.alertLevel];
+              const isSel = selectedBarangay === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setSelectedBarangay(isSel ? null : b.id)}
+                  className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none border ${isSel ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high border-[var(--outline-variant)]') : 'bg-card border-[var(--outline-variant)]'}`}
+                >
+                  <div className={`w-2.5 h-2.5 rounded-[3px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'} border`} />
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-[var(--on-surface)]">{b.name}</div>
+                    <div className="text-[10px] text-[var(--on-surface-variant)]">
+                      {b.center[0].toFixed(4)}°N, {b.center[1].toFixed(4)}°E
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[9px] font-bold px-[5px] py-0.5 rounded-[3px] ${al.badgeClass}`}
+                    >{al.label}</span>
+                    <span className="text-[11px] font-bold text-[var(--on-surface-variant)]">{b.activeIncidents}</span>
+                    <AlertTriangle size={10} className="text-[var(--outline)]" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Comparison table */}
+      <div className="bg-card px-5 py-[18px] mt-3.5 border border-[var(--outline-variant)]">
+        <div className="text-[15px] font-bold text-[var(--on-surface)] mb-3.5">{t('superadmin.barangayMap.comparisonTitle')}</div>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr className="border-b-2 border-[var(--outline-variant)]">
+                {[t('superadmin.barangayMap.colBarangay'), t('superadmin.barangayMap.colDistrict'), t('superadmin.barangayMap.colPopulation'), t('superadmin.barangayMap.colArea'), t('superadmin.barangayMap.colCaptain'), t('superadmin.barangayMap.colAlertLevel'), t('superadmin.barangayMap.colActive'), t('superadmin.barangayMap.colResponseRate'), t('superadmin.barangayMap.colAvgResponse'), t('superadmin.barangayMap.colOsmCenter')].map(h => (
+                  <th key={h} className="px-3 py-2 text-left text-[var(--on-surface-variant)] font-semibold text-[10px] whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {barangaysData.map((b, i) => {
+                const al = alertLevelConfig[b.alertLevel];
+                return (
+                  <tr
+                    key={b.id}
+                    className={`cursor-pointer ${i < barangaysData.length - 1 ? 'border-b border-[var(--outline-variant)]' : ''} ${selectedBarangay === b.id ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high') : 'bg-transparent'}`}
+                    onClick={() => setSelectedBarangay(selectedBarangay === b.id ? null : b.id)}
+                  >
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2.5 h-2.5 rounded-[2px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'} border`} />
+                        <span className="text-[var(--on-surface)] font-semibold">{b.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{b.district}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface)] font-semibold">{b.population.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)]">{b.area}</td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface)]">{b.captain}</td>
+                    <td className="px-3 py-2.5">
+                      <span className={`text-[10px] font-bold px-[7px] py-0.5 rounded ${al.badgeClass}`}>{al.label}</span>
+                    </td>
+                    <td className={`px-3 py-2.5 font-bold ${b.activeIncidents > 8 ? 'text-[var(--error)]' : 'text-[var(--on-surface)]'}`}>{b.activeIncidents}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-[60px] h-[5px] bg-muted rounded-[3px] overflow-hidden grid grid-cols-[repeat(20,minmax(0,1fr))] gap-px">
+                          {Array.from({ length: 20 }).map((_, segmentIndex) => {
+                            const isActive = segmentIndex < Math.round(b.responseRate / 5);
+                            return (
+                              <div
+                                key={`${b.id}-response-${segmentIndex}`}
+                                className={`${isActive ? (b.responseRate >= 90 ? 'bg-severity-low' : 'bg-secondary') : 'bg-muted'}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <span className="text-[var(--on-surface)] font-semibold">{b.responseRate}%</span>
+                      </div>
+                    </td>
+                    <td className={`px-3 py-2.5 font-semibold ${b.avgResponseMin > 10 ? 'text-[var(--error)]' : 'text-[var(--severity-low)]'}`}>
+                      {b.avgResponseMin} min
+                    </td>
+                    <td className="px-3 py-2.5 text-[var(--on-surface-variant)] text-[10px] font-mono">
+                      {b.center[0].toFixed(4)}°N<br />{b.center[1].toFixed(4)}°E
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes sa-ping {
+          0%   { transform: scale(1);   opacity: .18; }
+          70%  { transform: scale(2.5); opacity: 0;   }
+          100% { transform: scale(2.5); opacity: 0;   }
+        }
+      `}</style>
+    </div>
+  );
+}

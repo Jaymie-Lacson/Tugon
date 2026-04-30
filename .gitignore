@@ -1,0 +1,28 @@
+node_modules
+dist
+server/dist
+
+.env
+.env.*
+
+# MCP config (contains API keys)
+.mcp.json
+
+# Raw GIS source files (kept local, not committed)
+barangay-source/*.shp
+barangay-source/*.dbf
+barangay-source/*.shx
+barangay-source/*.prj
+barangay-source/*.cpg
+barangay-source/*.shp.*
+.vercel
+.env*.local
+
+# Personal AI/session workflow files
+CLAUDE.md
+
+.github/*
+!.github/workflows/
+!.github/workflows/**
+# Local database dump artifacts for offline demo prep
+server/backups/

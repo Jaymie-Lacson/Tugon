@@ -1,0 +1,626 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AlertTriangle, CheckCircle2, Users, Activity, TrendingUp, TrendingDown,
+  Clock, ArrowRight, MapPin,
+  RefreshCw, ChevronRight,
+} from 'lucide-react';
+import { useTranslation } from '../../i18n';
+import { useNavigate } from 'react-router';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
+import { IncidentMap } from '../../components/IncidentMap';
+import CardSkeleton from '../../components/ui/CardSkeleton';
+import TableSkeleton from '../../components/ui/TableSkeleton';
+import TextSkeleton from '../../components/ui/TextSkeleton';
+import { isIncidentVisibleOnMap, type Incident } from '../../data/incidents';
+import { reportToIncident } from '../../utils/incidentAdapters';
+import { clearAuthSession, getAuthSession } from '../../utils/authSession';
+import { applyRechartsWarningPatch } from '../../utils/rechartsWarningPatch';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminSummary, useAdminBarangays, useAdminAuditLogs, adminKeys } from '../../hooks/useAdminQueries';
+import { useOfficialReports, officialReportsKeys } from '../../hooks/useOfficialReportsQueries';
+
+if (import.meta.env.DEV) {
+  applyRechartsWarningPatch();
+}
+
+type BarangayOverviewCard = {
+  id: string;
+  code: string;
+  name: string;
+  district: string;
+  captain: string;
+  activeIncidents: number;
+  totalThisMonth: number;
+  resolvedThisMonth: number;
+  responseRate: number;
+  avgResponseMin: number;
+  responders: number;
+  registeredUsers: number;
+  color: string;
+  alertLevel: 'normal' | 'elevated' | 'critical';
+};
+
+const MAX_VISIBLE_SYSTEM_LOGS = 4;
+
+
+const KPI_ACCENT: Record<string, string> = {
+  'var(--severity-critical)': '#DC2626',
+  'var(--severity-medium)':   '#D97706',
+  'var(--severity-low)':      '#16A34A',
+  'var(--primary)':           '#2563EB',
+};
+
+interface KPIProps {
+  label: string; value: string | number; sub?: string;
+  icon: React.ReactNode; color: string; trend?: number; trendLabel?: string;
+}
+
+function KPICard({ label, value, sub, color, trend, trendLabel }: KPIProps) {
+  const isUp = (trend ?? 0) >= 0;
+  const accent = KPI_ACCENT[color] ?? '#2563EB';
+  return (
+    <div
+      className="flex min-w-0 flex-col gap-1.5 bg-card px-4 py-4 border-r border-b border-[var(--outline-variant)]"
+    >
+      {trend !== undefined && (
+        <div className={`flex items-center gap-[3px] font-mono text-[10px] font-bold ${isUp ? 'text-[var(--error)]' : 'text-[var(--severity-low)]'}`}>
+          {isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+          {Math.abs(trend)}%
+        </div>
+      )}
+      <div className="text-[var(--on-surface)] text-[26px] font-bold font-mono leading-[1.1] mb-[3px]">{value}</div>
+      <div className="text-[var(--on-surface-variant)] text-xs">{label}</div>
+      {sub && <div className="text-[var(--on-surface-variant)] text-[10px]">{sub}</div>}
+      {trendLabel && (
+        <div className="font-mono text-[10px] text-[var(--on-surface-variant)]">{trendLabel}</div>
+      )}
+    </div>
+  );
+}
+
+const alertLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
+  normal:   { label: 'NORMAL',   color: 'var(--severity-low)', bg: 'var(--severity-low-bg)' },
+  elevated: { label: 'ELEVATED', color: 'var(--secondary)', bg: 'var(--secondary-fixed)' },
+  critical: { label: 'CRITICAL', color: 'var(--error)', bg: 'var(--error-container)' },
+};
+
+function getAlertLevelClass(level: 'normal' | 'elevated' | 'critical') {
+  switch (level) {
+    case 'normal':
+      return 'border border-[rgba(5,150,105,0.28)] bg-card text-[var(--severity-low)]';
+    case 'elevated':
+      return 'border border-[var(--secondary-fixed-dim)] bg-card text-[var(--secondary)]';
+    case 'critical':
+      return 'border border-[rgba(186,26,26,0.28)] bg-card text-[var(--error)]';
+    default:
+      return 'border border-[var(--outline-variant)] bg-card text-[var(--outline)]';
+  }
+}
+
+function getBarangayAccentClass(code: string) {
+  if (code === '251') return 'text-primary';
+  if (code === '252') return 'text-[var(--severity-low)]';
+  return 'text-[var(--severity-medium)]';
+}
+
+function getStatValueClass(color: string) {
+  if (color === 'var(--severity-critical)') return 'text-[var(--error)]';
+  if (color === 'var(--severity-medium)') return 'text-[var(--severity-medium)]';
+  if (color === 'var(--primary)') return 'text-primary';
+  return 'text-[var(--severity-low)]';
+}
+
+function getQuickNavAccentClass(path: string) {
+  if (path === '/superadmin/users') return 'text-[var(--severity-low)]';
+  return 'text-primary';
+}
+
+function formatLogTime(ts: string) {
+  return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function formatDurationFromMinutes(totalMinutes: number) {
+  const safeMinutes = Number.isFinite(totalMinutes) ? Math.max(0, totalMinutes) : 0;
+
+  if (safeMinutes < 60) {
+    return `${safeMinutes.toFixed(1)} minutes`;
+  }
+
+  const hours = safeMinutes / 60;
+  if (hours < 24) {
+    return `${hours.toFixed(1)} hours`;
+  }
+
+  const days = hours / 24;
+  if (days < 7) {
+    return `${days.toFixed(1)} days`;
+  }
+
+  const weeks = days / 7;
+  return `${weeks.toFixed(1)} weeks`;
+}
+
+export default function SAOverview() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [authRedirecting, setAuthRedirecting] = useState(false);
+  const [incidentCardHeight, setIncidentCardHeight] = useState<number | null>(null);
+  const incidentTypesCardRef = useRef<HTMLDivElement | null>(null);
+  const activityLogCardRef = useRef<HTMLDivElement | null>(null);
+  const activityLogHeaderRef = useRef<HTMLDivElement | null>(null);
+  const activityLogListRef = useRef<HTMLDivElement | null>(null);
+
+  const { data: analyticsSummary, isLoading: summaryLoading, error: summaryQueryError } = useAdminSummary();
+  const { data: reportsData, isLoading: reportsLoading } = useOfficialReports();
+  const { data: barangaysData, isLoading: _barangaysLoading } = useAdminBarangays();
+  const { data: auditLogsData, isLoading: logsLoading } = useAdminAuditLogs({ limit: 8, offset: 0 });
+
+  const summaryError = summaryQueryError
+    ? (summaryQueryError instanceof Error ? summaryQueryError.message : 'Unable to load analytics summary.')
+    : null;
+
+  const reportIncidents = useMemo(
+    () => (reportsData?.reports ?? []).map(reportToIncident),
+    [reportsData],
+  );
+
+  const barangayCards = useMemo((): BarangayOverviewCard[] => {
+    if (!barangaysData) return [];
+    const colorByCode: Record<string, string> = {
+      '251': 'var(--primary)',
+      '252': 'var(--severity-low)',
+      '256': 'var(--severity-medium)',
+    };
+    return barangaysData.barangays
+      .filter((barangay) => ['251', '252', '256'].includes(barangay.code))
+      .sort((a, b) => Number(a.code) - Number(b.code))
+      .map((barangay) => {
+        const activeIncidents = barangay.activeReports;
+        const totalThisMonth = barangay.totalReports;
+        const resolvedThisMonth = Math.max(totalThisMonth - activeIncidents, 0);
+        const responseRate = totalThisMonth > 0
+          ? Math.max(0, Math.min(100, Math.round((resolvedThisMonth / totalThisMonth) * 100)))
+          : 100;
+        return {
+          id: barangay.id,
+          code: barangay.code,
+          name: `Barangay ${barangay.code}`,
+          district: 'Tondo, Manila',
+          captain: 'Assigned Barangay Captain',
+          activeIncidents,
+          totalThisMonth,
+          resolvedThisMonth,
+          responseRate,
+          avgResponseMin: 0,
+          responders: barangay.officialCount,
+          registeredUsers: barangay.citizenCount,
+          color: colorByCode[barangay.code] ?? 'var(--primary)',
+          alertLevel: activeIncidents >= 10 ? 'critical' : activeIncidents >= 5 ? 'elevated' : 'normal',
+        } as BarangayOverviewCard;
+      });
+  }, [barangaysData]);
+
+  const systemLogs = useMemo(
+    () => (auditLogsData?.logs ?? []).map((log) => ({
+      id: log.id,
+      timestamp: log.createdAt,
+      type: log.targetType === 'USER' ? 'user' : 'system',
+      message: `${log.action} ${log.targetLabel ?? log.targetId ?? ''}`.trim(),
+      severity: 'info',
+    })),
+    [auditLogsData],
+  );
+
+  const mapIncidents = useMemo(() => reportIncidents.filter((incident) => isIncidentVisibleOnMap(incident)), [reportIncidents]);
+  const total = analyticsSummary?.summary.openReports ?? reportIncidents.filter((item) => item.status !== 'resolved').length;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayIso = yesterday.toISOString().slice(0, 10);
+  const resolvedToday = reportIncidents.filter((item) => item.resolvedAt?.startsWith(todayIso)).length;
+  const openedToday = reportIncidents.filter((item) => item.reportedAt.startsWith(todayIso)).length;
+  const openedYesterday = reportIncidents.filter((item) => item.reportedAt.startsWith(yesterdayIso)).length;
+  const activeTrendPercent = openedYesterday === 0
+    ? (openedToday > 0 ? 100 : 0)
+    : Number((((openedToday - openedYesterday) / openedYesterday) * 100).toFixed(0));
+  const avgResponseMinutes = (() => {
+    const withResponse = reportIncidents.filter((item) => item.respondedAt);
+    if (withResponse.length === 0) {
+      return 0;
+    }
+
+    const totalMinutes = withResponse.reduce((sum, item) => {
+      const diff = new Date(item.respondedAt ?? item.reportedAt).getTime() - new Date(item.reportedAt).getTime();
+      return sum + Math.max(0, Math.round(diff / 60000));
+    }, 0);
+
+    return Number((totalMinutes / withResponse.length).toFixed(1));
+  })();
+  const avgResponseLabel = formatDurationFromMinutes(avgResponseMinutes);
+  const incidentTypeDist = [
+    { type: 'Flood', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Accident', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Medical', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Crime', brgy251: 0, brgy252: 0, brgy256: 0 },
+    { type: 'Infra.', brgy251: 0, brgy252: 0, brgy256: 0 },
+  ];
+
+  for (const item of reportIncidents) {
+    const barangayKey = item.barangay.includes('251') ? 'brgy251' : item.barangay.includes('252') ? 'brgy252' : 'brgy256';
+    const row =
+      item.type === 'flood' ? incidentTypeDist[0] :
+      item.type === 'accident' ? incidentTypeDist[1] :
+      item.type === 'medical' ? incidentTypeDist[2] :
+      item.type === 'crime' ? incidentTypeDist[3] :
+      incidentTypeDist[4];
+    row[barangayKey] += 1;
+  }
+
+  useEffect(() => {
+    if (getAuthSession()?.user.role === 'SUPER_ADMIN') {
+      return;
+    }
+    setAuthRedirecting(true);
+    navigate('/auth/login', { replace: true });
+  }, [navigate]);
+
+  useEffect(() => {
+    const card = incidentTypesCardRef.current;
+    if (!card || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const syncHeight = () => {
+      const next = Math.round(card.getBoundingClientRect().height);
+      if (Number.isFinite(next) && next > 0) {
+        setIncidentCardHeight(next);
+      }
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(card);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const activityCard = activityLogCardRef.current;
+    const header = activityLogHeaderRef.current;
+    const list = activityLogListRef.current;
+    if (!activityCard || !header || !list || !incidentCardHeight) {
+      return;
+    }
+
+    const cardVerticalPadding = 40; // p-5 top and bottom
+    const headerMarginBottom = Number.parseFloat(window.getComputedStyle(header).marginBottom) || 0;
+    const available = Math.max(0, incidentCardHeight - header.offsetHeight - headerMarginBottom - cardVerticalPadding);
+
+    activityCard.style.height = `${incidentCardHeight}px`;
+    activityCard.style.maxHeight = `${incidentCardHeight}px`;
+    activityCard.style.minHeight = `${incidentCardHeight}px`;
+    list.style.height = `${available}px`;
+    list.style.maxHeight = `${available}px`;
+  }, [incidentCardHeight, systemLogs]);
+
+  const visibleSystemLogs = systemLogs.slice(0, MAX_VISIBLE_SYSTEM_LOGS);
+
+  const initialLoadPending = (summaryLoading && !analyticsSummary) || (reportsLoading && !reportsData) || (logsLoading && !auditLogsData);
+
+  if (initialLoadPending) {
+    return (
+      <div className="p-5 min-h-full">
+        <TextSkeleton rows={2} title={false} />
+        <div className="mt-3">
+          <CardSkeleton
+            count={4}
+            lines={2}
+            showImage={false}
+            gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          />
+        </div>
+        <div className="mt-3">
+          <TableSkeleton rows={7} columns={4} showHeader />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content p-5 bg-[var(--surface)] min-h-full">
+      {/* Page header */}
+      <div className="border-b border-[var(--outline-variant)] pb-4 mb-5">
+      <div className="flex items-center justify-between gap-[10px] max-md:flex-col max-md:items-start">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] font-bold uppercase text-primary">
+              {t('role.superAdmin')}
+            </span>
+            <div className="text-[var(--on-surface-variant)] text-xs">{t('superadmin.overview.multiBarangayOverview')}</div>
+          </div>
+          <h1 className="text-[var(--on-surface)] text-[22px] font-bold m-0">{t('superadmin.overview.dashboardTitle')}</h1>
+          <p className="text-[var(--on-surface-variant)] text-xs m-0 mt-[2px]">
+            {t('superadmin.overview.monitoringSubtitle')}
+          </p>
+        </div>
+        <div className="flex items-center gap-[10px] max-md:w-full max-md:flex-wrap">
+          <button
+            onClick={() => {
+              void queryClient.invalidateQueries({ queryKey: adminKeys.summary() });
+              void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+              void queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
+              void queryClient.invalidateQueries({ queryKey: adminKeys.auditLogs({ limit: 8, offset: 0 }) });
+            }}
+            className="flex min-h-11 items-center gap-[6px] bg-card border border-[var(--outline-variant)] rounded-lg px-[14px] py-2 cursor-pointer text-[var(--on-surface)] text-xs font-semibold max-md:flex-1 max-md:justify-center"
+          >
+            <RefreshCw size={13} className="text-[var(--outline)]" />
+            {summaryLoading ? t('common.refreshing') : t('common.refresh')}
+          </button>
+          <button
+            onClick={() => navigate('/superadmin/analytics')}
+            className="flex min-h-11 items-center gap-[6px] bg-primary border-0 rounded-lg px-4 py-2 cursor-pointer text-white text-xs font-semibold max-md:flex-1 max-md:justify-center"
+          >
+            {t('superadmin.overview.viewAnalytics')}
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </div>
+      </div>
+
+      {summaryError ? (
+        <div className="mb-3 border-l-4 border-[var(--error)] bg-card px-3 py-2.5 text-[var(--error)] text-xs font-semibold">
+          {summaryError}
+        </div>
+      ) : null}
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 border-l border-t border-[var(--outline-variant)] mb-4">
+        <KPICard
+          label={t('superadmin.overview.kpiActiveIncidents')}
+          value={total}
+          sub={t('superadmin.overview.kpiAcrossBarangays')}
+          icon={<AlertTriangle />}
+          color="var(--severity-critical)"
+          trend={activeTrendPercent}
+          trendLabel={t('superadmin.overview.kpiNewReportsToday', { count: openedToday })}
+        />
+        <KPICard
+          label={t('superadmin.overview.kpiResolvedToday')}
+          value={resolvedToday}
+          sub={t('superadmin.overview.kpiIncidentsClosedToday')}
+          icon={null}
+          color="var(--severity-low)"
+          trendLabel={t('superadmin.overview.kpiBasedOnTickets')}
+        />
+        <KPICard
+          label={t('superadmin.overview.kpiAvgResponseTime')}
+          value={avgResponseLabel}
+          sub={t('superadmin.overview.kpiResponseTarget')}
+          icon={null}
+          color="var(--severity-medium)"
+          trendLabel={t('superadmin.overview.kpiComputedFromIncidents')}
+        />
+        <KPICard
+          label={t('superadmin.overview.kpiRegisteredUsers')}
+          value={analyticsSummary?.summary.totalUsers ?? 0}
+          sub={t('superadmin.overview.kpiVerifiedAccounts', { count: analyticsSummary?.summary.verifiedUsers ?? 0 })}
+          icon={null}
+          color="var(--primary)"
+          trendLabel={t('superadmin.overview.kpiAcrossThreeBarangays')}
+        />
+        <KPICard
+          label={t('superadmin.overview.kpiSystemUptime')}
+          value="99.87%"
+          sub={t('superadmin.overview.kpiAllServicesRunning')}
+          icon={null}
+          color="var(--severity-low)"
+          trendLabel={t('superadmin.overview.kpiMonitoredByPlatform')}
+        />
+      </div>
+
+      {/* Barangay cards row */}
+      <div className="flex gap-[14px] mb-5 flex-wrap">
+        {barangayCards.map((b) => {
+          const al = alertLevelConfig[b.alertLevel];
+          return (
+            <div key={b.id} className="flex-1 min-w-[260px] bg-card overflow-hidden border border-[var(--outline-variant)]">
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-[3px]">
+                      <span className="text-[var(--on-surface)] text-base font-bold">{b.name}</span>
+                      <span className={`font-mono text-[9px] font-bold uppercase rounded px-1.5 py-0.5 ${getAlertLevelClass(b.alertLevel)}`}>{al.label}</span>
+                    </div>
+                    <div className="text-[var(--on-surface-variant)] text-[11px]">{b.district}</div>
+                    <div className="text-[var(--on-surface-variant)] text-[10px] mt-[2px]">{b.captain}</div>
+                  </div>
+                  <MapPin size={16} className={`shrink-0 mt-1 ${getBarangayAccentClass(b.code)}`} />
+                </div>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {[
+                    { label: t('superadmin.overview.statActive'),     value: b.activeIncidents,   color: 'var(--severity-critical)' },
+                    { label: t('superadmin.overview.statThisMonth'), value: b.totalThisMonth,    color: 'var(--primary)' },
+                    { label: t('superadmin.overview.statResolved'),   value: b.resolvedThisMonth, color: 'var(--severity-low)' },
+                    { label: t('superadmin.overview.statRespRate'), value: `${b.responseRate}%`, color: 'var(--severity-medium)' },
+                  ].map(s => (
+                    <div key={s.label} className="border border-[var(--outline-variant)] bg-card px-[10px] py-2">
+                      <div className={`text-[17px] font-bold font-mono leading-none ${getStatValueClass(s.color)}`}>{s.value}</div>
+                      <div className="text-[var(--on-surface-variant)] text-[10px] mt-[2px]">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Response time bar */}
+                <div className="mb-3">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.statAvgResponseTime')}</span>
+                    <span className={`text-[11px] font-semibold ${b.responseRate < 90 ? 'text-severity-medium' : 'text-[var(--severity-low)]'}`}>{b.responseRate}%</span>
+                  </div>
+                  <div className="h-[5px] bg-muted rounded-[3px] overflow-hidden">
+                    <progress
+                      value={b.responseRate}
+                      max={100}
+                      className={`h-[5px] w-full overflow-hidden rounded-[3px] align-top ${
+                        b.responseRate < 90
+                          ? '[&::-webkit-progress-value]:bg-[var(--severity-medium)] [&::-moz-progress-bar]:bg-[var(--severity-medium)]'
+                          : '[&::-webkit-progress-value]:bg-[var(--severity-low)] [&::-moz-progress-bar]:bg-[var(--severity-low)]'
+                      } [&::-webkit-progress-bar]:bg-muted`}
+                    />
+                  </div>
+                  <div className="text-[var(--on-surface-variant)] text-[9px] mt-[2px]">{t('superadmin.overview.statResolutionRate')}</div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <div className="flex gap-3 flex-wrap">
+                    <div className="text-[var(--on-surface-variant)] text-[10px]">
+                      <span className="text-[var(--on-surface)] font-semibold">{b.responders}</span> {t('superadmin.overview.responders')}
+                    </div>
+                    <div className="text-[var(--on-surface-variant)] text-[10px]">
+                      <span className="text-[var(--on-surface)] font-semibold">{b.registeredUsers}</span> {t('superadmin.overview.usersLabel')}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/superadmin/map')}
+                    className="flex items-center gap-1 border border-[var(--outline-variant)] bg-card px-[10px] py-1 cursor-pointer text-[11px] font-semibold shrink-0 text-primary"
+                  >
+                    {t('superadmin.overview.viewMap')} <ArrowRight size={11} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Charts + Logs row */}
+      <div className="grid gap-[14px] mb-5 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Incident type distribution */}
+        <div ref={incidentTypesCardRef} className="bg-card p-5 border border-[var(--outline-variant)]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.incidentTypesTitle')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px] mt-[2px]">{t('superadmin.overview.currentReportingWindow')}</div>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={incidentTypeDist} barSize={18} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+              <XAxis dataKey="type" tick={{ fill: '#6B7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#E2E8F0', fontWeight: 600 }}
+                itemStyle={{ color: '#CBD5E1' }}
+              />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#6B7280' }} />
+              <Bar dataKey="brgy251" name="Brgy 251" fill="var(--primary)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="brgy252" name="Brgy 252" fill="var(--severity-low)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="brgy256" name="Brgy 256" fill="var(--severity-medium)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* System activity log */}
+        <div ref={activityLogCardRef} className="bg-card p-5 border border-[var(--outline-variant)] flex flex-col overflow-hidden">
+          <div ref={activityLogHeaderRef} className="flex items-center justify-between mb-[14px]">
+            <div>
+              <div className="text-[var(--on-surface)] text-[15px] font-bold">{t('superadmin.overview.activityLogTitle')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.activityLogSubtitle')}</div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => navigate('/superadmin/audit-logs')}
+                className="flex items-center gap-1 border border-[var(--outline-variant)] bg-card px-[10px] py-1 cursor-pointer text-[11px] font-semibold text-primary"
+              >
+                {t('nav.auditLogs')} <ArrowRight size={11} />
+              </button>
+              <div className="w-2 h-2 rounded-full bg-[var(--severity-low)]" />
+            </div>
+          </div>
+          <div ref={activityLogListRef} className="flex-1 overflow-hidden flex flex-col gap-2">
+            {visibleSystemLogs.map((log) => {
+              return (
+                <div key={log.id} className="flex gap-[10px] px-[10px] py-2 border-b border-[var(--outline-variant)] last:border-b-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[var(--on-surface)] text-[11px] leading-[1.4]">{log.message}</div>
+                    <div className="flex items-center gap-[6px] mt-[3px]">
+                      <span className="text-[var(--on-surface-variant)] text-[10px]">{formatLogTime(log.timestamp)}</span>
+                      {log.barangay && (
+                        <span className="font-mono text-primary text-[9px] font-bold">{log.barangay}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Live OSM Map preview */}
+      <div className="sa-overview-map-preview bg-card overflow-hidden mb-5 border border-[var(--outline-variant)]">
+        <div className="px-4 py-3 border-b border-[var(--outline-variant)] flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-2">
+          <div className="flex items-center gap-[10px]">
+            <MapPin size={15} className="text-primary" />
+            <div>
+              <div className="text-[var(--on-surface)] text-sm font-bold">{t('superadmin.overview.liveSystemMap')}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px]">{t('superadmin.overview.liveMapSubtitle')}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
+            <div className="flex items-center gap-1">
+              <span className="w-[6px] h-[6px] rounded-full bg-[var(--severity-low)] inline-block" />
+              <span className="font-mono text-[var(--severity-low)] text-[9px] font-bold">{t('superadmin.overview.liveOsm')}</span>
+            </div>
+            <button
+              onClick={() => navigate('/superadmin/map')}
+              className="flex items-center gap-[5px] bg-primary text-white border-0 px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
+            >
+              {t('superadmin.overview.fullMap')} <ArrowRight size={11} />
+            </button>
+          </div>
+        </div>
+        <div ref={mapContainerRef}>
+          {mapInView ? (
+            <IncidentMap
+              incidents={mapIncidents}
+              height={300}
+              compact={false}
+              zoom={14}
+            />
+          ) : (
+            <div className="h-[300px] bg-muted/30 animate-pulse" />
+          )}
+        </div>
+      </div>
+
+      {/* Bottom quick nav */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {[
+          { label: t('superadmin.overview.quickNavMap'),       desc: t('superadmin.overview.quickNavMapDesc'),       path: '/superadmin/map',       accent: '#2563EB' },
+          { label: t('superadmin.analytics.title'),            desc: t('superadmin.overview.quickNavAnalyticsDesc'), path: '/superadmin/analytics', accent: '#2563EB' },
+          { label: t('superadmin.users.title'),                desc: t('superadmin.overview.quickNavUsersDesc'),     path: '/superadmin/users',     accent: '#16A34A' },
+        ].map((item) => (
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            className="w-full bg-card border border-[var(--outline-variant)] px-3.5 py-3.5 sm:px-4 sm:py-[14px] cursor-pointer text-left flex items-start gap-3 min-h-[84px]"
+          >
+            <div className="min-w-0 flex-1">
+              <div className={`text-[13px] leading-[1.35] font-semibold sm:leading-normal ${getQuickNavAccentClass(item.path)}`}>{item.label}</div>
+              <div className="text-[var(--on-surface-variant)] text-[11px] leading-[1.45] mt-[3px]">{item.desc}</div>
+            </div>
+            <ChevronRight size={16} className="ml-auto mt-0.5 shrink-0 text-[var(--on-surface-variant)]" />
+          </button>
+        ))}
+      </div>
+
+    </div>
+  );
+}

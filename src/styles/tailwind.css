@@ -1,0 +1,479 @@
+@import 'tailwindcss' source(none);
+@source '../**/*.{js,ts,jsx,tsx}';
+
+@import 'tw-animate-css';
+
+/* ══════════════════════════════════════════════════════════════════════
+   PRODUCTION-GRADE SKELETON CSS
+   ─────────────────────────────
+   Provides shimmer wave animations, staggered delays via child selectors,
+   and smooth crossfade transitions.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@keyframes skeleton-shimmer-wave {
+	0% {
+		background-position: 250% 0;
+	}
+	100% {
+		background-position: -250% 0;
+	}
+}
+
+.skeleton-shimmer {
+	background-color: #f3f4f6; /* Gray-100 fallback */
+	background-image: linear-gradient(
+		90deg,
+		rgba(243, 244, 246, 0) 0%,
+		rgba(255, 255, 255, 0.4) 20%,
+		rgba(255, 255, 255, 0.8) 50%,
+		rgba(255, 255, 255, 0.4) 80%,
+		rgba(243, 244, 246, 0) 100%
+	);
+	background-size: 250% 100%;
+	animation: skeleton-shimmer-wave 1.8s ease-in-out infinite;
+	background-repeat: no-repeat;
+}
+
+.skeleton-delay-10 { animation-delay: 10ms; }
+.skeleton-delay-20 { animation-delay: 20ms; }
+.skeleton-delay-30 { animation-delay: 30ms; }
+.skeleton-delay-40 { animation-delay: 40ms; }
+.skeleton-delay-50 { animation-delay: 50ms; }
+.skeleton-delay-60 { animation-delay: 60ms; }
+.skeleton-delay-70 { animation-delay: 70ms; }
+.skeleton-delay-80 { animation-delay: 80ms; }
+.skeleton-delay-90 { animation-delay: 90ms; }
+.skeleton-delay-100 { animation-delay: 100ms; }
+.skeleton-delay-110 { animation-delay: 110ms; }
+.skeleton-delay-120 { animation-delay: 120ms; }
+.skeleton-delay-130 { animation-delay: 130ms; }
+.skeleton-delay-140 { animation-delay: 140ms; }
+.skeleton-delay-150 { animation-delay: 150ms; }
+.skeleton-delay-160 { animation-delay: 160ms; }
+.skeleton-delay-170 { animation-delay: 170ms; }
+.skeleton-delay-180 { animation-delay: 180ms; }
+.skeleton-delay-190 { animation-delay: 190ms; }
+.skeleton-delay-200 { animation-delay: 200ms; }
+.skeleton-delay-210 { animation-delay: 210ms; }
+.skeleton-delay-220 { animation-delay: 220ms; }
+.skeleton-delay-230 { animation-delay: 230ms; }
+.skeleton-delay-240 { animation-delay: 240ms; }
+.skeleton-delay-250 { animation-delay: 250ms; }
+.skeleton-delay-260 { animation-delay: 260ms; }
+.skeleton-delay-270 { animation-delay: 270ms; }
+.skeleton-delay-280 { animation-delay: 280ms; }
+.skeleton-delay-290 { animation-delay: 290ms; }
+.skeleton-delay-300 { animation-delay: 300ms; }
+.skeleton-delay-310 { animation-delay: 310ms; }
+.skeleton-delay-320 { animation-delay: 320ms; }
+.skeleton-delay-330 { animation-delay: 330ms; }
+.skeleton-delay-340 { animation-delay: 340ms; }
+.skeleton-delay-350 { animation-delay: 350ms; }
+.skeleton-delay-360 { animation-delay: 360ms; }
+.skeleton-delay-370 { animation-delay: 370ms; }
+.skeleton-delay-380 { animation-delay: 380ms; }
+.skeleton-delay-390 { animation-delay: 390ms; }
+.skeleton-delay-400 { animation-delay: 400ms; }
+
+/* 
+	SkeletonGroup uses attribute selectors to automatically stagger the 
+	animation delay of its children, giving an organic "cascading" load feel.
+*/
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(2) { animation-delay: 80ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(3) { animation-delay: 160ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(4) { animation-delay: 240ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(5) { animation-delay: 320ms; }
+.skeleton-group[aria-busy="true"] [data-slot="skeleton"]:nth-child(6) { animation-delay: 400ms; }
+
+/* 
+	Skeleton crossfade enables a smooth swap from skeleton loading state
+	to the real content (Stripe pattern).
+*/
+.skeleton-crossfade-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skeleton-crossfade-layer:last-child {
+	position: relative; /* Real content dictates the height */
+}
+
+.skeleton-crossfade-visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.skeleton-crossfade-hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.skeleton-crossfade-duration-fast {
+	transition-duration: 160ms;
+}
+
+.skeleton-crossfade-duration-default {
+	transition-duration: 220ms;
+}
+
+.skeleton-crossfade-duration-slow {
+	transition-duration: 300ms;
+}
+
+/* Accessibility: Fall back to gentle pulse if user prefers reduced motion */
+@keyframes skeleton-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: .7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-shimmer {
+		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+		background-image: none !important;
+	}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TUGON ANIMATION SYSTEM
+   ─────────────────────
+   Purposeful, functional animations that enhance UX without decoration.
+   Following TUGON's "calm confidence" aesthetic — no bounce, no elastic.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+	/* ── Easing curves (exponential deceleration — natural, refined) ──── */
+	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+	--ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+	/* ── Duration tokens ─────────────────────────────────────────────── */
+	--duration-instant: 100ms;   /* Feedback (button press) */
+	--duration-fast: 150ms;      /* Micro-interactions */
+	--duration-normal: 200ms;    /* State changes */
+	--duration-moderate: 300ms;  /* Layout shifts */
+	--duration-slow: 400ms;      /* Entrance animations */
+	--duration-slower: 500ms;    /* Page transitions */
+}
+
+/* ── Entrance Animations ─────────────────────────────────────────────── */
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in-scale {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes slide-in-right {
+	from {
+		opacity: 0;
+		transform: translateX(-12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes slide-in-left {
+	from {
+		opacity: 0;
+		transform: translateX(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+/* ── Button Press Feedback ───────────────────────────────────────────── */
+
+@keyframes button-press {
+	0% { transform: scale(1); }
+	50% { transform: scale(0.97); }
+	100% { transform: scale(1); }
+}
+
+/* ── Indicator Slide (for nav tabs) ──────────────────────────────────── */
+
+@keyframes indicator-appear {
+	from {
+		opacity: 0;
+		transform: scaleX(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: scaleX(1);
+	}
+}
+
+/* ── Subtle Pulse (for attention without alarm) ──────────────────────── */
+
+@keyframes subtle-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.7; }
+}
+
+/* ── Card Lift (hover state) ─────────────────────────────────────────── */
+
+@keyframes card-lift-in {
+	from {
+		transform: translateY(0);
+		box-shadow: var(--shadow-card);
+	}
+	to {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-elevated);
+	}
+}
+
+/* ── Shake (validation error) ────────────────────────────────────────── */
+
+@keyframes shake {
+	0%, 100% { transform: translateX(0); }
+	20% { transform: translateX(-4px); }
+	40% { transform: translateX(4px); }
+	60% { transform: translateX(-3px); }
+	80% { transform: translateX(3px); }
+}
+
+/* ── Checkmark Draw (success feedback) ───────────────────────────────── */
+
+@keyframes checkmark-draw {
+	from {
+		stroke-dashoffset: 24;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ANIMATION UTILITY CLASSES
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Entrance utilities ──────────────────────────────────────────────── */
+
+.animate-fade-in {
+	animation: fade-in var(--duration-normal) var(--ease-out-quart) both;
+}
+
+.animate-fade-in-up {
+	animation: fade-in-up var(--duration-slow) var(--ease-out-quint) both;
+}
+
+.animate-fade-in-down {
+	animation: fade-in-down var(--duration-slow) var(--ease-out-quint) both;
+}
+
+.animate-fade-in-scale {
+	animation: fade-in-scale var(--duration-moderate) var(--ease-out-quart) both;
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right var(--duration-slow) var(--ease-out-quint) both;
+}
+
+.animate-slide-in-left {
+	animation: slide-in-left var(--duration-slow) var(--ease-out-quint) both;
+}
+
+/* ── Stagger delay utilities (for choreographed entrances) ──────────── */
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+.stagger-7 { animation-delay: 350ms; }
+.stagger-8 { animation-delay: 400ms; }
+
+/* ── Interactive feedback ────────────────────────────────────────────── */
+
+.animate-press {
+	transition: transform var(--duration-instant) var(--ease-out-quart);
+}
+
+.animate-press:active {
+	transform: scale(0.97);
+}
+
+.animate-shake {
+	animation: shake 0.4s var(--ease-out-quart);
+}
+
+.animate-subtle-pulse {
+	animation: subtle-pulse 2s var(--ease-in-out-quart) infinite;
+}
+
+/* ── Card hover lift ─────────────────────────────────────────────────── */
+
+.hover-lift {
+	transition: transform var(--duration-normal) var(--ease-out-quart),
+	            box-shadow var(--duration-normal) var(--ease-out-quart);
+}
+
+.hover-lift:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-elevated);
+}
+
+/* ── Focus ring animation ────────────────────────────────────────────── */
+
+.focus-ring-animate {
+	transition: box-shadow var(--duration-fast) var(--ease-out-quart),
+	            border-color var(--duration-fast) var(--ease-out-quart);
+}
+
+/* ── Nav indicator ───────────────────────────────────────────────────── */
+
+.nav-indicator {
+	transition: left var(--duration-moderate) var(--ease-out-quint),
+	            width var(--duration-moderate) var(--ease-out-quint),
+	            opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+.nav-indicator-appear {
+	animation: indicator-appear var(--duration-normal) var(--ease-out-quart) both;
+}
+
+/* ── Height collapse/expand (using grid trick for smooth animation) ─── */
+
+.collapse-container {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows var(--duration-moderate) var(--ease-out-quart);
+}
+
+.collapse-container[data-state="open"],
+.collapse-container.expanded {
+	grid-template-rows: 1fr;
+}
+
+.collapse-content {
+	overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PAGE CONTENT ANIMATIONS
+   ─────────────────────────
+   Automatic entrance animations for page content. Add .page-content to
+   main content wrappers for staggered fade-in of child elements.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.page-content {
+	/* Children get staggered entrance animation */
+}
+
+.page-content > * {
+	animation: fade-in-up var(--duration-slow) var(--ease-out-quint) both;
+}
+
+.page-content > *:nth-child(1) { animation-delay: 0ms; }
+.page-content > *:nth-child(2) { animation-delay: 50ms; }
+.page-content > *:nth-child(3) { animation-delay: 100ms; }
+.page-content > *:nth-child(4) { animation-delay: 150ms; }
+.page-content > *:nth-child(5) { animation-delay: 200ms; }
+.page-content > *:nth-child(6) { animation-delay: 250ms; }
+.page-content > *:nth-child(7) { animation-delay: 300ms; }
+.page-content > *:nth-child(8) { animation-delay: 350ms; }
+.page-content > *:nth-child(9) { animation-delay: 400ms; }
+.page-content > *:nth-child(10) { animation-delay: 450ms; }
+
+/* Grid variant - faster stagger for card grids */
+.page-content-grid > * {
+	animation: fade-in-scale var(--duration-moderate) var(--ease-out-quart) both;
+}
+
+.page-content-grid > *:nth-child(1) { animation-delay: 0ms; }
+.page-content-grid > *:nth-child(2) { animation-delay: 40ms; }
+.page-content-grid > *:nth-child(3) { animation-delay: 80ms; }
+.page-content-grid > *:nth-child(4) { animation-delay: 120ms; }
+.page-content-grid > *:nth-child(5) { animation-delay: 160ms; }
+.page-content-grid > *:nth-child(6) { animation-delay: 200ms; }
+.page-content-grid > *:nth-child(7) { animation-delay: 240ms; }
+.page-content-grid > *:nth-child(8) { animation-delay: 280ms; }
+.page-content-grid > *:nth-child(9) { animation-delay: 320ms; }
+.page-content-grid > *:nth-child(10) { animation-delay: 360ms; }
+.page-content-grid > *:nth-child(11) { animation-delay: 400ms; }
+.page-content-grid > *:nth-child(12) { animation-delay: 440ms; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — ACCESSIBILITY COMPLIANCE
+   ─────────────────────────────────────────
+   Respects user preference by disabling all motion. State changes remain
+   instant so the interface is still responsive.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+
+	.animate-fade-in,
+	.animate-fade-in-up,
+	.animate-fade-in-down,
+	.animate-fade-in-scale,
+	.animate-slide-in-right,
+	.animate-slide-in-left,
+	.page-content > *,
+	.page-content-grid > * {
+		animation: none !important;
+		opacity: 1 !important;
+		transform: none !important;
+	}
+
+	.hover-lift:hover {
+		transform: none !important;
+	}
+
+	.animate-press:active {
+		transform: none !important;
+	}
+
+	.animate-subtle-pulse {
+		animation: none !important;
+	}
+}

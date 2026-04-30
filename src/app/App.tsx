@@ -1,0 +1,150 @@
+import { Suspense, lazy, useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from 'react-router';
+import CardSkeleton from './components/ui/CardSkeleton';
+import TableSkeleton from './components/ui/TableSkeleton';
+import TextSkeleton from './components/ui/TextSkeleton';
+import { TranslationProvider } from './i18n';
+import { queryClient } from './lib/queryClient';
+import { getRouter } from './routes';
+
+const PretextAutoTextBridge = lazy(() => import('./components/PretextAutoTextBridge'));
+
+function AppSkeletonFallback() {
+  return (
+    <main className="mx-auto w-full max-w-6xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+      <TextSkeleton rows={2} title={false} className="rounded-xl" />
+      <CardSkeleton
+        count={4}
+        lines={2}
+        showImage={false}
+        gridClassName="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      />
+      <TableSkeleton rows={7} columns={4} showHeader />
+    </main>
+  );
+}
+
+function ViewportCompatibilityBridge() {
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+      return;
+    }
+
+    const syncViewportVars = () => {
+      const topOffset = Math.max(0, viewport.offsetTop || 0);
+      const leftOffsetRaw = Math.max(0, viewport.offsetLeft || 0);
+      const layoutViewportWidth = Math.max(0, document.documentElement.clientWidth || window.innerWidth);
+      const visualViewportWidth = Math.max(0, viewport.width || layoutViewportWidth);
+
+      // Clamp visual viewport geometry so left + width never exceeds layout viewport width.
+      const leftOffset = Math.floor(Math.min(leftOffsetRaw, layoutViewportWidth));
+      const viewportWidth = Math.floor(Math.min(visualViewportWidth, Math.max(0, layoutViewportWidth - leftOffset)));
+      const visibleBottom = topOffset + Math.max(0, viewport.height || window.innerHeight);
+      const bottomGap = Math.max(0, window.innerHeight - visibleBottom);
+
+      document.documentElement.style.setProperty('--app-vv-top', `${topOffset}px`);
+      document.documentElement.style.setProperty('--app-vv-left', `${leftOffset}px`);
+      document.documentElement.style.setProperty('--app-vv-width', `${viewportWidth}px`);
+      document.documentElement.style.setProperty('--app-vv-bottom-gap', `${bottomGap}px`);
+    };
+
+    // Throttle via RAF so style recalculation runs at most once per frame (TBT).
+    let rafId = 0;
+    const throttledSync = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(syncViewportVars);
+    };
+
+    syncViewportVars();
+    viewport.addEventListener('resize', throttledSync, { passive: true });
+    viewport.addEventListener('scroll', throttledSync, { passive: true });
+    window.addEventListener('orientationchange', throttledSync, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      viewport.removeEventListener('resize', throttledSync);
+      viewport.removeEventListener('scroll', throttledSync);
+      window.removeEventListener('orientationchange', throttledSync);
+      document.documentElement.style.removeProperty('--app-vv-top');
+      document.documentElement.style.removeProperty('--app-vv-left');
+      document.documentElement.style.removeProperty('--app-vv-width');
+      document.documentElement.style.removeProperty('--app-vv-bottom-gap');
+    };
+  }, []);
+
+  return null;
+}
+
+function PretextRuntimeBridge() {
+  useEffect(() => {
+    let cancelled = false;
+    let loadedModule: typeof import('@chenglou/pretext') | null = null;
+
+    const load = () => {
+      import('@chenglou/pretext').then((mod) => {
+        if (cancelled) return;
+        loadedModule = mod;
+        const locale = navigator.language?.trim();
+        mod.setLocale(locale || undefined);
+      });
+    };
+
+    // Defer past the critical rendering path so pretext JS evaluation
+    // does not contribute to TBT on initial page load.
+    let idleHandle = 0;
+    if ('requestIdleCallback' in window) {
+      idleHandle = requestIdleCallback(load);
+    } else {
+      idleHandle = setTimeout(load, 200) as unknown as number;
+    }
+
+    return () => {
+      cancelled = true;
+      if ('requestIdleCallback' in window) {
+        cancelIdleCallback(idleHandle);
+      } else {
+        clearTimeout(idleHandle);
+      }
+      loadedModule?.clearCache();
+    };
+  }, []);
+
+  return null;
+}
+
+function shouldMountRuntimeBridges(pathname: string) {
+  return pathname.startsWith('/app')
+    || pathname.startsWith('/citizen')
+    || pathname.startsWith('/superadmin')
+    || pathname.startsWith('/community-map');
+}
+
+export default function App() {
+  const pathname = window.location.pathname;
+  const mountRuntimeBridges = shouldMountRuntimeBridges(pathname);
+  const router = getRouter();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+    <TranslationProvider>
+      {mountRuntimeBridges ? (
+        <>
+          <PretextRuntimeBridge />
+          <Suspense fallback={null}>
+            <PretextAutoTextBridge />
+          </Suspense>
+          <ViewportCompatibilityBridge />
+        </>
+      ) : null}
+      <Suspense
+        fallback={<AppSkeletonFallback />}
+      >
+        <RouterProvider router={router} />
+      </Suspense>
+    </TranslationProvider>
+    </QueryClientProvider>
+  );
+}
