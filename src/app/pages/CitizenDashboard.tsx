@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation, LanguageToggle } from '../i18n';
 import {
@@ -834,6 +834,8 @@ function HomeTab({
   const activeIncidents = incidents.filter((i) => i.status === 'active' || i.status === 'responding');
   const criticalCount = activeIncidents.filter((i) => i.severity === 'critical').length;
   const verificationSummary = getVerificationSummary(verificationPreview);
+  const map1Ref = useRef<HTMLDivElement>(null);
+  const map1InView = true;
 
   if (isLoading) {
     return (
