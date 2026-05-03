@@ -41,10 +41,10 @@ const CATEGORY_DIST_CONFIG = [
 const LIVE_FEED_LIMIT = 5;
 
 function trendColorClass(accent: string): string {
-  if (accent === '#DC2626') return 'text-red-600';
-  if (accent === '#2563EB') return 'text-blue-600';
-  if (accent === '#16A34A') return 'text-emerald-600';
-  if (accent === '#D97706') return 'text-amber-600';
+  if (accent === '#DC2626') return 'text-[var(--severity-critical)]';
+  if (accent === '#2563EB') return 'text-[var(--primary)]';
+  if (accent === '#16A34A') return 'text-[var(--severity-low)]';
+  if (accent === '#D97706') return 'text-[var(--severity-medium)]';
   return 'text-[var(--on-surface-variant)]';
 }
 
@@ -93,11 +93,9 @@ function KPICard({ title, value, subtitle, accent, trend }: KPICardProps) {
   const TrendIcon = trend?.dir === 'up' ? TrendingUp : trend?.dir === 'down' ? TrendingDown : Minus;
   const isLiveLabel = trend?.val?.includes('Live') || trend?.val?.includes('live');
   return (
-    <div
-      className="flex min-w-0 flex-1 flex-col gap-1.5 bg-card px-4 py-4 border-r border-b border-border"
-    >
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</div>
-      <div className="font-mono text-[28px] font-black leading-none text-foreground">{value}</div>
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5 bg-card px-4 py-4 border-r border-b border-border">
+      <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">{title}</div>
+      <div className="font-mono text-2xl font-bold leading-none text-foreground">{value}</div>
       <div className="flex items-center justify-between gap-2 mt-0.5">
         <span className="text-[11px] text-muted-foreground">{subtitle}</span>
         {trend && !isLiveLabel && (
@@ -128,10 +126,10 @@ const AlertBanner = ({
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Pulsing live indicator */}
           <span className="relative flex h-2 w-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--severity-critical)] opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--severity-critical)]" />
+            <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-[var(--severity-critical)] opacity-40" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--severity-critical)] opacity-90" />
           </span>
-          <span className="text-[var(--on-error-container)] font-bold text-[11px] uppercase tracking-[0.1em]">
+          <span className="text-[var(--on-error-container)] font-semibold text-[11px] uppercase tracking-[0.05em]">
             {t('official.dashboard.criticalAlert')}
           </span>
           <span className="hidden sm:inline text-[var(--on-error-container)]/60 text-[11px]">·</span>
@@ -144,8 +142,8 @@ const AlertBanner = ({
         <button
           type="button"
           onClick={() => onOpenIncident(critical[0].id)}
-          className="shrink-0 cursor-pointer rounded border-none bg-[var(--severity-critical)] px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider hover:opacity-90 active:scale-[0.97]"
-          style={{ transition: 'transform 160ms ease-out, opacity 150ms ease' }}
+          className="shrink-0 cursor-pointer rounded border-none bg-[var(--severity-critical)]/90 px-3 py-1 text-[10px] font-semibold text-[var(--on-error)] hover:bg-[var(--severity-critical)]"
+          style={{ transition: 'background-color 150ms ease' }}
         >
           {t('official.dashboard.criticalLabel')}
         </button>
@@ -390,7 +388,7 @@ export default function Dashboard() {
       />
 
       {incidentsError ? (
-        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2 text-xs text-[var(--error)]">
+        <div className="mb-3 rounded-xl bg-[var(--error-container)] px-3 py-2 text-xs text-[var(--on-error-container)]">
           {incidentsError}
         </div>
       ) : null}
@@ -400,11 +398,11 @@ export default function Dashboard() {
         title="Tondo Patrol Cluster"
         meta={(
           <>
-            <span className="font-mono font-bold text-[#DC2626]">{activeIncidents.length}</span> active
+            <span className="font-mono font-medium text-[var(--severity-critical)] opacity-90">{activeIncidents.length}</span> active
             {' · '}
-            <span className="font-mono font-bold text-[var(--on-surface)]">{deployedUnits}</span> units deployed
+            <span className="font-mono font-medium text-[var(--on-surface)]">{deployedUnits}</span> units deployed
             {' · '}
-            <span className="font-mono font-bold text-[var(--on-surface)]">{unresolvedCount}</span> unresolved
+            <span className="font-mono font-medium text-[var(--on-surface)]">{unresolvedCount}</span> unresolved
           </>
         )}
         actions={(
@@ -412,14 +410,14 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => navigate('/app/incidents')}
-              className="cursor-pointer rounded border border-primary bg-transparent px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+              className="cursor-pointer rounded-md border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
             >
               Dispatch Responder
             </button>
             <button
               type="button"
               onClick={() => navigate('/app/reports')}
-              className="cursor-pointer rounded border border-border bg-transparent px-4 py-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/50"
+              className="cursor-pointer rounded-md border border-border bg-transparent px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50"
             >
               Request Support
             </button>
@@ -432,16 +430,16 @@ export default function Dashboard() {
           className="mb-4 bg-card px-4 py-3 border border-border"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#D97706]">Geofencing Warning</div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-[var(--severity-medium)] opacity-90">Geofencing Warning</div>
             <button
               type="button"
               onClick={() => navigate('/app/map')}
-              className="cursor-pointer rounded border border-[#D97706]/40 bg-transparent px-2.5 py-1 text-[11px] font-bold text-[#D97706]"
+              className="cursor-pointer rounded-md border border-[var(--severity-medium)]/30 bg-transparent px-2.5 py-1 text-[11px] font-medium text-[var(--severity-medium)] opacity-90 transition-colors hover:bg-[var(--severity-medium-bg)]"
             >
               Open Map
             </button>
           </div>
-          <div className="mt-1 text-xs font-semibold text-foreground">
+          <div className="mt-1 text-xs font-medium text-foreground">
             Elevated {strongestHeatCluster.category} activity detected near cluster center ({strongestHeatCluster.incidentCount} incidents).
           </div>
         </section>
@@ -451,10 +449,10 @@ export default function Dashboard() {
       <div className="mb-4 overflow-hidden bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Bell size={14} color="#D97706" />
-            <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.crossBorderAlerts')}</span>
-            <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
-              <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
+            <Bell size={14} color="var(--severity-medium)" className="opacity-80" />
+            <span className="text-[13px] font-semibold text-foreground">{t('official.dashboard.crossBorderAlerts')}</span>
+            <span className="flex items-center gap-1 text-[10px] text-[var(--severity-low)] opacity-80">
+              <span className="inline-block size-[5px] rounded-full bg-[var(--severity-low)] opacity-80" />
               Live
             </span>
           </div>
@@ -464,7 +462,7 @@ export default function Dashboard() {
               onClick={() => {
                 void loadAlerts(true);
               }}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-2 py-1.5 text-[11px] font-bold ${unreadAlerts > 0 ? 'bg-[var(--error-container)] text-[var(--error)]' : 'bg-[var(--surface-container-low)] text-[var(--outline)]'}`}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-2 py-1.5 text-[11px] font-bold ${unreadAlerts > 0 ? 'bg-[var(--error-container)] text-[var(--on-error-container)]' : 'bg-[var(--surface-container-low)] text-[var(--outline)]'}`}
               aria-label={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
               title={t('official.dashboard.unreadAlertsAction', { count: unreadAlerts })}
             >
@@ -488,7 +486,7 @@ export default function Dashboard() {
         </div>
 
         {(alertsQueryError ?? alertActionError) ? (
-          <div className="mx-4 my-3 rounded-lg border border-[var(--error)]/30 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--error)]">
+          <div className="mx-4 my-3 rounded-lg border border-[var(--on-error-container)]/20 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--on-error-container)]">
             {alertsQueryError?.message ?? alertActionError}
           </div>
         ) : null}
@@ -510,7 +508,7 @@ export default function Dashboard() {
                   className="flex items-center justify-between gap-2.5 bg-card py-[9px] pl-3 pr-2.5 border-b border-border/30 last:border-b-0"
                 >
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-[var(--on-surface)]">
+                    <div className="text-xs font-semibold text-[var(--on-surface)]">
                       Incident {alert.report.id} near Barangay {alert.sourceBarangayCode}
                     </div>
                     <div className="mt-0.5 text-[11px] text-[var(--on-surface-variant)]">
@@ -555,8 +553,8 @@ export default function Dashboard() {
       <div className="mb-4 overflow-hidden bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3">
           <div className="flex items-center gap-2">
-            <TrendingUp size={14} color="#2563EB" />
-            <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.heatmapHotspots')}</span>
+            <TrendingUp size={14} color="var(--primary)" className="opacity-80" />
+            <span className="text-[13px] font-semibold text-foreground">{t('official.dashboard.heatmapHotspots')}</span>
           </div>
           <button
             onClick={() => {
@@ -569,7 +567,7 @@ export default function Dashboard() {
         </div>
         <div className="px-4 py-2.5 pb-3.5">
           {heatmapError ? (
-            <div className="rounded-lg border border-[var(--error)]/30 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--error)]">
+            <div className="rounded-lg border border-[var(--on-error-container)]/20 bg-[var(--error-container)] px-2.5 py-2 text-xs text-[var(--on-error-container)]">
               {heatmapError}
             </div>
           ) : heatmapLoading ? (
@@ -606,9 +604,9 @@ export default function Dashboard() {
 
       {/* KPI Stats — 4-col ruled table */}
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Operations Overview</span>
-        <span className="flex items-center gap-1 text-[10px] text-[#16A34A]">
-          <span className="inline-block size-[6px] rounded-full bg-[#16A34A]" />
+        <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">Operations Overview</span>
+        <span className="flex items-center gap-1 text-[10px] text-[var(--severity-low)] opacity-80">
+          <span className="inline-block size-[5px] rounded-full bg-[var(--severity-low)] opacity-80" />
           Live
         </span>
       </div>
@@ -657,38 +655,38 @@ export default function Dashboard() {
         <div className="flex flex-[3_1_340px] flex-col overflow-hidden bg-card">
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
-              <MapPin size={14} color="#2563EB" />
-              <span className="text-[13px] font-bold text-foreground">{t('official.dashboard.incidentOverviewMap')}</span>
+              <MapPin size={14} color="var(--primary)" className="opacity-80" />
+              <span className="text-[13px] font-semibold text-foreground">{t('official.dashboard.incidentOverviewMap')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="inline-flex items-center overflow-hidden rounded-lg border border-border bg-muted">
                 <button
                   onClick={() => setMapRenderMode('hotspot')}
                   disabled={hotspotDisabled}
-                  className={`border-none border-r border-border text-[10px] font-bold px-[9px] py-[5px] ${
+                  className={`border-none border-r border-border text-[10px] font-medium px-[9px] py-[5px] ${
                     mapRenderMode === 'hotspot' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
-                  } ${hotspotDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                  } ${hotspotDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer transition-colors hover:bg-muted/80'}`}
                   title={heatmapClusters.length === 0 ? t('official.dashboard.noHotspotThreshold') : t('official.dashboard.showHotspotAnalytics')}
                 >
                   {t('official.dashboard.hotspotFocus')}
                 </button>
                 <button
                   onClick={() => setMapRenderMode('standard')}
-                  className={`border-none text-[10px] font-bold px-[9px] py-[5px] cursor-pointer ${
-                    mapRenderMode === 'standard' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                  className={`border-none text-[10px] font-medium px-[9px] py-[5px] cursor-pointer transition-colors ${
+                    mapRenderMode === 'standard' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
                   title={t('official.dashboard.showIncidentPins')}
                 >
                   {t('official.dashboard.incidentPins')}
                 </button>
               </div>
-              <div className="flex items-center gap-1 rounded-[5px] border border-green-200 bg-green-50 px-[7px] py-[3px]">
-                <Navigation2 size={9} color="#059669" />
-                <span className="text-[9px] font-semibold text-emerald-600">{t('official.dashboard.openStreetMap')}</span>
+              <div className="flex items-center gap-1 rounded-[5px] border border-[var(--severity-low-bg)] bg-[var(--severity-low-bg)] px-[7px] py-[3px]">
+                <Navigation2 size={9} color="var(--severity-low)" />
+                <span className="text-[9px] font-semibold text-[var(--severity-low)]">{t('official.dashboard.openStreetMap')}</span>
               </div>
               <button
                 onClick={() => navigate('/app/map')}
-                className="flex items-center gap-1 rounded-md bg-blue-50 border-none px-2.5 py-1 text-[11px] font-semibold text-primary cursor-pointer"
+                className="flex items-center gap-1 rounded-md bg-primary/5 border-none px-2.5 py-1 text-[11px] font-semibold text-primary cursor-pointer transition-colors hover:bg-primary/10"
               >
                 {t('official.dashboard.fullMap')} <ArrowRight size={11} />
               </button>
@@ -697,8 +695,8 @@ export default function Dashboard() {
                   setShowHeatmapTuning((current) => !current);
                   setMapRenderMode('hotspot');
                 }}
-                className={`flex items-center gap-1 rounded-md border-none px-2.5 py-1 text-[11px] font-semibold cursor-pointer ${
-                  showHeatmapTuning ? 'bg-primary text-white' : 'bg-blue-50 text-primary'
+                className={`flex items-center gap-1 rounded-md border-none px-2.5 py-1 text-[11px] font-semibold cursor-pointer transition-colors ${
+                  showHeatmapTuning ? 'bg-primary text-white' : 'bg-primary/5 text-primary hover:bg-primary/10'
                 }`}
               >
                 <SlidersHorizontal size={11} /> {t('official.dashboard.tune')}
