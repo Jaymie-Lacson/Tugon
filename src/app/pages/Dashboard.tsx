@@ -311,7 +311,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
       void queryClient.invalidateQueries({ queryKey: officialReportsKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: officialReportsKeys.heatmap({ days: 14, threshold: 3 }) });
     });

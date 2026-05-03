@@ -350,7 +350,7 @@ export default function SAOverview() {
           <button
             onClick={() => {
               void queryClient.invalidateQueries({ queryKey: adminKeys.summary() });
-              void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+              void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
               void queryClient.invalidateQueries({ queryKey: adminKeys.barangays() });
               void queryClient.invalidateQueries({ queryKey: adminKeys.auditLogs({ limit: 8, offset: 0 }) });
             }}

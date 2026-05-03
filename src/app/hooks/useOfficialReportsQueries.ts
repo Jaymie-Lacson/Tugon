@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { officialReportsApi } from '../services/officialReportsApi';
 
 export const officialReportsKeys = {
+  reportsBase: () => ['official', 'reports'] as const,
   reports: (search = '') => ['official', 'reports', search] as const,
   reportById: (id: string) => ['official', 'reports', id] as const,
   alerts: () => ['official', 'alerts'] as const,

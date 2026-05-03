@@ -114,7 +114,7 @@ export default function MapView() {
   useEffect(() => {
     if (isPublicCommunityMap) return;
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
       void queryClient.invalidateQueries({ queryKey: officialReportsKeys.heatmap({ days: 14, threshold: 3 }) });
     });
     return () => { disconnect(); };

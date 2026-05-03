@@ -541,7 +541,7 @@ export default function Reports() {
       setActionSuccess(null);
     }
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() }),
+      queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() }),
       queryClient.invalidateQueries({ queryKey: officialReportsKeys.dss() }),
     ]);
     if (source === 'dss') {

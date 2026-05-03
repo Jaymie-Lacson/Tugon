@@ -171,7 +171,7 @@ export default function Analytics() {
 
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
     });
     return () => { disconnect(); };
   }, [queryClient]);

@@ -460,7 +460,7 @@ export default function Incidents() {
   // SSE stream → invalidate query
   useEffect(() => {
     const disconnect = officialReportsApi.connectReportsStream(() => {
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
     });
     return () => disconnect();
   }, [queryClient]);
@@ -515,7 +515,7 @@ export default function Incidents() {
 
         const mapped = toIncidentView(payload.report);
         setSelectedIncident(mapped);
-        void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+        void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
       } catch (err) {
         if (!disposed) {
           setStatusError(err instanceof Error ? err.message : 'Failed to open selected report.');
@@ -585,7 +585,7 @@ export default function Incidents() {
       const updated = await officialReportsApi.updateReportStatus(selectedIncident.id, { status: nextStatus });
       const mapped = toIncidentView(updated.report);
       setSelectedIncident(mapped);
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
     } catch (err) {
       setStatusError(err instanceof Error ? err.message : 'Failed to update status.');
     } finally {
@@ -599,7 +599,7 @@ export default function Incidents() {
     setStatusError(null);
     try {
       await officialReportsApi.updateReportStatus(incident.id, { status: nextStatus });
-      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+      void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
     } catch (err) {
       setStatusError(err instanceof Error ? err.message : 'Failed to update status.');
     } finally {
@@ -688,6 +688,7 @@ export default function Incidents() {
           type="button"
           onClick={() => {
             setListView('open');
+            setFilterStatus('');
             setPage(1);
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
@@ -702,6 +703,7 @@ export default function Incidents() {
           type="button"
           onClick={() => {
             setListView('archived');
+            setFilterStatus('');
             setPage(1);
           }}
           className={`cursor-pointer border-none bg-transparent px-3.5 py-2 text-xs font-bold ${
@@ -762,7 +764,12 @@ export default function Incidents() {
               setFilterStatus(v as IncidentStatus | '');
               setPage(1);
             },
-            options: Object.entries(statusConfig).map(([k, v]) => ({ value: k, label: v.label })),
+            options: Object.entries(statusConfig)
+              .filter(([k]) => {
+                if (listView === 'open') return k === 'active' || k === 'responding';
+                return k === 'contained' || k === 'resolved';
+              })
+              .map(([k, v]) => ({ value: k, label: v.label })),
           },
         ].map((f) => (
           <div key={f.label} className="relative w-full min-w-0 flex-[1_1_130px]">
@@ -806,7 +813,7 @@ export default function Incidents() {
 
         <button
           onClick={() => {
-            void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reports() });
+            void queryClient.invalidateQueries({ queryKey: officialReportsKeys.reportsBase() });
           }}
           className="ml-auto flex cursor-pointer items-center gap-1 rounded-lg border-none bg-[var(--surface-container-low)] px-3.5 py-2.5 text-xs font-semibold text-[var(--on-surface-variant)]"
         >
