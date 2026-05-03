@@ -4,7 +4,7 @@ import { useOfficialReports, useAlerts, useHeatmap, officialReportsKeys } from '
 import { useTranslation } from '../i18n';
 import {
   AlertTriangle, Users, CheckCircle2, Clock, TrendingUp,
-  TrendingDown, Minus, Radio, MapPin, ArrowRight,
+  TrendingDown, Minus, MapPin, ArrowRight,
   Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind,
   ChevronRight, RefreshCw, Navigation2, Bell, BellDot, Check,
   SlidersHorizontal, Download,
@@ -122,40 +122,48 @@ const AlertBanner = ({
   const critical = incidents.filter(i => i.severity === 'critical' && i.status !== 'resolved');
   if (critical.length === 0) return null;
   return (
-    <div className="mb-3 grid gap-2 border-l-[3px] border-l-[#DC2626] bg-card px-3.5 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-md border border-[var(--error)]/30 bg-[var(--error-container)] flex items-center justify-center shrink-0">
-            <Radio size={13} color="var(--severity-critical)" />
-          </div>
-          <div className="text-severity-critical font-bold text-xs uppercase tracking-wider">
+    <div className="mb-3 overflow-hidden border border-[var(--severity-critical-bg)] bg-[var(--error-container)]">
+      {/* Header strip */}
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--severity-critical-bg)] bg-[var(--severity-critical-bg)] px-3.5 py-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Pulsing live indicator */}
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--severity-critical)] opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--severity-critical)]" />
+          </span>
+          <span className="text-[var(--on-error-container)] font-bold text-[11px] uppercase tracking-[0.1em]">
             {t('official.dashboard.criticalAlert')}
-          </div>
+          </span>
+          <span className="hidden sm:inline text-[var(--on-error-container)]/60 text-[11px]">·</span>
+          <span className="hidden sm:inline text-[var(--on-error-container)] text-[11px] leading-none opacity-80">
+            {critical.length > 1
+              ? t('official.dashboard.criticalMessagePlural', { count: critical.length })
+              : t('official.dashboard.criticalMessage', { count: critical.length })}
+          </span>
         </div>
         <button
           type="button"
           onClick={() => onOpenIncident(critical[0].id)}
-          className="bg-severity-critical text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider whitespace-nowrap shrink-0 border-none cursor-pointer"
+          className="shrink-0 cursor-pointer rounded border-none bg-[var(--severity-critical)] px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider hover:opacity-90 active:scale-[0.97]"
+          style={{ transition: 'transform 160ms ease-out, opacity 150ms ease' }}
         >
           {t('official.dashboard.criticalLabel')}
         </button>
       </div>
 
-      <div className="text-[var(--error)] text-xs leading-[1.45]">
-        {critical.length > 1
-          ? t('official.dashboard.criticalMessagePlural', { count: critical.length })
-          : t('official.dashboard.criticalMessage', { count: critical.length })}
-      </div>
-
-      <div className="grid gap-1.5">
-        <span className="text-[var(--error)] text-[11px] font-bold">{t('official.dashboard.criticalIncidentsLabel')}</span>
-        <div className="flex flex-wrap gap-1.5 w-full">
+      {/* Incident chips row */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-2.5">
+        <span className="text-[var(--on-error-container)] text-[10px] font-bold uppercase tracking-[0.08em] shrink-0 opacity-70">
+          {t('official.dashboard.criticalIncidentsLabel')}
+        </span>
+        <div className="flex flex-wrap gap-1.5">
           {critical.map((incident) => (
             <button
               key={incident.id}
               type="button"
               onClick={() => onOpenIncident(incident.id)}
-              className="border border-[var(--error)]/30 rounded-md px-2 py-1.5 m-0 bg-card text-[var(--error)] text-[11px] font-bold text-center min-w-max flex-[1_1_0] cursor-pointer"
+              className="cursor-pointer rounded border border-[var(--severity-critical-bg)] bg-[var(--card)] px-2 py-1 font-mono text-[11px] font-semibold text-[var(--on-error-container)] hover:border-[var(--severity-critical)] hover:bg-[var(--error-container)] active:scale-[0.97]"
+              style={{ transition: 'transform 160ms ease-out, border-color 120ms ease, background-color 120ms ease' }}
             >
               {incident.id}
             </button>
