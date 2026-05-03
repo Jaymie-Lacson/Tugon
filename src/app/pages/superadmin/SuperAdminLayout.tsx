@@ -26,6 +26,7 @@ import { clearAuthSession, getAuthSession } from '../../utils/authSession';
 import { AdminNotifications, type AdminNotificationItem } from '../../components/AdminNotifications';
 import { useTranslation } from '../../i18n';
 import { LanguageToggle } from '../../i18n';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import { superAdminSidebarNavDefs } from '../../data/navigationConfig';
 import { usePretextBlockMetrics } from '../../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../../hooks/useImmersiveThemeColor';
@@ -799,6 +800,10 @@ export default function SuperAdminLayout() {
                   <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
                     <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
                     <LanguageToggle compact />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                    <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
+                    <ThemeToggle compact />
                   </div>
                   <button
                     type="button"

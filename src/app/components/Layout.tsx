@@ -16,6 +16,7 @@ import { resolveDefaultAppPath } from '../utils/navigationGuards';
 import { officialReportsApi, type ApiCrossBorderAlert } from '../services/officialReportsApi';
 import type { ApiCitizenReport } from '../services/citizenReportsApi';
 import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
+import { ThemeToggle } from './ThemeToggle';
 import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
 import { officialSidebarNavDefs } from '../data/navigationConfig';
@@ -624,6 +625,10 @@ function Layout() {
                   <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
                     <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
                     <LanguageToggle compact />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
+                    <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
+                    <ThemeToggle compact />
                   </div>
                   <button
                     type="button"
