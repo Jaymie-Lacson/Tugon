@@ -14,7 +14,7 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return compact ? <div className="h-6 w-[72px]" aria-hidden="true" /> : <div className="h-8 w-8" aria-hidden="true" />;
+    return compact ? <div className="h-6 w-20" aria-hidden="true" /> : <div className="h-8 w-8" aria-hidden="true" />;
   }
 
   const isDark = resolvedTheme === 'dark';
@@ -27,7 +27,7 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
           onClick={() => setTheme('light')}
           aria-label="Switch to light mode"
           aria-current={!isDark ? 'true' : undefined}
-          className={`flex min-w-9 items-center justify-center gap-1 px-2 py-1 transition-colors ${
+          className={`flex w-10 items-center justify-center gap-1 py-1 transition-colors ${
             !isDark
               ? 'bg-primary text-[var(--primary-foreground)]'
               : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-high)]'
@@ -40,7 +40,7 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
           onClick={() => setTheme('dark')}
           aria-label="Switch to dark mode"
           aria-current={isDark ? 'true' : undefined}
-          className={`flex min-w-9 items-center justify-center gap-1 px-2 py-1 transition-colors ${
+          className={`flex w-10 items-center justify-center gap-1 py-1 transition-colors ${
             isDark
               ? 'bg-primary text-[var(--primary-foreground)]'
               : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container-high)]'

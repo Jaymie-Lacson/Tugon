@@ -14,7 +14,7 @@ export function LanguageToggle({ compact = false }: LanguageToggleProps) {
     : 'inline-flex overflow-hidden rounded-full border border-slate-200 bg-white text-xs font-medium shadow-sm';
 
   const buttonBaseClassName = compact
-    ? 'min-w-9 px-2 py-1 transition-colors'
+    ? 'flex w-10 items-center justify-center py-1 transition-colors'
     : 'px-3 py-1.5 transition-colors';
 
   const activeClassName = compact
