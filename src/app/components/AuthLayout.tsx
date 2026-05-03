@@ -11,6 +11,7 @@ interface AuthLayoutProps {
   subtitle: string;
   topAction?: React.ReactNode;
   logoSrc?: string;
+  mobileLogoSrc?: string;
 }
 
 export interface AuthProgressStep {
@@ -32,6 +33,7 @@ export function AuthLayout({
   subtitle,
   topAction,
   logoSrc = '/tugon-header-logo.svg',
+  mobileLogoSrc,
 }: AuthLayoutProps) {
   useImmersiveThemeColor('#f8f9ff');
 
@@ -123,7 +125,7 @@ export function AuthLayout({
           <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
             <button onClick={() => navigate('/')} className="border-none bg-transparent p-0">
               <img
-                src={logoSrc}
+                src={mobileLogoSrc ?? logoSrc}
                 alt="TUGON Tondo Emergency Response"
                 className="h-9"
               />

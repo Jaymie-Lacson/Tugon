@@ -181,6 +181,7 @@ export default function Verify() {
       title={t('auth.verify.title')}
       subtitle={t('auth.verify.subtitle', { phone: displayPhone })}
       logoSrc="/tugon-header-logo.svg"
+      mobileLogoSrc="/tugon-wordmark-blue.svg"
       topAction={(
         <Button
           variant="ghost"

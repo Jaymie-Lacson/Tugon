@@ -50,6 +50,7 @@ export default function ForgotPassword() {
       title={t('auth.forgotPassword.title')}
       subtitle={t('auth.forgotPassword.subtitle')}
       logoSrc="/tugon-header-logo.svg"
+      mobileLogoSrc="/tugon-wordmark-blue.svg"
     >
       <AuthProgressStepper
         steps={[
