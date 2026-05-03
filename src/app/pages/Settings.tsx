@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Shield, Globe, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSearchParams } from 'react-router';
@@ -44,25 +44,25 @@ export default function Settings() {
     setSearchParams({ tab: id }, { replace: true });
   };
 
-  const fullName = currentUser?.fullName?.trim() || 'Official User';
+  const fullName = currentUser?.fullName?.trim() || t('settings.defaultName', { defaultValue: 'Official User' });
   const role = currentUser?.role ?? 'OFFICIAL';
   const roleLabel =
     role === 'SUPER_ADMIN'
-      ? 'Super Admin'
+      ? t('role.superAdmin')
       : role === 'OFFICIAL'
-        ? 'Barangay Official'
-        : 'Citizen';
+        ? t('role.official')
+        : t('role.citizen');
   const areaLabel = currentUser?.barangayCode
-    ? `Barangay ${currentUser.barangayCode}, Tondo, Manila`
-    : 'No assigned barangay';
-  const phoneLabel = currentUser?.phoneNumber || 'No contact number on file';
+    ? `${t('settings.barangay')} ${currentUser.barangayCode}, Tondo, Manila`
+    : t('settings.noAssigned');
+  const phoneLabel = currentUser?.phoneNumber || t('settings.noContact');
   const regionLabel = currentUser?.barangayCode
-    ? `Barangay ${currentUser.barangayCode} (Tondo, Manila)`
-    : 'No assigned barangay';
+    ? `${t('settings.barangay')} ${currentUser.barangayCode} (Tondo, Manila)`
+    : t('settings.noAssigned');
   const settingsSubtitle = `${roleLabel} account details for ${regionLabel}`;
   const verificationLabel = currentUser?.verificationStatus ?? 'PENDING';
-  const phoneVerifiedLabel = currentUser?.isPhoneVerified ? 'Verified' : 'Not verified';
-  const accountStatusLabel = currentUser?.isBanned ? 'Restricted' : 'Active';
+  const phoneVerifiedLabel = currentUser?.isPhoneVerified ? t('settings.verified') : t('settings.notVerified');
+  const accountStatusLabel = currentUser?.isBanned ? t('settings.restricted') : t('settings.active');
   const initials = fullName
     .split(/\s+/)
     .filter(Boolean)
@@ -88,24 +88,33 @@ export default function Settings() {
     );
   };
 
+  const getThemeLabel = (themeValue: string) => {
+    switch (themeValue) {
+      case 'system': return t('settings.themeSystem');
+      case 'light': return t('settings.themeLight');
+      case 'dark': return t('settings.themeDark');
+      default: return themeValue;
+    }
+  };
+
   return (
     <div className="page-content p-4 px-5 min-h-full">
-      <OfficialPageHeader title="Settings" subtitle={settingsSubtitle} />
+      <OfficialPageHeader title={t('settings.title')} subtitle={settingsSubtitle} />
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">
         <div className="w-[220px] shrink-0 overflow-hidden rounded-xl bg-[var(--surface-container-lowest)] max-md:w-full">
-          <SidebarItem id="account" icon={User} label="Account" />
-          <SidebarItem id="access" icon={Shield} label="Access Status" />
+          <SidebarItem id="account" icon={User} label={t('settings.account')} />
+          <SidebarItem id="access" icon={Shield} label={t('settings.access')} />
           <SidebarItem id="language" icon={Globe} label={t('settings.language')} />
-          <SidebarItem id="appearance" icon={Monitor} label="Appearance" />
+          <SidebarItem id="appearance" icon={Monitor} label={t('settings.appearance')} />
         </div>
 
         <div className="max-md:min-w-0 max-md:w-full flex-1 min-w-[280px] rounded-xl bg-[var(--surface-container-lowest)] px-6 py-5">
           {activeCategory === 'account' && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">User Profile</div>
+              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">{t('settings.userProfile')}</div>
               <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">
-                This page only shows account details backed by your authenticated session.
+                {t('settings.sessionDesc')}
               </div>
 
               <div className="mb-5 flex items-center gap-4 bg-[var(--surface-container-low)] p-3.5 px-4">
@@ -123,28 +132,28 @@ export default function Settings() {
                 </div>
               </div>
 
-              <SettingRow label="Full Name" value={fullName} />
-              <SettingRow label="Role" value={roleLabel} />
-              <SettingRow label="Contact Number" value={phoneLabel} />
-              <SettingRow label="Assigned Area" value={areaLabel} />
+              <SettingRow label={t('settings.fullName')} value={fullName} />
+              <SettingRow label={t('settings.role')} value={roleLabel} />
+              <SettingRow label={t('settings.contactNumber')} value={phoneLabel} />
+              <SettingRow label={t('settings.assignedArea')} value={areaLabel} />
             </div>
           )}
 
           {activeCategory === 'access' && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">Access Status</div>
+              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">{t('settings.accessStatus')}</div>
               <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">
-                Your current authorization levels and system access.
+                {t('settings.authLevelsDesc')}
               </div>
-              <SettingRow label="Phone Verification" description="Verification requirement for account security" value={phoneVerifiedLabel} />
-              <SettingRow label="ID Verification" description="Current identity verification workflow state" value={verificationLabel} />
-              <SettingRow label="Account" description="Enforcement state from access control" value={accountStatusLabel} />
+              <SettingRow label={t('settings.phoneVerification')} description={t('settings.phoneVerificationDesc')} value={phoneVerifiedLabel} />
+              <SettingRow label={t('settings.idVerification')} description={t('settings.idVerificationDesc')} value={verificationLabel} />
+              <SettingRow label={t('settings.accountStatus')} description={t('settings.accountStatusDesc')} value={accountStatusLabel} />
             </div>
           )}
 
           {activeCategory === 'language' && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">{t('settings.language')}</div>
+              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">{t('settings.languageSection')}</div>
               <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">{t('settings.languageDesc')}</div>
               <div className="flex gap-2">
                 {SUPPORTED_LOCALES.map((loc: Locale) => (
@@ -167,8 +176,8 @@ export default function Settings() {
 
           {activeCategory === 'appearance' && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">Appearance</div>
-              <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">Choose how TUGON looks on your device.</div>
+              <div className="mb-4 text-[15px] font-bold text-[var(--on-surface)]">{t('settings.appearanceSection')}</div>
+              <div className="mb-3.5 text-[11px] text-[var(--on-surface-variant)]">{t('settings.appearanceDesc')}</div>
               <div className="flex gap-2 flex-wrap">
                 {(['system', 'light', 'dark'] as const).map((t) => (
                   <button
@@ -181,7 +190,7 @@ export default function Settings() {
                         : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                     }`}
                   >
-                    {t === 'system' ? 'System' : t === 'light' ? 'Light' : 'Dark'}
+                    {getThemeLabel(t)}
                   </button>
                 ))}
               </div>

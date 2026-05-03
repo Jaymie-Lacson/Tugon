@@ -1243,7 +1243,7 @@ export const fil: TranslationDictionary = {
   'common.refreshing': 'Nagri-refresh...',
   'common.saving': 'Sine-save...',
 
-  // ── Settings ──
+// ── Settings ──
   'settings.title': 'Mga Setting',
   'settings.personalInfo': 'Personal na Impormasyon',
   'settings.fullName': 'Buong Pangalan',
@@ -1258,39 +1258,35 @@ export const fil: TranslationDictionary = {
   'settings.passwordUpdated': 'Matagumpay na na-update ang password.',
   'settings.language': 'Kagustuhan sa Wika',
   'settings.languageDesc': 'Piliin ang iyong gustong wika para sa interface.',
-
-  // ── Map ──
-  'map.publicLogin.title': 'Mag-log in para makipag-interact',
-  'map.publicLogin.message': 'Gumawa ng account o mag-log in para mag-ulat ng insidente at ma-access ang lahat ng feature ng mapa.',
-  'map.publicLogin.login': 'Mag-log In',
-  'map.publicLogin.close': 'Isara',
-
-  // ── Onboarding ──
-  'onboarding.welcome.title': 'Maligayang pagdating sa TUGON!',
-  'onboarding.welcome.desc': 'Ang iyong plataporma sa pag-uulat ng insidente sa komunidad para sa Tondo, Maynila.',
-  'onboarding.verify.title': 'I-verify ang Iyong Pagkakakilanlan',
-  'onboarding.verify.desc': 'Mag-upload ng government ID para ma-unlock ang buong kakayahan sa pag-uulat.',
-  'onboarding.report.title': 'Mag-ulat ng Insidente',
-  'onboarding.report.desc': 'Sundin ang hakbang-hakbang na proseso para magsumite ng ulat ng insidente na may ebidensya.',
-  'onboarding.getStarted': 'Magsimula',
-  'onboarding.skip': 'Laktawan',
-  'onboarding.next': 'Susunod',
-
-  // ── Errors ──
-  'error.network': 'May problema sa network. Suriin ang iyong koneksyon.',
-  'error.server': 'May error sa server. Subukan muli mamaya.',
-  'error.unauthorized': 'Hindi ka awtorisadong gawin ito.',
-  'error.forbidden': 'Walang access.',
-  'error.notFound': 'Hindi nahanap ang hiniling na resource.',
-  'error.validation': 'Suriin ang iyong input at subukan muli.',
-  'error.fileTooLarge': 'Masyadong malaki ang file. Pinakamataas na sukat: {{maxSize}}.',
-  'error.invalidFileType': 'Hindi valid na uri ng file. Pinapayagan: {{types}}.',
-  'error.sessionExpired': 'Nag-expire na ang iyong session. Mag-sign in muli.',
-
-  // ── Barangays ──
-  'barangay.251': 'Barangay 251',
-  'barangay.252': 'Barangay 252',
-  'barangay.256': 'Barangay 256',
+  'settings.account': 'Account',
+  'settings.access': 'Katayuan ng Access',
+  'settings.appearance': 'Hitsura',
+  'settings.userProfile': 'User Profile',
+  'settings.sessionDesc': 'Ipinapakita lang ng page na ito ang mga detalye ng account batay sa iyong authenticated session.',
+  'settings.role': 'Role',
+  'settings.contactNumber': 'Numero ng Contact',
+  'settings.assignedArea': 'Naka-assign na Area',
+  'settings.accessStatus': 'Katayuan ng Access',
+  'settings.authLevelsDesc': 'Ang iyong kasalukuyang antas ng awtorisasyon at access sa system.',
+  'settings.phoneVerification': 'Pag-verify ng Phone',
+  'settings.phoneVerificationDesc': 'Kinakailangan sa verification para sa seguridad ng account',
+  'settings.idVerification': 'Pag-verify ng ID',
+  'settings.idVerificationDesc': 'Kasalukuyang estado ng identity verification workflow',
+  'settings.accountStatus': 'Account',
+  'settings.accountStatusDesc': 'Estado ng enforcement mula sa access control',
+  'settings.languageSection': 'Wika',
+  'settings.appearanceSection': 'Hitsura',
+  'settings.appearanceDesc': 'Pumili kung paano lumalapit ang TUGON sa iyong device.',
+  'settings.themeSystem': 'System',
+  'settings.themeLight': 'Liwanag',
+  'settings.themeDark': 'Madilim',
+  'settings.defaultName': 'Opisyal User',
+  'settings.noAssigned': 'Walang naka-assign na barangay',
+  'settings.noContact': 'Walang contact number sa file',
+  'settings.verified': 'Na-verify',
+  'settings.notVerified': 'Hindi na-verify',
+  'settings.restricted': 'Restricted',
+  'settings.active': 'Aktibo',
 
   // ── Time / Date ──
   'time.justNow': 'Ngayon lang',
