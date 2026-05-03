@@ -19,6 +19,7 @@ const TILE_ATTRIBUTIONS = {
 import {
   MapPin, Layers, AlertTriangle, Navigation, RefreshCw, Save,
   Filter, Droplets, Car, Heart, Shield as ShieldIcon, Zap, Wind, SlidersHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import CardSkeleton from '../../components/ui/CardSkeleton';
 import TextSkeleton from '../../components/ui/TextSkeleton';
@@ -532,6 +533,7 @@ export default function SABarangayMap() {
   const [selectedIncident, setSelectedIncident] = useState<MapIncident | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showHeatmapSettings, setShowHeatmapSettings] = useState(false);
+  const [showComparisonTable, setShowComparisonTable] = useState(false);
   const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
   const [heatOpacityScale, setHeatOpacityScale] = useState(1);
   const [filterType, setFilterType] = useState<string>('all');
@@ -1097,156 +1099,8 @@ export default function SABarangayMap() {
           </div>
         </div>
 
-        {/* ── Side panel ── */}
         <div className="flex flex-col gap-3">
-
-          {/* Barangay detail card */}
-          {selectedBrgy ? (
-            <div className="bg-card overflow-hidden border border-[var(--outline-variant)]">
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-[3px]">
-                      <span className="text-base font-bold text-[var(--on-surface)]">{selectedBrgy.name}</span>
-                      {(() => {
-                        const al = alertLevelConfig[selectedBrgy.alertLevel];
-                        return (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em] ${al.badgeClass}`}>
-                            {al.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <div className="text-[11px] text-[var(--on-surface-variant)]">{selectedBrgy.district}</div>
-                    <div className="text-[10px] text-[var(--on-surface-variant)] mt-0.5">Capt. {selectedBrgy.captain}</div>
-                  </div>
-                  <button
-                    onClick={() => setSelectedBarangay(null)}
-                    aria-label={t('common.close')}
-                    title={t('common.close')}
-                    className="bg-muted border-none rounded-md px-2 py-1 cursor-pointer text-[var(--on-surface-variant)] text-[11px]"
-                  >✕</button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-[7px] mb-3">
-                  {[
-                    { label: t('superadmin.barangayMap.statPopulation'), value: selectedBrgy.population.toLocaleString() },
-                    { label: t('superadmin.barangayMap.statArea'), value: selectedBrgy.area },
-                    { label: t('superadmin.barangayMap.statActiveInc'), value: selectedBrgy.activeIncidents },
-                    { label: t('superadmin.barangayMap.statRespRate'), value: `${selectedBrgy.responseRate}%` },
-                    { label: t('superadmin.barangayMap.statAvgResponse'), value: `${selectedBrgy.avgResponseMin}m` },
-                  ].map(s => (
-                    <div key={s.label} className="bg-[var(--surface-container-low)] rounded-lg px-2.5 py-2">
-                      <div className="text-[15px] font-bold text-[var(--on-surface)]">{s.value}</div>
-                      <div className="text-[10px] text-[var(--on-surface-variant)] mt-px">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Coord info */}
-                <div className="bg-[var(--primary-fixed)] rounded-lg px-2.5 py-2 border border-[var(--primary-fixed)]">
-                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-1 flex items-center gap-[5px]">
-                    <Navigation size={10} color="#1D4ED8" /> {t('superadmin.barangayMap.osmCoordinates')}
-                  </div>
-                  <div className="text-[9px] text-[var(--on-surface-variant)] font-mono">
-                    {t('superadmin.barangayMap.centerCoords', { lat: selectedBrgy.center[0].toFixed(4), lng: selectedBrgy.center[1].toFixed(4) })}
-                  </div>
-                  <div className="text-[9px] text-[var(--on-surface-variant)] mt-0.5">
-                    {t('superadmin.barangayMap.polygonBoundary', { count: selectedBrgy.boundary.length })}
-                  </div>
-                </div>
-
-                <div className="mt-2.5">
-                  <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-[5px]">
-                    {t('superadmin.barangayMap.boundaryGeojson')}
-                  </div>
-                  {!BOUNDARY_EDIT_ENABLED ? (
-                    <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
-                      {t('superadmin.barangayMap.editingLocked')}
-                    </div>
-                  ) : null}
-                  {BOUNDARY_EDIT_ENABLED ? (
-                    <>
-                      <div className="flex flex-wrap gap-1.5 mb-[7px]">
-                        <button
-                          onClick={() => {
-                            if (BOUNDARY_EDIT_ENABLED) {
-                              setBoundaryEditMode((current) => !current);
-                            }
-                          }}
-                          disabled={!BOUNDARY_EDIT_ENABLED}
-                          className={`border border-[var(--primary-fixed-dim)] rounded-md px-2 py-[5px] text-[10px] font-bold text-primary ${boundaryEditMode ? 'bg-[var(--primary-fixed)]' : 'bg-[var(--primary-fixed)]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
-                        >
-                          {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
-                        </button>
-                        <button
-                          onClick={handleUndoBoundaryPoint}
-                          disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
-                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
-                        >
-                          Undo Point
-                        </button>
-                        <button
-                          onClick={handleResetBoundaryPoints}
-                          disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
-                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
-                        >
-                          Reset Points
-                        </button>
-                        <button
-                          onClick={handleApplyPointsToDraft}
-                          disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
-                          className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
-                        >
-                          Apply Points to JSON
-                        </button>
-                      </div>
-                      <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
-                        {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
-                      </div>
-                    </>
-                  ) : null}
-                  <textarea
-                    title={t('superadmin.barangayMap.boundaryGeojson')}
-                    aria-label={t('superadmin.barangayMap.boundaryGeojson')}
-                    value={boundaryDraft}
-                    onChange={(event) => {
-                      if (BOUNDARY_EDIT_ENABLED) {
-                        setBoundaryDraft(event.target.value);
-                      }
-                    }}
-                    readOnly={!BOUNDARY_EDIT_ENABLED}
-                    className="w-full min-h-[120px] border border-[var(--primary-fixed)] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[var(--on-surface-variant)] box-border bg-[var(--surface-container-low)]"
-                  />
-                  {boundaryError ? (
-                    <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-card px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
-                  ) : null}
-                  {boundaryMessage ? (
-                    <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-card px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
-                  ) : null}
-                  {BOUNDARY_EDIT_ENABLED ? (
-                    <button
-                      onClick={() => {
-                        void handleSaveBoundary();
-                      }}
-                      disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
-                      className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
-                    >
-                      <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-card p-5 border border-[var(--outline-variant)] flex flex-col items-center gap-2 min-h-[140px] justify-center">
-              <MapPin size={28} className="text-[var(--outline-variant)]" />
-              <div className="text-xs text-[var(--on-surface-variant)] text-center">
-                {t('superadmin.barangayMap.clickBoundaryHint')}
-              </div>
-            </div>
-          )}
-
+          
           {/* Active incidents list */}
           <div className="bg-card p-4 border border-[var(--outline-variant)] flex-1 flex flex-col">
             <div className="text-sm font-bold text-[var(--on-surface)] mb-2.5">
@@ -1281,43 +1135,162 @@ export default function SABarangayMap() {
             </div>
           </div>
 
-          {/* Quick barangay buttons */}
-          <div className="flex flex-col gap-1.5">
-            {barangaysData.map(b => {
-              const al = alertLevelConfig[b.alertLevel];
-              const isSel = selectedBarangay === b.id;
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => setSelectedBarangay(isSel ? null : b.id)}
-                  className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 cursor-pointer text-left shadow-none border ${isSel ? (BARANGAY_SELECTION_CLASS_BY_CODE[b.code] ?? 'bg-surface-container-high border-[var(--outline-variant)]') : 'bg-card border-[var(--outline-variant)]'}`}
-                >
-                  <div className={`w-2.5 h-2.5 rounded-[3px] shrink-0 ${BARANGAY_DOT_CLASS_BY_CODE[b.code] ?? 'bg-[var(--outline)] border-[var(--outline)]'} border`} />
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold text-[var(--on-surface)]">{b.name}</div>
-                    <div className="text-[10px] text-[var(--on-surface-variant)]">
-                      {b.center[0].toFixed(4)}°N, {b.center[1].toFixed(4)}°E
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`text-[9px] font-bold px-[5px] py-0.5 rounded-[3px] ${al.badgeClass}`}
-                    >{al.label}</span>
-                    <span className="text-[11px] font-bold text-[var(--on-surface-variant)]">{b.activeIncidents}</span>
-                    <AlertTriangle size={10} className="text-[var(--outline)]" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
+      
+      {selectedBrgy ? (
+        <div className="bg-card overflow-hidden border border-[var(--outline-variant)] mt-3.5">
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="flex items-center gap-2 mb-[3px]">
+                  <span className="text-base font-bold text-[var(--on-surface)]">{selectedBrgy.name}</span>
+                  {(() => {
+                    const al = alertLevelConfig[selectedBrgy.alertLevel];
+                    return (
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-[0.06em] ${al.badgeClass}`}>
+                        {al.label}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <div className="text-[11px] text-[var(--on-surface-variant)]">{selectedBrgy.district}</div>
+                <div className="text-[10px] text-[var(--on-surface-variant)] mt-0.5">Capt. {selectedBrgy.captain}</div>
+              </div>
+              <button
+                onClick={() => setSelectedBarangay(null)}
+                aria-label={t('common.close')}
+                title={t('common.close')}
+                className="bg-muted border-none rounded-md px-2 py-1 cursor-pointer text-[var(--on-surface-variant)] text-[11px]"
+              >✕</button>
+            </div>
 
-      {/* Comparison table */}
+            <div className="grid grid-cols-2 gap-[7px] mb-3">
+              {[
+                { label: t('superadmin.barangayMap.statPopulation'), value: selectedBrgy.population.toLocaleString() },
+                { label: t('superadmin.barangayMap.statArea'), value: selectedBrgy.area },
+                { label: t('superadmin.barangayMap.statActiveInc'), value: selectedBrgy.activeIncidents },
+                { label: t('superadmin.barangayMap.statRespRate'), value: `${selectedBrgy.responseRate}%` },
+                { label: t('superadmin.barangayMap.statAvgResponse'), value: `${selectedBrgy.avgResponseMin}m` },
+              ].map(s => (
+                <div key={s.label} className="bg-[var(--surface-container-low)] rounded-lg px-2.5 py-2">
+                  <div className="text-[15px] font-bold text-[var(--on-surface)]">{s.value}</div>
+                  <div className="text-[10px] text-[var(--on-surface-variant)] mt-px">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Coord info */}
+            <div className="bg-[var(--primary-fixed)] rounded-lg px-2.5 py-2 border border-[var(--primary-fixed)]">
+              <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-1 flex items-center gap-[5px]">
+                <Navigation size={10} color="#1D4ED8" /> {t('superadmin.barangayMap.osmCoordinates')}
+              </div>
+              <div className="text-[9px] text-[var(--on-surface-variant)] font-mono">
+                {t('superadmin.barangayMap.centerCoords', { lat: selectedBrgy.center[0].toFixed(4), lng: selectedBrgy.center[1].toFixed(4) })}
+              </div>
+              <div className="text-[9px] text-[var(--on-surface-variant)] mt-0.5">
+                {t('superadmin.barangayMap.polygonBoundary', { count: selectedBrgy.boundary.length })}
+              </div>
+            </div>
+
+            <div className="mt-2.5">
+              <div className="text-[10px] font-semibold text-[var(--on-surface)] mb-[5px]">
+                {t('superadmin.barangayMap.boundaryGeojson')}
+              </div>
+              {!BOUNDARY_EDIT_ENABLED ? (
+                <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
+                  {t('superadmin.barangayMap.editingLocked')}
+                </div>
+              ) : null}
+              {BOUNDARY_EDIT_ENABLED ? (
+                <>
+                  <div className="flex flex-wrap gap-1.5 mb-[7px]">
+                    <button
+                      onClick={() => {
+                        if (BOUNDARY_EDIT_ENABLED) {
+                          setBoundaryEditMode((current) => !current);
+                        }
+                      }}
+                      disabled={!BOUNDARY_EDIT_ENABLED}
+                      className={`border border-[var(--primary-fixed-dim)] rounded-md px-2 py-[5px] text-[10px] font-bold text-primary ${boundaryEditMode ? 'bg-[var(--primary-fixed)]' : 'bg-[var(--primary-fixed)]'} ${!BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                    >
+                      {boundaryEditMode ? 'Exit Map Edit' : 'Edit on Map'}
+                    </button>
+                    <button
+                      onClick={handleUndoBoundaryPoint}
+                      disabled={!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0}
+                      className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !boundaryEditMode || boundaryPoints.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                    >
+                      Undo Point
+                    </button>
+                    <button
+                      onClick={handleResetBoundaryPoints}
+                      disabled={!BOUNDARY_EDIT_ENABLED || !selectedBrgy}
+                      className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || !selectedBrgy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                    >
+                      Reset Points
+                    </button>
+                    <button
+                      onClick={handleApplyPointsToDraft}
+                      disabled={!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3}
+                      className={`border border-[var(--outline-variant)] rounded-md px-2 py-[5px] bg-card text-[var(--on-surface-variant)] text-[10px] font-bold ${!BOUNDARY_EDIT_ENABLED || boundaryPoints.length < 3 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+                    >
+                      Apply Points to JSON
+                    </button>
+                  </div>
+                  <div className="text-[9px] text-[var(--on-surface-variant)] mb-1.5">
+                    {boundaryPoints.length} points selected. Use at least 3 points for a valid polygon.
+                  </div>
+                </>
+              ) : null}
+              <textarea
+                title={t('superadmin.barangayMap.boundaryGeojson')}
+                aria-label={t('superadmin.barangayMap.boundaryGeojson')}
+                value={boundaryDraft}
+                onChange={(event) => {
+                  if (BOUNDARY_EDIT_ENABLED) {
+                    setBoundaryDraft(event.target.value);
+                  }
+                }}
+                readOnly={!BOUNDARY_EDIT_ENABLED}
+                className="w-full min-h-[120px] border border-[var(--primary-fixed)] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[var(--on-surface-variant)] box-border bg-[var(--surface-container-low)]"
+              />
+              {boundaryError ? (
+                <div className="mt-[5px] border-l-[3px] border-[var(--error)] bg-card px-2 py-1 text-[10px] font-semibold text-severity-critical">{boundaryError}</div>
+              ) : null}
+              {boundaryMessage ? (
+                <div className="mt-[5px] border-l-[3px] border-[var(--severity-low)] bg-card px-2 py-1 text-[10px] font-semibold text-[var(--severity-low)]">{boundaryMessage}</div>
+              ) : null}
+              {BOUNDARY_EDIT_ENABLED ? (
+                <button
+                  onClick={() => {
+                    void handleSaveBoundary();
+                  }}
+                  disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
+                  className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+                >
+                  <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="bg-card px-5 py-[18px] mt-3.5 border border-[var(--outline-variant)]">
-        <div className="text-[15px] font-bold text-[var(--on-surface)] mb-3.5">{t('superadmin.barangayMap.comparisonTitle')}</div>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs">
+        <button
+          onClick={() => setShowComparisonTable(!showComparisonTable)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <div className="text-[15px] font-bold text-[var(--on-surface)]">{t('superadmin.barangayMap.comparisonTitle')}</div>
+          <ChevronDown
+            size={20}
+            className={`text-[var(--on-surface-variant)] transition-transform duration-200 ${showComparisonTable ? 'rotate-180' : ''}`}
+          />
+        </button>
+        {showComparisonTable ? (
+          <div className="overflow-x-auto mt-3.5">
+            <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="border-b-2 border-[var(--outline-variant)]">
                 {[t('superadmin.barangayMap.colBarangay'), t('superadmin.barangayMap.colDistrict'), t('superadmin.barangayMap.colPopulation'), t('superadmin.barangayMap.colArea'), t('superadmin.barangayMap.colCaptain'), t('superadmin.barangayMap.colAlertLevel'), t('superadmin.barangayMap.colActive'), t('superadmin.barangayMap.colResponseRate'), t('superadmin.barangayMap.colAvgResponse'), t('superadmin.barangayMap.colOsmCenter')].map(h => (
@@ -1375,7 +1348,7 @@ export default function SABarangayMap() {
               })}
             </tbody>
           </table>
-        </div>
+        </div>) : null}
       </div>
 
       <style>{`
