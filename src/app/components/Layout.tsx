@@ -10,6 +10,10 @@ import {
   Search,
   Settings,
   X,
+  User,
+  Shield,
+  Globe,
+  Monitor
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import { resolveDefaultAppPath } from '../utils/navigationGuards';
@@ -162,7 +166,20 @@ function Layout() {
 
       const ql = q.toLowerCase();
       const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
-      setSearchNavResults(navMatches);
+      
+      const settingsSubItems = [
+        { path: '/app/settings?tab=account', label: t('nav.settings') + ' - Account', icon: User, keywords: ['account', 'profile', 'name'] },
+        { path: '/app/settings?tab=access', label: t('nav.settings') + ' - Access Status', icon: Shield, keywords: ['access', 'authorization', 'verification', 'security'] },
+        { path: '/app/settings?tab=language', label: t('nav.settings') + ' - ' + t('settings.language'), icon: Globe, keywords: ['language', 'locale', 'translation', 'english', 'tagalog'] },
+        { path: '/app/settings?tab=appearance', label: t('nav.settings') + ' - Appearance', icon: Monitor, keywords: ['appearance', 'theme', 'dark mode', 'light mode'] },
+      ];
+      
+      const settingsMatches = settingsSubItems.filter(item => 
+        item.label.toLowerCase().includes(ql) || 
+        item.keywords.some(kw => kw.includes(ql) || ql.includes(kw))
+      );
+
+      setSearchNavResults([...navMatches, ...settingsMatches] as any);
       setSearchDropdownOpen(true);
       setSearchResultsLoading(true);
       try {

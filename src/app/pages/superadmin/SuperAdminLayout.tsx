@@ -16,10 +16,13 @@ import {
   Search,
   Settings,
   Shield,
+  User,
   UserCheck,
   UserPlus,
   X,
   Zap,
+  Globe,
+  Monitor,
 } from 'lucide-react';
 import { isAuthExpiredError, superAdminApi, type ApiAdminNotification } from '../../services/superAdminApi';
 import { clearAuthSession, getAuthSession } from '../../utils/authSession';
@@ -81,6 +84,10 @@ const SEARCHABLE_ITEMS: SearchableItem[] = [
   { id: 'reports-by-status', label: 'Reports by Status', description: 'View report status breakdown', keywords: ['status', 'submitted', 'review', 'progress', 'resolved', 'closed'], path: '/superadmin/analytics', category: 'feature', icon: BarChart2 },
   { id: 'user-roles', label: 'User Roles', description: 'Manage user role assignments', keywords: ['role', 'roles', 'citizen', 'official', 'admin', 'permission'], path: '/superadmin/users', category: 'feature', icon: Shield },
   { id: 'system-settings', label: 'System Settings', description: 'Configure system preferences', keywords: ['settings', 'config', 'configuration', 'preferences', 'system'], path: '/superadmin/settings', category: 'feature', icon: Settings },
+  { id: 'system-settings-account', label: 'Account Settings', description: 'Manage your profile and account details', keywords: ['account', 'profile', 'name', 'phone', 'contact', 'personal'], path: '/superadmin/settings?tab=account', category: 'feature', icon: User },
+  { id: 'system-settings-access', label: 'Access Status', description: 'View your authorization levels', keywords: ['access', 'authorization', 'verification', 'security', 'status'], path: '/superadmin/settings?tab=access', category: 'feature', icon: Shield },
+  { id: 'system-settings-language', label: 'Language Settings', description: 'Change system language', keywords: ['language', 'locale', 'translation', 'english', 'tagalog', 'filipino'], path: '/superadmin/settings?tab=language', category: 'feature', icon: Globe },
+  { id: 'system-settings-appearance', label: 'Appearance Settings', description: 'Switch between light and dark themes', keywords: ['appearance', 'theme', 'dark mode', 'light mode', 'display'], path: '/superadmin/settings?tab=appearance', category: 'feature', icon: Monitor },
   { id: 'active-reports', label: 'Active Reports', description: 'View all open incident reports', keywords: ['active', 'open', 'pending', 'reports', 'incidents'], path: '/superadmin', category: 'feature', icon: AlertTriangle },
 
   // Audit Log Filters
