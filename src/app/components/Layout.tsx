@@ -60,6 +60,7 @@ function Layout() {
   const [searchIncidentResults, setSearchIncidentResults] = useState<Pick<ApiCitizenReport, 'id' | 'category' | 'location' | 'status' | 'description' | 'barangay'>[]>([]);
   const [searchResultsLoading, setSearchResultsLoading] = useState(false);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [searchSelectedIndex, setSearchSelectedIndex] = useState(-1);
   const [authRedirecting, setAuthRedirecting] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -345,7 +346,52 @@ function Layout() {
     navigate(path);
   };
 
+
+  const searchCombinedResults = React.useMemo(() => {
+    return [
+      ...searchNavResults.map(item => ({ type: 'nav', data: item })),
+      ...searchIncidentResults.map(item => ({ type: 'incident', data: item }))
+    ];
+  }, [searchNavResults, searchIncidentResults]);
+
+  useEffect(() => {
+    setSearchSelectedIndex(-1);
+  }, [searchQuery, searchNavResults, searchIncidentResults]);
+
+  useEffect(() => {
+    if (searchSelectedIndex >= 0) {
+      const el = document.getElementById(`search-result-${searchSelectedIndex}`);
+      if (el) {
+        el.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [searchSelectedIndex]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchDropdownOpen && !mobileSearchOpen) return;
+    if (searchCombinedResults.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSearchSelectedIndex(prev => (prev < searchCombinedResults.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSearchSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === 'Enter') {
+      if (searchSelectedIndex >= 0 && searchSelectedIndex < searchCombinedResults.length) {
+        e.preventDefault();
+        const selected = searchCombinedResults[searchSelectedIndex];
+        if (selected.type === 'nav') {
+          handleSearchResultClick(selected.data.path);
+        } else {
+          handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(selected.data.id)}`);
+        }
+      }
+    }
+  };
+
   const hasSearchInput = searchQuery.length > 0;
+
 
   return (
     <div className="app-shell-height flex overflow-hidden bg-[var(--surface)] text-[var(--on-surface)]">
@@ -519,6 +565,7 @@ function Layout() {
                   placeholder="Search incidents, barangays, or reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   onFocus={() => { if (searchQuery.trim().length >= 2) setSearchDropdownOpen(true); }}
                   onBlur={() => setTimeout(() => setSearchDropdownOpen(false), 150)}
                   className="w-full border-none bg-transparent px-2 text-xs text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
@@ -530,18 +577,23 @@ function Layout() {
                     {searchNavResults.length > 0 && (
                       <div>
                         <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
-                        {searchNavResults.map((item) => (
+                        {searchNavResults.map((item, idx) => {
+                          const globalIdx = idx;
+                          const isSelected = searchSelectedIndex === globalIdx;
+                          return (
                           <button
                             key={item.path}
+                            id={`search-result-${globalIdx}`}
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSearchResultClick(item.path)}
-                            className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-3 py-2 text-left text-[13px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                            className={`flex w-full cursor-pointer items-center gap-2.5 border-none px-3 py-2 text-left text-[13px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                           >
                             <item.icon size={14} className="shrink-0 text-primary" />
                             <span className="font-medium">{item.label}</span>
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                     {(searchResultsLoading || searchIncidentResults.length > 0) && (
@@ -550,13 +602,17 @@ function Layout() {
                         {searchResultsLoading && searchIncidentResults.length === 0 && (
                           <div className="px-3 py-2 text-xs text-[var(--outline)]">Searching…</div>
                         )}
-                        {searchIncidentResults.map((incident) => (
+                        {searchIncidentResults.map((incident, idx) => {
+                          const globalIdx = searchNavResults.length + idx;
+                          const isSelected = searchSelectedIndex === globalIdx;
+                          return (
                           <button
                             key={incident.id}
+                            id={`search-result-${globalIdx}`}
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
-                            className="flex w-full cursor-pointer items-center gap-3 border-none bg-transparent px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                            className={`flex w-full cursor-pointer items-center gap-3 border-none px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                           >
                             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
                               <AlertTriangle size={12} className="text-destructive" />
@@ -577,7 +633,8 @@ function Layout() {
                               'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
                             }`}>{incident.status}</span>
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                     {!searchResultsLoading && searchNavResults.length === 0 && searchIncidentResults.length === 0 && (
@@ -728,6 +785,7 @@ function Layout() {
                   placeholder="Search incidents, reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="w-full border-none bg-transparent px-2 text-sm text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
                 />
                 {hasSearchInput && (
@@ -750,17 +808,22 @@ function Layout() {
                 {searchNavResults.length > 0 && (
                   <div>
                     <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--outline)]">Navigation</div>
-                    {searchNavResults.map((item) => (
+                    {searchNavResults.map((item, idx) => {
+                      const globalIdx = idx;
+                      const isSelected = searchSelectedIndex === globalIdx;
+                      return (
                       <button
                         key={item.path}
+                        id={`search-result-${globalIdx}`}
                         type="button"
                         onClick={() => handleSearchResultClick(item.path)}
-                        className="flex w-full cursor-pointer items-center gap-2.5 border-none bg-transparent px-4 py-2.5 text-left text-[14px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)]"
+                        className={`flex w-full cursor-pointer items-center gap-2.5 border-none px-4 py-2.5 text-left text-[14px] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                       >
                         <item.icon size={15} className="shrink-0 text-primary" />
                         <span className="font-medium">{item.label}</span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 {(searchResultsLoading || searchIncidentResults.length > 0) && (
@@ -769,12 +832,16 @@ function Layout() {
                     {searchResultsLoading && searchIncidentResults.length === 0 && (
                       <div className="px-4 py-2 text-sm text-[var(--outline)]">Searching…</div>
                     )}
-                    {searchIncidentResults.map((incident) => (
+                    {searchIncidentResults.map((incident, idx) => {
+                      const globalIdx = searchNavResults.length + idx;
+                      const isSelected = searchSelectedIndex === globalIdx;
+                      return (
                       <button
                         key={incident.id}
+                        id={`search-result-${globalIdx}`}
                         type="button"
                         onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
-                        className="flex w-full cursor-pointer items-center gap-3 border-none bg-transparent px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)]"
+                        className={`flex w-full cursor-pointer items-center gap-3 border-none px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                       >
                         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
                           <AlertTriangle size={13} className="text-destructive" />
@@ -794,7 +861,8 @@ function Layout() {
                           'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
                         }`}>{incident.status}</span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 {!searchResultsLoading && searchNavResults.length === 0 && searchIncidentResults.length === 0 && (
