@@ -18,7 +18,7 @@ import { useAdminUsers, adminKeys } from '../../hooks/useAdminQueries';
 const ROLE_CONFIG = {
   'Super Admin': { color: 'var(--primary)', bg: 'var(--primary-fixed)', icon: <Shield size={11} /> },
   'Barangay Admin': { color: 'var(--primary-container)', bg: 'var(--primary-fixed)', icon: <Users size={11} /> },
-  'Viewer': { color: 'var(--on-surface-variant)', bg: 'var(--surface-container-low)', icon: <Eye size={11} /> },
+  'Resident': { color: 'var(--on-surface-variant)', bg: 'var(--surface-container-low)', icon: <Eye size={11} /> },
 } as const;
 
 type SupportedUiRole = keyof typeof ROLE_CONFIG;
@@ -30,7 +30,7 @@ const STATUS_CONFIG = {
 
 type SupportedUiStatus = keyof typeof STATUS_CONFIG;
 
-const ROLES = ['All Roles', 'Super Admin', 'Barangay Admin', 'Viewer'] as const;
+const ROLES = ['All Roles', 'Super Admin', 'Barangay Admin', 'Resident'] as const;
 const STATUSES = ['All Status', 'active', 'inactive'] as const;
 const BARANGAYS = ['All Barangays', 'Brgy. 251', 'Brgy. 252', 'Brgy. 256'] as const;
 
@@ -98,7 +98,8 @@ function formatLastActive(ts: string) {
 function mapApiRoleToUiRole(role: ApiAdminUser['role']): SupportedUiRole {
   if (role === 'SUPER_ADMIN') return 'Super Admin';
   if (role === 'OFFICIAL') return 'Barangay Admin';
-  return 'Viewer';
+  if (role === 'CITIZEN') return 'Resident';
+  return 'Resident';
 }
 
 function mapApiUserToSaUser(user: ApiAdminUser, index: number): SAUserRow {
@@ -131,7 +132,7 @@ function mapApiUserToSaUser(user: ApiAdminUser, index: number): SAUserRow {
 
 function mapUiRoleToApiRole(role: SupportedUiRole): Role {
   if (role === 'Super Admin') return 'SUPER_ADMIN';
-  if (role === 'Viewer') return 'CITIZEN';
+  if (role === 'Resident') return 'CITIZEN';
   return 'OFFICIAL';
 }
 
@@ -170,7 +171,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
     fullName: user?.name ?? '',
     phoneNumber: user?.email ?? '',
     password: '',
-    role: user?.role ?? 'Viewer',
+    role: user?.role ?? 'Resident',
     barangay: user?.barangay ?? 'Brgy. 251',
     status: user?.status ?? 'active',
   });
@@ -272,7 +273,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                       title={t('superadmin.users.roleLabel')}
                       className="w-full px-3 py-[9px] border border-[var(--outline-variant)] rounded-lg text-[13px] outline-none bg-card cursor-pointer"
                     >
-                      {(['Super Admin', 'Barangay Admin', 'Viewer'] as const).map(r => (
+                      {(['Super Admin', 'Barangay Admin', 'Resident'] as const).map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
