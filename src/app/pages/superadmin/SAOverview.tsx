@@ -586,17 +586,13 @@ export default function SAOverview() {
             </button>
           </div>
         </div>
-        <div ref={mapContainerRef}>
-          {mapInView ? (
-            <IncidentMap
-              incidents={mapIncidents}
-              height={300}
-              compact={false}
-              zoom={14}
-            />
-          ) : (
-            <div className="h-[300px] bg-muted/30 animate-pulse" />
-          )}
+        <div>
+          <IncidentMap
+            incidents={mapIncidents}
+            height={300}
+            compact={false}
+            zoom={14}
+          />
         </div>
       </div>
 
