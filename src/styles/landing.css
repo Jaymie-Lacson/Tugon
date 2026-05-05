@@ -1989,15 +1989,20 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    padding: 0;
+    margin: 0;
   }
   .landing-how-panel {
     position: relative;
     display: block;
     opacity: 1;
-    transform: none;
+    transform: none !important;
     pointer-events: auto;
     text-align: left;
-    padding: clamp(36px, 8vw, 48px) clamp(20px, 6vw, 28px) clamp(40px, 9vw, 56px);
+    padding: clamp(36px, 8vw, 48px) clamp(20px, 6vw, 28px) clamp(40px, 9vw, 56px) clamp(20px, 6vw, 28px);
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
     background: transparent;
     border: 0;
     border-top: 1px solid rgba(13, 28, 46, 0.1);
