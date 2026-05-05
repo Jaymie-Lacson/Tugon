@@ -607,7 +607,7 @@ function HeroMapStage() {
       className="landing-hero-map-stage"
       style={{ contentVisibility: 'auto' }}
     >
-      <div ref={mapFrameRef} className="landing-hero-map-sticky" aria-hidden="true">
+      <div ref={mapFrameRef} className="landing-hero-map-static" aria-hidden="true">
         <div className="landing-hero-map-fold-wrapper">
           <div className="landing-hero-map-fold landing-hero-map-fold--top">
             {topMap}
@@ -620,14 +620,6 @@ function HeroMapStage() {
           <div className="landing-hero-map-crease" />
         </div>
       </div>
-      <button
-        data-reveal
-        onClick={scrollToNext}
-        aria-label="Scroll to next section"
-        className={'landing-scroll-cue landing-scroll-cue--light landing-hero-map-scroll-cue ' + revealDelayClass(120)}
-      >
-        <ChevronDown size={14} aria-hidden="true" />
-      </button>
     </section>
   );
 }

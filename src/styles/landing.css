@@ -377,7 +377,7 @@
   isolation: isolate;
   overflow: hidden;
   padding-top: clamp(92px, 13vh, 132px);
-  padding-bottom: clamp(56px, 9vh, 96px);
+  padding-bottom: clamp(24px, 3vh, 40px);
   background: linear-gradient(180deg, #f5f7fb 0%, #eaf0fb 100%);
 }
 
@@ -581,7 +581,7 @@
   gap: 12px;
   width: 100%;
   max-width: 760px;
-  margin: 0 auto 28px;
+  margin: 0 auto 16px;
 }
 
 .landing-hero-highlight {
@@ -624,9 +624,10 @@
   --map-progress: 0;
   position: relative;
   width: 100%;
-  min-height: 132vh;
+  min-height: auto;
   background: transparent;
   z-index: 2;
+  padding-bottom: clamp(40px, 8vh, 80px);
 }
 
 .landing-hero-map-stage::before {
@@ -641,13 +642,11 @@
   z-index: 0;
 }
 
-.landing-hero-map-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+.landing-hero-map-static {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: clamp(2vh, 3vh, 4vh);
 }
 
 .landing-hero-map-placeholder {
@@ -664,8 +663,8 @@
   position: relative;
   width: 88vw;
   max-width: 1120px;
-  height: 72vh;
-  max-height: 680px;
+  height: 65vh;
+  max-height: 620px;
   transform: scale(calc(0.88 + var(--map-progress) * 0.12));
   will-change: transform;
   transform-style: preserve-3d;
@@ -768,7 +767,7 @@
 @media (max-width: 640px) {
   .landing-hero {
     padding-top: 84px;
-    padding-bottom: 56px;
+    padding-bottom: 24px;
   }
 
   .landing-hero-content {
@@ -820,7 +819,7 @@
   .landing-hero-highlights {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
   }
 
   .landing-hero-highlight {
@@ -839,14 +838,14 @@
     line-height: 1.25;
   }
 
-  .landing-hero-map-stage {
-    min-height: 180vh;
-  }
-
   .landing-hero-map-fold-wrapper {
     width: 94vw;
-    height: 60vh;
+    height: 45vh;
     border-radius: 14px;
+  }
+
+  .landing-hero-map-stage {
+    padding-bottom: 24px;
   }
 
   .landing-hero-map-fold--top {
@@ -2408,12 +2407,12 @@
 
 @media (max-width: 768px) {
   .landing-press {
-    padding-block: 32px;
+    padding-block: 28px;
   }
 
   .landing-press-track,
   .landing-press-group {
-    gap: 14px;
+    gap: 12px;
   }
 
   .landing-press-card {
@@ -2698,7 +2697,7 @@
 @media (max-width: 480px) {
   .landing-hero {
     padding-top: 82px;
-    padding-bottom: 52px;
+    padding-bottom: 20px;
   }
 
   .landing-hero-badge {
@@ -2745,14 +2744,14 @@
     margin-bottom: 16px;
   }
 
-  .landing-hero-map-stage {
-    min-height: 160vh;
-  }
-
   .landing-hero-map-fold-wrapper {
     width: 96vw;
-    height: 55vh;
+    height: 40vh;
     border-radius: 12px;
+  }
+
+  .landing-hero-map-stage {
+    padding-bottom: 32px;
   }
 
   .landing-hero-map-fold--top {
@@ -2796,10 +2795,6 @@
   .nav-mobile-panel > div {
     transition: none !important;
     animation: none !important;
-  }
-
-  .landing-hero-map-stage {
-    min-height: 100vh;
   }
 
   .landing-hero-map-fold,
