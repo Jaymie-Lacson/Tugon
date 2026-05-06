@@ -421,7 +421,7 @@ export default function Analytics() {
                 onClick={() => setChartType(chartTypeBtn)}
                 className={`cursor-pointer rounded-md px-3 py-[5px] text-[11px] font-semibold md:px-3 md:py-[5px] ${
                   chartType === chartTypeBtn
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]'
                 }`}
               >

@@ -198,7 +198,7 @@ const SEVERITY_BADGE_CLASS: Record<string, string> = {
 
 const INCIDENT_BUTTON_CLASS: Record<string, { active: string; inactive: string }> = {
   all: { active: 'bg-primary-container text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
-  flood: { active: 'bg-primary text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
+  flood: { active: 'bg-primary text-primary-foreground', inactive: 'bg-surface-container-high text-[var(--outline)]' },
   accident: { active: 'bg-secondary text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
   medical: { active: 'bg-error text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
   crime: { active: 'bg-primary-container text-white', inactive: 'bg-surface-container-high text-[var(--outline)]' },
@@ -742,7 +742,7 @@ export default function SABarangayMap() {
           </button>
           <button
             onClick={() => setShowHeatmap(h => !h)}
-            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmap ? 'bg-primary text-primary-foreground' : 'bg-card text-[var(--on-surface-variant)]'}`}
           >
             <Layers size={13} /> {showHeatmap ? t('superadmin.barangayMap.hideHeatmap') : t('superadmin.barangayMap.showHeatmap')}
           </button>
@@ -751,7 +751,7 @@ export default function SABarangayMap() {
               setShowHeatmapSettings((open) => !open);
               setShowHeatmap(true);
             }}
-            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-white' : 'bg-card text-[var(--on-surface-variant)]'}`}
+            className={`flex-1 md:flex-none min-h-11 flex items-center justify-center gap-1.5 border border-[var(--outline-variant)] rounded-lg px-3.5 py-2 cursor-pointer text-xs font-semibold ${showHeatmapSettings ? 'bg-primary text-primary-foreground' : 'bg-card text-[var(--on-surface-variant)]'}`}
           >
             <SlidersHorizontal size={13} /> {t('superadmin.barangayMap.tuneHeatmap')}
           </button>
@@ -1267,7 +1267,7 @@ export default function SABarangayMap() {
                     void handleSaveBoundary();
                   }}
                   disabled={boundarySaving || !BOUNDARY_EDIT_ENABLED}
-                  className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-white text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+                  className={`mt-[7px] inline-flex items-center gap-1.5 border-none rounded-[7px] px-2.5 py-[7px] bg-primary text-primary-foreground text-[11px] font-bold ${boundarySaving || !BOUNDARY_EDIT_ENABLED ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
                 >
                   <Save size={12} /> {boundarySaving ? t('common.saving') : t('superadmin.barangayMap.saveBoundary')}
                 </button>

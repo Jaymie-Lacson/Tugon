@@ -271,7 +271,8 @@
 /* ── Landing + auth CSS isolation — always render in light mode ─────────── */
 /* Uses !important to override layer cascade (Tailwind v4 layers the .dark rule). */
 .dark .landing-root,
-.dark .auth-root {
+.dark .auth-root,
+.dark .map-view-root-public {
   --background:                #f8f9ff !important;
   --foreground:                #0d1c2e !important;
   --surface:                   #f8f9ff !important;
@@ -291,7 +292,7 @@
   --outline-variant:           #c5c5d3 !important;
   --primary:                   #00236f !important;
   --primary-foreground:        #ffffff !important;
-  --primary-container:         #1e3a8a !important;
+  --primary-container:          #1e3a8a !important;
   --primary-fixed:             #dce1ff !important;
   --primary-fixed-dim:         #b6c4ff !important;
   --severity-critical:         #b91c1c !important;
@@ -700,4 +701,31 @@
 
 .dark .leaflet-control-attribution a {
   color: var(--primary) !important;
+}
+
+.force-light .leaflet-control-zoom a {
+  background: #fff !important;
+  color: #333 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.force-light .leaflet-control-zoom a:hover {
+  background: #f4f4f4 !important;
+}
+
+.force-light .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #333 !important;
+}
+
+.force-light .leaflet-control-attribution a {
+  color: #00236f !important;
+}
+
+.force-light .leaflet-bar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.force-light .leaflet-control-zoom {
+  border-color: rgba(0, 0, 0, 0.12) !important;
 }

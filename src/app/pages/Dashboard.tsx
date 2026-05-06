@@ -664,7 +664,7 @@ export default function Dashboard() {
                   onClick={() => setMapRenderMode('hotspot')}
                   disabled={hotspotDisabled}
                   className={`border-none border-r border-border text-[10px] font-medium px-[9px] py-[5px] ${
-                    mapRenderMode === 'hotspot' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                    mapRenderMode === 'hotspot' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                   } ${hotspotDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer transition-colors hover:bg-muted/80'}`}
                   title={heatmapClusters.length === 0 ? t('official.dashboard.noHotspotThreshold') : t('official.dashboard.showHotspotAnalytics')}
                 >
@@ -673,7 +673,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => setMapRenderMode('standard')}
                   className={`border-none text-[10px] font-medium px-[9px] py-[5px] cursor-pointer transition-colors ${
-                    mapRenderMode === 'standard' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    mapRenderMode === 'standard' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
                   title={t('official.dashboard.showIncidentPins')}
                 >
@@ -696,7 +696,7 @@ export default function Dashboard() {
                   setMapRenderMode('hotspot');
                 }}
                 className={`flex items-center gap-1 rounded-md border-none px-2.5 py-1 text-[11px] font-semibold cursor-pointer transition-colors ${
-                  showHeatmapTuning ? 'bg-primary text-white' : 'bg-primary/5 text-primary hover:bg-primary/10'
+                  showHeatmapTuning ? 'bg-primary text-primary-foreground' : 'bg-primary/5 text-primary hover:bg-primary/10'
                 }`}
               >
                 <SlidersHorizontal size={11} /> {t('official.dashboard.tune')}

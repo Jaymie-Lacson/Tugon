@@ -92,7 +92,7 @@ export function CitizenOnboardingModal() {
           </button>
           <button
             onClick={handleNext}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {step < steps.length - 1 ? 'Next' : 'Get started'}
             <ArrowRight size={16} />

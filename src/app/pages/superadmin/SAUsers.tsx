@@ -361,7 +361,7 @@ function UserModal({ user, onClose, mode, saving = false, error = null, onSubmit
                 });
               }}
               disabled={saving}
-              className={`px-[18px] py-[9px] border-0 rounded-lg bg-primary text-white text-[13px] font-semibold ${saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+              className={`px-[18px] py-[9px] border-0 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold ${saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
             >
               {saving ? t('common.saving') : isCreateMode ? t('superadmin.users.createUser') : t('superadmin.users.saveChanges')}
             </button>
@@ -852,7 +852,7 @@ export default function SAUsers() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`size-[30px] border text-xs font-semibold flex items-center justify-center cursor-pointer ${page === p ? 'bg-primary text-white border-primary' : 'border-[var(--outline-variant)] bg-card text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]'}`}
+                className={`size-[30px] border text-xs font-semibold flex items-center justify-center cursor-pointer ${page === p ? 'bg-primary text-primary-foreground border-primary' : 'border-[var(--outline-variant)] bg-card text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]'}`}
               >{p}</button>
             ))}
             <button

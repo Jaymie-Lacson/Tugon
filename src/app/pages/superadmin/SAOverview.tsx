@@ -580,7 +580,7 @@ export default function SAOverview() {
             </div>
             <button
               onClick={() => navigate('/superadmin/map')}
-              className="flex items-center gap-[5px] bg-primary text-white border-0 px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
+              className="flex items-center gap-[5px] bg-primary text-primary-foreground border-0 px-3 py-1.5 cursor-pointer text-[11px] font-semibold"
             >
               {t('superadmin.overview.fullMap')} <ArrowRight size={11} />
             </button>

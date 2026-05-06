@@ -88,7 +88,7 @@ export default function MapView() {
 
   const [mapRenderMode, setMapRenderMode] = useState<'hotspot' | 'standard'>('hotspot');
   const [showHeatmapTuning, setShowHeatmapTuning] = useState(false);
-  const [heatRadiusPercent, setHeatRadiusPercent] = useState(85);
+  const [heatmapRadiusPercent, setHeatmapRadiusPercent] = useState(85);
   const [heatOpacityPercent, setHeatOpacityPercent] = useState(100);
   const [hasHotspotAutoSelected, setHasHotspotAutoSelected] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -218,7 +218,7 @@ export default function MapView() {
   });
 
   const handleResetHeatmapTuning = () => {
-    setHeatRadiusPercent(85);
+    setHeatmapRadiusPercent(85);
     setHeatOpacityPercent(100);
   };
 
@@ -458,15 +458,15 @@ export default function MapView() {
               <div style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ color: '#64748B', fontSize: 10, fontWeight: 600 }}>Radius</span>
-                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatRadiusPercent}%</span>
+                  <span style={{ color: '#1E293B', fontSize: 10, fontWeight: 700 }}>{heatmapRadiusPercent}%</span>
                 </div>
                 <input
                   type="range"
                   min={50}
                   max={100}
                   step={1}
-                  value={heatRadiusPercent}
-                  onChange={(event) => setHeatRadiusPercent(Number(event.target.value))}
+                  value={heatmapRadiusPercent}
+                  onChange={(event) => setHeatmapRadiusPercent(Number(event.target.value))}
                   onMouseDown={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
                   onPointerDown={(event) => event.stopPropagation()}
@@ -512,9 +512,10 @@ export default function MapView() {
             zoom={18}
             heatmapClusters={heatmapClusters}
             renderMode={isPublicCommunityMap ? 'standard' : mapRenderMode}
-            heatmapRadiusPercent={heatRadiusPercent}
+            heatmapRadiusPercent={heatmapRadiusPercent}
             heatmapOpacityPercent={heatOpacityPercent}
             viewportKey={isPublicCommunityMap ? 'public-map' : (panelOpen ? 'official-panel-open' : 'official-panel-closed')}
+            forceLight={isPublicCommunityMap}
           />
         </div>
 

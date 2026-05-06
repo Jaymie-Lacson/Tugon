@@ -162,7 +162,7 @@ export default function Settings() {
                     onClick={() => setLocale(loc)}
                     className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                       locale === loc
-                        ? 'bg-primary text-white shadow-sm'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                     }`}
                   >
@@ -186,7 +186,7 @@ export default function Settings() {
                     onClick={() => setTheme(t)}
                     className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors capitalize ${
                       theme === t
-                        ? 'bg-primary text-white shadow-sm'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
                     }`}
                   >

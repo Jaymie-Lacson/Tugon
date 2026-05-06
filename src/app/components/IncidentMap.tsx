@@ -393,7 +393,7 @@ export function IncidentMap({
     : sorted;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height, borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height, borderRadius: 8, overflow: 'hidden' }} className={forceLight ? 'force-light' : ''}>
       <MapContainer
         center={TONDO_TRI_BRGY_CENTER}
         zoom={zoom}

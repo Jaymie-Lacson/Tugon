@@ -155,7 +155,7 @@ const statToneClass: Record<AccentTone, { card: string; icon: string }> = {
   },
   primary: {
     card: 'border border-[var(--primary-fixed-dim)] bg-[var(--primary-fixed)]',
-    icon: 'bg-[var(--primary)] text-white',
+    icon: 'bg-[var(--primary)] text-[var(--on-primary)]',
   },
   success: {
     card: 'border border-[var(--outline-variant)] bg-card',
@@ -751,7 +751,7 @@ function HomeTab({
           <button
             type="button"
             onClick={() => navigate('/citizen/report')}
-            className="cursor-pointer rounded border border-primary bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {t('citizen.dashboard.submitIncidentReport')}
           </button>
@@ -797,7 +797,7 @@ function HomeTab({
             <button
               type="button"
               onClick={() => navigate('/citizen/verification')}
-              className="border-0 rounded-md bg-primary text-white text-[12px] font-semibold px-3 py-2 cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
+                className="border-0 rounded-md bg-primary text-primary-foreground text-[12px] font-semibold px-3 py-2 cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
             >
               {t('citizen.dashboard.openVerification')}
             </button>
@@ -1000,38 +1000,38 @@ const reportTypeToneClass: Record<IncidentType, {
 }> = {
   flood: {
     selectedCard: 'bg-primary-container border-primary-container shadow-[0_4px_12px_rgba(30,58,138,0.26)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-primary)]',
+    selectedLabel: 'text-[var(--on-primary)]',
     unselectedIcon: 'bg-[var(--primary-fixed)] text-[var(--primary-container)]',
   },
   accident: {
     selectedCard: 'bg-secondary border-secondary shadow-[0_4px_12px_rgba(134,83,0,0.26)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-secondary)]',
+    selectedLabel: 'text-[var(--on-secondary)]',
     unselectedIcon: 'bg-[var(--secondary-fixed-dim)] text-[var(--secondary)]',
   },
   medical: {
     selectedCard: 'bg-severity-critical border-severity-critical shadow-[0_4px_12px_rgba(185,28,28,0.28)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-error)]',
+    selectedLabel: 'text-[var(--on-error)]',
     unselectedIcon: 'bg-[var(--error-container)] text-[var(--error)]',
   },
   crime: {
     selectedCard: 'bg-primary border-primary shadow-[0_4px_12px_rgba(30,58,138,0.28)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-primary)]',
+    selectedLabel: 'text-[var(--on-primary)]',
     unselectedIcon: 'bg-[var(--primary-fixed)] text-[var(--primary)]',
   },
   infrastructure: {
     selectedCard: 'bg-secondary border-secondary shadow-[0_4px_12px_rgba(134,83,0,0.26)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-secondary)]',
+    selectedLabel: 'text-[var(--on-secondary)]',
     unselectedIcon: 'bg-[var(--secondary-fixed)] text-[var(--secondary)]',
   },
   typhoon: {
     selectedCard: 'bg-primary-container border-primary-container shadow-[0_4px_12px_rgba(30,58,138,0.26)]',
-    selectedIcon: 'bg-white/25 text-white',
-    selectedLabel: 'text-white',
+    selectedIcon: 'bg-white/25 text-[var(--on-primary)]',
+    selectedLabel: 'text-[var(--on-primary)]',
     unselectedIcon: 'bg-[var(--surface-container-high)] text-[var(--primary-container)]',
   },
 };
@@ -1153,7 +1153,7 @@ function _ReportTab() {
               disabled={!selectedType}
               className={`w-full rounded-xl border-0 py-3.5 text-sm font-bold transition-colors duration-200 ${
                 selectedType
-                  ? 'cursor-pointer bg-primary text-white'
+                  ? 'cursor-pointer bg-primary text-primary-foreground'
                   : 'cursor-not-allowed bg-muted text-muted-foreground'
               }`}
             >
@@ -1224,11 +1224,11 @@ function _ReportTab() {
               <button
                 onClick={() => description && location && severity && setStep(3)}
                 disabled={!description || !location || !severity}
-                className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
-                  description && location && severity
-                    ? 'cursor-pointer bg-primary text-white'
-                    : 'cursor-not-allowed bg-muted text-muted-foreground'
-                }`}
+              className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
+                description && location && severity
+                  ? 'cursor-pointer bg-primary text-primary-foreground'
+                  : 'cursor-not-allowed bg-muted text-muted-foreground'
+              }`}
               >
                 {'Review ->'}
               </button>
@@ -1411,7 +1411,7 @@ function MapTab({
               <button
                 type="button"
                 onClick={() => setFilter('all')}
-                className="bg-primary text-white rounded-md text-[11px] font-semibold px-3 py-1.5 cursor-pointer hover:bg-primary/90 transition-colors"
+                className="bg-primary text-primary-foreground rounded-md text-[11px] font-semibold px-3 py-1.5 cursor-pointer hover:bg-primary/90 transition-colors"
               >
                 {t('citizen.dashboard.showAllPins')}
               </button>

@@ -50,7 +50,7 @@ export function AuthLayout({
   });
 
   return (
-    <div className="app-shell-height flex w-full bg-[var(--surface)]">
+    <div className="auth-root app-shell-height flex w-full bg-[var(--surface)]">
       {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <img
@@ -157,14 +157,14 @@ export function AuthLayout({
             <div className="mt-4 flex justify-center">{topAction}</div>
           )}
 
-          <div className="mt-5 text-center text-[10px] text-[var(--outline)]">
-            <span>Privacy</span>
-            <span className="mx-2">|</span>
-            <span>Terms</span>
-            <span className="mx-2">|</span>
-            <span>Contact</span>
-            <span className="mx-2">|</span>
-            <span>Emergency</span>
+          <div className="mt-5 flex justify-center gap-3 text-[10px] text-[var(--on-surface)]">
+            <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
+            <span className="text-[var(--outline)]">|</span>
+            <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+            <span className="text-[var(--outline)]">|</span>
+            <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
+            <span className="text-[var(--outline)]">|</span>
+            <a href="/emergency" className="hover:text-foreground transition-colors">Emergency</a>
           </div>
         </div>
       </div>
@@ -197,7 +197,7 @@ export function InputField({
 
   return (
     <div className="mb-4.5 sm:mb-5">
-      <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
+       <label className="mb-1.5 block text-xs font-semibold text-[var(--on-surface-variant)]">
         {label}
       </label>
       <div
@@ -206,16 +206,16 @@ export function InputField({
             ? 'bg-[var(--error-container)] shadow-[inset_0_-2px_0_var(--severity-critical)]'
             : focused
               ? 'bg-[var(--surface-container-low)] shadow-[inset_0_-2px_0_var(--primary),0_0_0_2px_rgba(0,35,111,0.12)]'
-              : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_rgba(68,70,81,0.22)]'
+              : 'bg-[var(--surface-container-low)] shadow-[inset_0_-1px_0_var(--border)]'
         }`}
       >
         {icon && (
-          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--outline)]'}`}>
+          <div className={`shrink-0 transition-colors ${focused ? 'text-primary' : 'text-[var(--on-surface-variant)]'}`}>
             {icon}
           </div>
         )}
         <input
-          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--outline)]"
+          className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[var(--on-surface)] outline-none placeholder:text-[var(--on-surface-variant)]"
           type={type}
           placeholder={placeholder}
           value={value}
@@ -228,19 +228,18 @@ export function InputField({
           autoFocus={autoFocus}
           {...autoCompleteProps}
         />
-        {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
       {error && <div className="mt-1.5 text-[11px] font-semibold text-[var(--error)]">! {error}</div>}
-      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--outline)]">{hint}</div>}
+      {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--on-surface-variant)]">{hint}</div>}
     </div>
   );
 }
 
 const BUTTON_COLORS: Record<string, string> = {
   '#1e3a8a': 'btn-primary-solid shadow-ambient',
-  '#059669': 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_16px_rgba(5,150,105,0.24)]',
-  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] shadow-[0_4px_16px_rgba(180,115,10,0.24)]',
-  '#b91c1c': 'bg-red-700 hover:bg-red-800 shadow-[0_4px_16px_rgba(185,28,28,0.24)]',
+  '#059669': 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_4px_16px_rgba(5,150,105,0.24)]',
+  '#b4730a': 'bg-severity-medium hover:bg-[#A16309] text-white shadow-[0_4px_16px_rgba(180,115,10,0.24)]',
+  '#b91c1c': 'bg-red-700 hover:bg-red-800 text-white shadow-[0_4px_16px_rgba(185,28,28,0.24)]',
 };
 
 interface PrimaryButtonProps {
@@ -257,7 +256,7 @@ export function PrimaryButton({ children, onClick, loading = false, disabled = f
 
   return (
     <button
-      className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-all duration-200 ${colorClasses} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-fixed)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-55`}
+      className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-all duration-200 ${colorClasses} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-fixed)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-container-lowest)] disabled:cursor-not-allowed disabled:opacity-55`}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
@@ -286,8 +285,8 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                 isDone
                   ? 'bg-emerald-600 text-white'
                   : isActive
-                    ? 'bg-primary text-white'
-                    : 'bg-[var(--surface-container-high)] text-[var(--outline)]'
+                    ? 'bg-primary text-[var(--on-primary)]'
+                    : 'bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]'
               }`}
             >
               {isDone ? <CheckCircle2 size={15} /> : idx + 1}
@@ -298,7 +297,7 @@ export function AuthProgressStepper({ steps, className = 'mb-7' }: AuthProgressS
                   ? 'text-emerald-600'
                   : isActive
                     ? 'font-bold text-primary'
-                    : 'text-[var(--outline)]'
+                    : 'text-[var(--on-surface-variant)]'
               }`}
             >
               {step.label}

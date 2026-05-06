@@ -223,11 +223,11 @@ export default function CreatePassword() {
                     return (
                       <div key={rule.key} className="flex items-center gap-[5px]">
                         <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                          passed ? 'bg-emerald-100' : 'bg-slate-100'
+                          passed ? 'bg-emerald-100' : 'bg-[var(--surface-container-high)]'
                         }`}>
-                          <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-muted-foreground/50'} />
+                          <CheckCircle2 size={10} className={passed ? 'text-emerald-600' : 'text-[var(--on-surface-variant)]/50'} />
                         </div>
-                        <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-slate-400'}`}>{t(rule.key)}</span>
+                        <span className={`text-[10px] transition-colors ${passed ? 'text-emerald-900' : 'text-[var(--on-surface-variant)]'}`}>{t(rule.key)}</span>
                       </div>
                     );
                   })}

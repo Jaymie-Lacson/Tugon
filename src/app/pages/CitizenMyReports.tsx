@@ -1417,7 +1417,7 @@ export default function CitizenMyReports() {
                         {tab.label}
                         <span
                           className={`rounded-[20px] px-[7px] py-[1px] text-[11px] font-bold ${
-                            isActive ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                            isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {tab.count}

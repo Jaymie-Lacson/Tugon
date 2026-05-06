@@ -44,9 +44,9 @@ function StepIndicator({ current }: { current: number }) {
                   className={[
                     'size-8 shrink-0 rounded-[9px] flex items-center justify-center text-xs font-bold transition-all duration-300 ease-out',
                     done
-                      ? 'bg-primary text-white border-[2.5px] border-primary'
+                      ? 'bg-primary text-primary-foreground border-[2.5px] border-primary'
                       : active
-                        ? 'bg-primary text-white border-[2.5px] border-[#60A5FA]'
+                        ? 'bg-primary text-primary-foreground border-[2.5px] border-[#60A5FA]'
                         : 'bg-muted text-muted-foreground border-2 border-border',
                   ].join(' ')}
                 >

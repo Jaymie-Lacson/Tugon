@@ -402,7 +402,7 @@ function Hero() {
   return (
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
-      <section className="landing-hero">
+      <section className="landing-hero landing-root">
         <div className="landing-hero-bg" aria-hidden="true">
           <span className="landing-hero-bg-glow landing-hero-bg-glow--a" />
           <span className="landing-hero-bg-glow landing-hero-bg-glow--b" />
