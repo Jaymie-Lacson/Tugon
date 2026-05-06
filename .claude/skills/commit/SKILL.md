@@ -53,13 +53,13 @@ Analyze the current conversation context and git changes to create an intelligen
 
 ## Rules
 
-- **NEVER commit without showing the message first and getting confirmation**
 - **NEVER add files that contain secrets** (.env, credentials.json, etc.)
 - **NEVER commit if there are no staged or unstaged changes**
 - Follow the existing commit style (check `git log`)
 - Keep commits atomic: one logical change per commit
 - If multiple unrelated changes exist, suggest splitting into multiple commits
 - If unsure about scope, use the directory/feature name
+- **User has already confirmed intent by invoking /commit** — skip confirmation, just show message and execute
 
 ## Examples
 
