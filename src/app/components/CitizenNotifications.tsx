@@ -28,7 +28,7 @@ export function CitizenNotificationBellTrigger({ unreadCount, open = false, onCl
       title="Open notifications"
       data-state={open ? 'open' : 'closed'}
       aria-haspopup="menu"
-      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg bg-white/[0.12] text-white"
+      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg bg-[var(--surface-container-low)] text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container)]"
     >
       <Bell size={18} />
       {unreadCount > 0 ? (

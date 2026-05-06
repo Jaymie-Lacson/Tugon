@@ -341,28 +341,14 @@ export default function SuperAdminLayout() {
 
   useEffect(() => {
     if (!mobileDrawerOpen) {
+      document.body.style.overflow = '';
       return;
     }
 
-    const closeMenuOnScroll = () => {
-      setMobileDrawerOpen(false);
-    };
-
-    const closeMenuOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && headerRef.current?.contains(target)) {
-        return;
-      }
-
-      setMobileDrawerOpen(false);
-    };
-
-    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
-    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      window.removeEventListener('scroll', closeMenuOnScroll);
-      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+      document.body.style.overflow = '';
     };
   }, [mobileDrawerOpen]);
 
@@ -968,10 +954,10 @@ export default function SuperAdminLayout() {
           {/* Mobile navigation dropdown (landing page style) */}
           <div
             id="superadmin-mobile-drawer"
-            className="nav-mobile-panel absolute inset-x-0 top-full z-[1] box-border max-w-full overflow-x-hidden overflow-y-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden"
+            className="nav-mobile-panel fixed inset-x-0 top-[64px] z-50 box-border max-w-full overflow-x-hidden overflow-y-auto border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] lg:hidden flex flex-col h-[calc(100dvh-64px)]"
             style={{
               padding: mobileDrawerOpen ? '12px 20px 20px' : '0 20px',
-              maxHeight: mobileDrawerOpen ? 600 : 0,
+              maxHeight: mobileDrawerOpen ? 'calc(100dvh - 64px)' : 0,
               opacity: mobileDrawerOpen ? 1 : 0,
               transform: mobileDrawerOpen ? 'translateY(0)' : 'translateY(-10px)',
               pointerEvents: mobileDrawerOpen ? 'auto' : 'none',

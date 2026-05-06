@@ -216,22 +216,14 @@ function Layout() {
 
   useEffect(() => {
     if (!mobileDrawerOpen) {
+      document.body.style.overflow = '';
       return;
     }
 
-    const closeMenuOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && headerRef.current?.contains(target)) {
-        return;
-      }
-
-      setMobileDrawerOpen(false);
-    };
-
-    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+      document.body.style.overflow = '';
     };
   }, [mobileDrawerOpen]);
 
@@ -875,10 +867,10 @@ function Layout() {
           {/* Mobile navigation dropdown (landing page style) */}
           <div
             id="layout-mobile-drawer"
-            className={`nav-mobile-panel absolute inset-x-0 top-full z-[1] box-border max-w-full overflow-x-hidden overflow-y-hidden border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] lg:hidden ${
+            className={`nav-mobile-panel fixed inset-x-0 top-[64px] z-50 box-border max-w-full overflow-x-hidden overflow-y-auto border-t border-[var(--outline-variant)]/30 bg-[var(--surface-container-lowest)] transition-[max-height,opacity,transform,padding] duration-[320ms,220ms,220ms,220ms] ease-[cubic-bezier(0.2,0.65,0.3,1),ease,ease,ease] lg:hidden flex flex-col ${
               mobileDrawerOpen
-                ? 'pointer-events-auto max-h-[500px] translate-y-0 px-5 pt-3 pb-5 opacity-100'
-                : 'pointer-events-none max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
+                ? 'pointer-events-auto h-[calc(100dvh-64px)] max-h-[calc(100dvh-64px)] translate-y-0 px-5 pt-3 pb-5 opacity-100'
+                : 'pointer-events-none h-[calc(100dvh-64px)] max-h-0 -translate-y-2.5 px-5 py-0 opacity-0'
             }`}
           >
             {NAV_ITEMS.map((item) => {

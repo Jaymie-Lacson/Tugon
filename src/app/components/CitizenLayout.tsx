@@ -17,17 +17,12 @@ import {
 } from 'lucide-react';
 import { clearAuthSession, getAuthSession } from '../utils/authSession';
 import { resolveDefaultAppPath } from '../utils/navigationGuards';
-import { citizenReportsApi } from '../services/citizenReportsApi';
-import type { ApiCitizenReport } from '../services/citizenReportsApi';
-import { CitizenNotificationBellTrigger, CitizenNotificationsPanel } from './CitizenNotifications';
-import { useCitizenReportNotifications } from '../hooks/useCitizenReportNotifications';
-import { RoleHomeLogo } from './RoleHomeLogo';
-import { VerificationProgressCard, hasVerificationProgressPrompt } from './VerificationProgressCard';
-import { CitizenOnboardingModal } from './CitizenOnboardingModal';
+import { citizenReportsApi, type ApiCitizenReport, type ApiReportStreamEvent } from '../services/citizenReportsApi';
+import { AdminNotifications, type AdminNotificationItem } from './AdminNotifications';
 import { ThemeToggle } from './ThemeToggle';
 import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
-import { citizenNavDefs, type CitizenNavKey } from '../data/navigationConfig';
+import { citizenNavDefs } from '../data/navigationConfig';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 import { useTheme } from 'next-themes';
@@ -45,23 +40,7 @@ function LiveClock() {
   );
 }
 
-export interface CitizenPageLayoutProps {
-  activeNavKey?: CitizenNavKey | string;
-  onNavigate?: (key: CitizenNavKey) => void;
-  children?: React.ReactNode;
-  beforeMain?: React.ReactNode;
-  afterMain?: React.ReactNode;
-  hideVerificationPrompt?: boolean;
-}
-
-export function CitizenPageLayout({
-  activeNavKey,
-  onNavigate,
-  children,
-  beforeMain,
-  afterMain,
-  hideVerificationPrompt,
-}: CitizenPageLayoutProps) {
+function Layout() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   useImmersiveThemeColor(isDark ? '#091728' : '#ffffff');
@@ -71,9 +50,8 @@ export function CitizenPageLayout({
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-  
-  const { notificationItems, markAllNotificationsRead } = useCitizenReportNotifications();
-  const unreadCount = notificationItems.filter((item) => item.unread).length;
+  const [notifications, setNotifications] = useState<ApiCrossBorderAlert[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,14 +68,14 @@ export function CitizenPageLayout({
   const location = useLocation();
   const session = getAuthSession();
   const roleHomePath = resolveDefaultAppPath(session);
-  const userFullName = session?.user.fullName?.trim() || 'Citizen';
+  const userFullName = session?.user.fullName?.trim() || t('role.official');
   const userInitials = userFullName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('') || 'CU';
-  const userRoleLabel = session?.user.barangayCode ? `Barangay ${session.user.barangayCode}` : 'Tondo Cluster';
+    .join('') || 'BO';
+  const userRoleLabel = session?.user.role === 'SUPER_ADMIN' ? t('role.superAdmin') : t('role.official');
 
   const handleAuthFailure = React.useCallback((error: unknown) => {
     if (!(error instanceof Error)) {
@@ -129,13 +107,12 @@ export function CitizenPageLayout({
     navigate('/auth/login', { replace: true });
   }, [navigate]);
 
-  const NAV_ITEMS = citizenNavDefs.map((item) => ({ ...item, path: item.key === 'home' ? '/citizen' : item.key === 'report' ? '/citizen/report' : item.key === 'myreports' ? '/citizen/my-reports' : '/citizen?tab=' + item.key, label: t(item.labelKey), exact: item.key === 'home' }));
+  const NAV_ITEMS = officialSidebarNavDefs.map((item) => ({ ...item, label: t(item.labelKey) }));
 
-  const currentPage = NAV_ITEMS.find((n) => n.key === activeNavKey) || NAV_ITEMS[0];
-  let currentPageLabel = currentPage?.label ?? '';
-  if (location.pathname === '/citizen/settings') {
-    currentPageLabel = t('common.settings');
-  }
+  const currentPage = NAV_ITEMS.find((n) =>
+    n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path) && n.path !== '/app',
+  ) || NAV_ITEMS[0];
+  const currentPageLabel = currentPage?.label ?? '';
   const mobileTitleMetrics = usePretextBlockMetrics<HTMLSpanElement>(currentPageLabel, {
     font: '700 17px "IBM Plex Sans"',
     lineHeight: 22,
@@ -146,7 +123,7 @@ export function CitizenPageLayout({
     lineHeight: 16,
     maxLines: 1,
   });
-  const settingsActive = location.pathname === '/citizen/settings' || location.pathname.startsWith('/citizen/settings/');
+  const settingsActive = location.pathname === '/app/settings' || location.pathname.startsWith('/app/settings/');
   const mobileDrawerItemMotionClass = mobileDrawerOpen
     ? 'opacity-100 translate-y-0'
     : 'pointer-events-none opacity-0 -translate-y-1.5';
@@ -191,10 +168,10 @@ export function CitizenPageLayout({
       const navMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(ql));
       
       const settingsSubItems = [
-        { path: '/citizen/settings?tab=account', label: t('nav.settings') + ' - Account', icon: User, keywords: ['account', 'profile', 'name'] },
-        { path: '/citizen/settings?tab=access', label: t('nav.settings') + ' - Access Status', icon: Shield, keywords: ['access', 'authorization', 'verification', 'security'] },
-        { path: '/citizen/settings?tab=language', label: t('nav.settings') + ' - ' + t('settings.language'), icon: Globe, keywords: ['language', 'locale', 'translation', 'english', 'tagalog'] },
-        { path: '/citizen/settings?tab=appearance', label: t('nav.settings') + ' - Appearance', icon: Monitor, keywords: ['appearance', 'theme', 'dark mode', 'light mode'] },
+        { path: '/app/settings?tab=account', label: t('nav.settings') + ' - Account', icon: User, keywords: ['account', 'profile', 'name'] },
+        { path: '/app/settings?tab=access', label: t('nav.settings') + ' - Access Status', icon: Shield, keywords: ['access', 'authorization', 'verification', 'security'] },
+        { path: '/app/settings?tab=language', label: t('nav.settings') + ' - ' + t('settings.language'), icon: Globe, keywords: ['language', 'locale', 'translation', 'english', 'tagalog'] },
+        { path: '/app/settings?tab=appearance', label: t('nav.settings') + ' - Appearance', icon: Monitor, keywords: ['appearance', 'theme', 'dark mode', 'light mode'] },
       ];
       
       const settingsMatches = settingsSubItems.filter(item => 
@@ -206,11 +183,9 @@ export function CitizenPageLayout({
       setSearchDropdownOpen(true);
       setSearchResultsLoading(true);
       try {
-        const { reports } = await citizenReportsApi.getMyReports();
-        const filtered = reports.filter(r => r.category.toLowerCase().includes(ql) || r.location.toLowerCase().includes(ql) || r.description.toLowerCase().includes(ql));
-        const toMap = { reports: filtered };
+        const { reports } = await officialReportsApi.getReports({ search: q });
         setSearchIncidentResults(
-          toMap.reports.slice(0, 5).map((r) => ({ id: r.id, category: r.category, location: r.location, status: r.status, description: r.description, barangay: r.barangay })),
+          reports.slice(0, 5).map((r) => ({ id: r.id, category: r.category, location: r.location, status: r.status, description: r.description, barangay: r.barangay })),
         );
       } catch (error) {
         if (handleAuthFailure(error)) {
@@ -251,12 +226,88 @@ export function CitizenPageLayout({
     };
   }, [mobileDrawerOpen]);
 
-  
-  
+  useEffect(() => {
+    let active = true;
 
-  
+    const loadNotifications = async () => {
+      if (authRedirecting) {
+        return;
+      }
 
-  
+      if (active) setNotificationsLoading(true);
+      try {
+        const payload = await officialReportsApi.getAlerts();
+        if (!active) return;
+        setNotifications(payload.alerts);
+        setUnreadCount(payload.alerts.filter((alert) => !alert.readAt).length);
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
+        if (active) {
+          setUnreadCount(0);
+          setNotifications([]);
+        }
+      } finally {
+        if (active) setNotificationsLoading(false);
+      }
+    };
+
+    void loadNotifications();
+    const timer = window.setInterval(() => { void loadNotifications(); }, 30000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [authRedirecting, handleAuthFailure]);
+
+  const handleNotificationClick = async (item: ApiCrossBorderAlert) => {
+    if (!item.readAt) {
+      try {
+        await officialReportsApi.markAlertRead(item.id);
+        setNotifications((current) =>
+          current.map((entry) =>
+            entry.id === item.id ? { ...entry, readAt: new Date().toISOString() } : entry,
+          ),
+        );
+        setUnreadCount((current) => Math.max(0, current - 1));
+      } catch (error) {
+        if (handleAuthFailure(error)) {
+          return;
+        }
+
+        // Keep UI usable even if mark-read fails.
+      }
+    }
+    setNotificationsOpen(false);
+    navigate('/app/incidents', { state: { focusReportId: item.reportId } });
+  };
+
+  const handleMarkAllRead = async () => {
+    if (unreadCount <= 0) return;
+    const pending = notifications.filter((item) => !item.readAt);
+    if (pending.length === 0) { setUnreadCount(0); return; }
+    try {
+      await Promise.all(pending.map((item) => officialReportsApi.markAlertRead(item.id)));
+      const nowIso = new Date().toISOString();
+      setNotifications((current) =>
+        current.map((item) => ({ ...item, readAt: item.readAt ?? nowIso })),
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      if (handleAuthFailure(error)) {
+        return;
+      }
+
+      // Keep menu open; next poll can recover latest state.
+    }
+  };
+
+  const notificationItems: AdminNotificationItem[] = notifications.map((item) => ({
+    id: item.id,
+    title: `${item.report.category} incident nearby`,
+    message: item.alertReason || `Cross-border update for ${item.report.location}`,
+    createdAt: item.createdAt,
+    readAt: item.readAt,
+  }));
 
   const closeOverlays = (options?: { includeMobileDrawer?: boolean; includeSearch?: boolean }) => {
     const includeMobileDrawer = options?.includeMobileDrawer ?? true;
@@ -272,7 +323,7 @@ export function CitizenPageLayout({
     e.preventDefault();
     const q = searchQuery.trim();
     if (!q) return;
-    navigate(`/citizen/my-reports`);
+    navigate(`/app/incidents?search=${encodeURIComponent(q)}`);
     setSearchQuery('');
     setMobileSearchOpen(false);
     setMobileDrawerOpen(false);
@@ -324,7 +375,7 @@ export function CitizenPageLayout({
         if (selected.type === 'nav') {
           handleSearchResultClick(selected.data.path);
         } else {
-          handleSearchResultClick(`/citizen/incidents?incident=${encodeURIComponent(selected.data.id)}`);
+          handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(selected.data.id)}`);
         }
       }
     }
@@ -394,13 +445,16 @@ export function CitizenPageLayout({
             </div>
           ) : null}
           {NAV_ITEMS.map((item) => {
-            const active = item.key === activeNavKey;
+            const isActive = item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path) && item.path !== '/app';
+            const exactActive = location.pathname === '/app';
+            const active = item.exact ? exactActive : isActive;
 
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                onClick={(e) => { if (onNavigate) { e.preventDefault(); onNavigate(item.key as CitizenNavKey); } }}
                 title={t('nav.openPage', { page: item.label })}
                 className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
                   active
@@ -420,7 +474,7 @@ export function CitizenPageLayout({
 
           <div className="mt-3 border-t border-[var(--outline-variant)]/35 pt-3">
             <NavLink
-              to="/citizen/settings"
+              to="/app/settings"
               title={t('nav.openSettingsPage')}
               className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
                 settingsActive
@@ -548,7 +602,7 @@ export function CitizenPageLayout({
                             id={`search-result-${globalIdx}`}
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => handleSearchResultClick('/citizen/my-reports')}
+                            onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
                             className={`flex w-full cursor-pointer items-center gap-3 border-none px-3 py-2 text-left transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                           >
                             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
@@ -628,7 +682,7 @@ export function CitizenPageLayout({
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => { setProfileMenuOpen(false); navigate('/citizen/settings'); }}
+                    onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
                     className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
                   >
                     {t('common.profile')}
@@ -683,28 +737,27 @@ export function CitizenPageLayout({
             )}
 
             <div className="order-2 lg:order-none">
-              <div className="relative">
-                <CitizenNotificationBellTrigger
-                  unreadCount={unreadCount}
-                  open={notificationsOpen}
-                  onClick={() => {
-                    setNotificationsOpen((prev) => !prev);
-                    setProfileMenuOpen(false);
-                    setMobileSearchOpen(false);
-                  }}
-                />
-                              </div>
+              <AdminNotifications
+                open={notificationsOpen}
+                loading={notificationsLoading}
+                unreadCount={unreadCount}
+                items={notificationItems}
+                panelLabel="Official notifications"
+                panelTop={48}
+                panelRight={0}
+                panelZIndex={2200}
+                onToggle={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setProfileMenuOpen(false);
+                }}
+                onMarkAllRead={() => { void handleMarkAllRead(); }}
+                onItemClick={(item) => {
+                  const target = notifications.find((entry) => entry.id === item.id);
+                  if (target) { void handleNotificationClick(target); }
+                }}
+              />
             </div>
           </div>
-
-          {notificationsOpen && (
-            <CitizenNotificationsPanel
-              open={notificationsOpen}
-              unreadCount={unreadCount}
-              items={notificationItems as any}
-              onMarkAllRead={markAllNotificationsRead}
-            />
-          )}
 
           {/* Mobile search bar dropdown */}
           <div
@@ -778,7 +831,7 @@ export function CitizenPageLayout({
                         key={incident.id}
                         id={`search-result-${globalIdx}`}
                         type="button"
-                        onClick={() => handleSearchResultClick('/citizen/my-reports')}
+                        onClick={() => handleSearchResultClick(`/app/incidents?incident=${encodeURIComponent(incident.id)}`)}
                         className={`flex w-full cursor-pointer items-center gap-3 border-none px-4 py-2.5 text-left transition-colors hover:bg-[var(--surface-container-high)] ${isSelected ? 'bg-[var(--surface-container-high)] ring-inset ring-2 ring-primary/30' : 'bg-transparent'}`}
                       >
                         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-container-high)]">
@@ -820,13 +873,17 @@ export function CitizenPageLayout({
             }`}
           >
             {NAV_ITEMS.map((item) => {
-              const active = item.key === activeNavKey;
+              const isActive = item.exact
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path) && item.path !== '/app';
+              const exactActive = location.pathname === '/app';
+              const active = item.exact ? exactActive : isActive;
 
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  onClick={(e) => { setMobileDrawerOpen(false); if (onNavigate) { e.preventDefault(); onNavigate(item.key as CitizenNavKey); } }}
+                  onClick={() => setMobileDrawerOpen(false)}
                   className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
                     active ? 'text-primary' : 'text-[var(--on-surface-variant)]'
                   } ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
@@ -838,7 +895,7 @@ export function CitizenPageLayout({
             })}
 
             <NavLink
-              to="/citizen/settings"
+              to="/app/settings"
               onClick={() => setMobileDrawerOpen(false)}
               className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
                 settingsActive ? 'text-primary' : 'text-[var(--on-surface-variant)]'
@@ -878,18 +935,12 @@ export function CitizenPageLayout({
           onClick={() => closeOverlays({ includeMobileDrawer: true })}
           onScroll={() => closeOverlays({ includeMobileDrawer: false })}
         >
-                    {beforeMain}
-          {!hideVerificationPrompt && hasVerificationProgressPrompt() && (
-            <div className="mb-4 px-4"><VerificationProgressCard /></div>
-          )}
-          {children}
-          {afterMain}
-          <CitizenOnboardingModal />
+          <Outlet />
         </main>
       </div>
     </div>
   );
 }
 
-
-
+export { Layout };
+export default Layout;

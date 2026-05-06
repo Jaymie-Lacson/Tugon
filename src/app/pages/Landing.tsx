@@ -234,28 +234,14 @@ function Navbar() {
 
   useEffect(() => {
     if (!mobileOpen) {
+      document.body.style.overflow = '';
       return;
     }
 
-    const closeMenuOnScroll = () => {
-      setMobileOpen(false);
-    };
-
-    const closeMenuOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (target && navRef.current?.contains(target)) {
-        return;
-      }
-
-      setMobileOpen(false);
-    };
-
-    window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
-    window.addEventListener('pointerdown', closeMenuOnOutsideTap, true);
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      window.removeEventListener('scroll', closeMenuOnScroll);
-      window.removeEventListener('pointerdown', closeMenuOnOutsideTap, true);
+      document.body.style.overflow = '';
     };
   }, [mobileOpen]);
 
@@ -282,7 +268,7 @@ function Navbar() {
     <>
       <AuthRedirectOverlay visible={authRedirecting} />
       <nav
-        className={`landing-navbar ${scrolled ? 'is-scrolled' : ''}`}
+        className={`landing-navbar ${scrolled ? 'is-scrolled' : ''} ${mobileOpen ? 'is-menu-open' : ''}`}
         ref={navRef}
         aria-label="Primary"
       >

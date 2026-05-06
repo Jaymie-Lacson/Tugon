@@ -425,97 +425,7 @@ export default function IncidentReport() {
       {submitting && !submitted ? <SubmissionLoadingOverlay /> : null}
 
       <CitizenPageLayout
-        header={
-          <header className="citizen-report-header">
-            <div className="citizen-report-header-inner">
-              <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
-
-              <div className="flex items-center gap-2.5">
-                <CitizenMobileMenu
-                  activeKey="report"
-                  onNavigate={(key) => {
-                    if (key === 'report') navigate('/citizen/report');
-                    else if (key === 'myreports') navigate('/citizen/my-reports');
-                    else if (key === 'map') navigate('/citizen?tab=map');
-                    else if (key === 'profile') navigate('/citizen?tab=profile');
-                    else navigate('/citizen');
-                  }}
-                />
-                <CitizenNotificationBellTrigger
-                  unreadCount={unreadNotificationCount}
-                  open={notifOpen}
-                  onClick={() => {
-                    setNotifOpen((prev) => !prev);
-                    setProfileMenuOpen(false);
-                  }}
-                />
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileMenuOpen((prev) => !prev);
-                      setNotifOpen(false);
-                    }}
-                    aria-label="Open profile actions"
-                    aria-haspopup="menu"
-                    className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#B4730A] text-xs font-bold text-white border-none"
-                  >
-                    {initials}
-                  </button>
-
-                  {profileMenuOpen && (
-                    <div
-                      role="menu"
-                      aria-label="Profile actions"
-                      onPointerDown={(event) => event.stopPropagation()}
-                      className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
-                    >
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setProfileMenuOpen(false);
-                          navigate('/citizen?tab=profile');
-                        }}
-                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
-                      >
-                        {t('citizen.dashboard.openProfilePage')}
-                      </button>
-                      <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
-                        <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
-                        <LanguageToggle compact />
-                      </div>
-                      <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
-                        <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
-                        <ThemeToggle compact />
-                      </div>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setProfileMenuOpen(false);
-                          handleSignOut();
-                        }}
-                        className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-[var(--error-container)] focus-visible:bg-[var(--error-container)] focus-visible:outline-none active:bg-[var(--error-container)]/70"
-                      >
-                        {t('common.signOut')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <CitizenNotificationsPanel
-                open={notifOpen}
-                unreadCount={unreadNotificationCount}
-                items={notificationItems}
-                onMarkAllRead={markAllNotificationsRead}
-                onItemClick={handleNotificationClick}
-              />
-            </div>
-          </header>
-        }
-        sidebar={<CitizenDesktopNav activeKey="report" />}
+        activeNavKey="report"
         beforeMain={<StepIndicator current={step} />}
         afterMain={
           <>
@@ -574,11 +484,6 @@ export default function IncidentReport() {
             `}</style>
           </>
         }
-        mobileMainPaddingBottom={96}
-        desktopMainPaddingBottom={24}
-        desktopMainMaxWidth={1320}
-        mainOnClick={() => { if (notifOpen) setNotifOpen(false); }}
-        mainOnScroll={() => { if (notifOpen) setNotifOpen(false); }}
       >
         <h1 className="sr-only">{t('citizen.report.title')}</h1>
         {submitError && (

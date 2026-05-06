@@ -656,144 +656,15 @@ export default function CitizenDashboard() {
         }}
       />
     <CitizenPageLayout
-      header={
-        <header className="citizen-web-header bg-[var(--citizen-header-bg)] flex items-center h-[60px] shrink-0 sticky top-0 z-50 shadow-[0_2px_8px_rgba(15,23,42,0.14)]">
-          <div
-            className="citizen-web-header-inner flex items-center justify-between gap-3 h-full relative box-border"
-          >
-            <div className="flex items-center gap-2.5">
-              <RoleHomeLogo to="/citizen" ariaLabel="Go to citizen home" alt="TUGON Citizen Portal" />
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <CitizenMobileMenu
-                activeKey={activeTab}
-                onNavigate={(key) => {
-                  if (key === 'report') navigate('/citizen/report');
-                  else if (key === 'myreports') navigate('/citizen/my-reports');
-                  else if (key === 'map') setActiveTab('map');
-                  else if (key === 'profile') setActiveTab('profile');
-                  else setActiveTab('home');
-                }}
-              />
-              <span data-tour="notif-bell" className="inline-flex">
-                <CitizenNotificationBellTrigger
-                  unreadCount={unreadNotificationCount}
-                  open={notifOpen}
-                  onClick={() => {
-                    setNotifOpen((prev) => !prev);
-                    setProfileMenuOpen(false);
-                  }}
-                />
-              </span>
-              <div className="relative">
-                <button
-                  type="button"
-                  aria-label="Open profile actions"
-                  aria-haspopup="menu"
-                  onClick={() => {
-                    setProfileMenuOpen((prev) => !prev);
-                    setNotifOpen(false);
-                  }}
-                  className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#B4730A] text-xs font-bold text-white border-0"
-                >
-                  {initials}
-                </button>
-
-                {profileMenuOpen && (
-                  <div
-                    role="menu"
-                    aria-label="Profile actions"
-                    onPointerDown={(event) => event.stopPropagation()}
-                    className="absolute right-0 top-11 z-[200] w-[220px] overflow-hidden rounded-xl border border-[var(--outline-variant)]/45 bg-[var(--surface-container-lowest)] shadow-elevated divide-y divide-[var(--outline-variant)]/30"
-                  >
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setActiveTab('profile');
-                        setProfileMenuOpen(false);
-                      }}
-                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
-                    >
-                      {t('citizen.dashboard.openProfilePage')}
-                    </button>
-                    <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
-                      <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.language')}</div>
-                      <LanguageToggle compact />
-                    </div>
-                    <div className="flex items-center justify-between gap-3 bg-[var(--surface-container-low)] px-3 py-2.5">
-                      <div className="text-[11px] font-semibold text-[var(--outline)]">{t('common.theme')}</div>
-                      <ThemeToggle compact />
-                    </div>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={replayTour}
-                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-semibold text-[var(--on-surface)] transition-colors hover:bg-[var(--surface-container-high)] focus-visible:bg-[var(--surface-container-high)] focus-visible:outline-none active:bg-[var(--surface-container)]"
-                    >
-                      {t('citizen.tour.replay')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setProfileMenuOpen(false);
-                        handleSignOut();
-                      }}
-                      className="w-full cursor-pointer border-none bg-transparent px-3 py-[11px] text-left text-[13px] font-bold text-destructive transition-colors hover:bg-[var(--error-container)] focus-visible:bg-[var(--error-container)] focus-visible:outline-none active:bg-[var(--error-container)]/70"
-                    >
-                      {t('common.signOut')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <CitizenNotificationsPanel
-              open={notifOpen}
-              unreadCount={unreadNotificationCount}
-              items={notificationItems}
-              onMarkAllRead={markAllNotificationsRead}
-              onItemClick={handleNotificationClick}
-            />
-          </div>
-        </header>
-      }
+      activeNavKey={activeTab}
+      onNavigate={(key) => {
+        if (key === 'report') navigate('/citizen/report');
+        else if (key === 'myreports') navigate('/citizen/my-reports');
+        else if (key === 'map') setActiveTab('map');
+        else if (key === 'profile') setActiveTab('profile');
+        else setActiveTab('home');
+      }}
       beforeMain={<AlertBanner incidents={incidents} />}
-      sidebar={
-        <CitizenDesktopNav
-          activeKey={activeTab}
-          onNavigate={(key) => {
-            if (key === 'report') {
-              navigate('/citizen/report');
-              return true;
-            }
-            if (key === 'myreports') {
-              navigate('/citizen/my-reports');
-              return true;
-            }
-            if (key === 'map' || key === 'profile' || key === 'home') {
-              setActiveTab(key);
-              return true;
-            }
-            return false;
-          }}
-        />
-      }
-      mainOnClick={() => {
-        if (notifOpen) {
-          setNotifOpen(false);
-        }
-      }}
-      mainOnScroll={() => {
-        if (notifOpen) {
-          setNotifOpen(false);
-        }
-      }}
-      mobileMainPaddingBottom={activeTab === 'map' ? 0 : 20}
-      desktopMainPaddingBottom={activeTab === 'map' ? 8 : 24}
-      desktopMainMaxWidth={1320}
     >
       {renderContent()}
     </CitizenPageLayout>

@@ -35,6 +35,7 @@ const CitizenDashboard = lazyRoute(() => import('./pages/CitizenDashboard'));
 const CitizenVerification = lazyRoute(() => import('./pages/CitizenVerification'));
 const IncidentReport = lazyRoute(() => import('./pages/IncidentReport'));
 const CitizenMyReports = lazyRoute(() => import('./pages/CitizenMyReports'));
+const CitizenSettings = lazyRoute(() => import('./pages/CitizenSettings'));
 const Verifications = lazyRoute(() => import('./pages/Verifications'));
 const SuperAdminLayout = lazyRoute(() => import('./pages/superadmin/SuperAdminLayout'));
 const SAOverview = lazyRoute(() => import('./pages/superadmin/SAOverview'));
@@ -65,6 +66,14 @@ function CitizenReportsGuard() {
     RequireRole,
     { roles: ['CITIZEN'], fallbackPath: '/app' },
     React.createElement(CitizenMyReports),
+  );
+}
+
+function CitizenSettingsGuard() {
+  return React.createElement(
+    RequireRole,
+    { roles: ['CITIZEN'], fallbackPath: '/app' },
+    React.createElement(CitizenSettings),
   );
 }
 
@@ -147,6 +156,16 @@ const routes: RouteObject[] = [
           { roles: ['CITIZEN'], fallbackPath: '/app' },
           React.createElement(CitizenVerification),
         ),
+      ),
+  },
+  {
+    path: '/citizen/settings',
+    errorElement,
+    Component: () =>
+      React.createElement(
+        RequireAuth,
+        null,
+        React.createElement(CitizenSettingsGuard),
       ),
   },
 
