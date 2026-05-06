@@ -710,7 +710,7 @@ function HomeTab({
 
   if (isLoading) {
     return (
-      <div className="citizen-content-shell pt-4 pb-[18px]">
+      <div className="citizen-content-shell px-4 lg:px-5 pt-4 pb-[18px]">
         <TextSkeleton rows={3} title={false} className="rounded-xl" />
         <CardSkeleton
           count={3}
@@ -724,7 +724,7 @@ function HomeTab({
   }
 
   return (
-    <div className="citizen-content-shell page-content pt-4 pb-[18px]">
+    <div className="citizen-content-shell page-content px-4 lg:px-5 py-4 pb-[18px]">
       {/* Page header — matches official dashboard district focus header */}
       <section className="mb-4 border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1086,7 +1086,7 @@ function _ReportTab() {
   }
 
   return (
-    <div className="citizen-content-shell pt-5 pb-5">
+    <div className="citizen-content-shell px-4 lg:px-5 pt-5 pb-5 flex flex-col flex-1">
       {/* Header */}
       <div
         className="mb-5 rounded-2xl bg-[#B91C1C] p-4 text-white"
@@ -1110,7 +1110,7 @@ function _ReportTab() {
 
       {/* Step 1: type */}
       {step === 1 && (
-        <div>
+        <div className="flex flex-col flex-1">
           <div className="font-bold text-sm text-[var(--on-surface)] mb-3">
             What type of incident?
           </div>
@@ -1138,23 +1138,25 @@ function _ReportTab() {
               );
             })}
           </div>
-          <button
-            onClick={() => selectedType && setStep(2)}
-            disabled={!selectedType}
-            className={`mt-5 w-full rounded-xl border-0 py-3.5 text-sm font-bold transition-colors duration-200 ${
-              selectedType
-                ? 'cursor-pointer bg-primary text-white'
-                : 'cursor-not-allowed bg-muted text-muted-foreground'
-            }`}
-          >
-            {'Continue ->'}
-          </button>
+          <div className="mt-auto px-4 lg:px-5 pt-5">
+            <button
+              onClick={() => selectedType && setStep(2)}
+              disabled={!selectedType}
+              className={`w-full rounded-xl border-0 py-3.5 text-sm font-bold transition-colors duration-200 ${
+                selectedType
+                  ? 'cursor-pointer bg-primary text-white'
+                  : 'cursor-not-allowed bg-muted text-muted-foreground'
+              }`}
+            >
+              {'Continue ->'}
+            </button>
+          </div>
         </div>
       )}
 
       {/* Step 2: details */}
       {step === 2 && (
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col flex-1 gap-3.5">
           <div className="font-bold text-sm text-[var(--on-surface)] mb-0.5">Describe the incident</div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
@@ -1202,24 +1204,26 @@ function _ReportTab() {
               className="w-full px-[13px] py-[11px] rounded-[10px] border-[1.5px] border-border bg-input-background text-[var(--on-surface)] text-[13px] outline-none resize-none box-border font-['Roboto',sans-serif]"
             />
           </div>
-          <div className="flex gap-2.5">
-            <button
-              onClick={() => setStep(1)}
-              className="flex-1 bg-surface-container-low text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
-            >
-              {'<- Back'}
-            </button>
-            <button
-              onClick={() => description && location && severity && setStep(3)}
-              disabled={!description || !location || !severity}
-              className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
-                description && location && severity
-                  ? 'cursor-pointer bg-primary text-white'
-                  : 'cursor-not-allowed bg-muted text-muted-foreground'
-              }`}
-            >
-              {'Review ->'}
-            </button>
+          <div className="mt-auto px-4 lg:px-5 pt-5">
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setStep(1)}
+                className="flex-1 bg-surface-container-low text-muted-foreground border-0 rounded-xl py-3.5 font-bold text-sm cursor-pointer"
+              >
+                {'<- Back'}
+              </button>
+              <button
+                onClick={() => description && location && severity && setStep(3)}
+                disabled={!description || !location || !severity}
+                className={`flex-[2] rounded-xl border-0 py-3.5 text-sm font-bold ${
+                  description && location && severity
+                    ? 'cursor-pointer bg-primary text-white'
+                    : 'cursor-not-allowed bg-muted text-muted-foreground'
+                }`}
+              >
+                {'Review ->'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1569,7 +1573,7 @@ function ProfileTab({
   const verificationSummary = getVerificationSummary(verificationPreview);
 
   return (
-    <div className="citizen-content-shell pt-4 pb-4">
+    <div className="citizen-content-shell px-4 lg:px-5 pt-4 pb-4">
       {/* Page header */}
       <section className="mb-4 border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

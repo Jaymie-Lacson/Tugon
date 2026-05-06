@@ -89,7 +89,7 @@ function Step1({ form, setForm }: { form: ReportForm; setForm: React.Dispatch<Re
   };
 
   return (
-    <div className="incident-step2 pt-[22px] px-4 pb-2">
+    <div className="incident-step2 pt-[22px] px-0 pb-2">
       <div className="mb-5">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] dark:bg-[var(--primary-fixed)] rounded-lg px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">
           {t('citizen.report.step1.badge')}

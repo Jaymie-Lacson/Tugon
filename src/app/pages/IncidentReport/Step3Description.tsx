@@ -37,7 +37,7 @@ export function Step3({
   };
 
   return (
-    <div className="pt-[22px] px-4 pb-2">
+    <div className="pt-[22px] px-0 pb-2">
       <div className="mb-[18px]">
         <div className="inline-flex items-center gap-1.5 bg-[#EFF6FF] rounded-[20px] px-3 py-1 text-primary text-[10px] font-bold tracking-[0.08em] uppercase mb-2.5">{t('citizen.report.step3.badge')}</div>
         <h2 className="text-[20px] font-extrabold text-foreground mb-1.5 leading-tight">

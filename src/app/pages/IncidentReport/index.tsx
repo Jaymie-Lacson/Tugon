@@ -30,7 +30,7 @@ import type { ReportForm } from './types';
 function StepIndicator({ current }: { current: number }) {
   const { t } = useTranslation();
   return (
-    <div className="citizen-web-strip z-40 bg-card border-b border-border pt-3 pb-0">
+    <div className="citizen-web-strip z-40 bg-card border-b border-border pt-3 pb-0 px-4 lg:px-5">
       <div className="citizen-web-strip-inner flex items-start">
         {STEP_LABEL_KEYS.map((labelKey, i) => {
           const label = t(labelKey);
@@ -429,7 +429,7 @@ export default function IncidentReport() {
         beforeMain={<StepIndicator current={step} />}
         afterMain={
           <>
-            <div className="citizen-report-footer">
+            <div className="citizen-report-footer mt-auto px-4 lg:px-5">
               <div className="citizen-report-footer-actions">
                 {step > 1 && (
                   <button onClick={goBack} className="citizen-report-back-btn">
@@ -461,44 +461,26 @@ export default function IncidentReport() {
                 </button>
               </div>
             </div>
-            <style>{`
-              @media (max-width: 900px) {
-                .citizen-report-footer {
-                  position: fixed !important;
-                  left: var(--app-vv-left, 0px) !important;
-                  width: min(var(--app-vv-width, 100vw), var(--citizen-mobile-shell-max, 520px)) !important;
-                  transform: translateX(calc((var(--app-vv-width, 100vw) - min(var(--app-vv-width, 100vw), var(--citizen-mobile-shell-max, 520px))) / 2)) !important;
-                  bottom: calc(var(--app-vv-bottom-gap, 0px)) !important;
-                  max-width: var(--citizen-mobile-shell-max, 520px) !important;
-                  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-                }
-              }
-              @media (min-width: 901px) {
-                .citizen-report-footer {
-                  position: sticky !important;
-                  left: 0 !important;
-                  transform: none !important;
-                  max-width: none !important;
-                }
-              }
-            `}</style>
           </>
         }
       >
         <h1 className="sr-only">{t('citizen.report.title')}</h1>
         {submitError && (
-          <div role="alert" className="citizen-content-shell mt-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-severity-critical text-xs p-[10px_12px]">
+          <div role="alert" className="citizen-content-shell px-4 lg:px-5 mt-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-severity-critical text-xs p-[10px_12px]">
             {submitError}
           </div>
         )}
-        <div className="citizen-report-content-wrap">
-          {stepContent[step]}
+        <div className="citizen-report-content-wrap px-4 lg:px-5 flex flex-col flex-1 pb-8">
+          <div className="flex-1">
+            {stepContent[step]}
+          </div>
         </div>
         <style>{`
           @media (min-width: 901px) {
             .citizen-report-content-wrap {
               max-width: 980px;
               margin: 0 auto;
+              width: 100%;
             }
           }
         `}</style>

@@ -874,18 +874,20 @@ export function CitizenPageLayout({
         </header>
 
         <main
-          className="flex-1 overflow-x-hidden overflow-y-auto"
+          className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto"
           onClick={() => closeOverlays({ includeMobileDrawer: true })}
           onScroll={() => closeOverlays({ includeMobileDrawer: false })}
         >
                     {beforeMain}
           {!hideVerificationPrompt && hasVerificationProgressPrompt() && (
-            <div className="mb-4 px-4"><VerificationProgressCard /></div>
+            <div className="mb-4 px-4 shrink-0"><VerificationProgressCard /></div>
           )}
-          {children}
-          {afterMain}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
           <CitizenOnboardingModal />
         </main>
+        {afterMain}
       </div>
     </div>
   );

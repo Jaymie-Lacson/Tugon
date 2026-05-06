@@ -1074,7 +1074,7 @@ function EmptyState({ filter, query }: { filter: string; query: string }) {
 function TicketPageLoadingState() {
   const { t } = useTranslation();
   return (
-    <div className="citizen-content-shell pt-7 pb-7">
+    <div className="citizen-content-shell px-4 lg:px-5 pt-7 pb-7">
       <section
         className="grid min-h-[320px] place-items-center rounded-lg border border-[var(--outline-variant)] bg-card px-5 py-6 text-center"
       >
@@ -1313,7 +1313,7 @@ export default function CitizenMyReports() {
           <TicketPageLoadingState />
         ) : (
           <>
-            <div className="citizen-content-shell page-content pt-4 pb-0">
+            <div className="citizen-content-shell page-content px-4 lg:px-5 py-4 pb-0">
               {/* Page header — official style */}
               <section className="mb-3 border-b border-border pb-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1434,7 +1434,7 @@ export default function CitizenMyReports() {
             </div>
 
             <div onClick={() => sortOpen && setSortOpen(false)}>
-              <div className="citizen-content-shell citizen-reports-summary-row pt-[10px] pb-2 flex items-center justify-between">
+              <div className="citizen-content-shell citizen-reports-summary-row px-4 lg:px-5 pt-[10px] pb-2 flex items-center justify-between">
                 <span className="citizen-reports-summary-text text-xs text-muted-foreground font-medium">
                   {t('citizen.myReports.showing')} <strong className="text-foreground">{filtered.length}</strong> {filtered.length !== 1 ? t('citizen.myReports.reports') : t('citizen.myReports.report')}
                   {query && ` ${t('citizen.myReports.showingFor', { query })}`}
@@ -1446,7 +1446,7 @@ export default function CitizenMyReports() {
                 )}
               </div>
 
-              <div className="citizen-content-shell citizen-reports-grid pt-0 pb-6 grid gap-3">
+              <div className="citizen-content-shell citizen-reports-grid px-4 lg:px-5 pt-0 pb-6 grid gap-3">
                 {filtered.length === 0 ? (
                   <EmptyState filter={filter} query={query} />
                 ) : (
@@ -1461,7 +1461,7 @@ export default function CitizenMyReports() {
               </div>
 
               {filtered.length > 0 && (
-                <div className="citizen-content-shell citizen-reports-footnote-wrap pt-0 pb-8 flex items-start gap-2">
+                <div className="citizen-content-shell citizen-reports-footnote-wrap px-4 lg:px-5 pt-0 pb-8 flex items-start gap-2">
                   <Info size={13} color="#94A3B8" className="shrink-0 mt-[1px]" />
                   <p className="citizen-reports-footnote text-[11px] text-muted-foreground leading-[1.6] m-0">
                     {t('citizen.myReports.footnote')}

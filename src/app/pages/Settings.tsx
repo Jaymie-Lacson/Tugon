@@ -98,7 +98,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="page-content p-4 px-5 min-h-full">
+    <div className="page-content min-h-full px-4 lg:px-5 py-4">
       <OfficialPageHeader title={t('settings.title')} subtitle={settingsSubtitle} />
 
       <div className="flex gap-4 flex-wrap items-start max-md:flex-col max-md:gap-3">

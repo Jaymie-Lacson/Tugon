@@ -181,7 +181,7 @@ export function ReportsSkeleton() {
 /* ── Citizen Dashboard Skeleton ───────────────────────────────────── */
 export function CitizenDashboardSkeleton() {
   return (
-    <div className="citizen-content-shell pt-4 pb-[18px] space-y-4">
+    <div className="citizen-content-shell px-4 lg:px-5 pt-4 pb-[18px] space-y-4">
       {/* Greeting header */}
       <SkeletonGroup className="border-b border-border pb-4">
         <Skeleton variant="text" className="h-2.5 w-32 mb-2" delay={0} />
