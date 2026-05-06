@@ -390,7 +390,16 @@ export default function CitizenDashboard() {
   const nowHour = new Date().getHours();
   const greetingLabel = nowHour < 12 ? t('citizen.dashboard.greetingMorning') : nowHour < 18 ? t('citizen.dashboard.greetingAfternoon') : t('citizen.dashboard.greetingEvening');
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  return (tab === 'home' || tab === 'report' || tab === 'map' || tab === 'myreports' || tab === 'profile') ? tab : 'home';
+  });
+
+  const urlTab = new URLSearchParams(location.search).get('tab');
+  const validTabs = ['home', 'report', 'map', 'myreports', 'profile'] as const;
+  const currentTab: Tab = urlTab !== null && validTabs.includes(urlTab as Tab) ? (urlTab as Tab) : activeTab;
+
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -656,7 +665,7 @@ export default function CitizenDashboard() {
         }}
       />
     <CitizenPageLayout
-      activeNavKey={activeTab}
+      activeNavKey={currentTab}
       onNavigate={(key) => {
         if (key === 'report') navigate('/citizen/report');
         else if (key === 'myreports') navigate('/citizen/my-reports');
