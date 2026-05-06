@@ -584,10 +584,6 @@ export function CitizenPageLayout({
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <div className="hidden rounded-full bg-[var(--surface-container-low)] px-2.5 py-1 text-[10px] font-semibold text-[var(--on-surface-variant)] xl:flex xl:items-center xl:gap-2">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#059669]" />
-              System Online
-            </div>
             <div className="hidden text-right lg:block">
               <div className="text-[13px] font-semibold text-[var(--on-surface)]"><LiveClock /></div>
               <div className="text-[10px] text-[var(--outline)]">
