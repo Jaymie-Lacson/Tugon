@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { CheckCircle2, Shield, Sparkles } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { LanguageToggle } from '../i18n';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
@@ -51,7 +51,6 @@ export function AuthLayout({
 
   return (
     <div className="auth-root app-shell-height flex w-full bg-[var(--surface)]">
-      {/* Left branding panel */}
       <aside className="relative hidden w-[46%] min-w-[430px] overflow-hidden bg-[#1e3a8a] lg:flex">
         <img
           src={AUTH_BRAND_IMAGE_960}
@@ -65,10 +64,6 @@ export function AuthLayout({
           decoding="async"
         />
         <div className="absolute inset-0 bg-[#0f245e]/78" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a1a49]/48 via-transparent to-[#183d92]/36" />
-        <div className="absolute -left-24 top-[-72px] h-60 w-60 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-16 right-[-80px] h-72 w-72 rounded-full bg-[#90a8ff]/25 blur-3xl" />
-        <div className="absolute inset-0 bg-white/6" />
 
         <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 py-8 text-white">
           <button onClick={() => navigate('/')} className="w-fit border-none bg-transparent p-0">
@@ -80,10 +75,6 @@ export function AuthLayout({
           </button>
 
           <div className="max-w-[380px]">
-            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider">
-              <Sparkles size={12} />
-              Crisis Command Network
-            </div>
             <h2 className="text-[38px] font-black leading-[1.05] tracking-[-0.03em]">
               Fast.
               <br />
@@ -94,23 +85,10 @@ export function AuthLayout({
             <p className="mt-4 text-sm leading-relaxed text-blue-100">
               Coordinate reports, monitor active incidents, and help every barangay response team move with confidence.
             </p>
-
-            <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white/12 px-3 py-2 text-xs font-semibold text-blue-50">
-              <Shield size={14} />
-              Verified access keeps emergency operations secure.
-            </div>
           </div>
 
-          <div className="text-[11px] text-blue-100">
-            <div className="mb-1">
-              Copyright 2026 TUGON Incident Management System
-            </div>
-            <div className="flex gap-3 text-[10px] text-blue-200">
-              <span>Privacy</span>
-              <span>Terms</span>
-              <span>Contact</span>
-              <span>Emergency</span>
-            </div>
+          <div className="text-[11px] text-blue-200">
+            Copyright 2026 TUGON Incident Management System
           </div>
         </div>
       </aside>
