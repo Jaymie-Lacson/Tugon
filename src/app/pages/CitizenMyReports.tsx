@@ -631,7 +631,7 @@ function DetailView({
   }, [canCancel]);
 
   return (
-    <div className="citizen-report-modal fixed inset-0 z-[200] flex flex-col">
+    <div className="citizen-report-modal fixed inset-0 z-[2500] flex flex-col">
       <div
         onClick={onClose}
         className="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[3px]"
@@ -900,7 +900,7 @@ function DetailView({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm report cancellation"
-          className="citizen-vv-bounds fixed inset-0 z-[230] flex items-center justify-center p-4"
+          className="citizen-vv-bounds fixed inset-0 z-[2550] flex items-center justify-center p-4"
         >
           <div
             onClick={() => {
@@ -978,7 +978,7 @@ function DetailView({
 
       {selectedPhoto && (
         <div
-          className="citizen-photo-preview-overlay citizen-vv-bounds fixed inset-0 z-[220] flex items-center justify-center bg-[rgba(2,6,23,0.82)] p-4"
+          className="citizen-photo-preview-overlay citizen-vv-bounds fixed inset-0 z-[2600] flex items-center justify-center bg-[rgba(2,6,23,0.82)] p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Photo preview"
