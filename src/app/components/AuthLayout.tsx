@@ -228,6 +228,7 @@ export function InputField({
           autoFocus={autoFocus}
           {...autoCompleteProps}
         />
+        {rightElement && <div className="shrink-0">{rightElement}</div>}
       </div>
       {error && <div className="mt-1.5 text-[11px] font-semibold text-[var(--error)]">! {error}</div>}
       {hint && !error && <div className="mt-1.5 text-[11px] text-[var(--on-surface-variant)]">{hint}</div>}
