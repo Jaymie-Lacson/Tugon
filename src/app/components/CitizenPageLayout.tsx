@@ -411,16 +411,32 @@ export function CitizenPageLayout({
           ) : null}
           {NAV_ITEMS.map((item) => {
             const active = item.key === activeNavKey;
+            const isReport = item.key === 'report';
 
-            const linkClass = `mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
-              active
-                ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
-            }`;
+            const baseClasses = `mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors`;
+
+            let linkClass: string;
+            if (isReport) {
+              if (active) {
+                linkClass = `${baseClasses} bg-[var(--surface-container-high)] text-primary font-bold shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]`;
+              } else {
+                linkClass = `${baseClasses} bg-[var(--primary)] text-[var(--on-primary)] font-semibold hover:bg-[var(--primary-container)]`;
+              }
+            } else if (active) {
+                linkClass = `${baseClasses} bg-[var(--surface-container-high)] text-primary font-bold shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]`;
+            } else {
+                linkClass = `${baseClasses} text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]`;
+            }
 
             const linkInner = (
               <>
-                <item.icon size={16} className={`shrink-0 ${active ? 'text-primary' : 'text-[var(--outline)]'}`} />
+                <item.icon size={16} className={`shrink-0 ${
+                  isReport && !active
+                    ? 'text-[var(--on-primary)]'
+                    : isReport || active
+                      ? 'text-primary'
+                      : 'text-[var(--outline)]'
+                }`} />
                 {desktopSidebarOpen ? (
                   <span className={`text-[13px] whitespace-nowrap ${active ? 'font-bold' : 'font-medium'}`}>
                     {item.label}
