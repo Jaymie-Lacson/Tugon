@@ -23,6 +23,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useTranslation } from '../i18n';
 import { LanguageToggle } from '../i18n';
 import { citizenNavDefs } from '../data/navigationConfig';
+import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 import { usePretextBlockMetrics } from '../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../hooks/useImmersiveThemeColor';
 import { useTheme } from 'next-themes';
@@ -429,15 +430,19 @@ function Layout() {
 
         <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
           {!desktopSidebarOpen ? (
-            <button
-              type="button"
-              onClick={() => setDesktopSidebarOpen(true)}
-              aria-label="Expand sidebar"
-              title="Expand sidebar"
-              className="mb-1.5 flex w-full cursor-pointer items-center justify-center rounded-xl border-none bg-transparent px-2 py-2.5 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
-            >
-              <ChevronsRight size={16} className="shrink-0" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => setDesktopSidebarOpen(true)}
+                  aria-label="Expand sidebar"
+                  className="mb-1.5 flex w-full cursor-pointer items-center justify-center rounded-xl border-none bg-transparent px-2 py-2.5 text-[var(--on-surface-variant)] transition-colors hover:bg-[var(--surface-container)]"
+                >
+                  <ChevronsRight size={16} className="shrink-0" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Expand sidebar</TooltipContent>
+            </Tooltip>
           ) : null}
           {desktopSidebarOpen ? (
             <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--outline)]">
@@ -451,44 +456,86 @@ function Layout() {
             const exactActive = location.pathname === '/app';
             const active = item.exact ? exactActive : isActive;
 
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                title={t('nav.openPage', { page: item.label })}
-                className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
-                  active
-                    ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                    : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
-                }`}
-              >
+            const linkClass = `mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
+              active
+                ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+            }`;
+
+            const linkInner = (
+              <>
                 <item.icon size={16} className={`shrink-0 ${active ? 'text-primary' : 'text-[var(--outline)]'}`} />
                 {desktopSidebarOpen ? (
                   <span className={`text-[13px] whitespace-nowrap ${active ? 'font-bold' : 'font-medium'}`}>
                     {item.label}
                   </span>
                 ) : null}
+              </>
+            );
+
+            if (!desktopSidebarOpen) {
+              return (
+                <Tooltip key={item.path}>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to={item.path}
+                      title={t('nav.openPage', { page: item.label })}
+                      className={linkClass}
+                    >
+                      {linkInner}
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                title={t('nav.openPage', { page: item.label })}
+                className={linkClass}
+              >
+                {linkInner}
               </NavLink>
             );
           })}
 
           <div className="mt-3 border-t border-[var(--outline-variant)]/35 pt-3">
-            <NavLink
-              to="/app/settings"
-              title={t('nav.openSettingsPage')}
-              className={`mb-1.5 flex items-center ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} rounded-xl py-2.5 no-underline transition-colors ${
-                settingsActive
-                  ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
-                  : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
-              }`}
-            >
-              <Settings size={16} className={`shrink-0 ${settingsActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
-              {desktopSidebarOpen ? (
+            {!desktopSidebarOpen ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to="/app/settings"
+                    title={t('nav.openSettingsPage')}
+                    className={`mb-1.5 flex items-center justify-center px-2 rounded-xl py-2.5 no-underline transition-colors ${
+                      settingsActive
+                        ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                        : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                    }`}
+                  >
+                    <Settings size={16} className={`shrink-0 ${settingsActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent side="right">{t('common.settings')}</TooltipContent>
+              </Tooltip>
+            ) : (
+              <NavLink
+                to="/app/settings"
+                title={t('nav.openSettingsPage')}
+                className={`mb-1.5 flex items-center gap-3 px-3 rounded-xl py-2.5 no-underline transition-colors ${
+                  settingsActive
+                    ? 'bg-[var(--surface-container-high)] text-primary shadow-[inset_0_0_0_1px_rgba(0,35,111,0.08)]'
+                    : 'text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)]'
+                }`}
+              >
+                <Settings size={16} className={`shrink-0 ${settingsActive ? 'text-primary' : 'text-[var(--outline)]'}`} />
                 <span className={`text-[13px] whitespace-nowrap ${settingsActive ? 'font-bold' : 'font-medium'}`}>
                   {t('common.settings')}
                 </span>
-              ) : null}
-            </NavLink>
+              </NavLink>
+            )}
           </div>
         </nav>
 

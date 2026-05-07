@@ -31,6 +31,7 @@ import { useTranslation } from '../../i18n';
 import { LanguageToggle } from '../../i18n';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { superAdminSidebarNavDefs } from '../../data/navigationConfig';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/ui/tooltip';
 import { usePretextBlockMetrics } from '../../hooks/usePretextBlockMetrics';
 import { useImmersiveThemeColor } from '../../hooks/useImmersiveThemeColor';
 import { useTheme } from 'next-themes';
@@ -437,7 +438,7 @@ export default function SuperAdminLayout() {
     const exactActive = location.pathname === '/superadmin';
     const isActive = item.exact ? exactActive : active;
 
-    return (
+    const navLinkContent = (
       <NavLink
         key={item.path}
         to={item.path}
@@ -457,6 +458,19 @@ export default function SuperAdminLayout() {
         ) : null}
       </NavLink>
     );
+
+    if (collapsed) {
+      return (
+        <Tooltip key={item.path}>
+          <TooltipTrigger asChild>
+            {navLinkContent}
+          </TooltipTrigger>
+          <TooltipContent side="right">{item.label}</TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return navLinkContent;
   });
 
   const renderMonitoringStrip = () => (
