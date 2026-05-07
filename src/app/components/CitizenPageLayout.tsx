@@ -449,12 +449,12 @@ export function CitizenPageLayout({
               return (
                 <Tooltip key={item.path}>
                   <TooltipTrigger asChild>
-                    <NavLink
-                      to={item.path}
-                      onClick={(e) => { if (onNavigate) { e.preventDefault(); onNavigate(item.key as CitizenNavKey); } }}
-                      title={t('nav.openPage', { page: item.label })}
-                      className={linkClass}
-                    >
+                <NavLink
+                       to={item.path}
+                       onClick={(e) => { if (onNavigate) { onNavigate(item.key as CitizenNavKey); } }}
+                       title={t('nav.openPage', { page: item.label })}
+                       className={linkClass}
+                     >
                       {linkInner}
                     </NavLink>
                   </TooltipTrigger>
@@ -465,12 +465,12 @@ export function CitizenPageLayout({
 
             return (
               <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={(e) => { if (onNavigate) { e.preventDefault(); onNavigate(item.key as CitizenNavKey); } }}
-                title={t('nav.openPage', { page: item.label })}
-                className={linkClass}
-              >
+                 key={item.path}
+                 to={item.path}
+                 onClick={(e) => { if (onNavigate) { onNavigate(item.key as CitizenNavKey); } }}
+                 title={t('nav.openPage', { page: item.label })}
+                 className={linkClass}
+               >
                 {linkInner}
               </NavLink>
             );
@@ -895,13 +895,13 @@ export function CitizenPageLayout({
 
               return (
                 <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={(e) => { setMobileDrawerOpen(false); if (onNavigate) { e.preventDefault(); onNavigate(item.key as CitizenNavKey); } }}
-                  className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
-                    active ? 'text-primary' : 'text-[var(--on-surface-variant)]'
-                  } ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
-                >
+                   key={item.path}
+                   to={item.path}
+                   onClick={(e) => { setMobileDrawerOpen(false); if (onNavigate) { onNavigate(item.key as CitizenNavKey); } }}
+                   className={`flex w-full items-center gap-3 border-b border-[var(--outline-variant)]/25 px-0 py-3 no-underline text-[15px] font-semibold ${
+                     active ? 'text-primary' : 'text-[var(--on-surface-variant)]'
+                   } ${mobileDrawerItemMotionClass} transition-[opacity,transform] duration-[180ms] ease-out`}
+                 >
                   <item.icon size={16} />
                   <span>{item.label}</span>
                 </NavLink>

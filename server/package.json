@@ -16,8 +16,6 @@
     "db:restore:local": "node scripts/db-restore-local.cjs",
     "id-image:migrate": "node scripts/migrate-legacy-id-image-paths.cjs",
     "id-image:rollback": "node scripts/rollback-legacy-id-image-paths.cjs",
-    "seed": "tsx prisma/seed.ts",
-    "seed:screenshots": "tsx prisma/seed-screenshots.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:resolve": "prisma migrate resolve",

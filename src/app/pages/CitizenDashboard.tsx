@@ -625,12 +625,14 @@ export default function CitizenDashboard() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab === 'map' || tab === 'profile' || tab === 'home') {
-      setActiveTab(tab);
-    }
-  }, [location.search]);
+     const params = new URLSearchParams(location.search);
+     const tab = params.get('tab');
+     if (tab === 'map' || tab === 'profile') {
+       setActiveTab(tab);
+     } else {
+       setActiveTab('home');
+     }
+   }, [location.search]);
 
   const renderContent = () => {
     switch (activeTab) {
